@@ -1,4 +1,5 @@
-import { View, Text, StyleSheet } from 'react-native'
+import { Text, View } from 'react-native'
+import { StyleSheet } from 'react-native-unistyles'
 
 export default function HomeScreen() {
   return (
@@ -8,14 +9,14 @@ export default function HomeScreen() {
   )
 }
 
-const styles = StyleSheet.create({
+const styles = StyleSheet.create((theme, rt) => ({
   container: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
   text: {
-    fontSize: 24,
-    fontWeight: '600',
+    fontSize: theme.fontSize['2xl'],
+    fontWeight: theme.fontWeight.semibold,
   },
-})
+}))
