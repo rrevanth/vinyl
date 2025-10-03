@@ -1,0 +1,10 @@
+node_modules
+.expo
+.expo-shared
+dist
+build
+repos
+designs
+docs
+*.lock
+bun.lockb

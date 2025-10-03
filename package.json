@@ -8,7 +8,11 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx}\"",
+    "validate": "bun typecheck && bun lint && prettier --check \"src/**/*.{ts,tsx,js,jsx}\"",
+    "validate:fix": "bun typecheck && bun lint --fix && prettier --write \"src/**/*.{ts,tsx,js,jsx}\""
   },
   "dependencies": {
     "@expo-google-fonts/inter": "^0.4.2",
@@ -35,6 +39,7 @@
     "expo-symbols": "~1.0.7",
     "expo-system-ui": "~6.0.7",
     "expo-web-browser": "~15.0.8",
+    "prettier": "^3.6.2",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-native": "0.81.4",
