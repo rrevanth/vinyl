@@ -955,13 +955,13 @@ describe('UserProfile', () => {
 ```typescript
 // ✅ ALWAYS use Task tool with appropriate agent
 Task({
-  subagent_type: 'python-expert',        // For backend/API work
-  subagent_type: 'frontend-architect',   // For UI components
+  subagent_type: 'backend-architect',    // For Domain/Infrastructure layers
+  subagent_type: 'frontend-architect',   // For Presentation/UI components
   subagent_type: 'refactoring-expert',   // For code cleanup
   subagent_type: 'quality-engineer',     // For testing
   subagent_type: 'security-engineer',    // For security reviews
   description: 'Implement user authentication',
-  prompt: 'Create authentication use case with proper error handling...'
+  prompt: 'Create authentication use case with proper error handling in TypeScript...'
 })
 
 // ❌ NEVER make changes directly without agents
@@ -969,18 +969,20 @@ Write({ file_path: '...', content: '...' })  // Wrong approach
 Edit({ file_path: '...', ... })              // Wrong approach
 ```
 
-**Agent Selection Guide:**
+**Agent Selection Guide (TypeScript/React Native):**
 
 | Task Type | Agent | Use Case |
 |-----------|-------|----------|
-| Domain/Use Cases | python-expert | Business logic, entities, repositories |
-| Infrastructure | python-expert | API clients, storage, services |
-| UI Components | frontend-architect | React Native components, screens |
+| Domain Layer | backend-architect | Entities, use cases, repository interfaces |
+| Infrastructure Layer | backend-architect | API clients, storage, services, DI container |
+| Presentation/UI | frontend-architect | React Native components, screens, hooks |
+| State Management | frontend-architect | Legend State stores, TanStack Query setup |
 | Code Cleanup | refactoring-expert | Improving code quality, reducing debt |
 | Testing | quality-engineer | Unit tests, integration tests |
-| Architecture | system-architect | System design, layer structure |
+| Architecture Design | system-architect | System design, layer structure, patterns |
 | Security | security-engineer | Auth, validation, error handling |
-| Bug Fixing | root-cause-analyst | Debugging, investigation |
+| Bug Fixing | root-cause-analyst | Debugging, investigation, error analysis |
+| Performance | performance-engineer | Optimization, profiling, bottleneck removal |
 
 **Exception**: Only use direct tools (Read, Edit, Write) for:
 - Configuration file updates (tsconfig.json, package.json, etc.)
