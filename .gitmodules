@@ -1,0 +1,12 @@
+[submodule "repos/expo-ui"]
+	path = repos/expo-ui
+	url = https://github.com/betomoedano/expo-ui-playground.git
+[submodule "repos/stremio-addon-sdk"]
+	path = repos/stremio-addon-sdk
+	url = https://github.com/Stremio/stremio-addon-sdk.git
+[submodule "repos/nuvio"]
+	path = repos/nuvio
+	url = https://github.com/tapframe/NuvioStreaming.git
+[submodule "repos/stremio-ios"]
+	path = repos/stremio-ios
+	url = https://github.com/rcastriotta/Stremio-iOS.git
