@@ -8,6 +8,6 @@ module.exports = defineConfig([
     ignores: ['dist/*', 'repos/*', 'designs/*', 'docs/*', 'node_modules/*'],
   },
   {
-    files: ['src/**/*.{ts,tsx,js,jsx}'],
+    files: ['app/**/*.{ts,tsx,js,jsx}'],
   },
 ]);

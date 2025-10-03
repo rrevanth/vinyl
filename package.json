@@ -5,14 +5,14 @@
   "scripts": {
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
     "web": "expo start --web",
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
-    "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx}\"",
-    "validate": "bun typecheck && bun lint && prettier --check \"src/**/*.{ts,tsx,js,jsx}\"",
-    "validate:fix": "bun typecheck && bun lint --fix && prettier --write \"src/**/*.{ts,tsx,js,jsx}\""
+    "format": "prettier --write \"app/**/*.{ts,tsx,js,jsx}\"",
+    "validate": "bun typecheck && bun lint && prettier --check \"app/**/*.{ts,tsx,js,jsx}\"",
+    "validate:fix": "bun typecheck && bun lint --fix && prettier --write \"app/**/*.{ts,tsx,js,jsx}\""
   },
   "dependencies": {
     "@expo-google-fonts/inter": "^0.4.2",
