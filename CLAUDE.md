@@ -940,6 +940,55 @@ describe('UserProfile', () => {
 
 ## Agent-Driven Development Workflow
 
+### CRITICAL: Always Use Agents for Changes
+
+**MANDATORY REQUIREMENT**: All code changes MUST be executed through specialized agents using the Task tool.
+
+**Why Use Agents:**
+- Specialized expertise for each domain (backend, frontend, refactoring, testing, etc.)
+- Better quality through focused analysis and implementation
+- Parallel execution capabilities for complex tasks
+- Systematic approach with built-in validation
+- Context preservation and error recovery
+
+**When to Use Agents:**
+```typescript
+// ✅ ALWAYS use Task tool with appropriate agent
+Task({
+  subagent_type: 'python-expert',        // For backend/API work
+  subagent_type: 'frontend-architect',   // For UI components
+  subagent_type: 'refactoring-expert',   // For code cleanup
+  subagent_type: 'quality-engineer',     // For testing
+  subagent_type: 'security-engineer',    // For security reviews
+  description: 'Implement user authentication',
+  prompt: 'Create authentication use case with proper error handling...'
+})
+
+// ❌ NEVER make changes directly without agents
+Write({ file_path: '...', content: '...' })  // Wrong approach
+Edit({ file_path: '...', ... })              // Wrong approach
+```
+
+**Agent Selection Guide:**
+
+| Task Type | Agent | Use Case |
+|-----------|-------|----------|
+| Domain/Use Cases | python-expert | Business logic, entities, repositories |
+| Infrastructure | python-expert | API clients, storage, services |
+| UI Components | frontend-architect | React Native components, screens |
+| Code Cleanup | refactoring-expert | Improving code quality, reducing debt |
+| Testing | quality-engineer | Unit tests, integration tests |
+| Architecture | system-architect | System design, layer structure |
+| Security | security-engineer | Auth, validation, error handling |
+| Bug Fixing | root-cause-analyst | Debugging, investigation |
+
+**Exception**: Only use direct tools (Read, Edit, Write) for:
+- Configuration file updates (tsconfig.json, package.json, etc.)
+- Simple formatting fixes
+- Documentation updates
+
+---
+
 ### Pre-Analysis Validation
 
 **ALWAYS start every development session with:**
