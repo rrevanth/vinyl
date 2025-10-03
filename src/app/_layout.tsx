@@ -1,4 +1,5 @@
 import '@/src/presentation/theme/unistyles'
+import '@/src/infrastructure/di/initializeContainer'
 import { Icon, Label, NativeTabs } from 'expo-router/unstable-native-tabs'
 
 export default function RootLayout() {
