@@ -1,0 +1,337 @@
+FORMAT: 1A
+HOST: https://addon-host.example.com
+
+# Stremio Addon API Specification
+
+Stremio is a decentralized streaming platform that uses an addon system to provide content catalogs, streams, metadata, and subtitles. This document describes the Stremio Addon Protocol for implementing compatible addons.
+
+## Overview
+
+Stremio addons are HTTP services that provide content through a standardized REST API. Each addon:
+
+- **Declares capabilities** via a manifest.json file
+- **Provides resources** like catalogs, streams, metadata, and subtitles  
+- **Supports content types** such as movies, series, TV channels, events, anime
+- **Uses ID prefixes** to specify supported content identifier formats
+- **Operates independently** and can be hosted anywhere
+
+## Architecture
+
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Stremio App   │───▶│   Addon Host    │───▶│  Content Source │
+│                 │    │                 │    │   (Torrents,    │
+│  - Discovery    │    │  - Manifest     │    │    Debrid,      │
+│  - Aggregation  │    │  - Catalogs     │    │    Direct)      │
+│  - Playback     │    │  - Streams      │    │                 │
+└─────────────────┘    │  - Metadata     │    └─────────────────┘
+                       │  - Subtitles    │
+                       └─────────────────┘
+```
+
+## Content Types
+
+- **movie**: Feature films
+- **series**: TV shows with seasons/episodes
+- **tv**: Live TV channels  
+- **events**: Live events, sports
+- **other**: Miscellaneous content
+- **anime**: Animation content
+- **subtitles**: Subtitle files
+- **channel**: Streaming channels
+
+## ID Prefixes
+
+Common ID prefixes that determine content identifier format:
+
+- **tt**: IMDb IDs (e.g., "tt0111161")
+- **tmdb**: TMDB IDs (e.g., "tmdb:550") 
+- **kitsu**: Kitsu anime IDs
+- **yt**: YouTube video IDs
+- **mf**: MediaFlow IDs
+- **dl**: Direct link IDs
+- **stremio**: Native Stremio IDs
+
+## Resources
+
+### catalog
+Content discovery and browsing. Provides lists of media items organized by categories.
+
+### meta  
+Detailed metadata for individual content items including title, description, cast, images.
+
+### stream
+Playable stream URLs for content consumption.
+
+### subtitles
+Subtitle files in various languages and formats.
+
+### addon_catalog
+Discovery of other addons (addon directory functionality).
+
+# Group Manifest
+
+## Addon Manifest [/manifest.json]
+
+The manifest defines the addon's capabilities, supported content types, and available resources.
+
+### Get Addon Manifest [GET]
+
+Returns the addon manifest describing all capabilities.
+
++ Response 200 (application/json)
+    + Attributes (AddonManifest)
+
++ Response 404 (application/json)
+    + Attributes (ErrorResponse)
+
+# Group Catalog
+
+## Catalog Endpoints [/catalog/{type}/{id}{?extra*}]
+
+Retrieve content catalogs by type and category.
+
++ Parameters
+    + type: `movie` (string, required) - Content type
+    + id: `top` (string, required) - Catalog identifier  
+    + extra: `skip=0&genre=Action` (string, optional) - Query parameters
+
+### Get Catalog [GET]
+
+Returns a paginated list of content items from the specified catalog.
+
++ Response 200 (application/json)
+    + Attributes (CatalogResponse)
+
++ Response 404 (application/json)
+    + Attributes (ErrorResponse)
+
+# Group Meta
+
+## Meta Endpoints [/meta/{type}/{id}]
+
+Retrieve detailed metadata for specific content items.
+
++ Parameters
+    + type: `movie` (string, required) - Content type
+    + id: `tt0111161` (string, required) - Content identifier
+
+### Get Content Metadata [GET]
+
+Returns comprehensive metadata for the specified content item.
+
++ Response 200 (application/json)
+    + Attributes (MetaResponse)
+
++ Response 404 (application/json)
+    + Attributes (ErrorResponse)
+
+# Group Stream
+
+## Stream Endpoints [/stream/{type}/{id}]
+
+Retrieve available streams for content playback.
+
++ Parameters
+    + type: `movie` (string, required) - Content type
+    + id: `tt0111161` (string, required) - Content identifier
+
+### Get Content Streams [GET]
+
+Returns available stream URLs and metadata for the specified content.
+
++ Response 200 (application/json)
+    + Attributes (StreamResponse)
+
++ Response 404 (application/json)
+    + Attributes (ErrorResponse)
+
+# Group Subtitles
+
+## Subtitles Endpoints [/subtitles/{type}/{id}]
+
+Retrieve subtitle files for content.
+
++ Parameters
+    + type: `movie` (string, required) - Content type  
+    + id: `tt0111161` (string, required) - Content identifier
+
+### Get Content Subtitles [GET]
+
+Returns available subtitle files for the specified content.
+
++ Response 200 (application/json)
+    + Attributes (SubtitlesResponse)
+
++ Response 404 (application/json)
+    + Attributes (ErrorResponse)
+
+# Group Addon Catalog
+
+## Addon Catalog Endpoints [/addon_catalog/{type}/{id}{?extra*}]
+
+Discover other available addons.
+
++ Parameters
+    + type: `all` (string, required) - Addon category type
+    + id: `community` (string, required) - Catalog identifier
+    + extra: `skip=0` (string, optional) - Query parameters
+
+### Get Addon Catalog [GET]
+
+Returns a list of available addons in the specified category.
+
++ Response 200 (application/json)
+    + Attributes (AddonCatalogResponse)
+
++ Response 404 (application/json)
+    + Attributes (ErrorResponse)
+
+# Data Structures
+
+## AddonManifest (object)
+- id: `com.example.addon` (string, required) - Unique addon identifier
+- version: `1.0.0` (string, required) - Addon version
+- name: `Example Addon` (string, required) - Human-readable name
+- description: `An example Stremio addon` (string, required) - Addon description
+- icon: `https://example.com/icon.png` (string, optional) - Addon icon URL
+- logo: `https://example.com/logo.png` (string, optional) - Addon logo URL  
+- background: `https://example.com/bg.jpg` (string, optional) - Background image URL
+- resources (array[string], required) - Supported resources
+    - `catalog`
+    - `meta`
+    - `stream`
+- types (array[string], required) - Supported content types
+    - `movie`
+    - `series`
+- idPrefixes (array[string], optional) - Supported ID prefixes
+    - `tt`
+    - `tmdb`
+- catalogs (array[CatalogDefinition], optional) - Available catalogs
+- addonCatalogs (array[AddonCatalogDefinition], optional) - Addon directory catalogs
+- behaviorHints (BehaviorHints, optional) - Addon behavior configuration
+
+## CatalogDefinition (object)
+- type: `movie` (string, required) - Content type
+- id: `popular` (string, required) - Catalog identifier
+- name: `Popular Movies` (string, required) - Display name
+- genres (array[string], optional) - Available genres/categories
+- extra (array[ExtraProperty], optional) - Supported extra parameters
+- extraSupported (array[string], optional) - List of supported extra parameter names
+- extraRequired (array[string], optional) - List of required extra parameter names
+
+## ExtraProperty (object)
+- name: `genre` (string, required) - Parameter name
+- options (array[string], optional) - Available options
+- isRequired: false (boolean, optional) - Whether parameter is required
+- optionsLimit: 100 (number, optional) - Maximum number of options
+
+## BehaviorHints (object)
+- configurable: true (boolean, optional) - Addon supports configuration
+- configurationRequired: false (boolean, optional) - Configuration is required
+- adult: false (boolean, optional) - Addon contains adult content
+- newEpisodeNotifications: false (boolean, optional) - Supports episode notifications
+
+## CatalogResponse (object)
+- metas (array[MetaPreview], required) - List of content items
+
+## MetaPreview (object)
+- id: `tt0111161` (string, required) - Content identifier
+- type: `movie` (string, required) - Content type
+- name: `The Shawshank Redemption` (string, required) - Content title
+- poster: `https://example.com/poster.jpg` (string, optional) - Poster image URL
+- posterShape: `poster` (string, optional) - Poster aspect ratio
+- background: `https://example.com/bg.jpg` (string, optional) - Background image URL
+- logo: `https://example.com/logo.png` (string, optional) - Logo image URL
+- description: `Two imprisoned men...` (string, optional) - Content description
+- year: `1994` (string, optional) - Release year
+- imdbRating: `9.3` (string, optional) - IMDb rating
+- genre (array[string], optional) - Content genres
+- director (array[string], optional) - Directors
+- cast (array[string], optional) - Cast members
+- runtime: `142 min` (string, optional) - Runtime
+- releaseInfo: `1994-09-23` (string, optional) - Release date
+- trailerStream (Stream, optional) - Trailer stream
+- behaviorHints (MetaBehaviorHints, optional) - Content behavior hints
+
+## MetaResponse (object)
+- meta (MetaItem, required) - Detailed content metadata
+
+## MetaItem (object)
+- id: `tt0111161` (string, required) - Content identifier
+- type: `movie` (string, required) - Content type  
+- name: `The Shawshank Redemption` (string, required) - Content title
+- poster: `https://example.com/poster.jpg` (string, optional) - Poster image URL
+- posterShape: `poster` (string, optional) - Poster aspect ratio
+- background: `https://example.com/bg.jpg` (string, optional) - Background image URL
+- logo: `https://example.com/logo.png` (string, optional) - Logo image URL
+- description: `Two imprisoned men...` (string, optional) - Full description
+- year: `1994` (string, optional) - Release year
+- imdbRating: `9.3` (string, optional) - IMDb rating
+- genre (array[string], optional) - Content genres
+- director (array[string], optional) - Directors
+- cast (array[string], optional) - Cast members
+- writer (array[string], optional) - Writers
+- runtime: `142 min` (string, optional) - Runtime
+- releaseInfo: `1994-09-23` (string, optional) - Release date
+- awards: `Academy Award Winner` (string, optional) - Awards information
+- website: `https://example.com` (string, optional) - Official website
+- trailerStream (Stream, optional) - Trailer stream
+- videos (array[Video], optional) - Series episodes or related videos
+- behaviorHints (MetaBehaviorHints, optional) - Content behavior hints
+
+## Video (object)
+- id: `tt0111161:1:1` (string, required) - Episode identifier
+- title: `Episode 1` (string, required) - Episode title  
+- released: `2023-01-01T00:00:00.000Z` (string, optional) - Release date
+- season: 1 (number, optional) - Season number
+- episode: 1 (number, optional) - Episode number
+- overview: `Episode description` (string, optional) - Episode description
+- thumbnail: `https://example.com/thumb.jpg` (string, optional) - Episode thumbnail
+- streams (array[Stream], optional) - Available streams for episode
+
+## StreamResponse (object)  
+- streams (array[Stream], required) - Available streams
+
+## Stream (object)
+- name: `1080p` (string, optional) - Stream quality/name
+- description: `High quality stream` (string, optional) - Stream description
+- url: `https://example.com/stream.m3u8` (string, required) - Stream URL
+- ytId: `dQw4w9WgXcQ` (string, optional) - YouTube video ID
+- infoHash: `abc123...` (string, optional) - BitTorrent info hash
+- fileIdx: 0 (number, optional) - File index in torrent
+- sources (array[string], optional) - Multiple stream sources
+- subtitles (array[Subtitle], optional) - Embedded subtitles
+- behaviorHints (StreamBehaviorHints, optional) - Stream behavior hints
+
+## SubtitlesResponse (object)
+- subtitles (array[Subtitle], required) - Available subtitle files
+
+## Subtitle (object)
+- id: `en` (string, required) - Subtitle identifier
+- url: `https://example.com/sub.srt` (string, required) - Subtitle file URL
+- lang: `eng` (string, required) - Language code (ISO 639-2)
+- name: `English` (string, optional) - Human-readable language name
+
+## AddonCatalogResponse (object)
+- addons (array[AddonDescriptor], required) - Available addons
+
+## AddonDescriptor (object)
+- manifest (AddonManifest, required) - Addon manifest
+- transportName: `http` (string, required) - Transport protocol
+- transportUrl: `https://addon.example.com/manifest.json` (string, required) - Addon URL
+
+## MetaBehaviorHints (object)
+- defaultVideoId: `tt0111161:1:1` (string, optional) - Default video to play
+- hasScheduledVideos: false (boolean, optional) - Content has scheduled videos
+- isAdult: false (boolean, optional) - Content is adult-oriented
+
+## StreamBehaviorHints (object)
+- countryWhitelist (array[string], optional) - Allowed countries
+- notWebReady: false (boolean, optional) - Stream not ready for web playback
+- bingeGroup: `season1` (string, optional) - Binge watching group identifier
+- filename: `movie.mp4` (string, optional) - Original filename
+
+## ErrorResponse (object)
+- error: `Not Found` (string, required) - Error message
+- code: 404 (number, optional) - Error code 

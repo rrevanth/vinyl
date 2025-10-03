@@ -1,0 +1,1475 @@
+FORMAT: 1A
+HOST: http://webservice.fanart.tv/v3
+
+# fanart.tv
+v3 of the fanart.tv API
+
+## Image Preview ##
+If you want to get a smaller preview of an image simply replace fanart with preview in the assets link
+
+http://assets.fanart.tv/fanart/movies/145220/hdmovielogo/muppets-most-wanted-53c1385817504.png
+
+becomes
+
+http://assets.fanart.tv/preview/movies/145220/hdmovielogo/muppets-most-wanted-53c1385817504.png
+
+## api_key and client_key ##
+What is a client key?  Also known as a personal API key, the client key provides developers a way to help support us by getting their end users to sign up for their own personal API key, this should be used in addition to the project key, for more details read https://fanart.tv/2015/01/personal-api-keys/
+
+Both the api_key and the client_key can either be sent as a url variable, or as a custom header, the only difference is if you are sending it as a header, api_key becomes api-key and client_key becomes client-key
+
+Custom header example:
+ > $ch = curl_init();  
+curl_setopt($ch, CURLOPT_URL, 'http://webservice.fanart.tv/v3/movies/17645');  
+curl_setopt($ch, CURLOPT_HTTPHEADER, array('api-key: 6fa22b0ef3b5f3bba6a7edaa76675ac2', 'client-key: 52c813aa7b8c8b3bb87f4797532a2f8c'));  
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);  
+$result = curl_exec($ch);  
+curl_close($ch);  
+echo $result;  
+
+http request var example
+ > http://webservice.fanart.tv/v3/movies/17645?api_key=6fa22b0ef3b5f3bba6a7edaa76675ac2&client_key=52c813aa7b8c8b3bb87f4797532a2f8c
+
+# Group Movies
+Movie related resources of the **fanart.tv API**
+
+## Get movies [/movies/{id}{?api_key}]
+### Get images for Movie [GET]
++ Parameters
+    + id (number or imdb_id, optional) ... Numeric `tmdb_id` or `imdb_id` of the movie.
+        + Default: `10195`
+    + `api_key` (optional) ... Users `api_key`
+        + Default: `6fa42b0ef3b5f3aab6a7edaa78675ac2`
+
++ Response 200 (application/json)
+
+        {
+            "name": "The Lord of the Rings: The Fellowship of the Ring",
+            "tmdb_id": "120",
+            "imdb_id": "tt0120737",
+            "hdmovielogo": [
+                {
+                    "id": "50927",
+                    "url": "http://assets.fanart.tv/fanart/movies/120/hdmovielogo/the-lord-of-the-rings-the-fellowship-of-the-ring-5232c108a0b11.png",
+                    "lang": "en",
+                    "likes": "7"
+                },
+                {
+                    "id": "35686",
+                    "url": "http://assets.fanart.tv/fanart/movies/120/hdmovielogo/the-lord-of-the-rings-the-fellowship-of-the-ring-5199eb99bb348.png",
+                    "lang": "hu",
+                    "likes": "0"
+                }
+            ],
+            "moviedisc": [
+                {
+                    "id": "29003",
+                    "url": "http://assets.fanart.tv/fanart/movies/120/moviedisc/the-lord-of-the-rings-the-fellowship-of-the-ring-5156389dc28f2.png",
+                    "lang": "en",
+                    "likes": "5",
+                    "disc": "1",
+                    "disc_type": "bluray"
+                },
+                {
+                    "id": "32371",
+                    "url": "http://assets.fanart.tv/fanart/movies/120/moviedisc/the-lord-of-the-rings-the-fellowship-of-the-ring-517d662b253ab.png",
+                    "lang": "en",
+                    "likes": "3",
+                    "disc": "1",
+                    "disc_type": "bluray"
+                },
+                {
+                    "id": "57190",
+                    "url": "http://assets.fanart.tv/fanart/movies/120/moviedisc/the-lord-of-the-rings-the-fellowship-of-the-ring-52894c3bd7c13.png",
+                    "lang": "en",
+                    "likes": "3",
+                    "disc": "1",
+                    "disc_type": "bluray"
+                },
+                {
+                    "id": "15982",
+                    "url": "http://assets.fanart.tv/fanart/movies/120/moviedisc/the-lord-of-the-rings-the-fellowship-of-the-ring-5072d26f68e75.png",
+                    "lang": "fr",
+                    "likes": "0",
+                    "disc": "1",
+                    "disc_type": "bluray"
+                }
+            ],
+            "movielogo": [
+                {
+                    "id": "1613",
+                    "url": "http://assets.fanart.tv/fanart/movies/120/movielogo/the-lord-of-the-rings-the-fellowship-of-the-ring-4f78564165f48.png",
+                    "lang": "en",
+                    "likes": "4"
+                },
+                {
+                    "id": "1461",
+                    "url": "http://assets.fanart.tv/fanart/movies/120/movielogo/the-lord-of-the-rings-the-fellowship-of-the-ring-4f76b584b9f22.png",
+                    "lang": "de",
+                    "likes": "1"
+                },
+                {
+                    "id": "10233",
+                    "url": "http://assets.fanart.tv/fanart/movies/120/movielogo/the-lord-of-the-rings-the-fellowship-of-the-ring-50366fc502e6d.png",
+                    "lang": "fr",
+                    "likes": "0"
+                }
+            ],
+            "movieposter": [
+                {
+                    "id": "57317",
+                    "url": "http://assets.fanart.tv/fanart/movies/120/movieposter/the-lord-of-the-rings-the-fellowship-of-the-ring-528aa45a8633a.jpg",
+                    "lang": "en",
+                    "likes": "4"
+                },
+                {
+                    "id": "50210",
+                    "url": "http://assets.fanart.tv/fanart/movies/120/movieposter/the-lord-of-the-rings-the-fellowship-of-the-ring-522af84750c20.jpg",
+                    "lang": "en",
+                    "likes": "2"
+                },
+                {
+                    "id": "52200",
+                    "url": "http://assets.fanart.tv/fanart/movies/120/movieposter/the-lord-of-the-rings-the-fellowship-of-the-ring-5240a87b8dca4.jpg",
+                    "lang": "en",
+                    "likes": "2"
+                },
+                {
+                    "id": "60802",
+                    "url": "http://assets.fanart.tv/fanart/movies/120/movieposter/the-lord-of-the-rings-the-fellowship-of-the-ring-52ca39328f269.jpg",
+                    "lang": "en",
+                    "likes": "0"
+                }
+            ],
+            "hdmovieclearart": [
+                {
+                    "id": "34307",
+                    "url": "http://assets.fanart.tv/fanart/movies/120/hdmovieclearart/the-lord-of-the-rings-the-fellowship-of-the-ring-518f5ccc16a40.png",
+                    "lang": "en",
+                    "likes": "3"
+                },
+                {
+                    "id": "51006",
+                    "url": "http://assets.fanart.tv/fanart/movies/120/hdmovieclearart/the-lord-of-the-rings-the-fellowship-of-the-ring-5233e7cc96125.png",
+                    "lang": "en",
+                    "likes": "3"
+                },
+                {
+                    "id": "46178",
+                    "url": "http://assets.fanart.tv/fanart/movies/120/hdmovieclearart/the-lord-of-the-rings-the-fellowship-of-the-ring-520e7bd8dd3b5.png",
+                    "lang": "de",
+                    "likes": "1"
+                }
+            ],
+            "movieart": [
+                {
+                    "id": "1140",
+                    "url": "http://assets.fanart.tv/fanart/movies/120/movieart/the-lord-of-the-rings-the-fellowship-of-the-ring-4f6c938a134a1.png",
+                    "lang": "en",
+                    "likes": "2"
+                },
+                {
+                    "id": "1143",
+                    "url": "http://assets.fanart.tv/fanart/movies/120/movieart/the-lord-of-the-rings-the-fellowship-of-the-ring-4f6c99ca75fac.png",
+                    "lang": "es",
+                    "likes": "1"
+                },
+                {
+                    "id": "1498",
+                    "url": "http://assets.fanart.tv/fanart/movies/120/movieart/the-lord-of-the-rings-the-fellowship-of-the-ring-4f76f4dac9063.png",
+                    "lang": "de",
+                    "likes": "1"
+                }
+            ],
+            "moviebackground": [
+                {
+                    "id": "5299",
+                    "url": "http://assets.fanart.tv/fanart/movies/120/moviebackground/the-lord-of-the-rings-the-fellowship-of-the-ring-4fdb8b38d6453.jpg",
+                    "lang": "en",
+                    "likes": "2"
+                },
+                {
+                    "id": "23896",
+                    "url": "http://assets.fanart.tv/fanart/movies/120/moviebackground/the-lord-of-the-rings-the-fellowship-of-the-ring-5117096ac493b.jpg",
+                    "lang": "en",
+                    "likes": "2"
+                },
+                {
+                    "id": "5300",
+                    "url": "http://assets.fanart.tv/fanart/movies/120/moviebackground/the-lord-of-the-rings-the-fellowship-of-the-ring-4fdb8b38d794e.jpg",
+                    "lang": "en",
+                    "likes": "1"
+                }
+            ],
+            "moviebanner": [
+                {
+                    "id": "12355",
+                    "url": "http://assets.fanart.tv/fanart/movies/120/moviebanner/the-lord-of-the-rings-the-fellowship-of-the-ring-50485f0da465c.jpg",
+                    "lang": "en",
+                    "likes": "1"
+                },
+                {
+                    "id": "40947",
+                    "url": "http://assets.fanart.tv/fanart/movies/120/moviebanner/the-lord-of-the-rings-the-fellowship-of-the-ring-51d7e3fa5fb3f.jpg",
+                    "lang": "en",
+                    "likes": "1"
+                },
+                {
+                    "id": "45963",
+                    "url": "http://assets.fanart.tv/fanart/movies/120/moviebanner/the-lord-of-the-rings-the-fellowship-of-the-ring-520cf35ab2f25.jpg",
+                    "lang": "fr",
+                    "likes": "1"
+                },
+                {
+                    "id": "46179",
+                    "url": "http://assets.fanart.tv/fanart/movies/120/moviebanner/the-lord-of-the-rings-the-fellowship-of-the-ring-520e7bf6818ef.jpg",
+                    "lang": "de",
+                    "likes": "0"
+                }
+            ],
+            "moviethumb": [
+                {
+                    "id": "40949",
+                    "url": "http://assets.fanart.tv/fanart/movies/120/moviethumb/the-lord-of-the-rings-the-fellowship-of-the-ring-51d7e42a53a1d.jpg",
+                    "lang": "en",
+                    "likes": "1"
+                },
+                {
+                    "id": "40948",
+                    "url": "http://assets.fanart.tv/fanart/movies/120/moviethumb/the-lord-of-the-rings-the-fellowship-of-the-ring-51d7e418803aa.jpg",
+                    "lang": "de",
+                    "likes": "0"
+                },
+                {
+                    "id": "68153",
+                    "url": "http://assets.fanart.tv/fanart/movies/120/moviethumb/the-lord-of-the-rings-the-fellowship-of-the-ring-532efd41bf3ae.jpg",
+                    "lang": "en",
+                    "likes": "0"
+                }
+            ]
+        }
+    
++ Response 400 (application/json)
+
+        {
+            "status": "error",
+            "error message": "Not found"
+        }
+
+
+## Latest movies [/movies/latest{?api_key}{?date}]
+### Latest Movies [GET]
++ Parameters
+    + `api_key` (optional) ... Users `api_key`
+        + Default: `6fa42b0ef3b5f3aab6a7edaa78675ac2`
+    + date (string, optional) ... Unix timestamp
+
++ Response 200 (application/json)
+
+        [
+            {
+                "tmdb_id": "17610",
+                "imdb_id": "tt1045778",
+                "name": "Year One",
+                "new_images": "1",
+                "total_images": "7"
+            },
+            {
+                "tmdb_id": "5651",
+                "imdb_id": "tt0075376",
+                "name": "Up!",
+                "new_images": "1",
+                "total_images": "1"
+            },
+            {
+                "tmdb_id": "12437",
+                "imdb_id": "tt0834001",
+                "name": "Underworld: Rise of the Lycans",
+                "new_images": "1",
+                "total_images": "30"
+            }
+        ]
++ Response 400 (application/json)
+
+        {
+            "status": "error",
+            "error message": "Not found"
+        }
+
+
+
+
+# Group Music
+Music related resources of the **fanart.tv API**
+
+## Get artist [/music/{id}{?api_key}]
+### Get images for artist [GET]
++ Parameters
+    + id (string, optional) ... Musicbrainz id for the artist.
+        + Default: `f4a31f0a-51dd-4fa7-986d-3095c40c5ed9`
+    + `api_key` (optional) ... Users `api_key`
+        + Default: `6fa42b0ef3b5f3aab6a7edaa78675ac2`
+
++ Response 200 (application/json)
+
+        {
+            "name": "Evanescence",
+            "mbid_id": "f4a31f0a-51dd-4fa7-986d-3095c40c5ed9",
+            "artistbackground": [
+                {
+                    "id": "6",
+                    "url": "http://assets.fanart.tv/fanart/music/f4a31f0a-51dd-4fa7-986d-3095c40c5ed9/artistbackground/evanescence-4dc7198199ccd.jpg",
+                    "likes": "4"
+                },
+                {
+                    "id": "7",
+                    "url": "http://assets.fanart.tv/fanart/music/f4a31f0a-51dd-4fa7-986d-3095c40c5ed9/artistbackground/evanescence-4dc719b1d861a.jpg",
+                    "likes": "3"
+                },
+                {
+                    "id": "9",
+                    "url": "http://assets.fanart.tv/fanart/music/f4a31f0a-51dd-4fa7-986d-3095c40c5ed9/artistbackground/evanescence-4dc719c5cc68f.jpg",
+                    "likes": "3"
+                },
+                {
+                    "id": "130063",
+                    "url": "http://assets.fanart.tv/fanart/music/f4a31f0a-51dd-4fa7-986d-3095c40c5ed9/artistbackground/evanescence-53c3e2009deda.jpg",
+                    "likes": "0"
+                }
+            ],
+            "artistthumb": [
+                {
+                    "id": "60344",
+                    "url": "http://assets.fanart.tv/fanart/music/f4a31f0a-51dd-4fa7-986d-3095c40c5ed9/artistthumb/evanescence-5097c77793b6f.jpg",
+                    "likes": "3"
+                },
+                {
+                    "id": "130066",
+                    "url": "http://assets.fanart.tv/fanart/music/f4a31f0a-51dd-4fa7-986d-3095c40c5ed9/artistthumb/evanescence-53c3e236dc099.jpg",
+                    "likes": "0"
+                },
+                {
+                    "id": "130067",
+                    "url": "http://assets.fanart.tv/fanart/music/f4a31f0a-51dd-4fa7-986d-3095c40c5ed9/artistthumb/evanescence-53c3e236e646b.jpg",
+                    "likes": "0"
+                }
+            ],
+            "musiclogo": [
+                {
+                    "id": "5474",
+                    "url": "http://assets.fanart.tv/fanart/music/f4a31f0a-51dd-4fa7-986d-3095c40c5ed9/musiclogo/evanescence-4df95bceb4b1c.png",
+                    "likes": "2"
+                },
+                {
+                    "id": "27702",
+                    "url": "http://assets.fanart.tv/fanart/music/f4a31f0a-51dd-4fa7-986d-3095c40c5ed9/musiclogo/evanescence-4f8acb2ae6002.png",
+                    "likes": "1"
+                }
+            ],
+            "hdmusiclogo": [
+                {
+                    "id": "50850",
+                    "url": "http://assets.fanart.tv/fanart/music/f4a31f0a-51dd-4fa7-986d-3095c40c5ed9/hdmusiclogo/evanescence-5049ce8bbe373.png",
+                    "likes": "2"
+                },
+                {
+                    "id": "127055",
+                    "url": "http://assets.fanart.tv/fanart/music/f4a31f0a-51dd-4fa7-986d-3095c40c5ed9/hdmusiclogo/evanescence-539db9a415d69.png",
+                    "likes": "1"
+                }
+            ],
+            "albums": {
+                "2187d248-1a3b-35d0-a4ec-bead586ff547": {
+                    "albumcover": [
+                        {
+                            "id": "43",
+                            "url": "http://assets.fanart.tv/fanart/music/f4a31f0a-51dd-4fa7-986d-3095c40c5ed9/albumcover/fallen-4dc8683fa58fe.jpg",
+                            "likes": "1"
+                        }
+                    ],
+                    "cdart": [
+                        {
+                            "id": "17739",
+                            "url": "http://assets.fanart.tv/fanart/music/f4a31f0a-51dd-4fa7-986d-3095c40c5ed9/cdart/fallen-4f133f8a16d25.png",
+                            "likes": "0",
+                            "disc": "1",
+                            "size": "1000"
+                        }
+                    ]
+                },
+                "902331d8-67aa-3b3c-bb2a-786d6a66c823": {
+                    "albumcover": [
+                        {
+                            "id": "12417",
+                            "url": "http://assets.fanart.tv/fanart/music/f4a31f0a-51dd-4fa7-986d-3095c40c5ed9/albumcover/evanescence-4e9a100d800dd.jpg",
+                            "likes": "1"
+                        },
+                        {
+                            "id": "14168",
+                            "url": "http://assets.fanart.tv/fanart/music/f4a31f0a-51dd-4fa7-986d-3095c40c5ed9/albumcover/evanescence-4ec7fc1c16d26.jpg",
+                            "likes": "0"
+                        }
+                    ],
+                    "cdart": [
+                        {
+                            "id": "12419",
+                            "url": "http://assets.fanart.tv/fanart/music/f4a31f0a-51dd-4fa7-986d-3095c40c5ed9/cdart/evanescence-4e9a1074cfde2.png",
+                            "likes": "0",
+                            "disc": "1",
+                            "size": "1000"
+                        }
+                    ]
+                },
+                "ac7dd865-3c32-3bb9-9241-a4c63d940f67": {
+                    "cdart": [
+                        {
+                            "id": "1874",
+                            "url": "http://assets.fanart.tv/fanart/music/f4a31f0a-51dd-4fa7-986d-3095c40c5ed9/cdart/le-nouveau-gothique-4dd43ab8d1af6.png",
+                            "likes": "0",
+                            "disc": "1",
+                            "size": "450"
+                        }
+                    ]
+                },
+                "eab92048-3e05-3e0f-bc16-0780f5481b83": {
+                    "albumcover": [
+                        {
+                            "id": "3400",
+                            "url": "http://assets.fanart.tv/fanart/music/f4a31f0a-51dd-4fa7-986d-3095c40c5ed9/albumcover/origin-4ddfdc3de0e2e.jpg",
+                            "likes": "0"
+                        }
+                    ],
+                    "cdart": [
+                        {
+                            "id": "5354",
+                            "url": "http://assets.fanart.tv/fanart/music/f4a31f0a-51dd-4fa7-986d-3095c40c5ed9/cdart/origin-4df836629a2c0.png",
+                            "likes": "0",
+                            "disc": "1",
+                            "size": "1000"
+                        }
+                    ]
+                },
+                "a35bcaf6-8e4a-3087-9b3b-d1295a2d4dbb": {
+                    "cdart": [
+                        {
+                            "id": "5353",
+                            "url": "http://assets.fanart.tv/fanart/music/f4a31f0a-51dd-4fa7-986d-3095c40c5ed9/cdart/bring-me-to-life-4df8360027bb3.png",
+                            "likes": "0",
+                            "disc": "1",
+                            "size": "1000"
+                        }
+                    ],
+                    "albumcover": [
+                        {
+                            "id": "116237",
+                            "url": "http://assets.fanart.tv/fanart/music/f4a31f0a-51dd-4fa7-986d-3095c40c5ed9/albumcover/bring-me-to-life-532dbfb883b00.jpg",
+                            "likes": "0"
+                        }
+                    ]
+                },
+                "bf18a287-fdec-3e65-b9f2-460b82790a16": {
+                    "albumcover": [
+                        {
+                            "id": "5356",
+                            "url": "http://assets.fanart.tv/fanart/music/f4a31f0a-51dd-4fa7-986d-3095c40c5ed9/albumcover/not-for-your-ears-4df83799656ec.jpg",
+                            "likes": "0"
+                        }
+                    ]
+                },
+                "e1c522d0-2746-3845-9b1c-975632f496bc": {
+                    "albumcover": [
+                        {
+                            "id": "5357",
+                            "url": "http://assets.fanart.tv/fanart/music/f4a31f0a-51dd-4fa7-986d-3095c40c5ed9/albumcover/beauty-in-darkness-b-sides-and-rarities-disc-2-4df837996c834.jpg",
+                            "likes": "0"
+                        }
+                    ],
+                    "cdart": [
+                        {
+                            "id": "12422",
+                            "url": "http://assets.fanart.tv/fanart/music/f4a31f0a-51dd-4fa7-986d-3095c40c5ed9/cdart/beauty-in-darkness-b-sides-and-rarities-4e9a1074d8e6a.png",
+                            "likes": "0",
+                            "disc": "1",
+                            "size": "1000"
+                        }
+                    ]
+                },
+                "e7e5eaa6-baf3-3539-b163-759431597f3a": {
+                    "cdart": [
+                        {
+                            "id": "11882",
+                            "url": "http://assets.fanart.tv/fanart/music/f4a31f0a-51dd-4fa7-986d-3095c40c5ed9/cdart/the-open-door-4e837a41d0937.png",
+                            "likes": "0",
+                            "disc": "1",
+                            "size": "1000"
+                        }
+                    ],
+                    "albumcover": [
+                        {
+                            "id": "117221",
+                            "url": "http://assets.fanart.tv/fanart/music/f4a31f0a-51dd-4fa7-986d-3095c40c5ed9/albumcover/the-open-door-533a286b19833.jpg",
+                            "likes": "0"
+                        }
+                    ]
+                },
+                "8866d307-29d3-32d5-8b1b-16d8c10a85b5": {
+                    "cdart": [
+                        {
+                            "id": "12418",
+                            "url": "http://assets.fanart.tv/fanart/music/f4a31f0a-51dd-4fa7-986d-3095c40c5ed9/cdart/special-2004-4e9a1074c6589.png",
+                            "likes": "0",
+                            "disc": "1",
+                            "size": "1000"
+                        }
+                    ]
+                },
+                "9ba659df-5814-32f6-b95f-02b738698e7c": {
+                    "cdart": [
+                        {
+                            "id": "12420",
+                            "url": "http://assets.fanart.tv/fanart/music/f4a31f0a-51dd-4fa7-986d-3095c40c5ed9/cdart/anywhere-but-home-4e9a1074d0999.png",
+                            "likes": "0",
+                            "disc": "1",
+                            "size": "1000"
+                        }
+                    ],
+                    "albumcover": [
+                        {
+                            "id": "116236",
+                            "url": "http://assets.fanart.tv/fanart/music/f4a31f0a-51dd-4fa7-986d-3095c40c5ed9/albumcover/anywhere-but-home-532dbf4618e4b.jpg",
+                            "likes": "0"
+                        }
+                    ]
+                },
+                "a23c8be0-4aa9-3f6c-b1bc-af543a1da73d": {
+                    "cdart": [
+                        {
+                            "id": "12421",
+                            "url": "http://assets.fanart.tv/fanart/music/f4a31f0a-51dd-4fa7-986d-3095c40c5ed9/cdart/ultra-rare-trax-volume-1-4e9a1074d82b2.png",
+                            "likes": "0",
+                            "disc": "1",
+                            "size": "1000"
+                        }
+                    ]
+                },
+                "b1f3d25e-80ba-47f6-b0b8-7310e0dfe3e2": {
+                    "cdart": [
+                        {
+                            "id": "14485",
+                            "url": "http://assets.fanart.tv/fanart/music/f4a31f0a-51dd-4fa7-986d-3095c40c5ed9/cdart/evanescence-4ff862566d408.png",
+                            "likes": "0",
+                            "disc": "1",
+                            "size": "1000"
+                        }
+                    ]
+                },
+                "cd557bc4-9978-36ef-8c4c-9cb06099323a": {
+                    "albumcover": [
+                        {
+                            "id": "79780",
+                            "url": "http://assets.fanart.tv/fanart/music/f4a31f0a-51dd-4fa7-986d-3095c40c5ed9/albumcover/going-under-51719525b1d0e.jpg",
+                            "likes": "0"
+                        }
+                    ]
+                },
+                "b4818927-0bdc-46ed-b8fb-99effc41c4d4": {
+                    "albumcover": [
+                        {
+                            "id": "79782",
+                            "url": "http://assets.fanart.tv/fanart/music/f4a31f0a-51dd-4fa7-986d-3095c40c5ed9/albumcover/together-again-51719848a87d8.jpg",
+                            "likes": "0"
+                        }
+                    ]
+                },
+                "8d1d5cc0-f46d-473b-b422-1fba523aaf12": {
+                    "albumcover": [
+                        {
+                            "id": "79783",
+                            "url": "http://assets.fanart.tv/fanart/music/f4a31f0a-51dd-4fa7-986d-3095c40c5ed9/albumcover/what-you-want-5171992031b10.jpg",
+                            "likes": "0"
+                        }
+                    ]
+                },
+                "b3e3be7f-334b-3383-ad9e-aa90f5d9e30c": {
+                    "albumcover": [
+                        {
+                            "id": "127079",
+                            "url": "http://assets.fanart.tv/fanart/music/f4a31f0a-51dd-4fa7-986d-3095c40c5ed9/albumcover/lithium-539dd4a7f1e85.jpg",
+                            "likes": "0"
+                        }
+                    ]
+                },
+                "3babe662-f12a-3023-adcf-2e3afdfd64e9": {
+                    "albumcover": [
+                        {
+                            "id": "127086",
+                            "url": "http://assets.fanart.tv/fanart/music/f4a31f0a-51dd-4fa7-986d-3095c40c5ed9/albumcover/everybodys-fool-539ddbd5c4010.jpg",
+                            "likes": "0"
+                        }
+                    ]
+                }
+            },
+            "musicbanner": [
+                {
+                    "id": "56733",
+                    "url": "http://assets.fanart.tv/fanart/music/f4a31f0a-51dd-4fa7-986d-3095c40c5ed9/musicbanner/evanescence-507beae754bf6.jpg",
+                    "likes": "1"
+                }
+            ]
+        }
+
++ Response 400 (application/json)
+
+        {
+            "status": "error",
+            "error message": "Not found"
+        }
+
+
+## Get album [/music/albums/{id}{?api_key}]
+### Get Album [GET]
++ Parameters
+    + id (optional) ... Albums musicbrainz release-group id
+        + Default: `9ba659df-5814-32f6-b95f-02b738698e7c`
+    + `api_key` (optional) ... Users `api_key`
+        + Default: `6fa42b0ef3b5f3aab6a7edaa78675ac2`
+
++ Response 200 (application/json)
+
+        {
+            "name": "Evanescence",
+            "mbid_id": "f4a31f0a-51dd-4fa7-986d-3095c40c5ed9",
+            "albums": {
+                "9ba659df-5814-32f6-b95f-02b738698e7c": {
+                    "cdart": [
+                        {
+                            "id": "12420",
+                            "url": "http://assets.fanart.tv/fanart/music/f4a31f0a-51dd-4fa7-986d-3095c40c5ed9/cdart/anywhere-but-home-4e9a1074d0999.png",
+                            "likes": "0",
+                            "disc": "1",
+                            "size": "1000"
+                        }
+                    ],
+                    "albumcover": [
+                        {
+                            "id": "116236",
+                            "url": "http://assets.fanart.tv/fanart/music/f4a31f0a-51dd-4fa7-986d-3095c40c5ed9/albumcover/anywhere-but-home-532dbf4618e4b.jpg",
+                            "likes": "0"
+                        }
+                    ]
+                }
+            }
+        }
+        
++ Response 400 (application/json)
+
+        {
+            "status": "error",
+            "error message": "Not found"
+        }
+
+## Get label [/music/labels/{id}{?api_key}]
+### Get Label [GET]
++ Parameters
+    + id (optional) ... Labels musicbrainz id
+        + Default: `e832b688-546b-45e3-83e5-9f8db5dcde1d`
+    + `api_key` (optional) ... Users `api_key`
+        + Default: `6fa42b0ef3b5f3aab6a7edaa78675ac2`
+
++ Response 200 (application/json)
+
+        {
+            "name": "Profile Records",
+            "id": "e832b688-546b-45e3-83e5-9f8db5dcde1d",
+            "musiclabel": [
+                {
+                    "id": "120425",
+                    "url": "http://assets.fanart.tv/labels/e832b688-546b-45e3-83e5-9f8db5dcde1d/musiclabel/profile-records-53633ee474306.png",
+                    "colour": "colour",
+                    "likes": "0"
+                },
+                {
+                    "id": "120426",
+                    "url": "http://assets.fanart.tv/labels/e832b688-546b-45e3-83e5-9f8db5dcde1d/musiclabel/profile-records-53633ef28bf22.png",
+                    "colour": "white",
+                    "likes": "0"
+                }
+            ]
+        }
+        
++ Response 400 (application/json)
+
+        {
+            "status": "error",
+            "error message": "Not found"
+        }
+
+
+
+## Latest artists [/music/latest{?api_key}{?date}]
+### Latest Artists [GET]
++ Parameters
+    + `api_key` (optional) ... Users `api_key`
+        + Default: `6fa42b0ef3b5f3aab6a7edaa78675ac2`
+    + date (string, optional) ... Unix timestamp
+
++ Response 200 (application/json)
+
+        [
+            {
+                "id": "932cb13f-677c-4e63-beb1-fca45574d280",
+                "name": "Zazie",
+                "new_images": "1",
+                "total_images": "23"
+            },
+            {
+                "id": "e20747e7-55a4-452e-8766-7b985585082d",
+                "name": "Frank Zappa",
+                "new_images": "1",
+                "total_images": "71"
+            },
+            {
+                "id": "967002b0-58ef-4b22-a58c-fbc631ff695c",
+                "name": "Paul Young",
+                "new_images": "1",
+                "total_images": "10"
+            },
+            {
+                "id": "97c86b2c-2765-46a2-aef8-76a7e24c430f",
+                "name": "XTC",
+                "new_images": "10",
+                "total_images": "16"
+            }        
+        ]
+        
++ Response 400 (application/json)
+
+        {
+            "status": "error",
+            "error message": "Not found"
+        }
+
+
+# Group TV
+TV related resources of the **fanart.tv API**
+
+## Get show [/tv/{id}{?api_key}]
+### Get images for show [GET]
++ Parameters
+    + id (string, optional) ... thetvdb id for the show.
+        + Default: `75682`
+    + `api_key` (optional) ... Users `api_key`
+        + Default: `6fa42b0ef3b5f3aab6a7edaa78675ac2`
+
++ Response 200 (application/json)
+
+        {
+            "name": "Bones",
+            "thetvdb_id": "75682",
+            "clearlogo": [
+                {
+                    "id": "2112",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/clearlogo/Bones-75682.png",
+                    "lang": "en",
+                    "likes": "7"
+                },
+                {
+                    "id": "13571",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/clearlogo/bones-4e764b27c454d.png",
+                    "lang": "ar",
+                    "likes": "1"
+                }
+            ],
+            "hdtvlogo": [
+                {
+                    "id": "20329",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/hdtvlogo/bones-503e7abe533b1.png",
+                    "lang": "en",
+                    "likes": "3"
+                },
+                {
+                    "id": "20274",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/hdtvlogo/bones-503d64f18ea46.png",
+                    "lang": "en",
+                    "likes": "1"
+                },
+                {
+                    "id": "37201",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/hdtvlogo/bones-530b4bb8bfaf7.png",
+                    "lang": "he",
+                    "likes": "1"
+                }
+            ],
+            "clearart": [
+                {
+                    "id": "4301",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/clearart/B_75682 (3).png",
+                    "lang": "en",
+                    "likes": "2"
+                },
+                {
+                    "id": "11780",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/clearart/bones-4df372a733e83.png",
+                    "lang": "en",
+                    "likes": "2"
+                },
+                {
+                    "id": "4304",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/clearart/B_75682 (0).png",
+                    "lang": "en",
+                    "likes": "1"
+                },
+                {
+                    "id": "14236",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/clearart/bones-4ea9d3aa69c05.png",
+                    "lang": "en",
+                    "likes": "1"
+                },
+                {
+                    "id": "14248",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/clearart/bones-4eaad22395670.png",
+                    "lang": "en",
+                    "likes": "1"
+                },
+                {
+                    "id": "14250",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/clearart/bones-4eab178bc58f5.png",
+                    "lang": "en",
+                    "likes": "1"
+                }
+            ],
+            "showbackground": [
+                {
+                    "id": "19374",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/showbackground/bones-500994f33356b.jpg",
+                    "lang": "en",
+                    "likes": "2",
+                    "season": "7"
+                },
+                {
+                    "id": "19401",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/showbackground/bones-5009b3018d25e.jpg",
+                    "lang": "en",
+                    "likes": "1",
+                    "season": "3"
+                },
+                {
+                    "id": "20591",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/showbackground/bones-50488dedf282b.jpg",
+                    "lang": "en",
+                    "likes": "1",
+                    "season": "8"
+                },
+                {
+                    "id": "18475",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/showbackground/bones-4fc77de96166a.jpg",
+                    "lang": "en",
+                    "likes": "0",
+                    "season": "all"
+                },
+                {
+                    "id": "19398",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/showbackground/bones-5009b1b3da384.jpg",
+                    "lang": "en",
+                    "likes": "0",
+                    "season": "1"
+                },
+                {
+                    "id": "19399",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/showbackground/bones-5009b1fcbbaca.jpg",
+                    "lang": "en",
+                    "likes": "0",
+                    "season": "1"
+                },
+                {
+                    "id": "19400",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/showbackground/bones-5009b274ce6bb.jpg",
+                    "lang": "en",
+                    "likes": "0",
+                    "season": "2"
+                },
+                {
+                    "id": "19402",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/showbackground/bones-5009b39f538f1.jpg",
+                    "lang": "en",
+                    "likes": "0",
+                    "season": "4"
+                },
+                {
+                    "id": "19403",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/showbackground/bones-5009b3e70dea9.jpg",
+                    "lang": "en",
+                    "likes": "0",
+                    "season": "4"
+                },
+                {
+                    "id": "19404",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/showbackground/bones-5009b41698431.jpg",
+                    "lang": "en",
+                    "likes": "0",
+                    "season": "4"
+                },
+                {
+                    "id": "19405",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/showbackground/bones-5009b46151c34.jpg",
+                    "lang": "en",
+                    "likes": "0",
+                    "season": "5"
+                },
+                {
+                    "id": "19406",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/showbackground/bones-5009b50a325c0.jpg",
+                    "lang": "en",
+                    "likes": "0",
+                    "season": "6"
+                }
+            ],
+            "tvthumb": [
+                {
+                    "id": "21765",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/tvthumb/bones-5070c96416c4e.jpg",
+                    "lang": "en",
+                    "likes": "2"
+                },
+                {
+                    "id": "4319",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/tvthumb/B_75682 (3).jpg",
+                    "lang": "en",
+                    "likes": "1"
+                },
+                {
+                    "id": "4320",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/tvthumb/B_75682 (2).jpg",
+                    "lang": "en",
+                    "likes": "1"
+                },
+                {
+                    "id": "4317",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/tvthumb/B_75682 (5).jpg",
+                    "lang": "en",
+                    "likes": "0"
+                },
+                {
+                    "id": "4318",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/tvthumb/B_75682 (4).jpg",
+                    "lang": "en",
+                    "likes": "0"
+                },
+                {
+                    "id": "4321",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/tvthumb/B_75682.jpg",
+                    "lang": "en",
+                    "likes": "0"
+                },
+                {
+                    "id": "4322",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/tvthumb/B_75682 (1).jpg",
+                    "lang": "en",
+                    "likes": "0"
+                },
+                {
+                    "id": "4323",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/tvthumb/B_75682 (0).jpg",
+                    "lang": "en",
+                    "likes": "0"
+                },
+                {
+                    "id": "15049",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/tvthumb/bones-4f00dbd8d419f.jpg",
+                    "lang": "en",
+                    "likes": "0"
+                },
+                {
+                    "id": "21764",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/tvthumb/bones-5070c9556adbb.jpg",
+                    "lang": "en",
+                    "likes": "0"
+                },
+                {
+                    "id": "21766",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/tvthumb/bones-5070c972d210e.jpg",
+                    "lang": "en",
+                    "likes": "0"
+                },
+                {
+                    "id": "21767",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/tvthumb/bones-5070c985b1602.jpg",
+                    "lang": "en",
+                    "likes": "0"
+                },
+                {
+                    "id": "21768",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/tvthumb/bones-5070c99375699.jpg",
+                    "lang": "en",
+                    "likes": "0"
+                },
+                {
+                    "id": "21769",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/tvthumb/bones-5070c9a1d4d7e.jpg",
+                    "lang": "en",
+                    "likes": "0"
+                },
+                {
+                    "id": "21770",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/tvthumb/bones-5070c9af7125c.jpg",
+                    "lang": "en",
+                    "likes": "0"
+                },
+                {
+                    "id": "21771",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/tvthumb/bones-5070c9c140d27.jpg",
+                    "lang": "en",
+                    "likes": "0"
+                },
+                {
+                    "id": "21772",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/tvthumb/bones-5070c9d00fba5.jpg",
+                    "lang": "en",
+                    "likes": "0"
+                },
+                {
+                    "id": "21773",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/tvthumb/bones-5070c9ddd0d1b.jpg",
+                    "lang": "en",
+                    "likes": "0"
+                },
+                {
+                    "id": "21774",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/tvthumb/bones-5070c9ec8e4de.jpg",
+                    "lang": "en",
+                    "likes": "0"
+                }
+            ],
+            "seasonposter": [
+                {
+                    "id": "38103",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/seasonposter/bones-533e41121d4c8.jpg",
+                    "lang": "en",
+                    "likes": "2"
+                },
+                {
+                    "id": "38104",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/seasonposter/bones-533e427be8be5.jpg",
+                    "lang": "en",
+                    "likes": "2"
+                },
+                {
+                    "id": "38105",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/seasonposter/bones-533e43b5701c1.jpg",
+                    "lang": "en",
+                    "likes": "2"
+                },
+                {
+                    "id": "38106",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/seasonposter/bones-533e47d450980.jpg",
+                    "lang": "en",
+                    "likes": "2"
+                },
+                {
+                    "id": "38108",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/seasonposter/bones-533e4a8d86c08.jpg",
+                    "lang": "en",
+                    "likes": "2"
+                },
+                {
+                    "id": "38185",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/seasonposter/bones-533ed166eeb9e.jpg",
+                    "lang": "en",
+                    "likes": "2"
+                },
+                {
+                    "id": "38186",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/seasonposter/bones-533ed1786acd8.jpg",
+                    "lang": "en",
+                    "likes": "2"
+                },
+                {
+                    "id": "38187",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/seasonposter/bones-533ed1873bda7.jpg",
+                    "lang": "en",
+                    "likes": "2"
+                },
+                {
+                    "id": "38188",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/seasonposter/bones-533ed1946697a.jpg",
+                    "lang": "en",
+                    "likes": "2"
+                },
+                {
+                    "id": "38189",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/seasonposter/bones-533ed19e4ec75.jpg",
+                    "lang": "en",
+                    "likes": "2"
+                },
+                {
+                    "id": "39980",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/seasonposter/bones-5362714545b9e.jpg",
+                    "lang": "en",
+                    "likes": "0"
+                },
+                {
+                    "id": "39981",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/seasonposter/bones-5362714f2cbd9.jpg",
+                    "lang": "en",
+                    "likes": "0"
+                },
+                {
+                    "id": "39982",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/seasonposter/bones-536271583d0e8.jpg",
+                    "lang": "en",
+                    "likes": "0"
+                },
+                {
+                    "id": "39983",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/seasonposter/bones-5362716239119.jpg",
+                    "lang": "en",
+                    "likes": "0"
+                },
+                {
+                    "id": "39984",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/seasonposter/bones-5362716ca7ad6.jpg",
+                    "lang": "en",
+                    "likes": "0"
+                },
+                {
+                    "id": "39985",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/seasonposter/bones-5362717743652.jpg",
+                    "lang": "en",
+                    "likes": "0"
+                },
+                {
+                    "id": "39986",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/seasonposter/bones-53627180c5a01.jpg",
+                    "lang": "en",
+                    "likes": "0"
+                },
+                {
+                    "id": "39987",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/seasonposter/bones-5362718999ac0.jpg",
+                    "lang": "en",
+                    "likes": "0"
+                },
+                {
+                    "id": "39988",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/seasonposter/bones-5362719482b5e.jpg",
+                    "lang": "en",
+                    "likes": "0"
+                },
+                {
+                    "id": "39989",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/seasonposter/bones-536271a12e2e2.jpg",
+                    "lang": "en",
+                    "likes": "0"
+                }
+            ],
+            "seasonthumb": [
+                {
+                    "id": "4311",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/seasonthumb/Bones (5).jpg",
+                    "lang": "en",
+                    "likes": "1",
+                    "season": "5"
+                },
+                {
+                    "id": "4312",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/seasonthumb/Bones (4).jpg",
+                    "lang": "en",
+                    "likes": "1",
+                    "season": "4"
+                },
+                {
+                    "id": "4316",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/seasonthumb/Bones (0).jpg",
+                    "lang": "en",
+                    "likes": "1",
+                    "season": "0"
+                },
+                {
+                    "id": "4305",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/seasonthumb/B_75682.jpg",
+                    "lang": "en",
+                    "likes": "0",
+                    "season": "6"
+                },
+                {
+                    "id": "4306",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/seasonthumb/Bones (9).jpg",
+                    "lang": "en",
+                    "likes": "0",
+                    "season": "5"
+                },
+                {
+                    "id": "4307",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/seasonthumb/Bones (8).jpg",
+                    "lang": "en",
+                    "likes": "0",
+                    "season": "4"
+                },
+                {
+                    "id": "4308",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/seasonthumb/Bones (7).jpg",
+                    "lang": "en",
+                    "likes": "0",
+                    "season": "3"
+                },
+                {
+                    "id": "4309",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/seasonthumb/Bones (6).jpg",
+                    "lang": "en",
+                    "likes": "0",
+                    "season": "2"
+                },
+                {
+                    "id": "4310",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/seasonthumb/Bones.jpg",
+                    "lang": "en",
+                    "likes": "0",
+                    "season": "1"
+                },
+                {
+                    "id": "4313",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/seasonthumb/Bones (3).jpg",
+                    "lang": "en",
+                    "likes": "0",
+                    "season": "3"
+                },
+                {
+                    "id": "4314",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/seasonthumb/Bones (2).jpg",
+                    "lang": "en",
+                    "likes": "0",
+                    "season": "2"
+                },
+                {
+                    "id": "4315",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/seasonthumb/Bones (1).jpg",
+                    "lang": "en",
+                    "likes": "0",
+                    "season": "1"
+                },
+                {
+                    "id": "25966",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/seasonthumb/bones-5121a2ab6f5e2.jpg",
+                    "lang": "en",
+                    "likes": "0",
+                    "season": "7"
+                },
+                {
+                    "id": "25967",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/seasonthumb/bones-5121a2b7215d2.jpg",
+                    "lang": "en",
+                    "likes": "0",
+                    "season": "8"
+                }
+            ],
+            "hdclearart": [
+                {
+                    "id": "22106",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/hdclearart/bones-5076b476a0cee.png",
+                    "lang": "en",
+                    "likes": "1"
+                },
+                {
+                    "id": "22607",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/hdclearart/bones-508c48fd9ca6d.png",
+                    "lang": "en",
+                    "likes": "1"
+                },
+                {
+                    "id": "22112",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/hdclearart/bones-5076ef773f400.png",
+                    "lang": "en",
+                    "likes": "0"
+                },
+                {
+                    "id": "22228",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/hdclearart/bones-507c825aafd1b.png",
+                    "lang": "en",
+                    "likes": "0"
+                },
+                {
+                    "id": "22235",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/hdclearart/bones-507d3c44ee6ac.png",
+                    "lang": "en",
+                    "likes": "0"
+                },
+                {
+                    "id": "22239",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/hdclearart/bones-507d948b42ae1.png",
+                    "lang": "en",
+                    "likes": "0"
+                },
+                {
+                    "id": "22606",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/hdclearart/bones-508c48e9824ae.png",
+                    "lang": "en",
+                    "likes": "0"
+                }
+            ],
+            "tvbanner": [
+                {
+                    "id": "28254",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/tvbanner/bones-517afc7dc43ed.jpg",
+                    "lang": "en",
+                    "likes": "1"
+                },
+                {
+                    "id": "28255",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/tvbanner/bones-517afc919ee62.jpg",
+                    "lang": "en",
+                    "likes": "1"
+                },
+                {
+                    "id": "40209",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/tvbanner/bones-536a839d084a7.jpg",
+                    "lang": "en",
+                    "likes": "0"
+                }
+            ],
+            "characterart": [
+                {
+                    "id": "18513",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/characterart/bones-4fc8e8b0d3490.png",
+                    "lang": "en",
+                    "likes": "0"
+                },
+                {
+                    "id": "18837",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/characterart/bones-4fd9026c83605.png",
+                    "lang": "en",
+                    "likes": "0"
+                },
+                {
+                    "id": "18841",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/characterart/bones-4fd96a9b52d35.png",
+                    "lang": "en",
+                    "likes": "0"
+                },
+                {
+                    "id": "22240",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/characterart/bones-507d97908963d.png",
+                    "lang": "en",
+                    "likes": "0"
+                }
+            ],
+            "tvposter": [
+                {
+                    "id": "36565",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/tvposter/bones-52deb10f82d0f.jpg",
+                    "lang": "en",
+                    "likes": "0"
+                }
+            ],
+            "seasonbanner": [
+                {
+                    "id": "37718",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/seasonbanner/bones-532e0883bb9d7.jpg",
+                    "lang": "en",
+                    "likes": "0",
+                    "season": "1"
+                },
+                {
+                    "id": "37719",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/seasonbanner/bones-532e089238c41.jpg",
+                    "lang": "en",
+                    "likes": "0",
+                    "season": "2"
+                },
+                {
+                    "id": "37720",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/seasonbanner/bones-532e089dd3efb.jpg",
+                    "lang": "en",
+                    "likes": "0",
+                    "season": "3"
+                },
+                {
+                    "id": "37721",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/seasonbanner/bones-532e08aaea935.jpg",
+                    "lang": "en",
+                    "likes": "0",
+                    "season": "4"
+                },
+                {
+                    "id": "37722",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/seasonbanner/bones-532e08b8d320f.jpg",
+                    "lang": "en",
+                    "likes": "0",
+                    "season": "5"
+                },
+                {
+                    "id": "37723",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/seasonbanner/bones-532e08c3f02c9.jpg",
+                    "lang": "en",
+                    "likes": "0",
+                    "season": "6"
+                },
+                {
+                    "id": "37724",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/seasonbanner/bones-532e08ce352c5.jpg",
+                    "lang": "en",
+                    "likes": "0",
+                    "season": "7"
+                },
+                {
+                    "id": "37725",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/seasonbanner/bones-532e08da2baf5.jpg",
+                    "lang": "en",
+                    "likes": "0",
+                    "season": "8"
+                },
+                {
+                    "id": "37726",
+                    "url": "http://assets.fanart.tv/fanart/tv/75682/seasonbanner/bones-532e08e589199.jpg",
+                    "lang": "en",
+                    "likes": "0",
+                    "season": "9"
+                }
+            ]
+        }
+
++ Response 400 (application/json)
+
+        {
+            "status": "error",
+            "error message": "Not found"
+        }
+
+
+## Latest shows [/tv/latest{?api_key}{?date}]
+### Latest Shows [GET]
++ Parameters
+    + `api_key` (optional) ... Users `api_key`
+        + Default: `6fa42b0ef3b5f3aab6a7edaa78675ac2`
+    + date (string, optional) ... Unix timestamp
+
++ Response 200 (application/json)
+
+        [
+            {
+                "id": "79473",
+                "name": "Witchblade (2006)",
+                "new_images": "2",
+                "total_images": "7"
+            },
+            {
+                "id": "83463",
+                "name": "United States of Tara",
+                "new_images": "3",
+                "total_images": "16"
+            },
+            {
+                "id": "70566",
+                "name": "Trailer Park Boys",
+                "new_images": "16",
+                "total_images": "22"
+            }
+        ]
+        
++ Response 400 (application/json)
+
+        {
+            "status": "error",
+            "error message": "Not found"
+        }
+
+
