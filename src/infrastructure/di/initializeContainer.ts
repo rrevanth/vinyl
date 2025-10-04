@@ -5,6 +5,7 @@ import { StorageService } from '@/src/infrastructure/services/StorageService'
 import { LoggingService } from '@/src/infrastructure/services/LoggingService'
 import { ThemeService } from '@/src/infrastructure/services/ThemeService'
 import { I18nService } from '@/src/infrastructure/services/I18nService'
+import { UserService } from '@/src/infrastructure/services/UserService'
 import { HttpClient } from '@/src/infrastructure/http/HttpClient'
 import type { IStorageService } from '@/src/domain/services/IStorageService'
 import type { ILoggingService } from '@/src/domain/services/ILoggingService'
@@ -18,16 +19,18 @@ export function initializeContainer(): void {
   const storage = container.resolve<IStorageService>(TOKENS.StorageService)
   container.register(TOKENS.ThemeService, () => new ThemeService(storage))
   container.register(TOKENS.I18nService, () => new I18nService(storage))
+  container.register(TOKENS.UserService, () => new UserService())
 
   // Register HTTP client (placeholder baseURL, update in your app)
   const logger = container.resolve<ILoggingService>(TOKENS.LoggingService)
   container.register(
     TOKENS.HttpClient,
-    () => new HttpClient(
-      'https://api.example.com', // TODO: Update with actual API URL
-      () => null, // TODO: Implement token retrieval
-      logger
-    )
+    () =>
+      new HttpClient(
+        'https://api.example.com', // TODO: Update with actual API URL
+        () => null, // TODO: Implement token retrieval
+        logger
+      )
   )
 }
 

@@ -5,6 +5,7 @@ export const TOKENS = {
   LoggingService: Symbol('LoggingService'),
   ThemeService: Symbol('ThemeService'),
   I18nService: Symbol('I18nService'),
+  UserService: Symbol('UserService'),
 
   // HTTP
   HttpClient: Symbol('HttpClient'),
