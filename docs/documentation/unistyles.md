@@ -1,9606 +1,894 @@
-Directory structure:
-└── jpudysz-react-native-unistyles/
-    ├── README.md
-    ├── babel.config.js
-    ├── biome.json
-    ├── build-components.js
-    ├── LICENSE
-    ├── nitro.json
-    ├── package.json
-    ├── tsconfig.build.json
-    ├── tsconfig.json
-    ├── Unistyles.podspec
-    ├── unistyles_get_rn_version.rb
-    ├── .editorconfig
-    ├── .nvmrc
-    ├── .yarnrc.yml
-    ├── android/
-    │   ├── CMakeLists.txt
-    │   └── src/
-    │       └── main/
-    │           ├── cxx/
-    │           │   ├── cpp-adapter.cpp
-    │           │   ├── NativeUnistylesModule.cpp
-    │           │   └── NativeUnistylesModule.h
-    │           └── java/
-    │               └── com/
-    │                   └── unistyles/
-    │                       ├── Equatable.kt
-    │                       ├── NativePlatform+android.kt
-    │                       ├── NativePlatform+insets.kt
-    │                       ├── NativePlatform+listener.kt
-    │                       ├── UnistylesModule.kt
-    │                       └── UnistylesPackage.kt
-    ├── components/
-    │   └── native/
-    │       ├── ActivityIndicator/
-    │       │   └── package.json
-    │       ├── Animated/
-    │       │   └── package.json
-    │       ├── FlatList/
-    │       │   └── package.json
-    │       ├── Image/
-    │       │   └── package.json
-    │       ├── ImageBackground/
-    │       │   └── package.json
-    │       ├── KeyboardAvoidingView/
-    │       │   └── package.json
-    │       ├── NativeText/
-    │       │   └── package.json
-    │       ├── NativeView/
-    │       │   └── package.json
-    │       ├── Pressable/
-    │       │   └── package.json
-    │       ├── RefreshControl/
-    │       │   └── package.json
-    │       ├── SafeAreaView/
-    │       │   └── package.json
-    │       ├── ScrollView/
-    │       │   └── package.json
-    │       ├── SectionList/
-    │       │   └── package.json
-    │       ├── Switch/
-    │       │   └── package.json
-    │       ├── Text/
-    │       │   └── package.json
-    │       ├── TextInput/
-    │       │   └── package.json
-    │       ├── TouchableHighlight/
-    │       │   └── package.json
-    │       ├── TouchableOpacity/
-    │       │   └── package.json
-    │       ├── View/
-    │       │   └── package.json
-    │       └── VirtualizedList/
-    │           └── package.json
-    ├── cxx/
-    │   ├── NativePlatform.h
-    │   ├── common/
-    │   │   ├── Breakpoints.h
-    │   │   ├── Helpers.h
-    │   │   └── UnistylesConstants.h
-    │   ├── core/
-    │   │   ├── HashGenerator.cpp
-    │   │   ├── HashGenerator.h
-    │   │   ├── HostUnistyle.cpp
-    │   │   ├── HostUnistyle.h
-    │   │   ├── MediaQueries.cpp
-    │   │   ├── MediaQueries.h
-    │   │   ├── RNStyle.h
-    │   │   ├── StyleSheet.h
-    │   │   ├── StyleSheetRegistry.cpp
-    │   │   ├── StyleSheetRegistry.h
-    │   │   ├── Unistyle.h
-    │   │   ├── UnistyleData.h
-    │   │   ├── UnistylesCommitShadowNode.h
-    │   │   ├── UnistylesRegistry.cpp
-    │   │   ├── UnistylesRegistry.h
-    │   │   ├── UnistylesState.cpp
-    │   │   ├── UnistylesState.h
-    │   │   ├── UnistyleWrapper.cpp
-    │   │   └── UnistyleWrapper.h
-    │   ├── hybridObjects/
-    │   │   ├── HybridNavigationBar.cpp
-    │   │   ├── HybridNavigationBar.h
-    │   │   ├── HybridShadowRegistry.cpp
-    │   │   ├── HybridShadowRegistry.h
-    │   │   ├── HybridStatusBar.cpp
-    │   │   ├── HybridStatusBar.h
-    │   │   ├── HybridStyleSheet.cpp
-    │   │   ├── HybridStyleSheet.h
-    │   │   ├── HybridUnistylesRuntime.cpp
-    │   │   └── HybridUnistylesRuntime.h
-    │   ├── parser/
-    │   │   ├── Parser.cpp
-    │   │   └── Parser.h
-    │   └── shadowTree/
-    │       ├── ShadowLeafUpdate.h
-    │       ├── ShadowTrafficController.h
-    │       ├── ShadowTreeManager.cpp
-    │       └── ShadowTreeManager.h
-    ├── docs/
-    │   ├── astro.config.mjs
-    │   ├── package.json
-    │   ├── postcss.config.mjs
-    │   ├── theme.json
-    │   ├── tsconfig.json
-    │   ├── src/
-    │   │   ├── animate.ts
-    │   │   ├── env.d.ts
-    │   │   ├── components/
-    │   │   │   ├── Beam.astro
-    │   │   │   ├── Button.astro
-    │   │   │   ├── CompareChanges.astro
-    │   │   │   ├── index.ts
-    │   │   │   ├── Seo.astro
-    │   │   │   └── TutorialNavigation.astro
-    │   │   ├── content/
-    │   │   │   ├── config.ts
-    │   │   │   └── docs/
-    │   │   │       └── v3/
-    │   │   │           ├── guides/
-    │   │   │           │   ├── avoiding-keyboard.mdx
-    │   │   │           │   ├── custom-web.mdx
-    │   │   │           │   ├── expo-router.mdx
-    │   │   │           │   ├── merging-styles.mdx
-    │   │   │           │   ├── react-compiler.mdx
-    │   │   │           │   ├── reanimated.mdx
-    │   │   │           │   ├── server-side-rendering.mdx
-    │   │   │           │   ├── theming.mdx
-    │   │   │           │   └── why-my-view-doesnt-update.mdx
-    │   │   │           ├── llms/
-    │   │   │           │   └── info.mdx
-    │   │   │           ├── other/
-    │   │   │           │   ├── babel-plugin.mdx
-    │   │   │           │   ├── dependencies.mdx
-    │   │   │           │   ├── for-library-authors.mdx
-    │   │   │           │   ├── for-sponsors.mdx
-    │   │   │           │   └── frequently-asked-questions.mdx
-    │   │   │           ├── references/
-    │   │   │           │   ├── 3rd-party-views.mdx
-    │   │   │           │   ├── breakpoints.mdx
-    │   │   │           │   ├── compound-variants.mdx
-    │   │   │           │   ├── content-size-category.mdx
-    │   │   │           │   ├── dimensions.mdx
-    │   │   │           │   ├── display-hide.mdx
-    │   │   │           │   ├── dynamic-functions.mdx
-    │   │   │           │   ├── edge-to-edge.mdx
-    │   │   │           │   ├── media-queries.mdx
-    │   │   │           │   ├── mini-runtime.mdx
-    │   │   │           │   ├── scoped-theme.mdx
-    │   │   │           │   ├── stylesheet.mdx
-    │   │   │           │   ├── unistyles-runtime.mdx
-    │   │   │           │   ├── use-unistyles.mdx
-    │   │   │           │   ├── variants.mdx
-    │   │   │           │   ├── web-only.mdx
-    │   │   │           │   ├── web-styles.mdx
-    │   │   │           │   └── with-unistyles.mdx
-    │   │   │           ├── start/
-    │   │   │           │   ├── configuration.mdx
-    │   │   │           │   ├── getting-started.mdx
-    │   │   │           │   ├── how-unistyles-works.mdx
-    │   │   │           │   ├── introduction.mdx
-    │   │   │           │   ├── migration-guide.mdx
-    │   │   │           │   ├── new-features.mdx
-    │   │   │           │   ├── testing.mdx
-    │   │   │           │   └── when-to-use-unistyles.mdx
-    │   │   │           └── tutorial/
-    │   │   │               ├── cleanup-components.mdx
-    │   │   │               ├── cleanup-screens.mdx
-    │   │   │               ├── cross-platform.mdx
-    │   │   │               ├── intro.mdx
-    │   │   │               ├── modals.mdx
-    │   │   │               ├── new-screens.mdx
-    │   │   │               ├── player-screens.mdx
-    │   │   │               └── settings-screen.mdx
-    │   │   ├── pages/
-    │   │   │   └── index.astro
-    │   │   └── styles/
-    │   │       ├── docs.css
-    │   │       └── home.css
-    │   └── .astro/
-    │       ├── settings.json
-    │       └── types.d.ts
-    ├── example/
-    │   ├── README.md
-    │   ├── app.json
-    │   ├── App.tsx
-    │   ├── babel.config.js
-    │   ├── Button.tsx
-    │   ├── Gemfile
-    │   ├── index.js
-    │   ├── metro.config.js
-    │   ├── package.json
-    │   ├── react-native.config.js
-    │   ├── st.ts
-    │   ├── tsconfig.json
-    │   ├── Typography.tsx
-    │   ├── unistyles.ts
-    │   ├── .watchmanconfig
-    │   ├── android/
-    │   │   ├── gradle.properties
-    │   │   ├── gradlew
-    │   │   ├── gradlew.bat
-    │   │   ├── app/
-    │   │   │   ├── debug.keystore
-    │   │   │   ├── proguard-rules.pro
-    │   │   │   └── src/
-    │   │   │       ├── debug/
-    │   │   │       │   └── AndroidManifest.xml
-    │   │   │       └── main/
-    │   │   │           ├── AndroidManifest.xml
-    │   │   │           ├── java/
-    │   │   │           │   └── com/
-    │   │   │           │       └── example/
-    │   │   │           │           ├── MainActivity.kt
-    │   │   │           │           └── MainApplication.kt
-    │   │   │           └── res/
-    │   │   │               ├── drawable/
-    │   │   │               │   └── rn_edit_text_material.xml
-    │   │   │               └── values/
-    │   │   │                   ├── strings.xml
-    │   │   │                   └── styles.xml
-    │   │   └── gradle/
-    │   │       └── wrapper/
-    │   │           └── gradle-wrapper.properties
-    │   └── ios/
-    │       ├── AppDelegate.swift
-    │       ├── Podfile
-    │       ├── .xcode.env
-    │       ├── example/
-    │       │   ├── Info.plist
-    │       │   ├── LaunchScreen.storyboard
-    │       │   ├── PrivacyInfo.xcprivacy
-    │       │   └── Images.xcassets/
-    │       │       ├── Contents.json
-    │       │       └── AppIcon.appiconset/
-    │       │           └── Contents.json
-    │       └── exampleTests/
-    │           ├── exampleTests.m
-    │           └── Info.plist
-    ├── expo-example/
-    │   ├── app.json
-    │   ├── babel.config.js
-    │   ├── index.js
-    │   ├── metro.config.js
-    │   ├── package.json
-    │   ├── react-native.config.js
-    │   ├── tsconfig.json
-    │   ├── unistyles.ts
-    │   ├── __tests__/
-    │   │   ├── example.spec.tsx
-    │   │   └── __snapshots__/
-    │   │       └── example.spec.tsx.snap
-    │   └── app/
-    │       ├── +html.tsx
-    │       ├── +not-found.tsx
-    │       ├── _layout.tsx
-    │       └── (tabs)/
-    │           ├── _layout.tsx
-    │           ├── explore.tsx
-    │           └── index.tsx
-    ├── ios/
-    │   ├── Equatable.swift
-    │   ├── Extensions.swift
-    │   ├── NativePlatform+ios.swift
-    │   ├── NativePlatform+keyboard.swift
-    │   ├── NativePlatform.swift
-    │   ├── NativePlatformListener+ios.swift
-    │   ├── Unistyles.h
-    │   ├── UnistylesModuleOnLoad.h
-    │   └── UnistylesModuleOnLoad.mm
-    ├── nitrogen/
-    │   └── generated/
-    │       ├── android/
-    │       │   ├── unistyles+autolinking.cmake
-    │       │   ├── unistylesOnLoad.cpp
-    │       │   ├── unistylesOnLoad.hpp
-    │       │   ├── c++/
-    │       │   │   ├── JColorScheme.hpp
-    │       │   │   ├── JDimensions.hpp
-    │       │   │   ├── JFunc_void_std__vector_UnistyleDependency__UnistylesNativeMiniRuntime.hpp
-    │       │   │   ├── JFunc_void_UnistylesNativeMiniRuntime.hpp
-    │       │   │   ├── JHybridNativePlatformSpec.cpp
-    │       │   │   ├── JHybridNativePlatformSpec.hpp
-    │       │   │   ├── JInsets.hpp
-    │       │   │   ├── JOrientation.hpp
-    │       │   │   ├── JUnistyleDependency.hpp
-    │       │   │   └── JUnistylesNativeMiniRuntime.hpp
-    │       │   └── kotlin/
-    │       │       └── com/
-    │       │           └── margelo/
-    │       │               └── nitro/
-    │       │                   └── unistyles/
-    │       │                       ├── ColorScheme.kt
-    │       │                       ├── Dimensions.kt
-    │       │                       ├── Func_void_std__vector_UnistyleDependency__UnistylesNativeMiniRuntime.kt
-    │       │                       ├── Func_void_UnistylesNativeMiniRuntime.kt
-    │       │                       ├── HybridNativePlatformSpec.kt
-    │       │                       ├── Insets.kt
-    │       │                       ├── Orientation.kt
-    │       │                       ├── UnistyleDependency.kt
-    │       │                       ├── UnistylesNativeMiniRuntime.kt
-    │       │                       └── unistylesOnLoad.kt
-    │       ├── ios/
-    │       │   ├── Unistyles+autolinking.rb
-    │       │   ├── Unistyles-Swift-Cxx-Bridge.cpp
-    │       │   ├── Unistyles-Swift-Cxx-Bridge.hpp
-    │       │   ├── Unistyles-Swift-Cxx-Umbrella.hpp
-    │       │   ├── c++/
-    │       │   │   ├── HybridNativePlatformSpecSwift.cpp
-    │       │   │   └── HybridNativePlatformSpecSwift.hpp
-    │       │   └── swift/
-    │       │       ├── ColorScheme.swift
-    │       │       ├── Dimensions.swift
-    │       │       ├── Func_void_std__vector_UnistyleDependency__UnistylesNativeMiniRuntime.swift
-    │       │       ├── Func_void_UnistylesNativeMiniRuntime.swift
-    │       │       ├── HybridNativePlatformSpec.swift
-    │       │       ├── HybridNativePlatformSpec_cxx.swift
-    │       │       ├── Insets.swift
-    │       │       ├── Orientation.swift
-    │       │       ├── UnistyleDependency.swift
-    │       │       └── UnistylesNativeMiniRuntime.swift
-    │       └── shared/
-    │           └── c++/
-    │               ├── ColorScheme.hpp
-    │               ├── Dimensions.hpp
-    │               ├── HybridNativePlatformSpec.cpp
-    │               ├── HybridNativePlatformSpec.hpp
-    │               ├── HybridUnistylesNavigationBarSpec.cpp
-    │               ├── HybridUnistylesNavigationBarSpec.hpp
-    │               ├── HybridUnistylesRuntimeSpec.cpp
-    │               ├── HybridUnistylesRuntimeSpec.hpp
-    │               ├── HybridUnistylesShadowRegistrySpec.cpp
-    │               ├── HybridUnistylesShadowRegistrySpec.hpp
-    │               ├── HybridUnistylesStatusBarSpec.cpp
-    │               ├── HybridUnistylesStatusBarSpec.hpp
-    │               ├── HybridUnistylesStyleSheetSpec.cpp
-    │               ├── HybridUnistylesStyleSheetSpec.hpp
-    │               ├── Insets.hpp
-    │               ├── Orientation.hpp
-    │               ├── UnistyleDependency.hpp
-    │               ├── UnistylesCxxMiniRuntime.hpp
-    │               └── UnistylesNativeMiniRuntime.hpp
-    ├── plugin/
-    │   ├── esbuild.js
-    │   ├── index.d.ts
-    │   ├── index.js
-    │   ├── __tests__/
-    │   │   ├── dependencies.spec.ts
-    │   │   ├── imports.spec.ts
-    │   │   ├── playground.js
-    │   │   ├── stylesheet.spec.ts
-    │   │   ├── userImports.spec.ts
-    │   │   ├── variants.spec.ts
-    │   │   └── .prettierrc
-    │   └── src/
-    │       ├── consts.ts
-    │       ├── exotic.ts
-    │       ├── import.ts
-    │       ├── index.ts
-    │       ├── paths.ts
-    │       ├── ref.ts
-    │       ├── stylesheet.ts
-    │       ├── types.ts
-    │       └── variants.ts
-    ├── reanimated/
-    │   └── package.json
-    ├── repack-plugin/
-    │   ├── esbuild.js
-    │   ├── index.d.ts
-    │   ├── index.js
-    │   └── src/
-    │       ├── index.ts
-    │       └── loader.ts
-    ├── server/
-    │   └── package.json
-    ├── src/
-    │   ├── common.ts
-    │   ├── global.ts
-    │   ├── index.ts
-    │   ├── mocks.ts
-    │   ├── mq.ts
-    │   ├── utils.ts
-    │   ├── components/
-    │   │   ├── AdaptiveTheme.tsx
-    │   │   ├── ApplyScopedTheme.tsx
-    │   │   ├── Display.tsx
-    │   │   ├── Hide.tsx
-    │   │   ├── index.ts
-    │   │   ├── NamedTheme.tsx
-    │   │   ├── ScopedTheme.tsx
-    │   │   └── native/
-    │   │       ├── ActivityIndicator.tsx
-    │   │       ├── Animated.tsx
-    │   │       ├── FlatList.tsx
-    │   │       ├── Image.native.tsx
-    │   │       ├── Image.tsx
-    │   │       ├── ImageBackground.native.tsx
-    │   │       ├── ImageBackground.tsx
-    │   │       ├── KeyboardAvoidingView.tsx
-    │   │       ├── NativeText.native.tsx
-    │   │       ├── NativeText.tsx
-    │   │       ├── NativeView.native.tsx
-    │   │       ├── NativeView.tsx
-    │   │       ├── Pressable.native.tsx
-    │   │       ├── Pressable.tsx
-    │   │       ├── RefreshControl.tsx
-    │   │       ├── SafeAreaView.tsx
-    │   │       ├── ScrollView.tsx
-    │   │       ├── SectionList.tsx
-    │   │       ├── Switch.tsx
-    │   │       ├── Text.tsx
-    │   │       ├── TextInput.tsx
-    │   │       ├── TouchableHighlight.tsx
-    │   │       ├── TouchableOpacity.tsx
-    │   │       ├── View.tsx
-    │   │       └── VirtualizedList.tsx
-    │   ├── core/
-    │   │   ├── createUnistylesElement.native.tsx
-    │   │   ├── createUnistylesElement.tsx
-    │   │   ├── createUnistylesImageBackground.tsx
-    │   │   ├── getClassname.native.ts
-    │   │   ├── getClassname.ts
-    │   │   ├── index.ts
-    │   │   ├── parseBoxShadow.ts
-    │   │   ├── passForwardRef.ts
-    │   │   ├── useUnistyles.ts
-    │   │   ├── warn.ts
-    │   │   ├── useProxifiedUnistyles/
-    │   │   │   ├── index.ts
-    │   │   │   ├── listener.native.ts
-    │   │   │   ├── listener.ts
-    │   │   │   ├── types.ts
-    │   │   │   └── useProxifiedUnistyles.ts
-    │   │   └── withUnistyles/
-    │   │       ├── index.ts
-    │   │       ├── types.ts
-    │   │       ├── withUnistyles.native.tsx
-    │   │       └── withUnistyles.tsx
-    │   ├── hooks/
-    │   │   ├── index.ts
-    │   │   ├── useMedia.native.ts
-    │   │   └── useMedia.ts
-    │   ├── reanimated/
-    │   │   ├── index.ts
-    │   │   ├── useAnimatedTheme.native.ts
-    │   │   ├── useAnimatedTheme.ts
-    │   │   └── variant/
-    │   │       ├── index.ts
-    │   │       ├── types.ts
-    │   │       ├── useAnimatedVariantColor.ts
-    │   │       ├── useUpdateVariantColor.native.ts
-    │   │       └── useUpdateVariantColor.ts
-    │   ├── server/
-    │   │   ├── getServerUnistyles.tsx
-    │   │   ├── hydrateServerUnistyles.ts
-    │   │   ├── index.ts
-    │   │   ├── resetServerUnistyles.ts
-    │   │   ├── serialize.ts
-    │   │   ├── types.ts
-    │   │   └── useServerUnistyles.tsx
-    │   ├── specs/
-    │   │   ├── index.native.ts
-    │   │   ├── index.ts
-    │   │   ├── types.ts
-    │   │   ├── NativePlatform/
-    │   │   │   ├── index.ts
-    │   │   │   └── NativePlatform.nitro.ts
-    │   │   ├── NavigtionBar/
-    │   │   │   ├── index.ts
-    │   │   │   └── UnistylesNavigationBar.nitro.ts
-    │   │   ├── ShadowRegistry/
-    │   │   │   ├── index.ts
-    │   │   │   ├── ShadowRegistry.nitro.ts
-    │   │   │   └── types.ts
-    │   │   ├── StatusBar/
-    │   │   │   ├── index.ts
-    │   │   │   └── UnistylesStatusBar.nitro.ts
-    │   │   ├── StyleSheet/
-    │   │   │   ├── index.ts
-    │   │   │   └── UnistylesStyleSheet.nitro.ts
-    │   │   ├── TurboUnistyles/
-    │   │   │   ├── index.ts
-    │   │   │   └── NativeTurboUnistyles.ts
-    │   │   └── UnistylesRuntime/
-    │   │       ├── index.ts
-    │   │       └── UnistylesRuntime.nitro.ts
-    │   ├── types/
-    │   │   ├── accessibility.ts
-    │   │   ├── breakpoints.ts
-    │   │   ├── common.ts
-    │   │   ├── core.ts
-    │   │   ├── index.ts
-    │   │   ├── stylesheet.ts
-    │   │   └── variants.ts
-    │   ├── web/
-    │   │   ├── create.ts
-    │   │   ├── index.ts
-    │   │   ├── listener.ts
-    │   │   ├── mock.ts
-    │   │   ├── registry.ts
-    │   │   ├── runtime.ts
-    │   │   ├── services.ts
-    │   │   ├── shadowRegistry.ts
-    │   │   ├── state.ts
-    │   │   ├── types.ts
-    │   │   ├── variants.ts
-    │   │   ├── convert/
-    │   │   │   ├── index.ts
-    │   │   │   ├── module.d.ts
-    │   │   │   ├── pseudo.ts
-    │   │   │   ├── style.ts
-    │   │   │   ├── types.ts
-    │   │   │   ├── utils.ts
-    │   │   │   ├── object/
-    │   │   │   │   ├── boxShadow.ts
-    │   │   │   │   ├── filter.ts
-    │   │   │   │   ├── index.ts
-    │   │   │   │   ├── objectStyle.ts
-    │   │   │   │   └── transform.ts
-    │   │   │   └── shadow/
-    │   │   │       ├── boxShadow.ts
-    │   │   │       ├── getShadowBreakpoints.ts
-    │   │   │       ├── index.ts
-    │   │   │       └── textShadow.ts
-    │   │   ├── css/
-    │   │   │   ├── core.ts
-    │   │   │   ├── index.ts
-    │   │   │   ├── state.ts
-    │   │   │   └── utils.ts
-    │   │   └── utils/
-    │   │       ├── common.ts
-    │   │       ├── createUnistylesRef.ts
-    │   │       ├── index.ts
-    │   │       └── unistyle.ts
-    │   └── web-only/
-    │       ├── getWebProps.ts
-    │       └── index.ts
-    ├── web/
-    │   └── package.json
-    ├── .github/
-    │   ├── FUNDING.yml
-    │   ├── PULL_REQUEST_TEMPLATE.md
-    │   ├── ISSUE_TEMPLATE/
-    │   │   ├── bug-report.yml
-    │   │   └── config.yml
-    │   └── workflows/
-    │       ├── ci.yml
-    │       └── release.yml
-    └── .husky/
-        ├── commit-msg
-        └── pre-commit
+<SYSTEM>This is the full developer documentation for React Native Unistyles 3.0</SYSTEM>
 
+# Configuration
 
-Files Content:
+> How configure Unistyles
 
-(Files content cropped to 300k characters, download full ingest to see more)
-================================================
-FILE: README.md
-================================================
-[<img alt="react-native-unistyles" src="assets/banner3.png">](https://unistyl.es/)
+To unlock more features and tailor Unistyles to your needs, you can configure it. The Unistyles configuration is divided into three parts:
 
-![GitHub package.json version](https://img.shields.io/github/package-json/v/jpudysz/react-native-unistyles?style=for-the-badge)
-[![npm downloads](https://img.shields.io/npm/dm/react-native-unistyles?style=for-the-badge)](https://www.npmjs.com/package/react-native-unistyles)
-[![npm downloads](https://img.shields.io/npm/dt/react-native-unistyles?style=for-the-badge)](https://www.npmjs.com/package/react-native-unistyles)
-[![License: MIT](https://img.shields.io/badge/License-MIT-44CD11.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
-<br />
-[![platform - expo](https://img.shields.io/badge/Expo-fff?style=for-the-badge&logo=expo&logoColor=black)](https://docs.expo.dev/)
-[![platform - web](https://img.shields.io/badge/Web-white?logo=react&logoColor=57BDDA&style=for-the-badge)](https://www.w3.org/)
-[![platform - ios](https://img.shields.io/badge/iOS-000?logo=apple&style=for-the-badge)](https://developer.apple.com/ios/)
-[![platform - android](https://img.shields.io/badge/Android-44CD11?style=for-the-badge&logo=android&logoColor=white)](https://developer.android.com/)
-[![platform - ssr](https://img.shields.io/badge/SSR-black?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
+1. **Themes**
+2. **Breakpoints**
+3. **Settings**
 
+Note
 
-## Installation
+Each configuration is optional but enables advanced features, which are explained in the guide [How Unistyles Works?](/v3/start/how-unistyles-works)
 
-```shell
-yarn add react-native-unistyles
-```
+### Themes (Optional)
 
-Install dependencies:
+`Themes` is a JavaScript object where the keys represent unique theme names, and the values are the corresponding theme definitions. For more details, refer to the [theming](/v3/guides/theming) guide.
 
-```shell
-yarn add react-native-edge-to-edge react-native-nitro-modules@0.28.0
-```
+unistyles.ts
 
-> To avoid unexpected behavior, always use a fixed version of `react-native-nitro-modules`
-
-| react-native-unistyles | react-native-nitro-modules |
-|------------------------|----------------------------|
-| 3.0.0                  | 0.28.0                     |
-
-Then follow [installation guides](https://unistyl.es/v3/start/getting-started) for your platform.
-
-## [Documentation](https://unistyl.es/)
-- [Start here](https://unistyl.es/v3/start/introduction)
-- [Migration from Unistyles 2.0](https://unistyl.es/v3/start/migration-guide)
-- [Learn how Unistyles 3.0 works](https://unistyl.es/v3/start/how-unistyles-works)
-- [API](https://unistyl.es/v3/references/stylesheet)
-- [Examples](https://unistyl.es/v3/examples/examples)
-
-## Features
-- 🚀 Shared core with C++ and JSI bindings
-- 🏎️ Powered by Nitro Modules
-- 🦸🏼‍♂️ No re-renders
-- 🦄 Custom web parser, classes and pseudo classes
-- ⚛️ Tightly integrated with Fabric and Shadow Tree
-- 🔥 Crazy performance, adds under 0.1 ms to your StyleSheet
-- 🎳 Share up to 100% of your styles across platforms in monorepo
-- 🎯 Doesn't introduce new components, your view hierarchy is always clean
-- 🎨 Register multiple themes and change them with single function call
-- and [much much more](https://unistyl.es/v3/start/new-features)!
-
-## Sponsors
-
-<a href="https://codemask.com">
-    <img src="https://avatars.githubusercontent.com/u/51229884?s=200&v=4" height="70px" width="70px" alt="codemask" />
-</a>
-<a href="https://galaxies.dev">
-     <img src="https://avatars.githubusercontent.com/u/118431096?s=200&v=4" height="70px" width="70px" alt="galaxies-dev" />
-</a>
-<a href="https://github.com/mwarger">
-     <img src="https://avatars.githubusercontent.com/u/686823?v=4" height="70px" width="70px" alt="mwarger" />
-</a>
-<a href="https://github.com/biw">
-     <img src="https://avatars.githubusercontent.com/u/6139501?v=4" height="70px" width="70px" alt="biw" />
-</a>
-<a href="https://github.com/happyfloat">
-     <img src="https://avatars.githubusercontent.com/u/186333704?s=200&v=4" height="70px" width="70px" alt="happyfloat" />
-</a>
-<a href="https://github.com/ryanlanciaux">
-     <img src="https://avatars.githubusercontent.com/u/85041?v=4" height="70px" width="70px" alt="ryanlanciaux" />
-</a>
-<a href="https://github.com/jordmccord">
-     <img src="https://avatars.githubusercontent.com/u/7591840?v=4" height="70px" width="70px" alt="jordmccord" />
-</a>
-<a href="https://github.com/kerwanp">
-     <img src="https://avatars.githubusercontent.com/u/36955373?v=4" height="70px" width="70px" alt="kerwanp" />
-</a>
-
-## Past sponsors
-
-<a href="https://github.com/kmartinezmedia">
-     <img src="https://avatars.githubusercontent.com/u/6308123?s=200&v=4" height="60px" width="60px" alt="kmartinezmedia" />
-</a>
-<a href="https://github.com/levibuzolic">
-     <img src="https://avatars.githubusercontent.com/u/721323?v=4" height="60px" width="60px" alt="levibuzolic" />
-</a>
-<a href="https://github.com/claudesortwell">
-     <img src="https://avatars.githubusercontent.com/u/41422239?v=4" height="60px" width="60px" alt="claudesortwell" />
-</a>
-<a href="https://github.com/luoxuhai">
-     <img src="https://avatars.githubusercontent.com/u/37284154?v=4" height="60px" width="60px" alt="luoxuhai" />
-</a>
-<a href="https://github.com">
-     <img src="https://avatars.githubusercontent.com/u/113348625?v=4" height="60px" width="60px" alt="anonymous" />
-</a>
-<a href="https://github.com/abanobboles">
-     <img src="https://avatars.githubusercontent.com/u/9078953?v=4" height="60px" width="60px" alt="abanobboles" />
-</a>
-<a href="https://github.com/hyoban">
-     <img src="https://avatars.githubusercontent.com/u/38493346?v=4" height="60px" width="60px" alt="hyoban" />
-</a>
-<a href="https://github.com/giovannilondero">
-     <img src="https://avatars.githubusercontent.com/u/10998991?v=4" height="60px" width="60px" alt="giovannilondero" />
-</a>
-<a href="https://github.com/4cc3ssX">
-     <img src="https://avatars.githubusercontent.com/u/57473799?v=4" height="60px" width="60px" alt="4cc3ssX" />
-</a>
-<a href="https://github.com/FilipiRafael">
-     <img src="https://avatars.githubusercontent.com/u/61629642?v=4" height="60px" width="60px" alt="FilipiRafael" />
-</a>
-<a href="https://github.com/dacoto97">
-     <img src="https://avatars.githubusercontent.com/u/16915053?v=4" height="60px" width="60px" alt="dacoto97" />
-</a>
-<a href="https://github.com/chinamcafee">
-     <img src="https://avatars.githubusercontent.com/u/3439961?v=4" height="60px" width="60px" alt="chinamcafee" />
-</a>
-<a href="https://github.com/guillaumehcht">
-     <img src="https://avatars.githubusercontent.com/u/80776475?v=4" height="60px" width="60px" alt="guillaumehcht" />
-</a>
-<a href="https://github.com/FTCHD">
-     <img src="https://avatars.githubusercontent.com/u/144691102?v=4" height="60px" width="60px" alt="FTCHD" />
-</a>
-<a href="https://github.com/avega99">
-     <img src="https://avatars.githubusercontent.com/u/177598670?v=4" height="60px" width="60px" alt="avega99" />
-</a>
-<a href="https://github.com/oscklm">
-     <img src="https://avatars.githubusercontent.com/u/22825865?v=4" height="60px" width="60px" alt="oscklm" />
-</a>
-<a href="https://github.com/loopsware">
-     <img src="https://avatars.githubusercontent.com/u/161434039?s=200&v=4" height="60px" width="60px" alt="loopsware" />
-</a>
-<a href="https://github.com/mobily">
-     <img src="https://avatars.githubusercontent.com/u/1467712?v=4" height="60px" width="60px" alt="mobily" />
-</a>
-
-## Sponsor my work
-
-[How to become a sponsor?](https://unistyl.es/v3/other/for-sponsors)
-
-If you found the `react-native-unistyles` time-saving and valuable, please consider sponsoring my work. Your support enables me to continue creating libraries with a fresh approach.
-
-Github: https://github.com/sponsors/jpudysz
-
-Ko-fi: https://ko-fi.com/jpudysz
-
-Your support is greatly appreciated and helps me dedicate more time and resources to creating quality libraries. Thank you for all the support!
-
-
-## Discord
-Looking for help or you want to chat with me?
-
-[Join Discord](https://discord.gg/akGHf27P4C)
-
-
-## License
-
-MIT
-
-
-
-================================================
-FILE: babel.config.js
-================================================
-module.exports = {
-    presets: ['module:metro-react-native-babel-preset']
+```tsx
+const lightTheme = {
+    colors: {
+        primary: '#ff1ff4',
+        secondary: '#1ff4ff'
+        // any nesting, spreading, arrays, etc.
+    },
+    // functions, external imports, etc.
+    gap: (v: number) => v * 8
 }
 
 
+const otherTheme = {
+    colors: {
+        primary: '#aa12ff',
+        secondary: 'pink'
+    },
+    gap: (v: number) => v * 8
+}
 
-================================================
-FILE: biome.json
-================================================
-{
-  "$schema": "https://biomejs.dev/schemas/1.8.3/schema.json",
-  "files": {
-    "include": ["src/**/*.ts", "src/**/*.tsx", "plugin/**/*.ts", "repack-plugin/**/*.ts"],
-    "ignore": ["example", "expo-example", "docs", "lib"]
-  },
-  "formatter": {
-    "enabled": false
-  },
-  "linter": {
-    "enabled": true,
-    "rules": {
-      "recommended": true,
-      "suspicious": {
-        "noEmptyInterface": "off",
-        "noExplicitAny": "off"
-      },
-      "complexity": {
-        "noForEach": "off",
-        "noUselessSwitchCase": "off",
-        "noBannedTypes": "off"
-      },
-      "correctness": {
-        "useExhaustiveDependencies": "off"
-      }
+
+const appThemes = {
+    light: lightTheme,
+    other: otherTheme
+}
+```
+
+Note
+
+Unistyles supports any dynamic theme and doesn’t enforce a specific structure. To avoid TypeScript issues, ensure that all themes share the same type.
+
+### Breakpoints (Optional)
+
+`Breakpoints` is a JavaScript object where the keys are unique breakpoint names and the values are the corresponding breakpoint values (numbers). Be sure to register at least one breakpoint with a value of 0, as it’s required to simulate the cascading behavior of CSS media queries.
+
+unistyles.ts
+
+```tsx
+const breakpoints = {
+    xs: 0, // <-- make sure to register one breakpoint with value 0
+    sm: 300,
+    md: 500,
+    lg: 800,
+    xl: 1200
+    // use as many breakpoints as you need
+}
+```
+
+### Settings (Optional)
+
+The `Settings` object has been simplified, and in the most recent version, it supports only four properties:
+
+* **`adaptiveThemes`** – a boolean that enables or disables adaptive themes [learn more](/v3/guides/theming#adaptive-themes)
+* **`initialTheme`** – a string or a synchronous function that sets the initial theme
+* **`CSSVars`** – a boolean that enables or disables web CSS variables (defaults to `true`) [learn more](/v3/references/web-only#css-variables)
+* **`nativeBreakpointsMode`** - iOS/Android only. User preferred mode for breakpoints. Can be either `points` or `pixels` (defaults to `pixels`) [learn more](/v3/references/breakpoints#pixelpoint-mode-for-native-breakpoints)
+
+unistyles.ts
+
+```tsx
+const settings = {
+    initialTheme: 'light'
+}
+
+
+// or with a synchronous function
+const settings = {
+    initialTheme: () => {
+        // get preferred theme from user's preferences/MMKV/SQL/StanJS etc.
+
+
+        return storage.getString('preferredTheme') ?? 'light'
     }
-  },
-  "organizeImports": {
-    "enabled": true
-  },
-  "javascript": {
-    "globals": [],
-    "jsxRuntime": "reactClassic"
-  }
 }
 
 
+// or with adaptive themes
+const settings = {
+    adaptiveThemes: true
+}
+```
 
-================================================
-FILE: build-components.js
-================================================
-const fs = require('node:fs')
+Note
 
-const REACT_NATIVE_COMPONENT_NAMES = [
-    'ActivityIndicator',
-    'View',
-    'Text',
-    'Image',
-    'ImageBackground',
-    'KeyboardAvoidingView',
-    'Pressable',
-    'ScrollView',
-    'FlatList',
-    'SectionList',
-    'Switch',
-    'TextInput',
-    'RefreshControl',
-    'TouchableHighlight',
-    'TouchableOpacity',
-    'VirtualizedList',
-    'Animated',
-    'NativeView',
-    'NativeText',
-    'SafeAreaView'
-]
+In the Unistyles 3.0 setting both `initialTheme` and `adaptiveThemes` will cause an error. These options are mutually exclusive.
 
-fs.rmSync('./components', { recursive: true, force: true })
-fs.mkdirSync('./components')
-fs.mkdirSync('./components/native')
+### TypeScript Types (Optional)
 
-REACT_NATIVE_COMPONENT_NAMES.forEach(componentName => {
-    fs.mkdirSync(`./components/native/${componentName}`)
-    const hasNativeFile = fs.existsSync(`./src/components/native/${componentName}.native.tsx`)
-    const packageJson = [
-        '{',
-        `  "main": "../../../lib/commonjs/components/native/${componentName}.js",`,
-        `  "module": "../../../lib/module/components/native/${componentName}.js",`,
-        `  "browser": "../../../lib/module/components/native/${componentName}.js",`,
-        `  "react-native": "../../../src/components/native/${componentName}.${hasNativeFile ? 'native.' : ''}tsx"`,
-        '}',
-        ''
-    ].join('\n')
-    fs.writeFileSync(`./components/native/${componentName}/package.json`, packageJson)
+If your repository is using TypeScript, it is highly recommended to override the library types for optimal autocomplete and type safety regarding your themes and breakpoints:
+
+unistyles.ts
+
+```tsx
+type AppThemes = typeof appThemes
+type AppBreakpoints = typeof breakpoints
+
+
+declare module 'react-native-unistyles' {
+    export interface UnistylesThemes extends AppThemes {}
+    export interface UnistylesBreakpoints extends AppBreakpoints {}
+}
+```
+
+### Set configuration
+
+The final step in the configuration is to set all the options by calling the `StyleSheet.configure` function:
+
+unistyles.ts
+
+```tsx
+import { StyleSheet } from 'react-native-unistyles'
+
+
+StyleSheet.configure({
+    themes: appThemes,
+    breakpoints,
+    settings
 })
+```
+
+That’s it! You can now use all the features of Unistyles in your project!
+
+Note
+
+Don’t forget to import this config somewhere in your project, for example in `index.ts` file. You **must** call `StyleSheet.configure` **before** any `StyleSheet.create` call.
+
+For expo router users, please refer to the [Expo Router guide](/v3/guides/expo-router).
+
+### Full example
+
+unistyles.ts
+
+```tsx
+import { StyleSheet } from 'react-native-unistyles'
 
 
-
-================================================
-FILE: LICENSE
-================================================
-MIT License
-
-Copyright (c) 2023-2025 Jacek Pudysz
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-
-
-================================================
-FILE: nitro.json
-================================================
-{
-  "cxxNamespace": ["unistyles"],
-  "ios": {
-    "iosModuleName": "Unistyles"
-  },
-  "android": {
-    "androidNamespace": ["unistyles"],
-    "androidCxxLibName": "unistyles"
-  },
-  "autolinking": {}
-}
-
-
-
-================================================
-FILE: package.json
-================================================
-{
-  "name": "react-native-unistyles",
-  "version": "3.0.10",
-  "description": "Level up your React Native StyleSheet",
-  "scripts": {
-    "test": "NODE_ENV=babel-test jest ./plugin",
-    "test:coverage": "NODE_ENV=babel-test jest --passWithNoTests --coverage",
-    "tsc": "node_modules/typescript/bin/tsc --noEmit",
-    "lint": "biome lint",
-    "check": "biome check --write",
-    "check:ci": "biome check",
-    "prepare": "husky && bob build && yarn plugin:build && yarn repack:plugin:build",
-    "precommit": "concurrently 'yarn tsc' 'yarn lint' 'yarn check' 'yarn test' 'yarn circular:check'",
-    "release": "release-it",
-    "plugin:build": "node plugin/esbuild.js",
-    "repack:plugin:build": "node repack-plugin/esbuild.js",
-    "circular:check": "dpdm --no-warning --no-tree -T --exit-code circular:1 src/**/*.ts",
-    "components:build": "node build-components.js"
-  },
-  "main": "lib/commonjs/index.js",
-  "module": "lib/module/index.js",
-  "browser": "lib/module/index.js",
-  "types": "lib/typescript/src/index.d.ts",
-  "source": "src/index",
-  "exports": {
-    ".": {
-      "types": "./lib/typescript/src/index.d.ts",
-      "import": "./lib/module/index.js",
-      "browser": "./lib/module/index.js",
-      "react-native": "./src/index.ts",
-      "default": "./lib/commonjs/index.js"
+const lightTheme = {
+    colors: {
+        primary: '#ff1ff4',
+        secondary: '#1ff4ff'
     },
-    "./mocks": {
-      "import": "./lib/module/mocks.js",
-      "browser": "./lib/module/mocks.js",
-      "react-native": "./src/mocks.ts",
-      "default": "./lib/commonjs/mocks.js"
+    gap: (v: number) => v * 8
+}
+
+
+const otherTheme = {
+    colors: {
+        primary: '#aa12ff',
+        secondary: 'pink'
     },
-    "./components/native/*": {
-      "import": "./lib/module/components/native/*",
-      "browser": "./lib/module/components/native/*",
-      "react-native": "./src/components/native/*",
-      "default": "./lib/commonjs/components/native/*"
+    gap: (v: number) => v * 8
+}
+
+
+const appThemes = {
+    light: lightTheme,
+    other: otherTheme
+}
+
+
+const breakpoints = {
+    xs: 0,
+    sm: 300,
+    md: 500,
+    lg: 800,
+    xl: 1200
+}
+
+
+type AppBreakpoints = typeof breakpoints
+type AppThemes = typeof appThemes
+
+
+declare module 'react-native-unistyles' {
+    export interface UnistylesThemes extends AppThemes {}
+    export interface UnistylesBreakpoints extends AppBreakpoints {}
+}
+
+
+StyleSheet.configure({
+    settings: {
+        initialTheme: 'light',
     },
-    "./plugin": {
-      "import": "./plugin/index.js",
-      "types": "./plugin/index.d.ts",
-      "default": "./plugin/index.js"
-    },
-    "./repack-plugin": {
-      "import": "./repack-plugin/index.js",
-      "types": "./repack-plugin/index.d.ts",
-      "default": "./repack-plugin/index.js"
-    },
-    "./package.json": "./package.json",
-    "./server": {
-      "types": "./lib/typescript/src/server/index.d.ts",
-      "import": "./lib/module/server/index.js",
-      "browser": "./lib/module/server/index.js",
-      "react-native": "./src/server/index.ts",
-      "default": "./lib/commonjs/server/index.js"
-    },
-    "./web": {
-      "types": "./lib/typescript/src/web-only/index.d.ts",
-      "import": "./lib/module/web-only/index.js",
-      "browser": "./lib/module/web-only/index.js",
-      "react-native": "./src/web-only/index.ts",
-      "default": "./lib/commonjs/web-only/index.js"
-    },
-    "./reanimated": {
-      "types": "./lib/typescript/src/reanimated/index.d.ts",
-      "import": "./lib/module/reanimated/index.js",
-      "browser": "./lib/module/reanimated/index.js",
-      "react-native": "./src/reanimated/index.ts",
-      "default": "./lib/commonjs/reanimated/index.js"
-    }
-  },
-  "files": [
-    "src",
-    "lib",
-    "ios",
-    "android",
-    "cxx",
-    "nitrogen",
-    "plugin",
-    "web",
-    "components",
-    "server",
-    "web-only",
-    "reanimated",
-    "react-native.config.js",
-    "Unistyles.podspec",
-    "repack-plugin",
-    "unistyles_get_rn_version.rb",
-    "!repack-plugin/__tests__",
-    "!repack-plugin/src",
-    "!repack-plugin/esbuild.js",
-    "!plugin/__tests__",
-    "!plugin/src",
-    "!plugin/esbuild.js",
-    "!ios/build",
-    "!android/build",
-    "!android/gradle",
-    "!android/gradlew",
-    "!android/gradlew.bat",
-    "!android/local.properties",
-    "!**/*.spec.ts",
-    "!**/*.spec.tsx",
-    "!**/.*"
-  ],
-  "keywords": [
-    "react-native",
-    "ios",
-    "android",
-    "react-native-web",
-    "expo",
-    "fabric"
-  ],
-  "repository": "https://github.com/jpudysz/react-native-unistyles",
-  "author": "Jacek Pudysz <jacekpudysz@gmail.com> (https://github.com/jpudysz)",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/jpudysz/react-native-unistyles/issues"
-  },
-  "homepage": "https://github.com/jpudysz/react-native-unistyles#readme",
-  "publishConfig": {
-    "registry": "https://registry.npmjs.org/"
-  },
-  "devDependencies": {
-    "@babel/core": "7.27.1",
-    "@babel/plugin-syntax-jsx": "7.27.1",
-    "@babel/preset-flow": "7.27.1",
-    "@babel/preset-typescript": "7.27.1",
-    "@babel/types": "7.27.1",
-    "@biomejs/biome": "1.9.4",
-    "@callstack/repack": "5.1.0",
-    "@commitlint/config-conventional": "19.8.1",
-    "@react-native/normalize-colors": "0.79.2",
-    "@release-it/conventional-changelog": "8.0.2",
-    "@rspack/core": "1.3.10",
-    "@types/jest": "29.5.14",
-    "@types/react": "19.1.4",
-    "babel-plugin-tester": "11.0.4",
-    "commitlint": "19.8.1",
-    "concurrently": "9.1.2",
-    "dpdm": "3.14.0",
-    "esbuild": "0.25.4",
-    "husky": "9.1.7",
-    "jest": "29.7.0",
-    "metro-react-native-babel-preset": "0.77.0",
-    "nitro-codegen": "0.28.0",
-    "react": "19.1.0",
-    "react-native": "0.79.2",
-    "react-native-builder-bob": "0.40.10",
-    "react-native-nitro-modules": "0.28.0",
-    "react-native-reanimated": "3.17.5",
-    "react-native-web": "0.20.0",
-    "react-test-renderer": "19.1.0",
-    "release-it": "17.11.0",
-    "typescript": "5.8.3"
-  },
-  "peerDependencies": {
-    "@react-native/normalize-colors": "*",
-    "react": "*",
-    "react-native": ">=0.76.0",
-    "react-native-edge-to-edge": "*",
-    "react-native-nitro-modules": "*",
-    "react-native-reanimated": "*"
-  },
-  "peerDependenciesMeta": {
-    "react-native-reanimated": {
-      "optional": true
-    }
-  },
-  "workspaces": [
-    "example",
-    "docs",
-    "expo-example"
-  ],
-  "packageManager": "yarn@3.6.1",
-  "engines": {
-    "node": ">= 18.0.0"
-  },
-  "jest": {
-    "preset": "react-native",
-    "modulePathIgnorePatterns": [
-      "<rootDir>/docs/node_modules",
-      "<rootDir>/lib/",
-      "<rootDir>/cxx/tests"
-    ],
-    "testMatch": [
-      "**/*.spec.(ts|tsx|js)"
-    ],
-    "coverageReporters": [
-      "html"
-    ]
-  },
-  "commitlint": {
-    "extends": [
-      "@commitlint/config-conventional"
-    ]
-  },
-  "release-it": {
-    "git": {
-      "commitMessage": "chore: release ${version}",
-      "tagName": "v${version}"
-    },
-    "npm": {
-      "publish": true
-    },
-    "github": {
-      "release": true
-    },
-    "plugins": {
-      "@release-it/conventional-changelog": {
-        "preset": "angular"
-      }
-    }
-  },
-  "react-native-builder-bob": {
-    "source": "src",
-    "output": "lib",
-    "targets": [
-      "commonjs",
-      "module",
-      [
-        "typescript",
-        {
-          "project": "tsconfig.build.json"
-        }
-      ]
-    ]
-  },
-  "codegenConfig": {
-    "name": "TurboUnistyles",
-    "type": "modules",
-    "jsSrcsDir": "./src/specs/TurboUnistyles"
-  }
-}
+    breakpoints,
+    themes: appThemes
+})
+```
 
+# Getting started
 
+> How to get started with Unistyles
 
-================================================
-FILE: tsconfig.build.json
-================================================
+We’ve made Unistyles incredibly easy to use. You no longer need the `useStyle` hook or wrap your app in React Provider. Unistyles integrates seamlessly with your existing code, so you can start using it immediately.
 
-{
-  "extends": "./tsconfig",
-  "compilerOptions": {
-    "noEmit": false
-  },
-  "exclude": ["example", "expo-example", "plugin", "docs"]
-}
+### Prerequisites
 
+Unistyles 3.0 is tightly integrated with `Fabric` and the latest versions of React Native. Therefore, you must use the **New Architecture** and at least **React Native 0.78.0**. Additionally, Unistyles relies on `react-native-nitro-modules` and `react-native-edge-to-edge`.
 
+Note
 
-================================================
-FILE: tsconfig.json
-================================================
-{
-  "compilerOptions": {
-    "rootDir": ".",
-    "paths": {
-      "react-native-unistyles": ["./src/index"]
-    },
-    "allowUnreachableCode": false,
-    "allowUnusedLabels": false,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "jsx": "react",
-    "lib": [
-      "esnext",
-      "dom"
-    ],
-    "module": "esnext",
-    "moduleResolution": "Bundler",
-    "noFallthroughCasesInSwitch": true,
-    "noImplicitReturns": true,
-    "noImplicitUseStrict": false,
-    "noStrictGenericChecks": false,
-    "noUncheckedIndexedAccess": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "resolveJsonModule": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "noEmit": true,
-    "target": "esnext",
-    "verbatimModuleSyntax": true
-  },
-  "exclude": [
-    "example",
-    "expo-example",
-    "docs",
-    "lib"
-  ]
-}
+Learn more about how Unistyles leverages Nitro Modules and React Native Edge to Edge [here](/v3/other/dependencies).
 
+**Table of requirements:**
 
+|                  | Required                  | Note                      |
+| ---------------- | ------------------------- | ------------------------- |
+| React Native     | 0.78.0+                   |                           |
+| New Architecture | enabled                   | no option to opt-out      |
+| Expo SDK         | 53+                       | (if you use Expo)         |
+| Xcode            | 16+ (recommended 16.3+)   | Required by Nitro Modules |
+| Platform         | iOS / Android / Web / SSR | Follow instructions below |
 
-================================================
-FILE: Unistyles.podspec
-================================================
-require "json"
-require_relative './unistyles_get_rn_version.rb'
+Since Unistyles relies on `Fabric`, it cannot run on the `Old Architecture` or older versions of React Native. If you can’t meet these requirements, you can use Unistyles 2.0+, which is compatible with those versions.
 
-package = JSON.parse(File.read(File.join(__dir__, "package.json")))
+### Installation
 
-Pod::Spec.new do |s|
-  s.name         = "Unistyles"
-  s.version      = package["version"]
-  s.summary      = package["description"]
-  s.homepage     = package["homepage"]
-  s.license      = package["license"]
-  s.authors      = package["author"]
+Install Unistyles and its dependencies
 
-  s.platforms    = { :ios => min_ios_version_supported }
-  s.source       = { :git => package["repository"], :tag => "#{s.version}" }
+```shell
+yarn add react-native-unistyles react-native-nitro-modules react-native-edge-to-edge
+```
 
-  s.source_files = [
-    "ios/**/*.{swift,h,mm}",
-    "cxx/**/*.{h,cpp,hpp}"
-  ]
-  s.pod_target_xcconfig = {
-    "CLANG_CXX_LANGUAGE_STANDARD" => "c++20",
-    "GCC_PREPROCESSOR_DEFINITIONS" => "$(inherited) FOLLY_NO_CONFIG FOLLY_CFG_NO_COROUTINES FOLLY_MOBILE"
-  }
+Caution
 
-  s.public_header_files = [
-    "ios/Unistyles.h"
-  ]
+To avoid unexpected behaviors always use a fixed version of `react-native-nitro-modules`. Check compatibility table [here](https://github.com/jpudysz/react-native-unistyles?tab=readme-ov-file#installation).
 
-  if ENV["USE_FRAMEWORKS"]
-    RN_VERSION = unistyles_get_rn_version(ENV['REACT_NATIVE_PATH']) || 999
+Add babel plugin:
 
-    s.dependency "React-Core"
-    add_dependency(s, "React-jsinspector", :framework_name => "jsinspector_modern")
+babel.config.js
 
-    if RN_VERSION >= 79
-      add_dependency(s, "React-jsinspectortracing", :framework_name => 'jsinspector_moderntracing')
-    end
+```js
+module.exports = function (api) {
+  api.cache(true)
 
-    if RN_VERSION >= 80
-      add_dependency(s, "React-jsinspectorcdp", :framework_name => 'jsinspector_moderncdp')
-    end
 
-    add_dependency(s, "React-rendererconsistency", :framework_name => "React_rendererconsistency")
-  end
+  return {
+    // for bare React Native
+    // presets: ['module:@react-native/babel-preset'],
 
-  load "nitrogen/generated/ios/Unistyles+autolinking.rb"
-  add_nitrogen_files(s)
 
-  install_modules_dependencies(s)
-end
+    // or for Expo
+    // presets: ['babel-preset-expo'],
 
 
-
-================================================
-FILE: unistyles_get_rn_version.rb
-================================================
-require 'json'
-
-def unistyles_get_rn_version(rn_path)
-    rn_path = rn_path || '../node_modules/react-native'
-
-    maybe_rn_pkg_json = File.expand_path(File.join(rn_path, 'package.json'))
-    maybe_local_rn_pkg_json = File.expand_path('./node_modules/react-native/package.json')
-    maybe_react_native_pkg_json = File.expand_path('../react-native/package.json')
-
-    rn_pkg_json =
-        if File.exist?(maybe_rn_pkg_json)
-            maybe_rn_pkg_json
-        elsif File.exist?(maybe_local_rn_pkg_json)
-            maybe_local_rn_pkg_json
-        elsif File.exist?(maybe_react_native_pkg_json)
-            maybe_react_native_pkg_json
-        else
-            nil
-        end
-
-    unless rn_pkg_json
-        warn "🦄 Unistyles: React Native not found. Frameworks :static will use all dependencies which might fail for older versions of React Native."
-        return nil
-    end
-
-    rn_pkg = JSON.parse(File.read(rn_pkg_json))
-    rn_version = rn_pkg['version']
-    parsed_version = Gem::Version.new(rn_version).segments[1]
-
-    parsed_version
-end
-
-
-
-================================================
-FILE: .editorconfig
-================================================
-root = true
-
-[*]
-charset = utf-8
-end_of_line = lf
-indent_size = 4
-indent_style = space
-insert_final_newline = true
-max_line_length = 120
-trim_trailing_whitespace = true
-
-[*.{sh,json,podspec,yml,yaml}]
-indent_style = space
-indent_size = 2
-
-
-
-================================================
-FILE: .nvmrc
-================================================
-v20
-
-
-
-================================================
-FILE: .yarnrc.yml
-================================================
-nmHoistingLimits: workspaces
-
-nodeLinker: node-modules
-
-plugins:
-  - path: .yarn/plugins/@yarnpkg/plugin-interactive-tools.cjs
-    spec: "@yarnpkg/plugin-interactive-tools"
-  - path: .yarn/plugins/@yarnpkg/plugin-workspace-tools.cjs
-    spec: "@yarnpkg/plugin-workspace-tools"
-
-yarnPath: .yarn/releases/yarn-3.6.1.cjs
-
-
-
-================================================
-FILE: android/CMakeLists.txt
-================================================
-cmake_minimum_required(VERSION 3.9.0)
-
-project(unistyles)
-
-file(GLOB_RECURSE CORE_SRC RELATIVE ${CMAKE_SOURCE_DIR} "../cxx/**/*.cpp")
-file(GLOB_RECURSE PLATFORM_SRC RELATIVE ${CMAKE_SOURCE_DIR} "./src/main/cxx/*.cpp")
-
-if(ReactAndroid_VERSION_MINOR GREATER_EQUAL 80)
-    target_compile_reactnative_options(unistyles PRIVATE)
-endif()
-
-add_library(unistyles
-    SHARED
-    ${CORE_SRC}
-    ${PLATFORM_SRC}
-)
-
-include("${CMAKE_SOURCE_DIR}/../nitrogen/generated/android/unistyles+autolinking.cmake")
-
-include_directories(
-    ./src/main/cxx
-    ../cxx
-    ../cxx/common
-    ../cxx/core
-    ../cxx/hybridObjects
-    ../cxx/parser
-    ../cxx/shadowTree
-)
-
-# Nitro appends all Folly Flags, leaving it empty
-string(APPEND CMAKE_CXX_FLAGS " ")
-
-set_target_properties(unistyles PROPERTIES
-    CXX_STANDARD 20
-    CXX_STANDARD_REQUIRED ON
-    CXX_EXTENSIONS OFF
-    POSITION_INDEPENDENT_CODE ON
-)
-
-# For React Native 0.76 and above, we don't need to link anything
-# as NitroModules will automatically add ReactAndroid::reactnative prefab
-if (ReactAndroid_VERSION_MINOR LESS 78)
-    message(FATAL_ERROR "Unistyles 3.0 requires min. React Native version to be 0.78")
-endif ()
-
-
-
-================================================
-FILE: android/src/main/cxx/cpp-adapter.cpp
-================================================
-#include <fbjni/fbjni.h>
-#include "unistylesOnLoad.hpp"
-#include "NativeUnistylesModule.h"
-
-JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *) {
-    return facebook::jni::initialize(vm, [=] {
-        margelo::nitro::unistyles::UnistylesModule::registerNatives();
-        margelo::nitro::unistyles::initialize(vm);
-    });
-}
-
-
-
-================================================
-FILE: android/src/main/cxx/NativeUnistylesModule.cpp
-================================================
-#include "NativeUnistylesModule.h"
-#import <NitroModules/HybridObjectRegistry.hpp>
-#import "HybridUnistylesRuntime.h"
-#import "HybridStyleSheet.h"
-#import "HybridShadowRegistry.h"
-
-using namespace margelo::nitro::unistyles;
-using namespace facebook::react;
-
-UnistylesModule::UnistylesModule(
-    jni::alias_ref<UnistylesModule::jhybridobject> jThis,
-    jni::alias_ref<react::JRuntimeExecutor::javaobject> runtimeExecutorHolder,
-    jni::alias_ref<JHybridNativePlatformSpec::javaobject> nativePlatform
-):  _runtimeExecutor(runtimeExecutorHolder->cthis()->get()),
-    _nativePlatform(nativePlatform->cthis()) {}
-
-jni::local_ref<UnistylesModule::jhybriddata> UnistylesModule::initHybrid(
-    jni::alias_ref<UnistylesModule::jhybridobject> jThis,
-    jni::alias_ref<JRuntimeExecutor::javaobject> runtimeExecutorHolder,
-    jni::alias_ref<JHybridNativePlatformSpec::javaobject> nativePlatform
-) {
-    return makeCxxInstance(jThis, runtimeExecutorHolder, nativePlatform);
-}
-
-void UnistylesModule::registerNatives() {
-    javaClassStatic()->registerNatives({
-        makeNativeMethod("getBindingsInstaller", UnistylesModule::getBindingsInstaller),
-        makeNativeMethod("initHybrid", UnistylesModule::initHybrid),
-        makeNativeMethod("invalidateNative", invalidateNative),
-    });
-}
-
-jni::local_ref<BindingsInstallerHolder::javaobject> UnistylesModule::getBindingsInstaller(jni::alias_ref<UnistylesModule::javaobject> jobj) {
-    auto& runtimeExecutor = jobj->cthis()->_runtimeExecutor;
-    auto& nativePlatform = jobj->cthis()->_nativePlatform;
-
-    return BindingsInstallerHolder::newObjectCxxArgs([&runtimeExecutor, &nativePlatform](jsi::Runtime& rt) {
-        // function is called on: first init and every live reload
-        // check if this is live reload, if so let's replace UnistylesRuntime with new runtime
-        auto hasUnistylesRuntime = HybridObjectRegistry::hasHybridObject("UnistylesRuntime");
-
-        if (hasUnistylesRuntime) {
-            HybridObjectRegistry::unregisterHybridObjectConstructor("UnistylesRuntime");
-            HybridObjectRegistry::unregisterHybridObjectConstructor("UnistylesStyleSheet");
-            HybridObjectRegistry::unregisterHybridObjectConstructor("UnistylesShadowRegistry");
-        }
-
-        auto runOnJSThread = [&runtimeExecutor](std::function<void(jsi::Runtime&)>&& callback) {
-            runtimeExecutor([callback = std::move(callback)](jsi::Runtime &rt) {
-                callback(rt);
-            });
-        };
-
-        // init hybrids
-        auto unistylesRuntime = std::make_shared<HybridUnistylesRuntime>(nativePlatform, rt, runOnJSThread);
-        auto styleSheet = std::make_shared<HybridStyleSheet>(unistylesRuntime);
-
-        HybridObjectRegistry::registerHybridObjectConstructor("UnistylesRuntime", [unistylesRuntime]() -> std::shared_ptr<HybridObject>{
-            return unistylesRuntime;
-        });
-        HybridObjectRegistry::registerHybridObjectConstructor("UnistylesStyleSheet", [styleSheet]() -> std::shared_ptr<HybridObject>{
-            return styleSheet;
-        });
-        HybridObjectRegistry::registerHybridObjectConstructor("UnistylesShadowRegistry", [unistylesRuntime]() -> std::shared_ptr<HybridObject>{
-            return std::make_shared<HybridShadowRegistry>(unistylesRuntime);
-        });
-    });
-}
-
-
-
-================================================
-FILE: android/src/main/cxx/NativeUnistylesModule.h
-================================================
-#pragma once
-
-#include <ReactCommon/BindingsInstallerHolder.h>
-#include <react/jni/JRuntimeExecutor.h>
-#include <react/renderer/scheduler/Scheduler.h>
-#include "UnistylesRegistry.h"
-#include <fbjni/fbjni.h>
-#include <react/fabric/Binding.h>
-#include "NativePlatform.h"
-
-namespace margelo::nitro::unistyles {
-
-using namespace facebook;
-using namespace facebook::react;
-
-struct UnistylesModule : public jni::HybridClass<UnistylesModule> {
-    static constexpr auto kJavaDescriptor = "Lcom/unistyles/UnistylesModule;";
-
-    explicit UnistylesModule(
-        jni::alias_ref<jhybridobject> jThis,
-        jni::alias_ref<react::JRuntimeExecutor::javaobject> runtimeExecutorHolder,
-        jni::alias_ref<JHybridNativePlatformSpec::javaobject> nativePlatform
-    );
-
-    static void registerNatives();
-    static jni::local_ref<jhybriddata> initHybrid(
-        jni::alias_ref<jhybridobject> jThis,
-        jni::alias_ref<JRuntimeExecutor::javaobject> runtimeExecutorHolder,
-        jni::alias_ref<JHybridNativePlatformSpec::javaobject> nativePlatform
-    );
-    static void invalidateNative(jni::alias_ref<jhybridobject> jThis) {
-        core::UnistylesRegistry::get().destroy();
-    }
-
-    static jni::local_ref<BindingsInstallerHolder::javaobject> getBindingsInstaller(jni::alias_ref<UnistylesModule::javaobject> jThis);
-
-private:
-    RuntimeExecutor _runtimeExecutor;
-    std::shared_ptr<HybridNativePlatformSpec> _nativePlatform;
-};
-
-}
-
-
-
-================================================
-FILE: android/src/main/java/com/unistyles/Equatable.kt
-================================================
-package com.unistyles
-
-import com.margelo.nitro.unistyles.Dimensions
-import com.margelo.nitro.unistyles.Insets
-import com.margelo.nitro.unistyles.UnistyleDependency
-import com.margelo.nitro.unistyles.UnistylesNativeMiniRuntime
-
-fun Dimensions.isEqualTo(other: Dimensions): Boolean {
-    return this.width == other.width && this.height == other.height
-}
-
-fun Insets.isEqualTo(other: Insets): Boolean {
-    return this.top == other.top && this.bottom == other.bottom &&
-        this.left == other.left && this.right == other.right &&
-        this.ime == other.ime
-}
-
-fun NativePlatformAndroid.diffMiniRuntimes(lhs: UnistylesNativeMiniRuntime, rhs: UnistylesNativeMiniRuntime): Array<UnistyleDependency> {
-    val dependencies: MutableList<UnistyleDependency> = mutableListOf()
-
-    if (lhs.colorScheme != rhs.colorScheme) {
-        dependencies.add(UnistyleDependency.COLORSCHEME)
-    }
-
-    if (!lhs.screen.isEqualTo(rhs.screen)) {
-        dependencies.add(UnistyleDependency.DIMENSIONS)
-    }
-
-    if (lhs.screen.width != rhs.screen.width) {
-        dependencies.add(UnistyleDependency.BREAKPOINTS)
-    }
-
-    // no need to check isLandscape, as it's always opposite
-    if (lhs.isPortrait != rhs.isPortrait) {
-        dependencies.add(UnistyleDependency.ORIENTATION)
-    }
-
-    if (lhs.contentSizeCategory != rhs.contentSizeCategory) {
-        dependencies.add(UnistyleDependency.CONTENTSIZECATEGORY)
-    }
-
-    if (!lhs.insets.isEqualTo(rhs.insets)) {
-        dependencies.add(UnistyleDependency.INSETS)
-    }
-
-    if (lhs.fontScale != rhs.fontScale) {
-        dependencies.add(UnistyleDependency.FONTSCALE)
-    }
-
-    if (!lhs.statusBar.isEqualTo(rhs.statusBar)) {
-        dependencies.add(UnistyleDependency.STATUSBAR)
-    }
-
-    if (!lhs.navigationBar.isEqualTo(rhs.navigationBar)) {
-        dependencies.add(UnistyleDependency.NAVIGATIONBAR)
-    }
-
-    // rtl and pixel ratio are not dynamic
-
-    return dependencies.toTypedArray()
-}
-
-
-
-================================================
-FILE: android/src/main/java/com/unistyles/NativePlatform+android.kt
-================================================
-package com.unistyles
-
-import android.content.Context
-import android.content.res.Configuration
-import android.os.Build
-import android.util.DisplayMetrics
-import android.view.View
-import android.view.WindowManager
-import androidx.annotation.Keep
-import androidx.core.text.TextUtilsCompat
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowInsetsControllerCompat
-import com.facebook.proguard.annotations.DoNotStrip
-import com.facebook.react.bridge.LifecycleEventListener
-import com.facebook.react.bridge.ReactApplicationContext
-import com.margelo.nitro.unistyles.ColorScheme
-import com.margelo.nitro.unistyles.Dimensions
-import com.margelo.nitro.unistyles.HybridNativePlatformSpec
-import com.margelo.nitro.unistyles.Insets
-import com.margelo.nitro.unistyles.Orientation
-import com.margelo.nitro.unistyles.UnistyleDependency
-import com.margelo.nitro.unistyles.UnistylesNativeMiniRuntime
-import java.util.Locale
-
-@Keep
-@DoNotStrip
-class NativePlatformAndroid(private val reactContext: ReactApplicationContext): HybridNativePlatformSpec(), LifecycleEventListener {
-    private val _insets = NativePlatformInsets(reactContext, this::getMiniRuntime) { this.onConfigChange() }
-    private var _miniRuntime: UnistylesNativeMiniRuntime = buildMiniRuntime()
-    private val _listener = NativePlatformListener(reactContext, this::getMiniRuntime) { this.diffMiniRuntime() }
-
-    init {
-        checkEdgeToEdge()
-        reactContext.addLifecycleEventListener(this)
-    }
-
-    fun onDestroy() {
-        reactContext.removeLifecycleEventListener(this)
-    }
-
-    override fun onHostResume() {
-        _insets.getInitialInsets(false)
-        _insets.startInsetsListener()
-    }
-
-    override fun onHostPause() {
-        _insets.stopInsetsListener()
-    }
-
-    override fun onHostDestroy() {}
-
-    override val memorySize: Long
-        get() = 0
-
-    override fun getInsets(): Insets {
-        return _insets.getInsets()
-    }
-
-    override fun getColorScheme(): ColorScheme {
-        val uiMode = reactContext.resources.configuration.uiMode
-
-        val colorScheme = when (uiMode.and(Configuration.UI_MODE_NIGHT_MASK)) {
-            Configuration.UI_MODE_NIGHT_YES -> ColorScheme.DARK
-            Configuration.UI_MODE_NIGHT_NO -> ColorScheme.LIGHT
-            else -> ColorScheme.UNSPECIFIED
-        }
-
-        return colorScheme
-    }
-
-    override fun getFontScale(): Double {
-        return reactContext.resources.configuration.fontScale.toDouble()
-    }
-
-    override fun getPixelRatio(): Double {
-        return reactContext.resources.displayMetrics.density.toDouble()
-    }
-
-    override fun getOrientation(): Orientation {
-        val orientation = when (reactContext.resources.configuration.orientation) {
-            Configuration.ORIENTATION_PORTRAIT -> Orientation.PORTRAIT
-            Configuration.ORIENTATION_LANDSCAPE -> Orientation.LANDSCAPE
-            else -> Orientation.PORTRAIT
-        }
-
-        return orientation
-    }
-
-    override fun getContentSizeCategory(): String {
-        val fontScale = getFontScale()
-
-        val contentSizeCategory = when {
-            fontScale <= 0.85f -> "Small"
-            fontScale <= 1.0f -> "Default"
-            fontScale <= 1.15f -> "Large"
-            fontScale <= 1.3f -> "ExtraLarge"
-            fontScale <= 1.5f -> "Huge"
-            fontScale <= 1.8 -> "ExtraHuge"
-            else -> "ExtraExtraHuge"
-        }
-
-        return contentSizeCategory
-    }
-
-    override fun getScreenDimensions(): Dimensions {
-        // function takes in count edge-to-edge layout
-        when {
-            Build.VERSION.SDK_INT < Build.VERSION_CODES.R -> {
-                val windowManager = reactContext.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-                val metrics = DisplayMetrics()
-
-                @Suppress("DEPRECATION")
-                windowManager.defaultDisplay.getRealMetrics(metrics)
-
-                val screenWidth = (metrics.widthPixels / metrics.density).toDouble()
-                val screenHeight = (metrics.heightPixels / metrics.density).toDouble()
-
-                return Dimensions(screenWidth, screenHeight)
-            }
-            else -> {
-                val displayMetrics = reactContext.resources.displayMetrics
-
-                reactContext.currentActivity?.windowManager?.currentWindowMetrics?.bounds?.let {
-                    val boundsWidth = (it.width() / displayMetrics.density).toDouble()
-                    val boundsHeight = (it.height() / displayMetrics.density).toDouble()
-
-                    return Dimensions(boundsWidth, boundsHeight)
-                } ?: run {
-                    val screenWidth = (displayMetrics.widthPixels / displayMetrics.density).toDouble()
-                    val screenHeight = (displayMetrics.heightPixels / displayMetrics.density).toDouble()
-
-                    return Dimensions(screenWidth, screenHeight)
-                }
-            }
-        }
-    }
-
-    override fun getStatusBarDimensions(): Dimensions {
-        val screenWidth = getScreenDimensions().width
-
-        return Dimensions(screenWidth, _insets.getInsets().top)
-    }
-
-    override fun getNavigationBarDimensions(): Dimensions {
-        val screenWidth = getScreenDimensions().width
-
-        return Dimensions(screenWidth, _insets.getInsets().bottom)
-    }
-
-    override fun getPrefersRtlDirection(): Boolean {
-        // forced by React Native
-        val sharedPrefs = reactContext.getSharedPreferences(
-            "com.facebook.react.modules.i18nmanager.I18nUtil",
-            Context.MODE_PRIVATE
-        )
-        val hasForcedRtl = sharedPrefs.getBoolean("RCTI18nUtil_forceRTL", false)
-        // user preferences
-        val isRtl = TextUtilsCompat.getLayoutDirectionFromLocale(Locale.getDefault()) == ViewCompat.LAYOUT_DIRECTION_RTL
-
-        return hasForcedRtl || isRtl
-    }
-
-    override fun setRootViewBackgroundColor(color: Double) {
-        reactContext.currentActivity?.let { activity ->
-            activity.window?.decorView?.let { decorView ->
-                activity.runOnUiThread {
-                    decorView.rootView.setBackgroundColor(color.toInt())
-                }
-            }
-        }
-    }
-
-    override fun setNavigationBarHidden(isHidden: Boolean) {
-        reactContext.currentActivity?.let { activity ->
-            WindowInsetsControllerCompat(activity.window, activity.window.decorView).apply {
-                activity.window?.decorView?.let { decorView ->
-                    @Suppress("DEPRECATION")
-                    activity.runOnUiThread {
-                        if (isHidden) {
-                            // below Android 11, we need to use window flags to hide the navigation bar
-                            if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q) {
-                                decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                                    or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
-                            } else {
-                                hide(WindowInsetsCompat.Type.navigationBars())
-                                systemBarsBehavior =
-                                    WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-                            }
-
-                            // dispatch new insets to invoke the insets listener
-                            val newInsets = WindowInsetsCompat.Builder()
-                                .setInsets(WindowInsetsCompat.Type.navigationBars(), androidx.core.graphics.Insets.of(0, 0, 0, 0))
-                                .build()
-
-                            ViewCompat.dispatchApplyWindowInsets(activity.findViewById(android.R.id.content), newInsets)
-                        } else {
-                            show(WindowInsetsCompat.Type.navigationBars())
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    override fun setStatusBarHidden(isHidden: Boolean) {
-        reactContext.currentActivity?.let { activity ->
-            WindowInsetsControllerCompat(activity.window, activity.window.decorView).apply {
-                activity.window?.let { window ->
-                    @Suppress("DEPRECATION")
-                    activity.runOnUiThread {
-                        if (isHidden) {
-                            if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q) {
-                                window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
-                                window.clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN)
-                            } else {
-                                hide(WindowInsetsCompat.Type.statusBars())
-                            }
-                        } else {
-                            show(WindowInsetsCompat.Type.statusBars())
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    override fun setImmersiveMode(isEnabled: Boolean) {
-        this.setStatusBarHidden(isEnabled)
-        this.setNavigationBarHidden(isEnabled)
-    }
-
-    override fun getMiniRuntime(): UnistylesNativeMiniRuntime {
-        return _miniRuntime
-    }
-
-    private fun buildMiniRuntime(): UnistylesNativeMiniRuntime {
-        val orientation = this.getOrientation()
-
-        return UnistylesNativeMiniRuntime(
-            colorScheme = this.getColorScheme(),
-            screen = this.getScreenDimensions(),
-            contentSizeCategory = this.getContentSizeCategory(),
-            insets = this.getInsets(),
-            pixelRatio = this.getPixelRatio(),
-            fontScale = this.getFontScale(),
-            rtl = this.getPrefersRtlDirection(),
-            statusBar = this.getStatusBarDimensions(),
-            navigationBar = this.getNavigationBarDimensions(),
-            isPortrait = orientation == Orientation.PORTRAIT,
-            isLandscape = orientation == Orientation.LANDSCAPE
-        )
-    }
-
-    private fun diffMiniRuntime(): Array<UnistyleDependency> {
-        val newMiniRuntime = this.buildMiniRuntime()
-        val changedDependencies = diffMiniRuntimes(this._miniRuntime, newMiniRuntime)
-
-        if (changedDependencies.isNotEmpty()) {
-            this._miniRuntime = newMiniRuntime
-        }
-
-        return changedDependencies
-    }
-
-    private fun onConfigChange() {
-        this._listener.onConfigChange()
-    }
-
-    override fun registerPlatformListener(callback: (dependencies: Array<UnistyleDependency>, miniRuntime: UnistylesNativeMiniRuntime) -> Unit) {
-        this._listener.addPlatformListener(callback)
-    }
-
-    override fun registerImeListener(callback: (miniRuntime: UnistylesNativeMiniRuntime) -> Unit) {
-        this._insets.addImeListener(callback)
-    }
-
-    override fun unregisterPlatformListeners() {
-        this._listener.removePlatformListeners()
-        this._insets.removeImeListeners()
-    }
-
-    private fun checkEdgeToEdge() {
-        // react-native-edge-to-edge will set setDecorFitsSystemWindows automatically
-        // if it's present we assume that edge-to-edge is enabled
-
-        try {
-            Class.forName("com.zoontek.rnedgetoedge.EdgeToEdgePackage")
-        } catch (exception: ClassNotFoundException) {
-            enableEdgeToEdge()
-        }
-    }
-
-    private fun enableEdgeToEdge() {
-        reactContext.currentActivity?.let { activity ->
-            activity.runOnUiThread {
-                WindowCompat.setDecorFitsSystemWindows(activity.window, false)
-            }
-        }
-    }
-}
-
-
-
-================================================
-FILE: android/src/main/java/com/unistyles/NativePlatform+insets.kt
-================================================
-package com.unistyles
-
-import android.graphics.Rect
-import android.os.Build
-import android.view.View
-import android.view.Window
-import android.view.WindowManager
-import androidx.annotation.Keep
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsAnimationCompat
-import androidx.core.view.WindowInsetsCompat
-import com.facebook.proguard.annotations.DoNotStrip
-import com.facebook.react.bridge.ReactApplicationContext
-import com.margelo.nitro.unistyles.Insets
-import com.margelo.nitro.unistyles.UnistylesNativeMiniRuntime
-
-typealias CxxImeListener = (miniRuntime: UnistylesNativeMiniRuntime) -> Unit
-
-@Keep
-@DoNotStrip
-class NativePlatformInsets(
-    private val reactContext: ReactApplicationContext,
-    private val getMiniRuntime: () -> UnistylesNativeMiniRuntime,
-    private val onConfigChange: () -> Unit
-) {
-    private var _didGetInsets = false
-    private var _shouldListenToImeEvents = false
-    private val _imeListeners: MutableList<CxxImeListener> = mutableListOf()
-    private var _insets: Insets = Insets(0.0, 0.0, 0.0, 0.0, 0.0)
-
-    init {
-        // for SDK below 35, it's possible to get it synchronously
-        this.getInitialInsets(true)
-    }
-
-    fun onDestroy() {
-        this.removeImeListeners()
-    }
-
-    fun getInsets(): Insets {
-        val density = reactContext.resources.displayMetrics.density
-
-        return Insets(
-            this._insets.top / density,
-            this._insets.bottom / density,
-            this._insets.left / density,
-            this._insets.right / density,
-            this._insets.ime / density
-        )
-    }
-
-    fun getInitialInsets(skipUpdate: Boolean = false) {
-        if (_didGetInsets) {
-            return
-        }
-
-        reactContext.currentActivity?.let { activity ->
-            activity.findViewById<View>(android.R.id.content)?.let { mainView ->
-                val insets = ViewCompat.getRootWindowInsets(mainView)
-
-                insets?.let { windowInsets ->
-                    setInsets(windowInsets, activity.window, null, skipUpdate)
-                    _didGetInsets = true
-                }
-            }
-        }
-    }
-
-    fun setInsets(insetsCompat: WindowInsetsCompat, window: Window, animatedBottomInsets: Double?, skipUpdate: Boolean = false) {
-        // below Android 11, we need to use window flags to detect status bar visibility
-        val isStatusBarVisible = when(Build.VERSION.SDK_INT) {
-            in 30..Int.MAX_VALUE -> {
-                insetsCompat.isVisible(WindowInsetsCompat.Type.statusBars())
-            }
-            else -> {
-                @Suppress("DEPRECATION")
-                window.attributes.flags and WindowManager.LayoutParams.FLAG_FULLSCREEN != WindowManager.LayoutParams.FLAG_FULLSCREEN
-            }
-        }
-        // React Native is forcing insets to make status bar translucent
-        // so we need to calculate top inset manually, as WindowInsetCompat will always return 0
-        val statusBarTopInset = when(isStatusBarVisible) {
-            true -> {
-                val visibleRect = Rect()
-
-                window.decorView.getWindowVisibleDisplayFrame(visibleRect)
-
-                visibleRect.top
-            }
-            false -> 0
-        }
-
-        val insets = insetsCompat.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
-
-        // Android 10 and below - set bottom insets to 0 while keyboard is visible and use default bottom insets otherwise
-        // Android 11 and above - animate bottom insets while keyboard is appearing and disappearing
-        val imeInsets = when {
-            animatedBottomInsets != null && Build.VERSION.SDK_INT >= 30 -> animatedBottomInsets
-            Build.VERSION.SDK_INT < 30 -> {
-                val nextBottomInset = insetsCompat.getInsets(WindowInsetsCompat.Type.ime()).bottom - insets.bottom
-                maxOf(nextBottomInset, 0).toDouble()
-            }
-            else -> 0.0
-        }
-
-        val shouldEmitImeEvent = Build.VERSION.SDK_INT < 30 && imeInsets != this._insets.ime || animatedBottomInsets != null && Build.VERSION.SDK_INT >= 30
-
-        this._insets = Insets(
-            statusBarTopInset.toDouble(),
-            insets.bottom.toDouble(),
-            insets.left.toDouble(),
-            insets.right.toDouble(),
-            imeInsets
-        )
-
-        if (skipUpdate) {
-            return
-        }
-
-        this@NativePlatformInsets.onConfigChange()
-
-        if (shouldEmitImeEvent) {
-            this@NativePlatformInsets.emitImeEvent(this.getMiniRuntime())
-        }
-    }
-
-    fun startInsetsListener() {
-        _shouldListenToImeEvents = true
-
-        reactContext.currentActivity?.let { activity ->
-            activity.findViewById<View>(android.R.id.content)?.let { mainView ->
-                ViewCompat.setOnApplyWindowInsetsListener(mainView) { _, insets ->
-                    setInsets(insets, activity.window, null)
-
-                    insets
-                }
-
-                // IME insets are available from Android 11
-                if (Build.VERSION.SDK_INT >= 30) {
-                    ViewCompat.setWindowInsetsAnimationCallback(
-                        mainView,
-                        object : WindowInsetsAnimationCompat.Callback(DISPATCH_MODE_STOP) {
-                            override fun onProgress(
-                                insets: WindowInsetsCompat,
-                                runningAnimations: List<WindowInsetsAnimationCompat>
-                            ): WindowInsetsCompat {
-                                if (!_shouldListenToImeEvents) {
-                                    return insets
-                                }
-
-                                runningAnimations.firstOrNull()?.let {
-                                    val bottomInset = insets.getInsets(WindowInsetsCompat.Type.ime()).bottom.toDouble() - this@NativePlatformInsets._insets.bottom
-                                    val nextBottomInset = if (bottomInset < 0) {
-                                        0.0
-                                    } else {
-                                        bottomInset
-                                    }
-
-                                    this@NativePlatformInsets.setInsets(insets, activity.window, nextBottomInset)
-                                }
-
-                                return insets
-                            }
-                        }
-                    )
-                }
-            }
-        }
-    }
-
-    fun emitImeEvent(miniRuntime: UnistylesNativeMiniRuntime) {
-        _imeListeners.forEach { listener ->
-            listener(miniRuntime)
-        }
-    }
-
-    fun stopInsetsListener() {
-        reactContext.currentActivity?.let { activity ->
-            activity.findViewById<View>(android.R.id.content)?.let { view ->
-                ViewCompat.setOnApplyWindowInsetsListener(view, null)
-            }
-        }
-
-        _shouldListenToImeEvents = false
-    }
-
-    fun addImeListener(listener: CxxImeListener) {
-        this._imeListeners.add(listener)
-    }
-
-    fun removeImeListeners() {
-        this._imeListeners.clear()
-    }
-}
-
-
-
-================================================
-FILE: android/src/main/java/com/unistyles/NativePlatform+listener.kt
-================================================
-package com.unistyles
-
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
-import android.os.Handler
-import android.os.Looper
-import androidx.annotation.Keep
-import com.facebook.proguard.annotations.DoNotStrip
-import com.facebook.react.bridge.ReactApplicationContext
-import com.margelo.nitro.unistyles.UnistyleDependency
-import com.margelo.nitro.unistyles.UnistylesNativeMiniRuntime
-
-typealias CxxDependencyListener = (dependencies: Array<UnistyleDependency>, miniRuntime: UnistylesNativeMiniRuntime) -> Unit
-
-@Keep
-@DoNotStrip
-class NativePlatformListener(
-    private val reactContext: ReactApplicationContext,
-    private val getMiniRuntime: () -> UnistylesNativeMiniRuntime,
-    private val diffMiniRuntime: () -> Array<UnistyleDependency>
-) {
-    private val _dependencyListeners: MutableList<CxxDependencyListener> = mutableListOf()
-
-    private val configurationChangeReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            Handler(Looper.getMainLooper()).postDelayed({
-                this@NativePlatformListener.onConfigChange()
-            }, 25)
-        }
-    }
-
-    init {
-        reactContext.registerReceiver(configurationChangeReceiver, IntentFilter(Intent.ACTION_CONFIGURATION_CHANGED))
-    }
-
-    fun onDestroy() {
-        this.removePlatformListeners()
-        reactContext.unregisterReceiver(configurationChangeReceiver)
-    }
-
-    fun addPlatformListener(listener: CxxDependencyListener) {
-        this._dependencyListeners.add(listener)
-    }
-
-    fun removePlatformListeners() {
-        this._dependencyListeners.clear()
-    }
-
-    private fun emitCxxEvent(dependencies: Array<UnistyleDependency>, miniRuntime: UnistylesNativeMiniRuntime) {
-        this._dependencyListeners.forEach { listener ->
-            listener(dependencies, miniRuntime)
-        }
-    }
-
-    fun onConfigChange() {
-        val changedDependencies = diffMiniRuntime()
-
-        if (changedDependencies.isNotEmpty()) {
-            emitCxxEvent(changedDependencies, getMiniRuntime())
-        }
-    }
-}
-
-
-
-================================================
-FILE: android/src/main/java/com/unistyles/UnistylesModule.kt
-================================================
-package com.unistyles
-
-import com.facebook.fbreact.specs.NativeTurboUnistylesSpec
-import com.facebook.jni.HybridData
-import com.facebook.proguard.annotations.DoNotStrip
-import com.facebook.react.bridge.ReactApplicationContext
-import com.facebook.react.bridge.RuntimeExecutor
-import com.facebook.react.turbomodule.core.interfaces.BindingsInstallerHolder
-import com.facebook.react.turbomodule.core.interfaces.TurboModuleWithJSIBindings
-import com.margelo.nitro.unistyles.HybridNativePlatformSpec
-import com.margelo.nitro.unistyles.unistylesOnLoad.Companion.initializeNative
-
-@Suppress("KotlinJniMissingFunction")
-class UnistylesModule(reactContext: ReactApplicationContext): NativeTurboUnistylesSpec(reactContext), TurboModuleWithJSIBindings {
-    @DoNotStrip
-    private var mHybridData: HybridData?
-    private val _nativePlatform = NativePlatformAndroid(reactContext)
-
-    companion object {
-        const val NAME = NativeTurboUnistylesSpec.NAME
-
-        init {
-            initializeNative()
-        }
-    }
-
-    override fun invalidate() {
-        invalidateNative()
-    }
-
-    init {
-        mHybridData = initializeHybridData(reactContext)
-    }
-
-    private fun initializeHybridData(reactContext: ReactApplicationContext): HybridData {
-        val runtimeExecutor = reactContext.catalystInstance?.runtimeExecutor
-            ?: throw IllegalStateException("Unistyles: React Native runtime executor is not available. Please follow installation guides.")
-
-        return initHybrid(runtimeExecutor, _nativePlatform)
-    }
-
-    @DoNotStrip
-    external override fun getBindingsInstaller(): BindingsInstallerHolder
-
-    @DoNotStrip
-    private external fun initHybrid(
-        runtimeExecutor: RuntimeExecutor,
-        nativePlatform: HybridNativePlatformSpec
-    ): HybridData
-
-    @DoNotStrip
-    private external fun invalidateNative()
-}
-
-
-
-================================================
-FILE: android/src/main/java/com/unistyles/UnistylesPackage.kt
-================================================
-package com.unistyles
-
-import com.facebook.react.BaseReactPackage
-import com.facebook.react.bridge.NativeModule
-import com.facebook.react.bridge.ReactApplicationContext
-import com.facebook.react.module.model.ReactModuleInfo
-import com.facebook.react.module.model.ReactModuleInfoProvider
-
-class UnistylesPackage: BaseReactPackage() {
-    override fun getModule(name: String, reactContext: ReactApplicationContext): NativeModule? {
-        return if (name == UnistylesModule.NAME) {
-            UnistylesModule(reactContext)
-        } else {
-            null
-        }
-    }
-
-    override fun getReactModuleInfoProvider(): ReactModuleInfoProvider {
-        return ReactModuleInfoProvider {
-            mapOf(UnistylesModule.NAME to ReactModuleInfo(
-                UnistylesModule.NAME,
-                UnistylesModule.NAME,
-                true,
-                true,
-                true,
-                true
-            ))
-        }
-    }
-}
-
-
-
-================================================
-FILE: components/native/ActivityIndicator/package.json
-================================================
-{
-  "main": "../../../lib/commonjs/components/native/ActivityIndicator.js",
-  "module": "../../../lib/module/components/native/ActivityIndicator.js",
-  "browser": "../../../lib/module/components/native/ActivityIndicator.js",
-  "react-native": "../../../src/components/native/ActivityIndicator.tsx"
-}
-
-
-
-================================================
-FILE: components/native/Animated/package.json
-================================================
-{
-  "main": "../../../lib/commonjs/components/native/Animated.js",
-  "module": "../../../lib/module/components/native/Animated.js",
-  "browser": "../../../lib/module/components/native/Animated.js",
-  "react-native": "../../../src/components/native/Animated.tsx"
-}
-
-
-
-================================================
-FILE: components/native/FlatList/package.json
-================================================
-{
-  "main": "../../../lib/commonjs/components/native/FlatList.js",
-  "module": "../../../lib/module/components/native/FlatList.js",
-  "browser": "../../../lib/module/components/native/FlatList.js",
-  "react-native": "../../../src/components/native/FlatList.tsx"
-}
-
-
-
-================================================
-FILE: components/native/Image/package.json
-================================================
-{
-  "main": "../../../lib/commonjs/components/native/Image.js",
-  "module": "../../../lib/module/components/native/Image.js",
-  "browser": "../../../lib/module/components/native/Image.js",
-  "react-native": "../../../src/components/native/Image.native.tsx"
-}
-
-
-
-================================================
-FILE: components/native/ImageBackground/package.json
-================================================
-{
-  "main": "../../../lib/commonjs/components/native/ImageBackground.js",
-  "module": "../../../lib/module/components/native/ImageBackground.js",
-  "browser": "../../../lib/module/components/native/ImageBackground.js",
-  "react-native": "../../../src/components/native/ImageBackground.native.tsx"
-}
-
-
-
-================================================
-FILE: components/native/KeyboardAvoidingView/package.json
-================================================
-{
-  "main": "../../../lib/commonjs/components/native/KeyboardAvoidingView.js",
-  "module": "../../../lib/module/components/native/KeyboardAvoidingView.js",
-  "browser": "../../../lib/module/components/native/KeyboardAvoidingView.js",
-  "react-native": "../../../src/components/native/KeyboardAvoidingView.tsx"
-}
-
-
-
-================================================
-FILE: components/native/NativeText/package.json
-================================================
-{
-  "main": "../../../lib/commonjs/components/native/NativeText.js",
-  "module": "../../../lib/module/components/native/NativeText.js",
-  "browser": "../../../lib/module/components/native/NativeText.js",
-  "react-native": "../../../src/components/native/NativeText.native.tsx"
-}
-
-
-
-================================================
-FILE: components/native/NativeView/package.json
-================================================
-{
-  "main": "../../../lib/commonjs/components/native/NativeView.js",
-  "module": "../../../lib/module/components/native/NativeView.js",
-  "browser": "../../../lib/module/components/native/NativeView.js",
-  "react-native": "../../../src/components/native/NativeView.native.tsx"
-}
-
-
-
-================================================
-FILE: components/native/Pressable/package.json
-================================================
-{
-  "main": "../../../lib/commonjs/components/native/Pressable.js",
-  "module": "../../../lib/module/components/native/Pressable.js",
-  "browser": "../../../lib/module/components/native/Pressable.js",
-  "react-native": "../../../src/components/native/Pressable.native.tsx"
-}
-
-
-
-================================================
-FILE: components/native/RefreshControl/package.json
-================================================
-{
-  "main": "../../../lib/commonjs/components/native/RefreshControl.js",
-  "module": "../../../lib/module/components/native/RefreshControl.js",
-  "browser": "../../../lib/module/components/native/RefreshControl.js",
-  "react-native": "../../../src/components/native/RefreshControl.tsx"
-}
-
-
-
-================================================
-FILE: components/native/SafeAreaView/package.json
-================================================
-{
-  "main": "../../../lib/commonjs/components/native/SafeAreaView.js",
-  "module": "../../../lib/module/components/native/SafeAreaView.js",
-  "browser": "../../../lib/module/components/native/SafeAreaView.js",
-  "react-native": "../../../src/components/native/SafeAreaView.tsx"
-}
-
-
-
-================================================
-FILE: components/native/ScrollView/package.json
-================================================
-{
-  "main": "../../../lib/commonjs/components/native/ScrollView.js",
-  "module": "../../../lib/module/components/native/ScrollView.js",
-  "browser": "../../../lib/module/components/native/ScrollView.js",
-  "react-native": "../../../src/components/native/ScrollView.tsx"
-}
-
-
-
-================================================
-FILE: components/native/SectionList/package.json
-================================================
-{
-  "main": "../../../lib/commonjs/components/native/SectionList.js",
-  "module": "../../../lib/module/components/native/SectionList.js",
-  "browser": "../../../lib/module/components/native/SectionList.js",
-  "react-native": "../../../src/components/native/SectionList.tsx"
-}
-
-
-
-================================================
-FILE: components/native/Switch/package.json
-================================================
-{
-  "main": "../../../lib/commonjs/components/native/Switch.js",
-  "module": "../../../lib/module/components/native/Switch.js",
-  "browser": "../../../lib/module/components/native/Switch.js",
-  "react-native": "../../../src/components/native/Switch.tsx"
-}
-
-
-
-================================================
-FILE: components/native/Text/package.json
-================================================
-{
-  "main": "../../../lib/commonjs/components/native/Text.js",
-  "module": "../../../lib/module/components/native/Text.js",
-  "browser": "../../../lib/module/components/native/Text.js",
-  "react-native": "../../../src/components/native/Text.tsx"
-}
-
-
-
-================================================
-FILE: components/native/TextInput/package.json
-================================================
-{
-  "main": "../../../lib/commonjs/components/native/TextInput.js",
-  "module": "../../../lib/module/components/native/TextInput.js",
-  "browser": "../../../lib/module/components/native/TextInput.js",
-  "react-native": "../../../src/components/native/TextInput.tsx"
-}
-
-
-
-================================================
-FILE: components/native/TouchableHighlight/package.json
-================================================
-{
-  "main": "../../../lib/commonjs/components/native/TouchableHighlight.js",
-  "module": "../../../lib/module/components/native/TouchableHighlight.js",
-  "browser": "../../../lib/module/components/native/TouchableHighlight.js",
-  "react-native": "../../../src/components/native/TouchableHighlight.tsx"
-}
-
-
-
-================================================
-FILE: components/native/TouchableOpacity/package.json
-================================================
-{
-  "main": "../../../lib/commonjs/components/native/TouchableOpacity.js",
-  "module": "../../../lib/module/components/native/TouchableOpacity.js",
-  "browser": "../../../lib/module/components/native/TouchableOpacity.js",
-  "react-native": "../../../src/components/native/TouchableOpacity.tsx"
-}
-
-
-
-================================================
-FILE: components/native/View/package.json
-================================================
-{
-  "main": "../../../lib/commonjs/components/native/View.js",
-  "module": "../../../lib/module/components/native/View.js",
-  "browser": "../../../lib/module/components/native/View.js",
-  "react-native": "../../../src/components/native/View.tsx"
-}
-
-
-
-================================================
-FILE: components/native/VirtualizedList/package.json
-================================================
-{
-  "main": "../../../lib/commonjs/components/native/VirtualizedList.js",
-  "module": "../../../lib/module/components/native/VirtualizedList.js",
-  "browser": "../../../lib/module/components/native/VirtualizedList.js",
-  "react-native": "../../../src/components/native/VirtualizedList.tsx"
-}
-
-
-
-================================================
-FILE: cxx/NativePlatform.h
-================================================
-#if __has_include("Unistyles-Swift-Cxx-Umbrella.hpp")
-    #include "Unistyles-Swift-Cxx-Umbrella.hpp"
-#elif __has_include("JHybridNativePlatformSpec.hpp")
-    #include "JHybridNativePlatformSpec.hpp"
-
-    namespace Unistyles {
-        using HybridNativePlatformSpecCxx = margelo::nitro::unistyles::JHybridNativePlatformSpec;
-    }
-#else
-    #error "Unistyles: Can't find platform specific header!"
-#endif
-
-
-
-================================================
-FILE: cxx/common/Breakpoints.h
-================================================
-#pragma once
-
-#include <jsi/jsi.h>
-#include "Helpers.h"
-
-using namespace facebook;
-
-namespace margelo::nitro::unistyles::helpers {
-
-using Breakpoints = std::vector<std::pair<std::string, double>>;
-
-// convert user's breakpoints to sorted C++ representation
-inline Breakpoints jsiBreakpointsToVecPairs(jsi::Runtime& rt, jsi::Value&& breakpoints) {
-    Breakpoints sortedVecPairs;
-    
-    enumerateJSIObject(rt, breakpoints.asObject(rt), [&](const std::string& propertyName, jsi::Value& propertyValue){
-        assertThat(rt, propertyValue.isNumber(), "value for breakpoint " + std::string(propertyName) + " is not a number.");
-        
-        sortedVecPairs.emplace_back(propertyName, propertyValue.asNumber());
-    });
-    
-    std::sort(sortedVecPairs.begin(), sortedVecPairs.end(), [](auto& a, auto& b){
-        return a.second < b.second;
-    });
-    
-    return sortedVecPairs;
-}
-
-// C++ function to select current breakpoint based on screen width
-inline std::string getBreakpointFromScreenWidth(int screenWidth, const Breakpoints& sortedVecPairs) {
-    auto it = std::upper_bound(sortedVecPairs.cbegin(), sortedVecPairs.cend(), screenWidth, [](int width, const auto& pair) {
-        return width < pair.second;
-    });
-    
-    // return breakpoint with 0 as lowest
-    if (it == sortedVecPairs.begin()) {
-        return sortedVecPairs.front().first;
-    }
-    
-    return (--it)->first;
-}
-
-}
-
-
-
-================================================
-FILE: cxx/common/Helpers.h
-================================================
-#pragma once
-
-#include <jsi/jsi.h>
-#include <jsi/JSIDynamic.h>
-#include <folly/dynamic.h>
-#include "NativePlatform.h"
-#include <unordered_set>
-
-using namespace facebook;
-
-namespace margelo::nitro::unistyles::helpers {
-
-using Variants = std::vector<std::pair<std::string, std::string>>;
-
-inline void assertThat(jsi::Runtime& rt, bool condition, const std::string& message) {
-    if (!condition) {
-        throw jsi::JSError(rt, message);
-    }
-}
-
-inline void enumerateJSIObject(jsi::Runtime& rt, const jsi::Object& obj, std::function<void(const std::string& propertyName, jsi::Value& propertyValue)> callback) {
-    jsi::Array propertyNames = obj.getPropertyNames(rt);
-    size_t length = propertyNames.size(rt);
-
-    for (size_t i = 0; i < length; i++) {
-        auto propertyName = propertyNames.getValueAtIndex(rt, i).asString(rt).utf8(rt);
-        auto propertyValue = obj.getProperty(rt, propertyName.c_str());
-
-        callback(propertyName, propertyValue);
-    }
-}
-
-template<typename PropertyType>
-inline bool vecContainsKeys(std::vector<PropertyType>& vec, std::vector<PropertyType>&& keys) {
-    std::unordered_set<PropertyType> availableKeys(keys.begin(), keys.end());
-
-    for (const auto& key : vec) {
-        availableKeys.erase(key);
-
-        if (availableKeys.empty()) {
-            return true;
-        }
-    }
-
-    return false;
-}
-
-template<typename PropertyType>
-inline void defineHiddenProperty(jsi::Runtime& rt, jsi::Object& object, const std::string& propName, PropertyType&& property) {
-    auto global = rt.global();
-    auto objectConstructor = global.getPropertyAsObject(rt, "Object");
-    auto defineProperty = objectConstructor.getPropertyAsFunction(rt, "defineProperty");
-
-    facebook::jsi::Object descriptor(rt);
-
-    if constexpr (std::is_same_v<std::decay_t<PropertyType>, jsi::Function>) {
-        descriptor.setProperty(rt, facebook::jsi::PropNameID::forUtf8(rt, "value"), std::forward<PropertyType>(property));
-    } else {
-        descriptor.setProperty(rt, facebook::jsi::PropNameID::forUtf8(rt, "value"), property);
-    }
-
-    descriptor.setProperty(rt, facebook::jsi::PropNameID::forUtf8(rt, "enumerable"), facebook::jsi::Value(false));
-    descriptor.setProperty(rt, facebook::jsi::PropNameID::forUtf8(rt, "writable"), facebook::jsi::Value(true));
-    descriptor.setProperty(rt, facebook::jsi::PropNameID::forUtf8(rt, "configurable"), facebook::jsi::Value(true));
-
-    defineProperty.call(rt, object, facebook::jsi::String::createFromAscii(rt, propName.c_str()), descriptor);
-}
-
-inline jsi::Object& mergeJSIObjects(jsi::Runtime&rt, jsi::Object& obj1, jsi::Object& obj2) {
-    helpers::enumerateJSIObject(rt, obj2, [&](const std::string& propertyName, jsi::Value& propertyValue){
-        obj1.setProperty(rt, propertyName.c_str(), propertyValue);
-    });
-
-    return obj1;
-}
-
-inline void iterateJSIArray(jsi::Runtime& rt, const jsi::Array& array, std::function<void(size_t, jsi::Value&)> callback) {
-    size_t length = array.size(rt);
-
-    for (size_t i = 0; i < length; i++) {
-        auto value = array.getValueAtIndex(rt, i);
-
-        callback(i, value);
-    }
-}
-
-inline bool isPlatformColor(jsi::Runtime& rt, jsi::Object& maybePlatformColor) {
-    auto isIOSPlatformColor = maybePlatformColor.hasProperty(rt, "semantic") && maybePlatformColor.getProperty(rt, "semantic").isObject();
-
-    if (isIOSPlatformColor) {
-        return true;
-    }
-
-    auto isIOSDynamicColor =
-        maybePlatformColor.hasProperty(rt, "dynamic") &&
-        maybePlatformColor.getProperty(rt, "dynamic").isObject() &&
-        maybePlatformColor.getProperty(rt, "dynamic").asObject(rt).hasProperty(rt, "dark") &&
-        maybePlatformColor.getProperty(rt, "dynamic").asObject(rt).hasProperty(rt, "light");
-
-    if (isIOSDynamicColor) {
-        return true;
-    }
-
-    // Android
-    return maybePlatformColor.hasProperty(rt, "resource_paths") && maybePlatformColor.getProperty(rt, "resource_paths").isObject();
-}
-
-inline Variants variantsToPairs(jsi::Runtime& rt, jsi::Object&& variants) {
-    Variants pairs{};
-
-    helpers::enumerateJSIObject(rt, variants, [&](const std::string& variantName, jsi::Value& variantValue){
-        if (variantValue.isUndefined() || variantValue.isNull()) {
-            return;
-        }
-
-        if (variantValue.isBool()) {
-            pairs.emplace_back(std::make_pair(variantName, variantValue.asBool() ? "true" : "false"));
-
-            return;
-        }
-
-        if (variantValue.isString()) {
-            pairs.emplace_back(std::make_pair(variantName, variantValue.asString(rt).utf8(rt)));
-        }
-
-        if (variantValue.isNumber()) {
-            pairs.emplace_back(std::make_pair(variantName, std::to_string(static_cast<int>(variantValue.asNumber()))));
-        }
-    });
-
-    return pairs;
-}
-
-inline jsi::Object pairsToVariantsValue(jsi::Runtime& rt, Variants& pairs) {
-    auto variantsValue = jsi::Object(rt);
-
-    std::for_each(pairs.begin(), pairs.end(), [&rt, &variantsValue](std::pair<std::string, std::string>& pair){
-        variantsValue.setProperty(rt, jsi::PropNameID::forUtf8(rt, pair.first), jsi::String::createFromUtf8(rt, pair.second));
-    });
-
-    return variantsValue;
-}
-
-inline jsi::Object variantsToValue(jsi::Runtime& rt, Variants& variants) {
-    jsi::Object rawVariants = jsi::Object(rt);
-
-    std::for_each(variants.begin(), variants.end(), [&](std::pair<std::string, std::string>& pair){
-        rawVariants.setProperty(rt, pair.first.c_str(), jsi::String::createFromUtf8(rt, pair.second));
-    });
-
-    return rawVariants;
-}
-
-inline std::vector<folly::dynamic> parseDynamicFunctionArguments(jsi::Runtime& rt, jsi::Array& arguments) {
-    std::vector<folly::dynamic> parsedArgument{};
-    size_t count = arguments.size(rt);
-
-    parsedArgument.reserve(count);
-
-    for (size_t i = 0; i < count; i++) {
-        jsi::Value arg = arguments.getValueAtIndex(rt, i);
-
-        if (arg.isBool()) {
-            parsedArgument.push_back(folly::dynamic(arg.asBool()));
-
-            continue;
-        }
-
-        if (arg.isNumber()) {
-            parsedArgument.push_back(folly::dynamic(arg.asNumber()));
-
-            continue;
-        }
-
-        if (arg.isString()) {
-            parsedArgument.push_back(folly::dynamic(arg.asString(rt).utf8(rt)));
-
-            continue;
-        }
-
-        if (arg.isUndefined()) {
-            parsedArgument.push_back(folly::dynamic());
-
-            continue;
-        }
-
-        if (arg.isNull()) {
-            parsedArgument.push_back(folly::dynamic(nullptr));
-
-            continue;
-        }
-
-        if (!arg.isObject()) {
-            continue;;
-        }
-
-        auto argObj = arg.asObject(rt);
-
-        // allow arrays and objects too
-        if (!argObj.isFunction(rt) && !argObj.isArrayBuffer(rt)) {
-            parsedArgument.push_back(jsi::dynamicFromValue(rt, arg));
-
-            continue;
-        }
-    }
-
-    return parsedArgument;
-}
-
-inline jsi::Array functionArgumentsToArray(jsi::Runtime& rt, const jsi::Value* args, size_t count) {
-    auto arr = jsi::Array(rt, count);
-
-    for (size_t i = 0; i < count; i++) {
-        const jsi::Value& arg = args[i];
-
-        arr.setValueAtIndex(rt, i, arg);
-    }
-
-    return arr;
-}
-
-inline static jsi::Array dependenciesToJSIArray(jsi::Runtime& rt, const std::vector<UnistyleDependency>& vec) {
-    jsi::Array result(rt, vec.size());
-
-    for (size_t i = 0; i < vec.size(); i++) {
-        result.setValueAtIndex(rt, i, jsi::Value(static_cast<int>(vec[i])));
-    }
-
-    return result;
-}
-
-inline void debugPrintJSIObject(jsi::Runtime& rt, std::string& name, jsi::Object& obj) {
-    auto console = rt.global().getPropertyAsObject(rt, "console");
-    auto log = console.getPropertyAsFunction(rt, "log");
-    auto parser = [&](const std::string& key, jsi::Value& value){
-        if (value.isBool()) {
-            std::string output = key + ": " + (value.getBool() ? "true" : "false");
-            log.call(rt, output);
-
-            return;
-        }
-
-        if (value.isNumber()) {
-            std::string output = key + ": " + std::to_string(value.getNumber());
-            log.call(rt, output);
-
-            return;
-        }
-
-        if (value.isString()) {
-            std::string output = key + ": " + value.getString(rt).utf8(rt);
-            log.call(rt, output);
-
-            return;
-        }
-
-        if (value.isUndefined()) {
-            std::string output = key + ": undefined";
-            log.call(rt, output);
-
-            return;
-        }
-
-        if (value.isNull()) {
-            std::string output = key + ": null";
-            log.call(rt, output);
-
-            return;
-        }
-    };
-
-    log.call(rt, "===" + name + "===");
-
-    enumerateJSIObject(rt, obj, [&](const std::string& key, jsi::Value& value){
-        if (value.isObject()) {
-            if (value.asObject(rt).isArray(rt)) {
-                iterateJSIArray(rt, value.asObject(rt).asArray(rt), [&](size_t i, jsi::Value& nestedValue){
-                    std::string printableKey = key + ": Array[" + std::to_string(i) + "]";
-
-                    log.call(rt, printableKey);
-
-                    if (nestedValue.isObject()) {
-                        enumerateJSIObject(rt, nestedValue.asObject(rt), [&](const std::string& nestedKey, jsi::Value& nestedValue){
-                            parser(nestedKey, nestedValue);
-                        });
-                    } else {
-                        parser(printableKey, nestedValue);
-                    }
-
-                    std::string endKey = key + ": Array[end]";
-
-                    log.call(rt, endKey);
-                });
-            }
-
-            if (value.asObject(rt).isFunction(rt)) {
-                std::string output = key + ": [Function]";
-
-                log.call(rt, output);
-
-                return;
-            }
-
-            enumerateJSIObject(rt, value.asObject(rt), [&](const std::string& nestedKey, jsi::Value& nestedValue){
-                parser(nestedKey, nestedValue);
-            });
-
-            return;
-        }
-
-        parser(key, value);
-    });
-
-    log.call(rt, "===/" + name + "===");
-}
-
-inline void debugPrintFollyDynamic(jsi::Runtime& rt, const std::string& name, const folly::dynamic& obj) {
-    auto console = rt.global().getPropertyAsObject(rt, "console");
-    auto log = console.getPropertyAsFunction(rt, "log");
-    
-    std::function<void(const std::string&, const folly::dynamic&)> parser = [&](const std::string& key, const folly::dynamic& value) {
-        if (value.isBool()) {
-            std::string output = key + ": " + (value.getBool() ? "true" : "false");
-            log.call(rt, output);
-            return;
-        }
-
-        if (value.isNumber()) {
-            std::string output = key + ": " + std::to_string(value.asDouble());
-            log.call(rt, output);
-            return;
-        }
-
-        if (value.isString()) {
-            std::string output = key + ": " + value.getString();
-            log.call(rt, output);
-            return;
-        }
-
-        if (value.isNull()) {
-            std::string output = key + ": null";
-            log.call(rt, output);
-            return;
-        }
-
-        if (value.isArray()) {
-            for (size_t i = 0; i < value.size(); i++) {
-                std::string arrayKey = key + ": Array[" + std::to_string(i) + "]";
-                log.call(rt, arrayKey);
-                parser(arrayKey, value[i]);
-                std::string endKey = key + ": Array[end]";
-                log.call(rt, endKey);
-            }
-            return;
-        }
-
-        if (value.isObject()) {
-            for (const auto& pair : value.items()) {
-                parser(pair.first.asString(), pair.second);
-            }
-            return;
-        }
-
-        std::string output = key + ": [Unknown type]";
-        log.call(rt, output);
-    };
-
-    log.call(rt, "===" + name + "===");
-
-    if (obj.isObject()) {
-        for (const auto& pair : obj.items()) {
-            parser(pair.first.asString(), pair.second);
-        }
-    } else {
-        parser(name, obj);
-    }
-
-    log.call(rt, "===/" + name + "===");
-}
-
-}
-
-
-
-================================================
-FILE: cxx/common/UnistylesConstants.h
-================================================
-#pragma once
-
-namespace margelo::nitro::unistyles::helpers {
-
-static const std::string STYLESHEET_ID = "__stylesheetID";
-static const std::string UNISTYLE_ID = "__unistyleID";
-static const std::string ADD_VARIANTS_FN = "useVariants";
-static const std::string STYLE_DEPENDENCIES = "uni__dependencies";
-static const std::string STYLESHEET_VARIANTS = "__stylesheetVariants";
-static const std::string WEB_STYLE_KEY = "_web";
-static const std::string EXOTIC_STYLE_KEY = "_exotic";
-static const std::string ARGUMENTS = "__uni__args";
-static const std::string GET_STYLES = "uni__getStyles";
-
-}
-
-
-
-================================================
-FILE: cxx/core/HashGenerator.cpp
-================================================
-#include "HashGenerator.h"
-#include <sstream>
-#include <iomanip>
-#include <functional>
-
-namespace margelo::nitro::unistyles::helpers {
-
-std::atomic<unsigned int> HashGenerator::count(0);
-
-std::string HashGenerator::generateHash(const std::string& input) {
-    std::hash<std::string> stringHasher;
-    uint64_t inputHash = stringHasher(input);
-
-    unsigned int counterValue = count.fetch_add(1, std::memory_order_relaxed);
-    uint64_t combinedHash = inputHash ^ (static_cast<uint64_t>(counterValue) << 32);
-
-    std::stringstream ss;
-    ss << std::hex << std::setfill('0') << std::setw(8) << (combinedHash & 0xFFFFFFFF);
-
-    return "unistyles_" + ss.str();
-}
-
-}
-
-
-
-================================================
-FILE: cxx/core/HashGenerator.h
-================================================
-#pragma once
-
-#include <string>
-#include <atomic>
-
-namespace margelo::nitro::unistyles::helpers {
-
-struct HashGenerator {
-    static std::atomic<unsigned int> count;
-    static std::string generateHash(const std::string& input);
-};
-
-}
-
-
-
-================================================
-FILE: cxx/core/HostUnistyle.cpp
-================================================
-#include "HostUnistyle.h"
-
-using namespace margelo::nitro::unistyles::core;
-using namespace facebook;
-
-std::vector<jsi::PropNameID> HostUnistyle::getPropertyNames(jsi::Runtime& rt) {
-    auto propertyNames = std::vector<jsi::PropNameID> {};
-
-    propertyNames.reserve(8);
-
-    for (const auto& pair : this->_stylesheet->unistyles) {
-        propertyNames.emplace_back(jsi::PropNameID::forUtf8(rt, pair.first));
-    }
-
-    propertyNames.emplace_back(jsi::PropNameID::forUtf8(rt, helpers::ADD_VARIANTS_FN.c_str()));
-
-    return propertyNames;
-}
-
-jsi::Value HostUnistyle::get(jsi::Runtime& rt, const jsi::PropNameID& propNameId) {
-    auto propertyName = propNameId.utf8(rt);
-
-    if (propertyName == helpers::STYLESHEET_ID.c_str()) {
-        return jsi::Value(this->_stylesheet->tag);
-    }
-
-    if (propertyName == helpers::STYLESHEET_VARIANTS.c_str()) {
-        return helpers::variantsToValue(rt, this->_variants);
-    }
-
-    if (propertyName == helpers::ADD_VARIANTS_FN.c_str()) {
-        return this->createAddVariantsProxyFunction(rt);
-    }
-
-    if (!this->_stylesheet->unistyles.contains(propertyName)) {
-        return jsi::Value::undefined();
-    }
-
-    auto& unistyle = this->_stylesheet->unistyles[propertyName];
-
-    // check if Unistyles recomputed new style in the background
-    // (when no node was mounted), if so we need to simply rebuild unistyle to get fresh data
-    if (unistyle->isDirty) {
-        this->_cache.erase(propertyName);
-
-        auto parser = parser::Parser(this->_unistylesRuntime);
-
-        parser.rebuildUnistyle(rt, unistyle, this->_variants, std::nullopt);
-    }
-
-    if (unistyle->type == UnistyleType::DynamicFunction) {
-        // for dynamic functions we will also bind "this"
-        auto styleFn = valueFromUnistyle(rt, this->_unistylesRuntime, unistyle, this->_variants);
-
-        // construct newThis
-        jsi::Object newThis = jsi::Object(rt);
-        newThis.setProperty(rt, helpers::STYLESHEET_VARIANTS.c_str(), helpers::variantsToValue(rt, this->_variants));
-
-        auto functionPrototype = rt.global()
-            .getPropertyAsObject(rt, "Function")
-            .getPropertyAsObject(rt, "prototype")
-            .getPropertyAsFunction(rt, "bind");
-
-        return functionPrototype.callWithThis(rt, styleFn.asObject(rt), newThis);
-    }
-
-    if (this->_cache.contains(propertyName)) {
-        return jsi::Value(rt, this->_cache[propertyName]);
-    }
-
-    auto style = valueFromUnistyle(rt, this->_unistylesRuntime, unistyle, this->_variants);
-
-    this->_cache.emplace(propertyName, jsi::Value(rt, style));
-
-    return style;
-}
-
-void HostUnistyle::set(jsi::Runtime& rt, const jsi::PropNameID& propNameId, const jsi::Value& value) {}
-
-jsi::Function HostUnistyle::createAddVariantsProxyFunction(jsi::Runtime& rt) {
-    auto useVariantsFnName = jsi::PropNameID::forUtf8(rt, helpers::ADD_VARIANTS_FN);
-
-    return jsi::Function::createFromHostFunction(rt, useVariantsFnName, 1, [this](jsi::Runtime &rt, const jsi::Value &thisVal, const jsi::Value *arguments, size_t count){
-        helpers::assertThat(rt, count == 1, "Unistyles: useVariants expected to be called with one argument.");
-        helpers::assertThat(rt, arguments[0].isObject(), "Unistyles: useVariants expected to be called with object.");
-
-        Variants variants = helpers::variantsToPairs(rt, arguments[0].asObject(rt));
-        parser::Parser parser = parser::Parser(this->_unistylesRuntime);
-
-        auto stylesheetCopy = std::make_shared<StyleSheet>(
-            this->_stylesheet->tag,
-            this->_stylesheet->type,
-            jsi::Value(rt, this->_stylesheet->rawValue).asObject(rt)
-        );
-        
-        parser.buildUnistyles(rt, stylesheetCopy);
-        parser.parseUnistyles(rt, stylesheetCopy);
-        
-        helpers::enumerateJSIObject(rt, thisVal.asObject(rt), [this, &parser, &rt, &variants, stylesheetCopy](const std::string& name, jsi::Value& value){
-            if (name == helpers::ADD_VARIANTS_FN || !stylesheetCopy->unistyles.contains(name)) {
-                return;
-            }
-
-            auto unistyle = stylesheetCopy->unistyles[name];
-            
-            if (unistyle->dependsOn(UnistyleDependency::VARIANTS)) {
-                parser.rebuildUnistyle(rt, unistyle, variants, std::nullopt);
-            }
-        });
-
-        auto style = std::make_shared<core::HostUnistyle>(stylesheetCopy, this->_unistylesRuntime, variants);
-        auto styleHostObject = jsi::Object::createFromHostObject(rt, style);
-
-        return styleHostObject;
-    });
-}
-
-
-
-================================================
-FILE: cxx/core/HostUnistyle.h
-================================================
-#pragma once
-
-#include <jsi/jsi.h>
-#include "Parser.h"
-#include "UnistyleWrapper.h"
-
-namespace margelo::nitro::unistyles::core {
-
-using Variants = std::vector<std::pair<std::string, std::string>>;
-
-struct JSI_EXPORT HostUnistyle : public jsi::HostObject {
-    HostUnistyle(std::shared_ptr<StyleSheet> stylesheet, std::shared_ptr<HybridUnistylesRuntime> unistylesRuntime, Variants& variants)
-        : _stylesheet(stylesheet), _unistylesRuntime{unistylesRuntime}, _variants{std::move(variants)} {};
-
-    std::vector<jsi::PropNameID> getPropertyNames(jsi::Runtime& rt);
-    jsi::Value get(jsi::Runtime& rt, const jsi::PropNameID& propNameId);
-    void set(jsi::Runtime& rt, const jsi::PropNameID& propNameId, const jsi::Value& value);
-
-    jsi::Function createAddVariantsProxyFunction(jsi::Runtime& rt);
-
-private:
-    Variants _variants;
-    std::shared_ptr<StyleSheet> _stylesheet;
-    std::shared_ptr<HybridUnistylesRuntime> _unistylesRuntime;
-    std::unordered_map<std::string, jsi::Value> _cache;
-};
-
-}
-
-
-
-================================================
-FILE: cxx/core/MediaQueries.cpp
-================================================
-#include "MediaQueries.h"
-
-using namespace margelo::nitro::unistyles;
-
-bool core::UnistylesMQ::isMQ() {
-    return this->isValid;
-}
-
-bool core::UnistylesMQ::checkIsMQ(const std::string& maybeMQ) {
-    std::regex pattern(R"(:([hw])\[(\d+)(?:,\s*(\d+|Infinity))?\])");
-
-    return std::regex_search(maybeMQ, pattern);
-}
-
-bool core::UnistylesMQ::checkIsValidMQ() {
-    if (parsedMQ->width && parsedMQ->height) {
-        return parsedMQ->width->from <= parsedMQ->width->to && parsedMQ->height->from <= parsedMQ->height->to;
-    }
-
-    if (parsedMQ->width) {
-        return parsedMQ->width->from <= parsedMQ->width->to;
-    }
-
-    if (parsedMQ->height) {
-        return parsedMQ->height->from <= parsedMQ->height->to;
-    }
-    
-    return false;
-}
-
-void core::UnistylesMQ::parseMQ(const std::string& maybeMQ) {
-    const std::regex UNISTYLES_WIDTH_REGEX(R"(:(w)\[(\d+)(?:,\s*(\d+|Infinity))?\])");
-    const std::regex UNISTYLES_HEIGHT_REGEX(R"(:(h)\[(\d+)(?:,\s*(\d+|Infinity))?\])");
-
-    ParsedMQ result;
-    std::smatch match;
-
-    if (std::regex_search(maybeMQ, match, UNISTYLES_WIDTH_REGEX)) {
-        double from = std::stod(match[2]);
-        double to = match[3].matched
-        ? (match[3] == "Infinity" ? std::numeric_limits<double>::infinity(): std::stod(match[3]))
-        : from;
-        
-        result.width = ParsedMQDimension{from, to};
-    }
-
-    if (std::regex_search(maybeMQ, match, UNISTYLES_HEIGHT_REGEX)) {
-        double from = std::stod(match[2]);
-        double to = match[3].matched
-        ? (match[3] == "Infinity" ? std::numeric_limits<double>::infinity() : std::stod(match[3]))
-        : from;
-
-        result.height = ParsedMQDimension{from, to};
-    }
-    
-    this->parsedMQ = result;
-}
-
-bool core::UnistylesMQ::isWithinScreenWidth(const ParsedMQDimension& width, double screenWidth) {
-    return screenWidth >= width.from && screenWidth <= width.to;
-}
-
-bool core::UnistylesMQ::isWithinScreenHeight(const ParsedMQDimension& height, double screenHeight) {
-    return screenHeight >= height.from && screenHeight <= height.to;
-}
-
-bool core::UnistylesMQ::isWithinTheWidthAndHeight(const Dimensions& screenSize) {
-    if (!isValid) {
-        return false;
-    }
-    
-    auto parsedMq = parsedMQ.value();
-    
-    if (parsedMq.width && parsedMq.height) {
-        return isWithinScreenWidth(*parsedMq.width, screenSize.width) && isWithinScreenHeight(*parsedMq.height, screenSize.height);
-    }
-
-    if (parsedMq.width) {
-        return isWithinScreenWidth(*parsedMq.width, screenSize.width);
-    }
-
-    if (parsedMq.height) {
-        return isWithinScreenHeight(*parsedMq.height, screenSize.height);
-    }
-
-    return false;
-}
-
-
-
-================================================
-FILE: cxx/core/MediaQueries.h
-================================================
-#pragma once
-
-#include <optional>
-#include <regex>
-#include "Dimensions.hpp"
-
-namespace margelo::nitro::unistyles::core {
-
-struct ParsedMQDimension {
-    double from;
-    double to;
-};
-
-struct ParsedMQ {
-    std::optional<ParsedMQDimension> width;
-    std::optional<ParsedMQDimension> height;
-};
-
-struct UnistylesMQ {
-    UnistylesMQ(const std::string& maybeMQ) {
-        if (!this->checkIsMQ(maybeMQ)) {
-            return;
-        }
-        
-        this->parseMQ(maybeMQ);
-        
-        if (!this->checkIsValidMQ()) {
-            return;
-        }
-        
-        this->isValid = true;
-    }
-
-    bool isMQ();
-    bool isWithinTheWidthAndHeight(const Dimensions& screenSize);
-    
-private:
-    bool isValid = false;
-    std::optional<ParsedMQ> parsedMQ;
-    bool checkIsValidMQ();
-    bool checkIsMQ(const std::string& maybeMQ);
-    void parseMQ(const std::string& maybeMQ);
-    bool isWithinScreenWidth(const ParsedMQDimension& width, double screenWidth);
-    bool isWithinScreenHeight(const ParsedMQDimension& height, double screenHeight);
-};
-
-}
-
-
-
-================================================
-FILE: cxx/core/RNStyle.h
-================================================
-#pragma once
-
-#include <jsi/jsi.h>
-#include "Helpers.h"
-#include "Parser.h"
-#include "HostUnistyle.h"
-#include "UnistyleWrapper.h"
-
-namespace margelo::nitro::unistyles::core {
-
-inline jsi::Object toRNStyle(jsi::Runtime& rt, std::shared_ptr<StyleSheet> stylesheet, std::shared_ptr<HybridUnistylesRuntime> unistylesRuntime, Variants&& variants) {
-    auto style = std::make_shared<core::HostUnistyle>(stylesheet, unistylesRuntime, variants);
-    auto styleHostObject = jsi::Object::createFromHostObject(rt, style);
-
-    return styleHostObject;
-}
-
-}
-
-
-
-================================================
-FILE: cxx/core/StyleSheet.h
-================================================
-#pragma once
-
-#include <jsi/jsi.h>
-#include "Unistyle.h"
-#include "Helpers.h"
-#include "UnistylesConstants.h"
-
-namespace margelo::nitro::unistyles::core {
-
-using namespace facebook;
-
-enum class StyleSheetType {
-    Static,
-    Themable,
-    ThemableWithMiniRuntime
-};
-
-struct StyleSheet {
-    StyleSheet(int tag, StyleSheetType type, jsi::Object rawValue): tag{tag}, type{type}, rawValue{std::move(rawValue)} {};
-    
-    StyleSheet(const StyleSheet&) = delete;
-    StyleSheet(StyleSheet&& other) = delete;
-
-    int tag;
-    StyleSheetType type;
-    jsi::Object rawValue;
-    std::unordered_map<std::string, Unistyle::Shared> unistyles{};
-};
-
-}
-
-
-
-================================================
-FILE: cxx/core/StyleSheetRegistry.cpp
-================================================
-#include "StyleSheetRegistry.h"
-#include "UnistylesRegistry.h"
-
-using namespace margelo::nitro::unistyles::core;
-using namespace facebook;
-
-std::shared_ptr<StyleSheet> StyleSheetRegistry::addStyleSheetFromValue(jsi::Runtime& rt, jsi::Object rawStyleSheet, int unid) {
-    if (rawStyleSheet.isFunction(rt)) {
-        return this->addFromFunction(rt, unid, rawStyleSheet.asFunction(rt));
-    }
-
-    return this->addFromObject(rt, unid, std::move(rawStyleSheet));
-}
-
-std::shared_ptr<StyleSheet> StyleSheetRegistry::addFromFunction(jsi::Runtime& rt, int unid, jsi::Function styleSheetFn) {
-    auto numberOfArgs = styleSheetFn.getProperty(rt, "length").getNumber();
-
-    helpers::assertThat(rt, numberOfArgs <= 2, "StyleSheet.create expected up to 2 arguments.");
-    
-    auto& registry = UnistylesRegistry::get();
-
-    // stylesheet is still static, remove the function wrapper
-    if (numberOfArgs == 0) {
-        auto staticStyleSheet = styleSheetFn.call(rt).asObject(rt);
-
-        return registry.addStyleSheet(rt, unid, core::StyleSheetType::Static, std::move(staticStyleSheet));
-    }
-
-    // stylesheet depends only on theme
-    if (numberOfArgs == 1) {
-        return registry.addStyleSheet(rt, unid, core::StyleSheetType::Themable, std::move(styleSheetFn));
-    }
-
-    // stylesheet depends on theme and mini runtime
-    return registry.addStyleSheet(rt, unid, core::StyleSheetType::ThemableWithMiniRuntime, std::move(styleSheetFn));
-}
-
-std::shared_ptr<StyleSheet> StyleSheetRegistry::addFromObject(jsi::Runtime& rt, int tag, jsi::Object rawStyleSheet) {
-    auto& registry = UnistylesRegistry::get();
-    
-    return registry.addStyleSheet(rt, tag, core::StyleSheetType::Static, std::move(rawStyleSheet));
-}
-
-
-
-================================================
-FILE: cxx/core/StyleSheetRegistry.h
-================================================
-#pragma once
-
-#include <jsi/jsi.h>
-#include "StyleSheet.h"
-#include "Unistyle.h"
-#include "UnistylesState.h"
-
-namespace margelo::nitro::unistyles::core {
-
-using namespace facebook;
-
-struct StyleSheetRegistry {
-    StyleSheetRegistry() = default;
-    virtual ~StyleSheetRegistry() = default;
-
-    StyleSheetRegistry(const StyleSheetRegistry&) = delete;
-    StyleSheetRegistry(StyleSheetRegistry&&) = delete;
-
-    virtual std::shared_ptr<StyleSheet> addStyleSheetFromValue(jsi::Runtime& rt, jsi::Object rawStyleSheet, int unid);
-    
-private:
-    virtual std::shared_ptr<StyleSheet> addFromFunction(jsi::Runtime& rt, int unid, jsi::Function styleSheetFn);
-    virtual std::shared_ptr<StyleSheet> addFromObject(jsi::Runtime& rt, int unid, jsi::Object rawStyleSheet);
-};
-
-}
-
-
-
-================================================
-FILE: cxx/core/Unistyle.h
-================================================
-#pragma once
-
-#include "string"
-#include <jsi/jsi.h>
-#include <folly/dynamic.h>
-#include "NativePlatform.h"
-
-namespace margelo::nitro::unistyles::core {
-
-class StyleSheet;
-
-using namespace facebook;
-
-enum class UnistyleType {
-    Object,
-    DynamicFunction
-};
-
-struct Unistyle {
-    using Shared = std::shared_ptr<Unistyle>;
-
-    Unistyle(std::string hash, UnistyleType type, std::string styleKey, jsi::Object& rawObject, std::shared_ptr<StyleSheet> styleSheet)
-        : unid{hash}, styleKey{styleKey}, type{type}, rawValue{std::move(rawObject)}, parent{styleSheet} {}
-    virtual ~Unistyle() = default;
-
-    Unistyle(const Unistyle&) = delete;
-    Unistyle(Unistyle&& other) = delete;
-
-    UnistyleType type;
-    std::string styleKey;
-    std::string unid;
-    jsi::Object rawValue;
-    std::optional<jsi::Object> parsedStyle;
-    std::vector<UnistyleDependency> dependencies{};
-    std::shared_ptr<StyleSheet> parent;
-
-    // defines if given unattached unistyle was modified
-    // and should be recomputed when mounting new node
-    bool isDirty = false;
-
-    inline void addDependency(UnistyleDependency dependency) {
-        // we can't add dependencies if unistyle is sealed
-        if (this->_isSealed) {
-            return;
-        }
-
-        auto it = std::find(this->dependencies.begin(), this->dependencies.end(), dependency);
-
-        if (it == this->dependencies.end()) {
-            this->dependencies.push_back(dependency);
-        }
-    }
-
-    inline void addBreakpointDependency() {
-        // this dependency can skip sealed check, as useVariants hook is called during React component render
-        // also this is the only dependency that is not staticly deducted from Babel plugin
-        auto it = std::find(this->dependencies.begin(), this->dependencies.end(), UnistyleDependency::BREAKPOINTS);
-
-        if (it == this->dependencies.end()) {
-            this->dependencies.push_back(UnistyleDependency::BREAKPOINTS);
-        }
-    }
-
-    inline bool dependsOn(UnistyleDependency dependency) {
-        return std::find(this->dependencies.begin(), this->dependencies.end(), dependency) != this->dependencies.end();
-    }
-
-    inline bool isSealed() {
-        return this->_isSealed;
-    }
-
-    inline void seal() {
-        this->_isSealed = true;
-    }
-
-private:
-    bool _isSealed = false;
-};
-
-struct UnistyleDynamicFunction: public Unistyle {
-    // dynamic function must have 4 different value types
-    // rawValue <- original user function
-    // proxiedFunction <- host function that is a wrapper for user's original function
-    // unprocessedValue <- object generated after calling proxy and user's original function
-    // parsedStyle <- parsed with Unistyle's parser
-
-    UnistyleDynamicFunction(std::string hash, UnistyleType type, std::string styleKey, jsi::Object& rawObject, std::shared_ptr<StyleSheet> styleSheet)
-        : Unistyle(hash, type, styleKey, rawObject, styleSheet) {}
-
-    UnistyleDynamicFunction(const UnistyleDynamicFunction&) = delete;
-    UnistyleDynamicFunction(UnistyleDynamicFunction&& other) = delete;
-
-    std::optional<jsi::Object> unprocessedValue;
-    std::optional<jsi::Function> proxiedFunction = std::nullopt;
-};
-
-}
-
-
-
-================================================
-FILE: cxx/core/UnistyleData.h
-================================================
-#pragma once
-
-#include <jsi/jsi.h>
-#include "Unistyle.h"
-
-namespace margelo::nitro::unistyles::core {
-
-using Variants = std::vector<std::pair<std::string, std::string>>;
-
-struct UnistyleData {
-    UnistyleData(Unistyle::Shared unistyle, const Variants& variants, std::vector<folly::dynamic>& arguments, std::optional<std::string> scopedTheme)
-        : unistyle{unistyle}, variants(std::move(variants)), dynamicFunctionMetadata{std::move(arguments)}, scopedTheme{scopedTheme} {}
-
-    UnistyleData(const UnistyleData&) = delete;
-    UnistyleData(UnistyleData&& other) = delete;
-
-    core::Unistyle::Shared unistyle;
-    core::Variants variants;
-    std::optional<jsi::Object> parsedStyle = std::nullopt;
-    std::optional<std::vector<folly::dynamic>> dynamicFunctionMetadata = std::nullopt;
-    std::optional<std::string> scopedTheme = std::nullopt;
-};
-
-}
-
-
-
-================================================
-FILE: cxx/core/UnistylesCommitShadowNode.h
-================================================
-#pragma once
-
-#include <react/renderer/core/ShadowNode.h>
-
-namespace margelo::nitro::unistyles::core {
-
-// used to distinguish Unistyles commits
-// React Native uses 0-10
-// Reanimated uses 27-28
-constexpr shadow::ShadowNodeTraits::Trait UnistylesCommitTrait{1 << 30};
-
-struct UnistylesCommitShadowNode: public shadow::ShadowNode {
-    inline void addUnistylesCommitTrait() {
-        traits_.set(UnistylesCommitTrait);
-    }
-};
-
-}
-
-
-
-================================================
-FILE: cxx/core/UnistylesRegistry.cpp
-================================================
-#include "UnistylesRegistry.h"
-#include "UnistylesState.h"
-#include "Parser.h"
-
-using namespace margelo::nitro::unistyles;
-using namespace facebook;
-using namespace facebook::react;
-
-void core::UnistylesRegistry::registerTheme(jsi::Runtime& rt, std::string name, jsi::Value& theme) {
-    auto& state = this->getState(rt);
-
-    state._jsThemes.emplace(name, std::move(theme));
-    state._registeredThemeNames.push_back(name);
-}
-
-void core::UnistylesRegistry::registerBreakpoints(jsi::Runtime& rt, std::vector<std::pair<std::string, double>>& sortedBreakpoints) {
-    auto& state = this->getState(rt);
-
-    state._sortedBreakpointPairs = std::move(sortedBreakpoints);
-}
-
-void core::UnistylesRegistry::setPrefersAdaptiveThemes(jsi::Runtime& rt, bool prefersAdaptiveThemes) {
-    auto& state = this->getState(rt);
-
-    state._prefersAdaptiveThemes = prefersAdaptiveThemes;
-}
-
-void core::UnistylesRegistry::setInitialThemeName(jsi::Runtime& rt, std::string themeName) {
-    auto& state = this->getState(rt);
-
-    state._initialThemeName = themeName;
-}
-
-core::UnistylesState& core::UnistylesRegistry::getState(jsi::Runtime& rt) {
-    auto it = this->_states.find(&rt);
-
-    helpers::assertThat(rt, it != this->_states.end(), "Unistyles was loaded, but it's not configured. Did you forget to call StyleSheet.configure? If you don't want to use any themes or breakpoints, simply call it with an empty object {}.");
-
-    return it->second;
-}
-
-void core::UnistylesRegistry::createState(jsi::Runtime& rt) {
-    auto it = this->_states.find(&rt);
-
-    this->_states.emplace(
-        std::piecewise_construct,
-        std::forward_as_tuple(&rt),
-        std::forward_as_tuple(rt)
-    );
-}
-
-void core::UnistylesRegistry::updateTheme(jsi::Runtime& rt, std::string& themeName, jsi::Function&& callback) {
-    auto& state = this->getState(rt);
-    auto it = state._jsThemes.find(themeName);
-
-    helpers::assertThat(rt, it != state._jsThemes.end(), "Unistyles: You're trying to update theme '" + themeName + "' but it wasn't registered.");
-
-    auto result = callback.call(rt, it->second);
-
-    helpers::assertThat(rt, result.isObject(), "Unistyles: Returned theme is not an object. Please check your updateTheme function.");
-
-    it->second = result.asObject(rt);
-}
-
-void core::UnistylesRegistry::linkShadowNodeWithUnistyle(
-    jsi::Runtime& rt,
-    const ShadowNodeFamily* shadowNodeFamily,
-    std::vector<std::shared_ptr<UnistyleData>>& unistylesData
-) {
-    this->trafficController.withLock([this, &rt, &unistylesData, shadowNodeFamily](){
-        shadow::ShadowLeafUpdates updates;
-        auto parser = parser::Parser(nullptr);
-
-        std::for_each(unistylesData.begin(), unistylesData.end(), [this, &rt, shadowNodeFamily](std::shared_ptr<UnistyleData> unistyleData){
-            this->_shadowRegistry[&rt][shadowNodeFamily].emplace_back(unistyleData);
-        });
-
-        updates[shadowNodeFamily] = parser.parseStylesToShadowTreeStyles(rt, unistylesData);
-
-        this->trafficController.setUpdates(updates);
-        this->trafficController.resumeUnistylesTraffic();
-    });
-}
-
-void core::UnistylesRegistry::removeDuplicatedUnistyles(jsi::Runtime& rt, const ShadowNodeFamily *shadowNodeFamily, std::vector<core::Unistyle::Shared>& unistyles) {
-    auto targetFamilyUnistyles = this->_shadowRegistry[&rt][shadowNodeFamily];
-
-    unistyles.erase(
-        std::remove_if(
-            unistyles.begin(),
-            unistyles.end(),
-            [&targetFamilyUnistyles](const core::Unistyle::Shared& unistyle) {
-                return std::any_of(
-                    targetFamilyUnistyles.begin(),
-                    targetFamilyUnistyles.end(),
-                    [&unistyle](const std::shared_ptr<core::UnistyleData>& data) {
-                        return data->unistyle == unistyle;
-                    }
-                );
-            }
-        ),
-        unistyles.end()
-    );
-}
-
-void core::UnistylesRegistry::unlinkShadowNodeWithUnistyles(jsi::Runtime& rt, const ShadowNodeFamily* shadowNodeFamily) {
-    this->trafficController.withLock([this, &rt, shadowNodeFamily](){
-        this->_shadowRegistry[&rt].erase(shadowNodeFamily);
-        this->trafficController.removeShadowNode(shadowNodeFamily);
-
-        if (this->_shadowRegistry[&rt].empty()) {
-            this->_shadowRegistry.erase(&rt);
-        }
-    });
-}
-
-std::shared_ptr<core::StyleSheet> core::UnistylesRegistry::addStyleSheet(jsi::Runtime& rt, int unid, core::StyleSheetType type, jsi::Object&& rawValue) {
-    this->_styleSheetRegistry[&rt][unid] = std::make_shared<core::StyleSheet>(unid, type, std::move(rawValue));
-
-    return this->_styleSheetRegistry[&rt][unid];
-}
-
-core::DependencyMap core::UnistylesRegistry::buildDependencyMap(jsi::Runtime& rt, std::vector<UnistyleDependency>& deps) {
-    core::DependencyMap dependencyMap;
-
-    std::unordered_set<UnistyleDependency> uniqueDependencies(deps.begin(), deps.end());
-
-    for (const auto& [family, unistyles] : this->_shadowRegistry[&rt]) {
-        bool hasAnyOfDependencies = false;
-
-        // Check if any dependency matches
-        for (const auto& unistyleData : unistyles) {
-            for (const auto& dep : unistyleData->unistyle->dependencies) {
-                if (uniqueDependencies.count(dep)) {
-                    hasAnyOfDependencies = true;
-                    break;
-                }
-            }
-
-            if (hasAnyOfDependencies) {
-                break;
-            };
-        }
-
-        if (!hasAnyOfDependencies) {
-            continue;
-        }
-
-        dependencyMap[family].insert(
-            dependencyMap[family].end(),
-            unistyles.begin(),
-            unistyles.end()
-        );
-    }
-
-    return dependencyMap;
-}
-
-// called from proxied function only, we don't know host
-// so we need to rebuild all instances as they may have different variants
-void core::UnistylesRegistry::shadowLeafUpdateFromUnistyle(jsi::Runtime& rt, Unistyle::Shared unistyle, jsi::Value& maybePressableId) {
-    shadow::ShadowLeafUpdates updates;
-    this->trafficController.withLock([this, &rt, &maybePressableId, unistyle, &updates](){
-        auto parser = parser::Parser(nullptr);
-        std::optional<std::string> pressableId = maybePressableId.isString()
-            ? std::make_optional(maybePressableId.asString(rt).utf8(rt))
-            : std::nullopt;
-
-        for (const auto& [family, unistyles] : this->_shadowRegistry[&rt]) {
-            for (const auto& unistyleData : unistyles) {
-                if (unistyleData->unistyle == unistyle) {
-                    updates[family] = parser.parseStylesToShadowTreeStyles(rt, { unistyleData });
-                }
-            }
-        }
-
-        this->trafficController.setUpdates(updates);
-    });
-}
-
-std::vector<std::shared_ptr<core::StyleSheet>>core::UnistylesRegistry::getStyleSheetsToRefresh(jsi::Runtime& rt, std::vector<UnistyleDependency>& unistylesDependencies) {
-    std::vector<std::shared_ptr<core::StyleSheet>> stylesheetsToRefresh;
-    std::unordered_set<UnistyleDependency> depSet(
-        unistylesDependencies.begin(),
-        unistylesDependencies.end()
-    );
-
-    bool themeDidChange = depSet.count(UnistyleDependency::THEME) > 0;
-    bool runtimeDidChange = (themeDidChange && depSet.size() > 1) || !depSet.empty();
-
-    if (!themeDidChange && !runtimeDidChange) {
-        return stylesheetsToRefresh;
-    }
-
-    auto& styleSheets = this->_styleSheetRegistry[&rt];
-
-    for (const auto& [_, styleSheet] : styleSheets) {
-        if (styleSheet->type == StyleSheetType::ThemableWithMiniRuntime) {
-            auto hasMatchingDependency = [&depSet](const auto& unistyles) {
-                for (const auto& [_, unistyle] : unistyles) {
-                    for (const auto& dep : unistyle->dependencies) {
-                        if (depSet.count(dep)) {
-                            return true;
-                        }
-                    }
-                }
-
-                return false;
-            };
-
-            if (hasMatchingDependency(styleSheet->unistyles)) {
-                stylesheetsToRefresh.emplace_back(styleSheet);
-            }
-        }
-
-        if (styleSheet->type == StyleSheetType::Themable && themeDidChange) {
-            stylesheetsToRefresh.emplace_back(styleSheet);
-        }
-    }
-
-    return stylesheetsToRefresh;
-}
-
-core::Unistyle::Shared core::UnistylesRegistry::getUnistyleById(jsi::Runtime& rt, std::string unistyleID) {
-    for (auto& pair: this->_styleSheetRegistry[&rt]) {
-        auto [_, stylesheet] = pair;
-
-        for (auto unistylePair: stylesheet->unistyles) {
-            auto [_, unistyle] = unistylePair;
-
-            if (unistyle->unid == unistyleID) {
-                return unistyle;
-            }
-        }
-    }
-
-    return nullptr;
-}
-
-const std::optional<std::string> core::UnistylesRegistry::getScopedTheme() {
-    return this->_scopedTheme;
-}
-
-void core::UnistylesRegistry::setScopedTheme(std::optional<std::string> themeName) {
-    this->_scopedTheme = std::move(themeName);
-}
-
-void core::UnistylesRegistry::destroy() {
-    this->_states.clear();
-    this->_styleSheetRegistry.clear();
-    this->_shadowRegistry.clear();
-    this->_scopedTheme = std::nullopt;
-}
-
-
-
-================================================
-FILE: cxx/core/UnistylesRegistry.h
-================================================
-#pragma once
-
-#include "set"
-#include <jsi/jsi.h>
-#include <folly/dynamic.h>
-#include <react/renderer/uimanager/UIManager.h>
-#include <unordered_map>
-#include <unordered_set>
-#include "Breakpoints.h"
-#include "StyleSheetRegistry.h"
-#include "StyleSheet.h"
-#include "Unistyle.h"
-#include "UnistyleData.h"
-#include "ShadowTrafficController.h"
-
-namespace margelo::nitro::unistyles::core {
-
-struct UnistylesState;
-
-using namespace facebook;
-using namespace facebook::react;
-
-using DependencyMap = std::unordered_map<const ShadowNodeFamily*, std::vector<std::shared_ptr<UnistyleData>>>;
-
-struct UnistylesRegistry: public StyleSheetRegistry {
-    static UnistylesRegistry& get();
-
-    UnistylesRegistry(const UnistylesRegistry&) = delete;
-    UnistylesRegistry(const UnistylesRegistry&&) = delete;
-
-    bool shouldUsePointsForBreakpoints = false;
-
-    void registerTheme(jsi::Runtime& rt, std::string name, jsi::Value& theme);
-    void registerBreakpoints(jsi::Runtime& rt, std::vector<std::pair<std::string, double>>& sortedBreakpoints);
-    void setPrefersAdaptiveThemes(jsi::Runtime& rt, bool prefersAdaptiveThemes);
-    void setInitialThemeName(jsi::Runtime& rt, std::string themeName);
-    void updateTheme(jsi::Runtime& rt, std::string& themeName, jsi::Function&& callback);
-
-    UnistylesState& getState(jsi::Runtime& rt);
-    void createState(jsi::Runtime& rt);
-    std::vector<std::shared_ptr<core::StyleSheet>> getStyleSheetsToRefresh(jsi::Runtime& rt, std::vector<UnistyleDependency>& unistylesDependencies);
-    void linkShadowNodeWithUnistyle(jsi::Runtime& rt, const ShadowNodeFamily*, std::vector<std::shared_ptr<UnistyleData>>& unistylesData);
-    void unlinkShadowNodeWithUnistyles(jsi::Runtime& rt, const ShadowNodeFamily*);
-    std::shared_ptr<core::StyleSheet> addStyleSheet(jsi::Runtime& rt, int tag, core::StyleSheetType type, jsi::Object&& rawValue);
-    DependencyMap buildDependencyMap(jsi::Runtime& rt, std::vector<UnistyleDependency>& deps);
-    void shadowLeafUpdateFromUnistyle(jsi::Runtime& rt, Unistyle::Shared unistyle, jsi::Value& maybePressableId);
-    shadow::ShadowTrafficController trafficController{};
-    const std::optional<std::string> getScopedTheme();
-    void removeDuplicatedUnistyles(jsi::Runtime& rt, const ShadowNodeFamily* shadowNodeFamily, std::vector<core::Unistyle::Shared>& unistyles);
-    void setScopedTheme(std::optional<std::string> themeName);
-    core::Unistyle::Shared getUnistyleById(jsi::Runtime& rt, std::string unistyleID);
-    void destroy();
-
-private:
-    UnistylesRegistry() = default;
-
-    std::optional<std::string> _scopedTheme{};
-    std::unordered_map<jsi::Runtime*, UnistylesState> _states{};
-    std::unordered_map<jsi::Runtime*, std::unordered_map<int, std::shared_ptr<core::StyleSheet>>> _styleSheetRegistry{};
-    std::unordered_map<jsi::Runtime*, std::unordered_map<const ShadowNodeFamily*, std::vector<std::shared_ptr<UnistyleData>>>> _shadowRegistry{};
-};
-
-inline UnistylesRegistry& UnistylesRegistry::get() {
-    static UnistylesRegistry cache;
-
-    return cache;
-}
-
-}
-
-
-
-================================================
-FILE: cxx/core/UnistylesState.cpp
-================================================
-#include "UnistylesState.h"
-#include "UnistylesRegistry.h"
-
-using namespace margelo::nitro::unistyles;
-
-bool core::UnistylesState::hasAdaptiveThemes() {
-    if (!this->_prefersAdaptiveThemes.has_value() || !this->_prefersAdaptiveThemes.value()) {
-        return false;
-    }
-
-    return helpers::vecContainsKeys(this->_registeredThemeNames, {"light", "dark"});
-}
-
-void core::UnistylesState::setTheme(std::string themeName) {
-    helpers::assertThat(*_rt, helpers::vecContainsKeys(this->_registeredThemeNames, {themeName}), "Unistyles: You're trying to set theme to: '" + std::string(themeName) + "', but it wasn't registered.");
-
-    if (themeName != this->_currentThemeName) {
-        this->_currentThemeName = themeName;
-    }
-}
-
-std::optional<std::string>& core::UnistylesState::getCurrentThemeName() {
-    return this->_currentThemeName;
-}
-
-jsi::Object core::UnistylesState::getCurrentJSTheme() {
-    auto hasSomeThemes = _registeredThemeNames.size() > 0;
-
-    if (!hasSomeThemes && !this->hasUserConfig) {
-        helpers::assertThat(*_rt, false, "Unistyles: One of your stylesheets is trying to get the theme, but no theme has been selected yet. Did you forget to call StyleSheet.configure? If you called it, make sure you did so before any StyleSheet.create.");
-    }
-
-    // return empty object, if user didn't register any themes
-    if (!hasSomeThemes) {
-        return jsi::Object(*_rt);
-    }
-
-    helpers::assertThat(*_rt, _currentThemeName.has_value(), "Unistyles: One of your stylesheets is trying to get the theme, but no theme has been selected yet. Did you forget to select an initial theme?");
-
-    auto it = this->_jsThemes.find(_currentThemeName.value());
-
-    helpers::assertThat(*_rt, it != this->_jsThemes.end(), "Unistyles: You're trying to get theme '" + _currentThemeName.value() + "', but it was not registered. Did you forget to register it with StyleSheet.configure?");
-
-    return it->second.asObject(*_rt);
-}
-
-jsi::Object core::UnistylesState::getJSThemeByName(std::string& themeName) {
-    auto it = this->_jsThemes.find(themeName);
-
-    helpers::assertThat(*_rt, it != this->_jsThemes.end(), "Unistyles: You're trying to get theme '" + themeName + "', but it was not registered. Did you forget to register it with StyleSheet.configure?");
-
-    return it->second.asObject(*_rt);
-}
-
-void core::UnistylesState::computeCurrentBreakpoint(int screenWidth) {
-    if (this->_sortedBreakpointPairs.size() == 0) {
-        return;
-    }
-
-    this->_currentBreakpointName = helpers::getBreakpointFromScreenWidth(
-        screenWidth,
-        this->_sortedBreakpointPairs
-    );
-}
-
-bool core::UnistylesState::hasTheme(std::string themeName) {
-    return helpers::vecContainsKeys(this->_registeredThemeNames, {themeName});
-}
-
-bool core::UnistylesState::hasInitialTheme() {
-    return this->_initialThemeName.has_value();
-}
-
-std::vector<std::string> core::UnistylesState::getRegisteredThemeNames() {
-    return std::vector<std::string>(this->_registeredThemeNames);
-}
-
-std::vector<std::pair<std::string, double>> core::UnistylesState::getSortedBreakpointPairs() {
-    return std::vector<std::pair<std::string, double>>(this->_sortedBreakpointPairs);
-}
-
-std::optional<std::string> core::UnistylesState::getInitialTheme() {
-    return this->_initialThemeName;
-}
-
-std::optional<std::string> core::UnistylesState::getCurrentBreakpointName() {
-    return this->_currentBreakpointName;
-}
-
-bool core::UnistylesState::getPrefersAdaptiveThemes() {
-    return this->_prefersAdaptiveThemes.has_value() && this->_prefersAdaptiveThemes.value();
-}
-
-void core::UnistylesState::registerProcessColorFunction(jsi::Function&& fn) {
-    this->_processColorFn = std::make_shared<jsi::Function>(std::move(fn));
-}
-
-void core::UnistylesState::registerParseBoxShadowString(jsi::Function&& fn) {
-    this->_parseBoxShadowStringFn = std::make_shared<jsi::Function>(std::move(fn));
-}
-
-int core::UnistylesState::parseColor(jsi::Value& maybeColor) {
-    if (!maybeColor.isString()) {
-        return 0;
-    }
-
-    auto colorString = maybeColor.asString(*_rt);
-
-    if (!this->_colorCache.contains(colorString.utf8(*_rt).c_str())) {
-        #ifdef ANDROID
-            int color = this->_processColorFn.get()->call(*_rt, colorString).asNumber();
-        #else
-            uint32_t color = this->_processColorFn.get()->call(*_rt, colorString).asNumber();
-        #endif
-
-        this->_colorCache[colorString.utf8(*_rt).c_str()] = color ? color : 0;
-    }
-
-    return this->_colorCache[colorString.utf8(*_rt).c_str()];
-}
-
-jsi::Array core::UnistylesState::parseBoxShadowString(std::string&& boxShadowString) {
-    jsi::Value result = this->_parseBoxShadowStringFn.get()->call(*_rt, boxShadowString);
-
-    return result.asObject(*_rt).asArray(*_rt);
-}
-
-
-
-================================================
-FILE: cxx/core/UnistylesState.h
-================================================
-#pragma once
-
-#include <string>
-#include <optional>
-#include <jsi/jsi.h>
-#include <vector>
-#include "Helpers.h"
-
-namespace margelo::nitro::unistyles::core {
-
-struct UnistylesRegistry;
-
-using namespace facebook;
-
-struct UnistylesState {
-    UnistylesState(jsi::Runtime& rt): _rt{&rt} {}
-    UnistylesState(const UnistylesState&) = delete;
-    UnistylesState(const UnistylesState&&) = delete;
-
-    bool hasUserConfig = false;
-    bool hasAdaptiveThemes();
-    bool hasInitialTheme();
-    bool getPrefersAdaptiveThemes();
-    void setTheme(std::string themeName);
-    bool hasTheme(std::string themeName);
-    std::optional<std::string>& getCurrentThemeName();
-    std::vector<std::string> getRegisteredThemeNames();
-    std::optional<std::string> getInitialTheme();
-    std::optional<std::string> getCurrentBreakpointName();
-    std::vector<std::pair<std::string, double>> getSortedBreakpointPairs();
-
-    jsi::Object getCurrentJSTheme();
-    jsi::Object getJSThemeByName(std::string& themeName);
-    int parseColor(jsi::Value& color);
-    jsi::Array parseBoxShadowString(std::string&& boxShadowString);
-    void computeCurrentBreakpoint(int screenWidth);
-    void registerProcessColorFunction(jsi::Function&& fn);
-    void registerParseBoxShadowString(jsi::Function&& fn);
-
-private:
-    jsi::Runtime* _rt;
-    std::unordered_map<std::string, jsi::Value> _jsThemes{};
-    std::optional<bool> _prefersAdaptiveThemes = std::nullopt;
-    std::optional<std::string> _initialThemeName = std::nullopt;
-    std::optional<std::string> _currentBreakpointName = std::nullopt;
-    std::vector<std::pair<std::string, double>> _sortedBreakpointPairs{};
-    std::vector<std::string> _registeredThemeNames{};
-    std::optional<std::string> _currentThemeName = std::nullopt;
-    std::shared_ptr<jsi::Function> _processColorFn;
-    std::shared_ptr<jsi::Function> _parseBoxShadowStringFn;
-    std::unordered_map<std::string, uint32_t> _colorCache{};
-
-    friend class UnistylesRegistry;
-};
-
-}
-
-
-
-================================================
-FILE: cxx/core/UnistyleWrapper.cpp
-================================================
-#include "UnistyleWrapper.h"
-
-using namespace margelo::nitro::unistyles;
-
-core::UnistyleWrapper::~UnistyleWrapper() = default;
-
-
-
-================================================
-FILE: cxx/core/UnistyleWrapper.h
-================================================
-#pragma once
-
-#include <jsi/jsi.h>
-#include "Unistyle.h"
-#include "UnistylesRegistry.h"
-#include "Helpers.h"
-#include "HybridUnistylesRuntime.h"
-#include "UnistylesConstants.h"
-#include "Parser.h"
-
-namespace margelo::nitro::unistyles::core {
-
-struct UnistyleWrapper: public jsi::NativeState {
-    explicit UnistyleWrapper(Unistyle::Shared unistyle)
-        : unistyle(std::move(unistyle)) {}
-
-    ~UnistyleWrapper() override;
-
-    Unistyle::Shared unistyle;
-};
-
-inline static Unistyle::Shared unistyleFromStaticStyleSheet(jsi::Runtime& rt, jsi::Object& value) {
-    auto exoticUnistyle = std::make_shared<Unistyle>(
-        helpers::HashGenerator::generateHash(helpers::EXOTIC_STYLE_KEY),
-        UnistyleType::Object,
-        helpers::EXOTIC_STYLE_KEY,
-        value,
-        nullptr
-    );
-
-    exoticUnistyle->seal();
-
-    return exoticUnistyle;
-}
-
-inline static std::vector<std::string> getUnistylesHashKeys(jsi::Runtime& rt, jsi::Object& object) {
-    std::vector<std::string> matchingKeys{};
-    const std::string prefix = "unistyles_";
-
-    auto propertyNames = object.getPropertyNames(rt);
-    size_t length = propertyNames.length(rt);
-
-    for (size_t i = 0; i < length; i++) {
-        auto propertyName = propertyNames.getValueAtIndex(rt, i).getString(rt);
-        std::string key = propertyName.utf8(rt);
-
-        if (key.compare(0, prefix.length(), prefix) == 0) {
-            matchingKeys.push_back(key);
-        }
-    }
-
-    return matchingKeys;
-}
-
-inline static std::vector<Unistyle::Shared> unistylesFromHashKeys(jsi::Runtime& rt, jsi::Object& object, std::vector<std::string> keys) {
-    std::vector<Unistyle::Shared> unistyles{};
-    auto& registry = UnistylesRegistry::get();
-
-    for (auto& key: keys) {
-        unistyles.emplace_back(registry.getUnistyleById(rt, key));
-    }
-
-    return unistyles;
-}
-
-inline static std::vector<Unistyle::Shared> unistylesFromNonExistentNativeState(jsi::Runtime& rt, jsi::Object& value) {
-    auto unistyleHashKeys = getUnistylesHashKeys(rt, value);
-
-    // return wrapped RN/inline style
-    if (unistyleHashKeys.empty()) {
-        return {unistyleFromStaticStyleSheet(rt, value)};
-    }
-
-    // last chance to fallback and get unistyle based on hash
-    auto unistyles = unistylesFromHashKeys(rt, value, unistyleHashKeys);
-    auto areValid = std::all_of(unistyles.begin(), unistyles.end(), [](Unistyle::Shared unistyle){
-        return unistyle != nullptr;
-    });
-
-    if (!areValid) {
-        throw jsi::JSError(rt, R"(Unistyles: Style is not bound!
-
-You likely altered unistyle hash key and we're not able to recover C++ state attached to this node.)");
-    }
-
-    // someone merged unistyles, and will be warned in JS
-    // the best we can do is to return first unistyle
-    if (unistyles.size() > 1) {
-        return {unistyles.at(0)};
-    }
-
-    return unistyles;
-}
-
-inline static std::vector<Unistyle::Shared> unistyleFromValue(jsi::Runtime& rt, const jsi::Value& value) {
-    if (value.isNull() || !value.isObject()) {
-        return {};
-    }
-
-    auto maybeArray = value.asObject(rt);
-
-    helpers::assertThat(rt, maybeArray.isArray(rt), "Unistyles: can't retrieve Unistyle state from node as it's not an array.");
-
-    std::vector<Unistyle::Shared> unistyles;
-    jsi::Array unistylesArray = maybeArray.asArray(rt);
-
-    helpers::iterateJSIArray(rt, unistylesArray, [&rt, &unistyles](size_t index, jsi::Value& value){
-        auto obj = value.getObject(rt);
-
-        // possible if user used React Native styles or inline styles or did spread styles
-        if (!obj.hasNativeState(rt)) {
-            auto exoticUnistyles = unistylesFromNonExistentNativeState(rt, obj);
-
-            for (auto& exoticUnistyle: exoticUnistyles) {
-                unistyles.emplace_back(exoticUnistyle);
-            }
-
-            return;
-        }
-
-        unistyles.emplace_back(value.getObject(rt).getNativeState<UnistyleWrapper>(rt)->unistyle);
-    });
-
-    return unistyles;
-}
-
-inline static jsi::Value objectFromUnistyle(jsi::Runtime& rt, std::shared_ptr<HybridUnistylesRuntime> unistylesRuntime, Unistyle::Shared unistyle, Variants& variants, std::optional<jsi::Array> arguments) {
-    auto wrappedUnistyle = std::make_shared<UnistyleWrapper>(unistyle);
-    auto unistyleID = jsi::PropNameID::forUtf8(rt, unistyle->unid);
-
-    jsi::Object obj = jsi::Object(rt);
-
-    obj.setNativeState(rt, std::move(wrappedUnistyle));
-
-    auto secrets = jsi::Object(rt);
-
-    auto parsedArguments = arguments.has_value()
-        ? helpers::parseDynamicFunctionArguments(rt, arguments.value())
-        : std::optional<std::vector<folly::dynamic>>{};
-
-    if (arguments.has_value()) {
-        // this is required for HybridShadowRegistry::link
-        helpers::defineHiddenProperty(rt, secrets, helpers::ARGUMENTS.c_str(), arguments.value());
-    }
-
-    // this is required for HybridShadowRegistry::link
-    helpers::defineHiddenProperty(rt, secrets, helpers::STYLESHEET_VARIANTS.c_str(), helpers::variantsToValue(rt, variants));
-
-    // this is required for withUnistyles
-    helpers::defineHiddenProperty(rt, secrets, helpers::STYLE_DEPENDENCIES.c_str(), helpers::dependenciesToJSIArray(rt, unistyle->dependencies));
-
-    // this is required for withUnistyles
-    auto hostFn = jsi::Function::createFromHostFunction(
-        rt,
-        jsi::PropNameID::forUtf8(rt, helpers::GET_STYLES.c_str()),
-        0,
-        [unistyleID = unistyle->unid, unistylesRuntime, variants, parsedArguments](jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count
-    ) {
-        auto& registry = UnistylesRegistry::get();
-        auto unistyle = registry.getUnistyleById(rt, unistyleID);
-
-        parser::Parser(unistylesRuntime).rebuildUnistyle(rt, unistyle, variants, parsedArguments);
-
-        return jsi::Value(rt, unistyle->parsedStyle.value()).asObject(rt);
-    });
-
-    helpers::defineHiddenProperty(rt, secrets, helpers::GET_STYLES.c_str(), std::move(hostFn));
-
-    obj.setProperty(rt, unistyleID, secrets);
-
-    helpers::mergeJSIObjects(rt, obj, unistyle->parsedStyle.value());
-
-    return obj;
-}
-
-inline static jsi::Value valueFromUnistyle(jsi::Runtime& rt, std::shared_ptr<HybridUnistylesRuntime> unistylesRuntime, Unistyle::Shared unistyle, Variants& variants) {
-    if (unistyle->type == UnistyleType::Object) {
-        return objectFromUnistyle(rt, unistylesRuntime, unistyle, variants, std::nullopt);
-    }
-
-    auto wrappedUnistyle = std::make_shared<UnistyleWrapper>(unistyle);
-    auto unistyleID = jsi::PropNameID::forUtf8(rt, unistyle->unid);
-
-    auto unistyleFn = std::dynamic_pointer_cast<UnistyleDynamicFunction>(unistyle);
-    auto hostFn = jsi::Value(rt, unistyleFn->proxiedFunction.value()).asObject(rt).asFunction(rt);
-
-    hostFn.setNativeState(rt, std::move(wrappedUnistyle));
-    hostFn.setProperty(rt, unistyleID, jsi::Object(rt));
-
-    return std::move(hostFn);
-}
-
-}
-
-
-
-================================================
-FILE: cxx/hybridObjects/HybridNavigationBar.cpp
-================================================
-#include "HybridNavigationBar.h"
-
-void HybridNavigationBar::setHidden(bool isHidden) {
-    this->_nativePlatform->setNavigationBarHidden(isHidden);
-};
-
-double HybridNavigationBar::getWidth() {
-    return this->_nativePlatform->getNavigationBarDimensions().width;
-}
-
-double HybridNavigationBar::getHeight() {
-    return this->_nativePlatform->getNavigationBarDimensions().height;
-}
-
-
-
-================================================
-FILE: cxx/hybridObjects/HybridNavigationBar.h
-================================================
-#pragma once
-
-#include "HybridUnistylesNavigationBarSpec.hpp"
-#include "NativePlatform.h"
-#include <optional>
-
-using namespace margelo::nitro::unistyles;
-
-struct HybridNavigationBar: public HybridUnistylesNavigationBarSpec {
-    HybridNavigationBar(std::shared_ptr<HybridNativePlatformSpec> nativePlatform): HybridObject(TAG), _nativePlatform{nativePlatform} {}
-
-    void setHidden(bool isHidden) override;
-    double getWidth() override;
-    double getHeight() override;
-
-private:
-    std::shared_ptr<HybridNativePlatformSpec> _nativePlatform;
-};
-
-
-
-================================================
-FILE: cxx/hybridObjects/HybridShadowRegistry.cpp
-================================================
-#include "HybridShadowRegistry.h"
-
-using namespace margelo::nitro::unistyles;
-using namespace facebook::react;
-
-jsi::Value HybridShadowRegistry::link(jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) {
-    helpers::assertThat(rt, count == 2, "Unistyles: Invalid babel transform 'ShadowRegistry link' expected 2 arguments.");
-
-    auto shadowNodeWrapper = getShadowNodeFromRef(rt, args[0]);
-
-    std::vector<core::Unistyle::Shared> unistyleWrappers = core::unistyleFromValue(rt, args[1]);
-    std::vector<std::vector<folly::dynamic>> arguments;
-    auto& registry = core::UnistylesRegistry::get();
-
-    // this is special case for Animated, and prevents appending same unistyles to node
-    registry.removeDuplicatedUnistyles(rt, &shadowNodeWrapper->getFamily(), unistyleWrappers);
-
-    if (unistyleWrappers.empty()) {
-        return jsi::Value::undefined();
-    }
-
-    for (size_t i = 0; i < unistyleWrappers.size(); i++) {
-        if (unistyleWrappers[i]->type == core::UnistyleType::DynamicFunction) {
-            try {
-                auto rawStyle = args[1].asObject(rt).asArray(rt).getValueAtIndex(rt, i);
-                auto rawStyleObj = rawStyle.getObject(rt);
-                auto unistyleHashKeys = core::getUnistylesHashKeys(rt, rawStyleObj);
-                auto secrets = rawStyleObj.getProperty(rt, unistyleHashKeys.at(0).c_str()).asObject(rt);
-                auto secretArguments = secrets.getProperty(rt, helpers::ARGUMENTS.c_str()).asObject(rt).asArray(rt);
-
-                arguments.push_back(helpers::parseDynamicFunctionArguments(rt, secretArguments));
-
-                continue;
-            } catch (...) {
-                arguments.push_back({});
-            }
-        }
-
-        arguments.push_back({});
-    }
-
-    auto scopedTheme = registry.getScopedTheme();
-
-    // check if scope theme exists
-    if (scopedTheme.has_value()) {
-        auto themeName = scopedTheme.value();
-
-        helpers::assertThat(rt, registry.getState(rt).hasTheme(themeName), "Unistyles: You're trying to use scoped theme '" + themeName + "' but it wasn't registered.");
-    }
-
-    auto parser = parser::Parser(this->_unistylesRuntime);
-    std::vector<std::shared_ptr<core::UnistyleData>> unistylesData{};
-
-    // create unistyleData based on wrappers
-    for (size_t i = 0; i < unistyleWrappers.size(); i++) {
-        core::Unistyle::Shared& unistyle = unistyleWrappers[i];
-        auto rawStyle = args[1].asObject(rt).asArray(rt).getValueAtIndex(rt, i);
-        auto rawStyleObj = rawStyle.getObject(rt);
-        auto unistyleHashKeys = core::getUnistylesHashKeys(rt, rawStyleObj);
-        core::Variants variants{};
-
-        if (unistyleHashKeys.size() == 1) {
-            auto secrets = rawStyleObj.getProperty(rt, unistyleHashKeys.at(0).c_str()).asObject(rt);
-            auto hasVariants = secrets.hasProperty(rt, helpers::STYLESHEET_VARIANTS.c_str());
-
-            if (hasVariants) {
-                variants = helpers::variantsToPairs(rt, secrets.getProperty(rt, helpers::STYLESHEET_VARIANTS.c_str()).asObject(rt));
-            }
-        }
-
-        std::shared_ptr<core::UnistyleData> unistyleData = std::make_shared<core::UnistyleData>(
-            unistyle,
-            variants,
-            arguments[i],
-            scopedTheme
-        );
-
-        // before linking we need to check if given unistyle is affected by scoped theme
-        if (scopedTheme.has_value() && unistyle->styleKey != helpers::EXOTIC_STYLE_KEY) {
-            auto parsedStyleSheet = parser.getParsedStyleSheetForScopedTheme(rt, unistyle, scopedTheme.value());
-
-            // if so we need to force update
-            parser.rebuildUnistyleWithScopedTheme(rt, parsedStyleSheet, unistyleData);
-        }
-
-        unistylesData.emplace_back(unistyleData);
-    }
-
-    registry.linkShadowNodeWithUnistyle(
-        rt,
-        &shadowNodeWrapper->getFamily(),
-        unistylesData
-    );
-
-    return jsi::Value::undefined();
-}
-
-jsi::Value HybridShadowRegistry::unlink(jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) {
-    helpers::assertThat(rt, count == 1, "Unistyles: Invalid babel transform 'ShadowRegistry unlink' expected 1 argument.");
-
-    auto shadowNodeWrapper = getShadowNodeFromRef(rt, args[0]);
-
-    auto& registry = core::UnistylesRegistry::get();
-
-    registry.unlinkShadowNodeWithUnistyles(rt, &shadowNodeWrapper->getFamily());
-
-    return jsi::Value::undefined();
-}
-
-jsi::Value HybridShadowRegistry::flush(jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) {
-    shadow::ShadowTreeManager::updateShadowTree(rt);
-
-    return jsi::Value::undefined();
-}
-
-jsi::Value HybridShadowRegistry::setScopedTheme(jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) {
-    helpers::assertThat(rt, count == 1, "Unistyles: setScopedTheme expected 1 argument.");
-
-    auto& registry = core::UnistylesRegistry::get();
-
-    if (args[0].isUndefined()) {
-        registry.setScopedTheme(std::nullopt);
-    }
-
-    if (args[0].isString()) {
-        registry.setScopedTheme(args[0].asString(rt).utf8(rt));
-    }
-
-    return jsi::Value::undefined();
-}
-
-jsi::Value HybridShadowRegistry::getScopedTheme(jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) {
-    auto& registry = core::UnistylesRegistry::get();
-    auto maybeScopedTheme = registry.getScopedTheme();
-
-    return maybeScopedTheme.has_value()
-        ? jsi::String::createFromUtf8(rt, maybeScopedTheme.value())
-        : jsi::Value::undefined();
-}
-
-std::shared_ptr<const core::ShadowNode> HybridShadowRegistry::getShadowNodeFromRef(jsi::Runtime& rt, const jsi::Value& maybeRef) {
-#if REACT_NATIVE_VERSION_MINOR >= 81
-    return Bridging<std::shared_ptr<const ShadowNode>>::fromJs(rt, maybeRef);
-#else
-    return shadowNodeFromValue(rt, maybeRef);
-#endif
-}
-
-
-
-================================================
-FILE: cxx/hybridObjects/HybridShadowRegistry.h
-================================================
-#pragma once
-
-#include "HybridUnistylesShadowRegistrySpec.hpp"
-#include <react/renderer/uimanager/primitives.h>
-#include "UnistyleWrapper.h"
-#include "UnistylesState.h"
-#include "UnistylesRegistry.h"
-#include "ShadowTreeManager.h"
-#include <cxxreact/ReactNativeVersion.h>
-
-namespace margelo::nitro::unistyles {
-
-struct HybridShadowRegistry: public HybridUnistylesShadowRegistrySpec {
-    HybridShadowRegistry(std::shared_ptr<HybridUnistylesRuntime> unistylesRuntime)
-        : HybridObject(TAG), _unistylesRuntime{unistylesRuntime} {}
-
-    jsi::Value link(jsi::Runtime& rt,
-                            const jsi::Value& thisValue,
-                            const jsi::Value* args,
-                            size_t count);
-    jsi::Value unlink(jsi::Runtime& rt,
-                            const jsi::Value& thisValue,
-                            const jsi::Value* args,
-                            size_t count);
-    jsi::Value flush(jsi::Runtime& rt,
-                            const jsi::Value& thisValue,
-                            const jsi::Value* args,
-                            size_t count);
-    jsi::Value setScopedTheme(jsi::Runtime& rt,
-                            const jsi::Value& thisValue,
-                            const jsi::Value* args,
-                            size_t count);
-    jsi::Value getScopedTheme(jsi::Runtime& rt,
-                            const jsi::Value& thisValue,
-                            const jsi::Value* args,
-                            size_t count);
-
-    void loadHybridMethods() override {
-        HybridUnistylesShadowRegistrySpec::loadHybridMethods();
-
-        registerHybrids(this, [](Prototype& prototype) {
-            prototype.registerRawHybridMethod("link", 2, &HybridShadowRegistry::link);
-            prototype.registerRawHybridMethod("unlink", 1, &HybridShadowRegistry::unlink);
-            prototype.registerRawHybridMethod("flush", 0, &HybridShadowRegistry::flush);
-            prototype.registerRawHybridMethod("setScopedTheme", 1, &HybridShadowRegistry::setScopedTheme);
-            prototype.registerRawHybridMethod("getScopedTheme", 0, &HybridShadowRegistry::getScopedTheme);
-        });
-    };
-    
-    std::shared_ptr<const core::ShadowNode> getShadowNodeFromRef(jsi::Runtime& rt, const jsi::Value& maybeRef);
-
-private:
-    std::shared_ptr<HybridUnistylesRuntime> _unistylesRuntime;
-};
-
-}
-
-
-
-================================================
-FILE: cxx/hybridObjects/HybridStatusBar.cpp
-================================================
-#include "HybridStatusBar.h"
-
-double HybridStatusBar::getWidth() {
-    return this->_nativePlatform->getStatusBarDimensions().width;
-}
-
-double HybridStatusBar::getHeight() {
-    return this->_nativePlatform->getStatusBarDimensions().height;
-}
-
-void HybridStatusBar::setHidden(bool isHidden) {
-    this->_nativePlatform->setStatusBarHidden(isHidden);
-}
-
-
-
-================================================
-FILE: cxx/hybridObjects/HybridStatusBar.h
-================================================
-#pragma once
-
-#include "HybridUnistylesStatusBarSpec.hpp"
-#include "NativePlatform.h"
-#include <optional>
-
-using namespace margelo::nitro::unistyles;
-
-struct HybridStatusBar: public HybridUnistylesStatusBarSpec {
-    HybridStatusBar(std::shared_ptr<HybridNativePlatformSpec> nativePlatform): HybridObject(TAG), _nativePlatform{nativePlatform} {}
-
-    double getWidth() override;
-    double getHeight() override;
-    void setHidden(bool isHidden) override;
-
-private:
-    std::shared_ptr<HybridNativePlatformSpec> _nativePlatform;
-};
-
-
-
-================================================
-FILE: cxx/hybridObjects/HybridStyleSheet.cpp
-================================================
-#include "HybridStyleSheet.h"
-
-using namespace facebook::react;
-
-double HybridStyleSheet::getHairlineWidth() {
-    double pixelRatio = this->_unistylesRuntime->getPixelRatio();
-    double hairlineWidth = std::round(pixelRatio * 0.4) / pixelRatio;
-
-    if (hairlineWidth == 0.0) {
-        hairlineWidth = 1.0 / pixelRatio;
-    }
-
-    return hairlineWidth;
-}
-
-double HybridStyleSheet::getUnid() {
-    return this->__unid;
-}
-
-jsi::Value HybridStyleSheet::create(jsi::Runtime& rt, const jsi::Value &thisVal, const jsi::Value *arguments, size_t count) {
-    if (count == 1) {
-        helpers::assertThat(rt, false, "Unistyles is not initialized correctly. Please add babel plugin to your babel config.");
-    }
-
-    // second argument is hidden, so validation is perfectly fine
-    helpers::assertThat(rt, count == 2, "StyleSheet.create expected to be called with one argument.");
-    helpers::assertThat(rt, arguments[0].isObject(), "StyleSheet.create expected to be called with object or function.");
-
-    auto thisStyleSheet = thisVal.asObject(rt);
-    auto& registry = core::UnistylesRegistry::get();
-    int unid = arguments[1].asNumber();
-
-    jsi::Object rawStyleSheet = arguments[0].asObject(rt);
-    auto registeredStyleSheet = registry.addStyleSheetFromValue(rt, std::move(rawStyleSheet), unid);
-
-    this->__unid = registeredStyleSheet->tag;
-
-    auto parser = parser::Parser(this->_unistylesRuntime);
-
-    parser.buildUnistyles(rt, registeredStyleSheet);
-    parser.parseUnistyles(rt, registeredStyleSheet);
-
-    return core::toRNStyle(rt, registeredStyleSheet, this->_unistylesRuntime, {});
-}
-
-jsi::Value HybridStyleSheet::configure(jsi::Runtime &rt, const jsi::Value &thisVal, const jsi::Value *arguments, size_t count) {
-    helpers::assertThat(rt, count == 1, "StyleSheet.configure expected to be called with one argument.");
-    helpers::assertThat(rt, arguments[0].isObject(), "StyleSheet.configure expected to be called with object.");
-
-    auto config = arguments[0].asObject(rt);
-
-    helpers::enumerateJSIObject(rt, config, [&](const std::string& propertyName, jsi::Value& propertyValue){
-        if (propertyName == "settings") {
-            helpers::assertThat(rt, propertyValue.isObject(), "StyleSheet.configure's settings must be an object.");
-
-            return this->parseSettings(rt, propertyValue.asObject(rt));
-        }
-
-        if (propertyName == "breakpoints") {
-            helpers::assertThat(rt, propertyValue.isObject(), "StyleSheet.configure's breakpoints must be an object.");
-
-            return this->parseBreakpoints(rt, propertyValue.asObject(rt));
-        }
-
-        if (propertyName == "themes") {
-            helpers::assertThat(rt, propertyValue.isObject(), "StyleSheet.configure's themes must be an object.");
-
-            return this->parseThemes(rt, propertyValue.asObject(rt));
-        }
-
-        helpers::assertThat(rt, false, "StyleSheet.configure received unexpected key: '" + std::string(propertyName) + "'.");
-    });
-
-    verifyAndSelectTheme(rt);
-
-    auto& state = core::UnistylesRegistry::get().getState(rt);
-
-    state.hasUserConfig = true;
-
-    return jsi::Value::undefined();
-}
-
-jsi::Value HybridStyleSheet::init(jsi::Runtime &rt, const jsi::Value &thisVal, const jsi::Value *arguments, size_t count) {
-    if (this->isInitialized) {
-        return jsi::Value::undefined();
-    }
-
-    // create new state
-    auto& registry = core::UnistylesRegistry::get();
-
-    registry.createState(rt);
-
-    loadExternalMethods(thisVal, rt);
-
-    this->isInitialized = true;
-
-    return jsi::Value::undefined();
-}
-
-void HybridStyleSheet::parseSettings(jsi::Runtime &rt, jsi::Object settings) {
-    auto& registry = core::UnistylesRegistry::get();
-
-    helpers::enumerateJSIObject(rt, settings, [&](const std::string& propertyName, jsi::Value& propertyValue){
-        if (propertyName == "adaptiveThemes") {
-            helpers::assertThat(rt, propertyValue.isBool(), "StyleSheet.configure's adaptiveThemes must be of boolean type.");
-
-            registry.setPrefersAdaptiveThemes(rt, propertyValue.asBool());
-
-            return;
-        }
-
-        if (propertyName == "initialTheme") {
-            if (propertyValue.isObject()) {
-                helpers::assertThat(rt, propertyValue.asObject(rt).isFunction(rt), "StyleSheet.configure's initialTheme must be either a string or a function.");
-
-                auto result = propertyValue.asObject(rt).asFunction(rt).call(rt);
-
-                helpers::assertThat(rt, result.isString(), "StyleSheet.configure's initialTheme resolved from function is not a string. Please check your initialTheme function.");
-
-                return registry.setInitialThemeName(rt, result.asString(rt).utf8(rt));
-            }
-
-            helpers::assertThat(rt, propertyValue.isString(), "StyleSheet.configure's initialTheme must be either a string or a function.");
-
-            registry.setInitialThemeName(rt, propertyValue.asString(rt).utf8(rt));
-
-            return;
-        }
-
-        if (propertyName == "CSSVars") {
-            return;
-        }
-
-        if (propertyName == "nativeBreakpointsMode") {
-            helpers::assertThat(rt, propertyValue.isString(), "StyleSheet.configure's nativeBreakpointsMode must be a string");
-
-            auto mode = propertyValue.asString(rt).utf8(rt);
-
-            helpers::assertThat(rt, mode == "pixels" || mode == "points", "StyleSheet.configure's nativeBreakpointsMode must be one of: pixels or points");
-
-            if (mode == "points") {
-                registry.shouldUsePointsForBreakpoints = true;
-            }
-
-            return;
-        }
-
-        helpers::assertThat(rt, false, "StyleSheet.configure's settings received unexpected key: '" + std::string(propertyName) + "'");
-    });
-}
-
-void HybridStyleSheet::parseBreakpoints(jsi::Runtime &rt, jsi::Object breakpoints){
-    helpers::Breakpoints sortedBreakpoints = helpers::jsiBreakpointsToVecPairs(rt, std::move(breakpoints));
-
-    helpers::assertThat(rt, !sortedBreakpoints.empty(), "StyleSheet.configure's breakpoints can't be empty.");
-    helpers::assertThat(rt, sortedBreakpoints.front().second == 0, "StyleSheet.configure's first breakpoint must start from 0.");
-
-    auto& registry = core::UnistylesRegistry::get();
-    auto& state = registry.getState(rt);
-
-    registry.registerBreakpoints(rt, sortedBreakpoints);
-
-    auto rawWidth = this->_unistylesRuntime->getScreen().width;
-    auto width = registry.shouldUsePointsForBreakpoints
-        ? rawWidth / this->_unistylesRuntime->getPixelRatio()
-        : rawWidth;
-
-    state.computeCurrentBreakpoint(width);
-}
-
-void HybridStyleSheet::parseThemes(jsi::Runtime &rt, jsi::Object themes) {
-    auto& registry = core::UnistylesRegistry::get();
-
-    helpers::enumerateJSIObject(rt, themes, [&](const std::string& propertyName, jsi::Value& propertyValue){
-        helpers::assertThat(rt, propertyValue.isObject(), "StyleSheet.configure's registered theme '" + propertyName + "' must be an object.");
-
-        registry.registerTheme(rt, propertyName, propertyValue);
-    });
-}
-
-void HybridStyleSheet::verifyAndSelectTheme(jsi::Runtime &rt) {
-    auto& state = core::UnistylesRegistry::get().getState(rt);
-
-    bool hasInitialTheme = state.hasInitialTheme();
-    bool prefersAdaptiveThemes = state.getPrefersAdaptiveThemes();
-    bool hasAdaptiveThemes = state.hasAdaptiveThemes();
-    std::vector<std::string> registeredThemeNames = state.getRegisteredThemeNames();
-    bool hasSingleTheme = registeredThemeNames.size() == 1;
-
-    // user tries to enable adaptive themes, but didn't register both 'light' and 'dark' themes
-    if (prefersAdaptiveThemes && !hasAdaptiveThemes) {
-        helpers::assertThat(rt, false, "Unistyles: You're trying to enable adaptiveThemes, but you didn't register both 'light' and 'dark' themes.");
-    }
-
-    // user didn't select initial theme nor can have adaptive themes, and registered more than 1 theme
-    // do nothing - user must select initial theme during runtime
-    if (!hasInitialTheme && !hasAdaptiveThemes && !hasSingleTheme) {
-        return;
-    }
-
-    // user didn't select initial theme nor can have adaptive themes, but registered exactly 1 theme
-    // preselect it!
-    if (!hasInitialTheme && !hasAdaptiveThemes && hasSingleTheme) {
-        return state.setTheme(registeredThemeNames.at(0));
-    }
-
-    // user didn't select initial theme, but has adaptive themes
-    // simply select theme based on color scheme
-    if (!hasInitialTheme && hasAdaptiveThemes) {
-        return this->setThemeFromColorScheme(rt);
-    }
-
-    // user selected both initial theme and adaptive themes
-    // we should throw an error as these options are mutually exclusive
-    if (hasInitialTheme && hasAdaptiveThemes) {
-        helpers::assertThat(rt, false, "Unistyles: You're trying to set initial theme and enable adaptiveThemes, but these options are mutually exclusive.");
-    }
-
-    // user only selected initial theme
-    // validate if following theme exist
-    std::string selectedTheme = state.getInitialTheme().value();
-
-    helpers::assertThat(rt, state.hasTheme(selectedTheme), "Unistyles: You're trying to select theme '" + selectedTheme + "' but it wasn't registered.");
-
-    state.setTheme(selectedTheme);
-}
-
-void HybridStyleSheet::setThemeFromColorScheme(jsi::Runtime& rt) {
-    auto& state = core::UnistylesRegistry::get().getState(rt);
-    auto colorScheme = static_cast<ColorScheme>(this->_unistylesRuntime->getColorScheme());
-
-    switch (colorScheme) {
-        case ColorScheme::LIGHT:
-            state.setTheme("light");
-
-            return;
-        case ColorScheme::DARK:
-            state.setTheme("dark");
-
-            return;
-        default:
-            throw std::runtime_error("Unistyles: Unable to set adaptive theme as your device doesn't support it.");
-    }
-}
-
-void HybridStyleSheet::loadExternalMethods(const jsi::Value& thisValue, jsi::Runtime& rt) {
-    auto jsMethods = thisValue.getObject(rt).getProperty(rt, "jsMethods");
-
-    helpers::assertThat(rt, jsMethods.isObject(), "Unistyles: Can't find jsMethods.");
-
-    auto maybeProcessColorFn = jsMethods.asObject(rt).getProperty(rt, "processColor");
-
-    helpers::assertThat(rt, maybeProcessColorFn.isObject(), "Unistyles: Can't load processColor function from JS.");
-    
-    auto maybeParseBoxShadowStringFn = jsMethods.asObject(rt).getProperty(rt, "parseBoxShadowString");
-    
-    helpers::assertThat(rt, maybeParseBoxShadowStringFn.isObject(), "Unistyles: Can't load parseBoxShadowString function from JS.");
-
-    auto processColorFn = maybeProcessColorFn.asObject(rt).asFunction(rt);
-    auto parseBoxShadowStringFn = maybeParseBoxShadowStringFn.asObject(rt).asFunction(rt);
-    auto& registry = core::UnistylesRegistry::get();
-    auto& state = registry.getState(rt);
-
-    state.registerProcessColorFunction(std::move(processColorFn));
-    state.registerParseBoxShadowString(std::move(parseBoxShadowStringFn));
-}
-
-void HybridStyleSheet::onPlatformDependenciesChange(std::vector<UnistyleDependency> dependencies) {
-    // this event listener is triggered from C++ module, and it's only about theme / adaptive theme changes
-    if (dependencies.size() == 0) {
-        return;
-    }
-
-    auto& registry = core::UnistylesRegistry::get();
-    auto& rt = this->_unistylesRuntime->getRuntime();
-    auto parser = parser::Parser(this->_unistylesRuntime);
-    auto dependencyMap = registry.buildDependencyMap(rt, dependencies);
-
-    if (dependencyMap.empty()) {
-        this->notifyJSListeners(dependencies);
-    }
-
-    // in a later step, we will rebuild only Unistyles with mounted StyleSheets
-    // however, user may have StyleSheets with components that haven't mounted yet
-    // we need to rebuild all dependent StyleSheets as well
-    auto dependentStyleSheets = registry.getStyleSheetsToRefresh(rt, dependencies);
-
-    parser.rebuildUnistylesInDependencyMap(rt, dependencyMap, dependentStyleSheets, std::nullopt);
-
-    // we need to stop here if there is nothing to update at the moment,
-    // but we need to compute dependentStyleSheets
-    if (dependencyMap.empty()) {
-        return;
-    }
-
-    parser.rebuildShadowLeafUpdates(rt, dependencyMap);
-
-    this->notifyJSListeners(dependencies);
-    shadow::ShadowTreeManager::updateShadowTree(rt);
-}
-
-void HybridStyleSheet::onPlatformNativeDependenciesChange(std::vector<UnistyleDependency> dependencies, UnistylesNativeMiniRuntime miniRuntime) {
-    // this event listener is triggered from Native platform
-    if (dependencies.size() == 0 || this->_unistylesRuntime == nullptr) {
-        return;
-    }
-
-    this->_unistylesRuntime->runOnJSThread([this, dependencies, miniRuntime](jsi::Runtime& rt){
-        auto& registry = core::UnistylesRegistry::get();
-        auto parser = parser::Parser(this->_unistylesRuntime);
-        auto unistyleDependencies = std::move(dependencies);
-
-        // re-compute new breakpoint
-        auto dimensionsIt = std::find(dependencies.begin(), dependencies.end(), UnistyleDependency::DIMENSIONS);
-
-        if (dimensionsIt != dependencies.end()) {
-            auto rawWidth = this->_unistylesRuntime->getScreen().width;
-            auto width = registry.shouldUsePointsForBreakpoints
-                ? rawWidth / this->_unistylesRuntime->getPixelRatio()
-                : rawWidth;
-
-            registry.getState(rt).computeCurrentBreakpoint(width);
-        }
-
-        // check if color scheme changed and then if Unistyles state depend on it (adaptive themes)
-        auto colorSchemeIt = std::find(dependencies.begin(), dependencies.end(), UnistyleDependency::COLORSCHEME);
-        auto hasNewColorScheme = colorSchemeIt != dependencies.end();
-
-        if (hasNewColorScheme) {
-            this->_unistylesRuntime->includeDependenciesForColorSchemeChange(unistyleDependencies);
-        }
-
-        auto dependencyMap = registry.buildDependencyMap(rt, unistyleDependencies);
-
-        if (dependencyMap.empty()) {
-            this->notifyJSListeners(unistyleDependencies);
-        }
-
-        // in a later step, we will rebuild only Unistyles with mounted StyleSheets
-        // however, user may have StyleSheets with components that haven't mounted yet
-        // we need to rebuild all dependent StyleSheets as well
-        auto dependentStyleSheets = registry.getStyleSheetsToRefresh(rt, unistyleDependencies);
-
-        parser.rebuildUnistylesInDependencyMap(rt, dependencyMap, dependentStyleSheets, miniRuntime);
-
-        // we need to stop here if there is nothing to update at the moment,
-        // but we need to compute dependentStyleSheets
-        if (dependencyMap.empty()) {
-            return;
-        }
-
-        parser.rebuildShadowLeafUpdates(rt, dependencyMap);
-
-        this->notifyJSListeners(unistyleDependencies);
-        shadow::ShadowTreeManager::updateShadowTree(rt);
-    });
-}
-
-void HybridStyleSheet::onImeChange(UnistylesNativeMiniRuntime miniRuntime) {
-    if (this->_unistylesRuntime == nullptr) {
-        return;
-    }
-
-    this->_unistylesRuntime->runOnJSThread([this, miniRuntime](jsi::Runtime& rt){
-        std::vector<UnistyleDependency> dependencies{UnistyleDependency::IME};
-        auto& registry = core::UnistylesRegistry::get();
-        auto parser = parser::Parser(this->_unistylesRuntime);
-        auto dependencyMap = registry.buildDependencyMap(rt, dependencies);
-
-        if (dependencyMap.empty()) {
-            this->notifyJSListeners(dependencies);
-
-            return;
-        }
-
-        // we don't care about other unmounted stylesheets as their not visible
-        // so user won't see any changes
-        std::vector<std::shared_ptr<core::StyleSheet>> dependentStyleSheets;
-
-        parser.rebuildUnistylesInDependencyMap(rt, dependencyMap, dependentStyleSheets, miniRuntime);
-        parser.rebuildShadowLeafUpdates(rt, dependencyMap);
-
-        this->notifyJSListeners(dependencies);
-        shadow::ShadowTreeManager::updateShadowTree(rt);
-    });
-}
-
-void HybridStyleSheet::notifyJSListeners(std::vector<UnistyleDependency>& dependencies) {
-    if (!dependencies.empty()) {
-        std::for_each(this->_changeListeners.begin(), this->_changeListeners.end(), [&](auto& listener){
-            (*listener)(dependencies);
-        });
-    }
-}
-
-std::function<void ()> HybridStyleSheet::addChangeListener(const std::function<void (const std::vector<UnistyleDependency>&)>& onChanged) {
-    auto listener = std::make_unique<std::function<void(std::vector<UnistyleDependency>&)>>(onChanged);
-
-    this->_changeListeners.push_back(std::move(listener));
-
-    return [this, listenerPtr = this->_changeListeners.back().get()](){
-        auto it = std::find_if(this->_changeListeners.begin(), this->_changeListeners.end(), [listenerPtr](auto& ptr) {
-            return ptr.get() == listenerPtr;
-        });
-
-        if (it != this->_changeListeners.end()) {
-            this->_changeListeners.erase(it);
-        }
-    };
-}
-
-
-
-================================================
-FILE: cxx/hybridObjects/HybridStyleSheet.h
-================================================
-#pragma once
-
-#include <cmath>
-#include <jsi/jsi.h>
-#include "HybridUnistylesRuntime.h"
-#include "HybridUnistylesStyleSheetSpec.hpp"
-#include "RNStyle.h"
-#include "Helpers.h"
-#include "UnistylesConstants.h"
-#include "Breakpoints.h"
-#include "Parser.h"
-#include "ShadowTreeManager.h"
-
-using namespace margelo::nitro::unistyles;
-using namespace facebook::react;
-
-struct HybridStyleSheet: public HybridUnistylesStyleSheetSpec {
-    HybridStyleSheet(std::shared_ptr<HybridUnistylesRuntime> unistylesRuntime): HybridObject(TAG), _unistylesRuntime{unistylesRuntime} {
-            this->_unistylesRuntime->registerPlatformListener(
-                  std::bind(&HybridStyleSheet::onPlatformDependenciesChange, this, std::placeholders::_1)
-            );
-            this->_unistylesRuntime->registerNativePlatformListener(
-                  std::bind(&HybridStyleSheet::onPlatformNativeDependenciesChange, this, std::placeholders::_1, std::placeholders::_2)
-            );
-            this->_unistylesRuntime->registerImeListener(
-                  std::bind(&HybridStyleSheet::onImeChange, this, std::placeholders::_1)
-            );
-      }
-
-    ~HybridStyleSheet() {
-        this->_unistylesRuntime->unregisterNativePlatformListeners();
-    }
-
-    jsi::Value create(jsi::Runtime& rt,
-                      const jsi::Value& thisValue,
-                      const jsi::Value* args,
-                      size_t count);
-    jsi::Value configure(jsi::Runtime& rt,
-                      const jsi::Value& thisValue,
-                      const jsi::Value* args,
-                      size_t count);
-    jsi::Value init(jsi::Runtime& rt,
-                      const jsi::Value& thisValue,
-                      const jsi::Value* args,
-                      size_t count);
-
-    void loadHybridMethods() override {
-        HybridUnistylesStyleSheetSpec::loadHybridMethods();
-
-        registerHybrids(this, [](Prototype& prototype) {
-            prototype.registerRawHybridMethod("init", 1, &HybridStyleSheet::init);
-            prototype.registerRawHybridMethod("create", 1, &HybridStyleSheet::create);
-            prototype.registerRawHybridMethod("configure", 1, &HybridStyleSheet::configure);
-        });
-    };
-
-    double getHairlineWidth() override;
-    double getUnid() override;
-    std::function<void ()> addChangeListener(const std::function<void (const std::vector<UnistyleDependency> &)>& onChanged) override;
-
-private:
-    void parseSettings(jsi::Runtime& rt, jsi::Object settings);
-    void parseBreakpoints(jsi::Runtime& rt, jsi::Object breakpoints);
-    void parseThemes(jsi::Runtime& rt, jsi::Object themes);
-    void verifyAndSelectTheme(jsi::Runtime &rt);
-    void setThemeFromColorScheme(jsi::Runtime& rt);
-    void loadExternalMethods(const jsi::Value& thisValue, jsi::Runtime& rt);
-    void onPlatformDependenciesChange(std::vector<UnistyleDependency> dependencies);
-    void onPlatformNativeDependenciesChange(std::vector<UnistyleDependency> dependencies, UnistylesNativeMiniRuntime miniRuntime);
-    void onImeChange(UnistylesNativeMiniRuntime miniRuntime);
-    void notifyJSListeners(std::vector<UnistyleDependency>& dependencies);
-
-    bool isInitialized = false;
-    double __unid = -1;
-    std::vector<std::unique_ptr<const std::function<void(std::vector<UnistyleDependency>&)>>> _changeListeners{};
-    std::shared_ptr<HybridUnistylesRuntime> _unistylesRuntime;
-    std::shared_ptr<UIManager> _uiManager;
-};
-
-
-
-
-================================================
-FILE: cxx/hybridObjects/HybridUnistylesRuntime.cpp
-================================================
-#include "HybridUnistylesRuntime.h"
-#include "UnistylesState.h"
-
-using namespace margelo::nitro::unistyles;
-
-ColorScheme HybridUnistylesRuntime::getColorScheme() {
-    auto colorScheme = this->_nativePlatform->getColorScheme();
-
-    return static_cast<ColorScheme>(colorScheme);
-}
-
-bool HybridUnistylesRuntime::getHasAdaptiveThemes() {
-    auto& state = core::UnistylesRegistry::get().getState(*_rt);
-
-    return state.hasAdaptiveThemes();
-};
-
-Dimensions HybridUnistylesRuntime::getScreen() {
-    return this->_nativePlatform->getScreenDimensions();
-};
-
-std::optional<std::string> HybridUnistylesRuntime::getThemeName() {
-    auto& registry = core::UnistylesRegistry::get();
-    auto maybeScopedTheme = registry.getScopedTheme();
-    
-    if (maybeScopedTheme.has_value()) {
-        return maybeScopedTheme.value();
-    }
-    
-    auto& state = registry.getState(*_rt);
-    
-    return state.getCurrentThemeName();
-};
-
-std::string HybridUnistylesRuntime::getContentSizeCategory() {
-    return this->_nativePlatform->getContentSizeCategory();
-};
-
-std::optional<std::string> HybridUnistylesRuntime::getBreakpoint() {
-    auto& state = core::UnistylesRegistry::get().getState(*_rt);
-
-    return state.getCurrentBreakpointName();
-};
-
-bool HybridUnistylesRuntime::getRtl() {
-    return this->_nativePlatform->getPrefersRtlDirection();
-}
-
-Insets HybridUnistylesRuntime::getInsets() {
-    return this->_nativePlatform->getInsets();
-};
-
-Orientation HybridUnistylesRuntime::getOrientation() {
-    auto orientation = this->_nativePlatform->getOrientation();
-
-    return static_cast<Orientation>(orientation);
-};
-
-bool HybridUnistylesRuntime::getIsLandscape() {
-    return this->getOrientation() == Orientation::LANDSCAPE;
-}
-
-bool HybridUnistylesRuntime::getIsPortrait() {
-    return this->getOrientation() == Orientation::PORTRAIT;
-}
-
-double HybridUnistylesRuntime::getPixelRatio() {
-    return this->_nativePlatform->getPixelRatio();
-};
-
-double HybridUnistylesRuntime::getFontScale() {
-    return this->_nativePlatform->getFontScale();
-};
-
-std::unordered_map<std::string, double> HybridUnistylesRuntime::getBreakpoints() {
-    auto& state = core::UnistylesRegistry::get().getState(*_rt);
-    auto sortedBreakpointPairs = state.getSortedBreakpointPairs();
-    std::unordered_map<std::string, double> breakpoints{};
-
-    std::for_each(sortedBreakpointPairs.begin(), sortedBreakpointPairs.end(), [&breakpoints](std::pair<std::string, double>& pair){
-        breakpoints[pair.first] = pair.second;
-    });
-
-    return breakpoints;
-}
-
-void HybridUnistylesRuntime::setTheme(const std::string &themeName) {
-    helpers::assertThat(*_rt, !this->getHasAdaptiveThemes(), "Unistyles: You're trying to set theme to: '" + themeName + "', but adaptiveThemes are enabled.");
-
-    auto& state = core::UnistylesRegistry::get().getState(*_rt);
-    auto currentThemeName = state.getCurrentThemeName();
-
-    state.setTheme(themeName);
-
-    if (currentThemeName.value() != themeName) {
-        this->_onDependenciesChange({UnistyleDependency::THEME, UnistyleDependency::THEMENAME});
-    }
-};
-
-void HybridUnistylesRuntime::setAdaptiveThemes(bool isEnabled) {
-    auto& registry = core::UnistylesRegistry::get();
-
-    std::vector<UnistyleDependency> changedDependencies{};
-
-    changedDependencies.reserve(3);
-
-    bool hadAdaptiveThemes = this->getHasAdaptiveThemes();
-
-    registry.setPrefersAdaptiveThemes(*_rt, isEnabled);
-
-    bool haveAdaptiveThemes = this->getHasAdaptiveThemes();
-
-    if (hadAdaptiveThemes != haveAdaptiveThemes) {
-        changedDependencies.push_back(UnistyleDependency::ADAPTIVETHEMES);
-    }
-
-    // if user disabled it, or can't have adaptive themes, do nothing
-    if (!this->getHasAdaptiveThemes()) {
-        this->_onDependenciesChange(changedDependencies);
-
-        return;
-    }
-
-    // if user enabled adaptive themes, then we need to make sure
-    // we selected theme based on color scheme
-    this->calculateNewThemeAndDependencies(changedDependencies);
-    this->_onDependenciesChange(changedDependencies);
-};
-
-void HybridUnistylesRuntime::calculateNewThemeAndDependencies(std::vector<UnistyleDependency>& changedDependencies) {
-    auto& state = core::UnistylesRegistry::get().getState(*_rt);
-    auto colorScheme = this->getColorScheme();
-    auto currentThemeName = this->getThemeName();
-    auto nextTheme = colorScheme == ColorScheme::LIGHT
-        ? "light"
-        : "dark";
-
-    if (!currentThemeName.has_value() || nextTheme != currentThemeName.value()) {
-        changedDependencies.push_back(UnistyleDependency::THEME);
-        changedDependencies.push_back(UnistyleDependency::THEMENAME);
-
-        state.setTheme(nextTheme);
-    }
-}
-
-jsi::Value HybridUnistylesRuntime::getTheme(jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) {
-    helpers::assertThat(rt, count <= 1, "UnistylesRuntime.getTheme expected to be called with 0 or 1 argument.");
-
-    auto& state = core::UnistylesRegistry::get().getState(*_rt);
-
-    if (count == 1) {
-        if (args[0].isUndefined()) {
-            return state.getCurrentJSTheme();
-        }
-
-        helpers::assertThat(rt, args[0].isString(), "UnistylesRuntime.getTheme expected to be called with string.");
-
-        auto themeName = args[0].asString(rt).utf8(rt);
-
-        helpers::assertThat(rt, state.hasTheme(themeName), "Unistyles: You're trying to get theme '" + themeName + "' but it wasn't registered.");
-
-        return state.getJSThemeByName(themeName);
-    }
-
-    return state.getCurrentJSTheme();
-}
-
-jsi::Value HybridUnistylesRuntime::updateTheme(jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) {
-    helpers::assertThat(rt, count == 2, "UnistylesRuntime.updateTheme expected to be called with 2 arguments.");
-    helpers::assertThat(rt, args[0].isString(), "UnistylesRuntime.updateTheme expected first argument to be a string.");
-    helpers::assertThat(rt, args[1].isObject(), "UnistylesRuntime.updateTheme expected first argument to be a function.");
-
-    auto& registry = core::UnistylesRegistry::get();
-    auto themeName = args[0].asString(rt).utf8(rt);
-
-    helpers::assertThat(rt, args[1].asObject(rt).isFunction(rt), "UnistylesRuntime.updateTheme expected second argument to be a function.");
-
-    registry.updateTheme(rt, themeName, args[1].asObject(rt).asFunction(rt));
-
-    this->_onDependenciesChange({UnistyleDependency::THEME});
-
-    return jsi::Value::undefined();
-}
-
-void HybridUnistylesRuntime::setImmersiveMode(bool isEnabled) {
-    this->_nativePlatform->setImmersiveMode(isEnabled);
-};
-
-void HybridUnistylesRuntime::nativeSetRootViewBackgroundColor(double color) {
-    this->_nativePlatform->setRootViewBackgroundColor(color);
-}
-
-jsi::Value HybridUnistylesRuntime::createHybridStatusBar(jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) {
-    if (this->_statusBar == nullptr) {
-        this->_statusBar = std::make_shared<HybridStatusBar>(_nativePlatform);
-    }
-
-    return this->_statusBar->toObject(rt);
-}
-
-jsi::Value HybridUnistylesRuntime::createHybridNavigationBar(jsi::Runtime &rt, const jsi::Value &thisValue, const jsi::Value *args, size_t count) {
-    if (this->_navigationBar == nullptr) {
-        this->_navigationBar = std::make_shared<HybridNavigationBar>(_nativePlatform);
-    }
-
-    return this->_navigationBar->toObject(rt);
-}
-
-UnistylesCxxMiniRuntime HybridUnistylesRuntime::getMiniRuntime() {
-    UnistylesNativeMiniRuntime nativeMiniRuntime = this->_nativePlatform->getMiniRuntime();
-    UnistylesCxxMiniRuntime cxxMiniRuntime{
-        this->getThemeName(),
-        this->getBreakpoint(),
-        this->getHasAdaptiveThemes(),
-        nativeMiniRuntime.colorScheme,
-        nativeMiniRuntime.screen,
-        nativeMiniRuntime.contentSizeCategory,
-        nativeMiniRuntime.insets,
-        nativeMiniRuntime.pixelRatio,
-        nativeMiniRuntime.fontScale,
-        nativeMiniRuntime.rtl,
-        nativeMiniRuntime.statusBar,
-        nativeMiniRuntime.navigationBar,
-        nativeMiniRuntime.isPortrait,
-        nativeMiniRuntime.isLandscape
-    };
-
-    return cxxMiniRuntime;
-}
-
-UnistylesCxxMiniRuntime HybridUnistylesRuntime::buildMiniRuntimeFromNativeRuntime(UnistylesNativeMiniRuntime& nativeMiniRuntime) {
-    UnistylesCxxMiniRuntime cxxMiniRuntime{
-        this->getThemeName(),
-        this->getBreakpoint(),
-        this->getHasAdaptiveThemes(),
-        nativeMiniRuntime.colorScheme,
-        nativeMiniRuntime.screen,
-        nativeMiniRuntime.contentSizeCategory,
-        nativeMiniRuntime.insets,
-        nativeMiniRuntime.pixelRatio,
-        nativeMiniRuntime.fontScale,
-        nativeMiniRuntime.rtl,
-        nativeMiniRuntime.statusBar,
-        nativeMiniRuntime.navigationBar,
-        nativeMiniRuntime.isPortrait,
-        nativeMiniRuntime.isLandscape
-    };
-
-    return cxxMiniRuntime;
-}
-
-jsi::Value HybridUnistylesRuntime::getMiniRuntimeAsValue(jsi::Runtime& rt, std::optional<UnistylesNativeMiniRuntime> maybeMiniRuntime) {
-    jsi::Object obj(rt);
-    auto miniRuntime = maybeMiniRuntime.has_value()
-        ? this->buildMiniRuntimeFromNativeRuntime(maybeMiniRuntime.value())
-        : this->getMiniRuntime();
-
-    // auto generated by nitro, but can't be accessed due to static inline function
-    obj.setProperty(rt, "themeName", JSIConverter<std::optional<std::string>>::toJSI(rt, miniRuntime.themeName));
-    obj.setProperty(rt, "breakpoint", JSIConverter<std::optional<std::string>>::toJSI(rt, miniRuntime.breakpoint));
-    obj.setProperty(rt, "hasAdaptiveThemes", JSIConverter<bool>::toJSI(rt, miniRuntime.hasAdaptiveThemes));
-    obj.setProperty(rt, "colorScheme", JSIConverter<ColorScheme>::toJSI(rt, miniRuntime.colorScheme));
-    obj.setProperty(rt, "screen", JSIConverter<Dimensions>::toJSI(rt, miniRuntime.screen));
-    obj.setProperty(rt, "contentSizeCategory", JSIConverter<std::string>::toJSI(rt, miniRuntime.contentSizeCategory));
-    obj.setProperty(rt, "insets", JSIConverter<Insets>::toJSI(rt, miniRuntime.insets));
-    obj.setProperty(rt, "pixelRatio", JSIConverter<double>::toJSI(rt, miniRuntime.pixelRatio));
-    obj.setProperty(rt, "fontScale", JSIConverter<double>::toJSI(rt, miniRuntime.fontScale));
-    obj.setProperty(rt, "rtl", JSIConverter<bool>::toJSI(rt, miniRuntime.rtl));
-    obj.setProperty(rt, "statusBar", JSIConverter<Dimensions>::toJSI(rt, miniRuntime.statusBar));
-    obj.setProperty(rt, "navigationBar", JSIConverter<Dimensions>::toJSI(rt, miniRuntime.navigationBar));
-    obj.setProperty(rt, "isPortrait", JSIConverter<bool>::toJSI(rt, miniRuntime.isPortrait));
-    obj.setProperty(rt, "isLandscape", JSIConverter<bool>::toJSI(rt, miniRuntime.isLandscape));
-
-    return obj;
-}
-
-void HybridUnistylesRuntime::registerPlatformListener(const std::function<void (std::vector<UnistyleDependency>)>& listener) {
-    this->_onDependenciesChange = listener;
-}
-
-void HybridUnistylesRuntime::registerNativePlatformListener(const std::function<void(std::vector<UnistyleDependency>, UnistylesNativeMiniRuntime)>& listener) {
-    this->_nativePlatform->registerPlatformListener(listener);
-    this->_onNativeDependenciesChange = listener;
-}
-
-void HybridUnistylesRuntime::registerImeListener(const std::function<void(UnistylesNativeMiniRuntime)>& listener) {
-    this->_nativePlatform->registerImeListener(listener);
-}
-
-void HybridUnistylesRuntime::unregisterNativePlatformListeners() {
-    this->_nativePlatform->unregisterPlatformListeners();
-}
-
-void HybridUnistylesRuntime::includeDependenciesForColorSchemeChange(std::vector<UnistyleDependency>& deps) {
-    auto& registry = core::UnistylesRegistry::get();
-    auto& state = registry.getState(*this->_rt);
-
-    // ignore color scheme changes if user has no adaptive themes
-    if (!state.hasAdaptiveThemes()) {
-        return;
-    }
-
-    this->calculateNewThemeAndDependencies(deps);
-}
-
-jsi::Runtime& HybridUnistylesRuntime::getRuntime() {
-    return *this->_rt;
-}
-
-
-
-================================================
-FILE: cxx/hybridObjects/HybridUnistylesRuntime.h
-================================================
-#pragma once
-
-#include "HybridUnistylesRuntimeSpec.hpp"
-#include "HybridNativePlatformSpec.hpp"
-#include "NativePlatform.h"
-#include "UnistylesState.h"
-#include "HybridUnistylesStatusBarSpec.hpp"
-#include "HybridNavigationBar.h"
-#include "HybridStatusBar.h"
-#include "UnistylesRegistry.h"
-#include "Helpers.h"
-
-namespace margelo::nitro::unistyles {
-
-struct HybridUnistylesRuntime: public HybridUnistylesRuntimeSpec {
-    HybridUnistylesRuntime(std::shared_ptr<HybridNativePlatformSpec> nativePlatform, jsi::Runtime& rt, std::function<void(std::function<void(jsi::Runtime&)>&&)> runOnJSThread)
-        : HybridObject(TAG), _nativePlatform{nativePlatform}, _rt{&rt}, runOnJSThread(std::move(runOnJSThread)) {}
-
-    jsi::Value getTheme(jsi::Runtime& rt,
-                            const jsi::Value& thisValue,
-                            const jsi::Value* args,
-                            size_t count);
-    jsi::Value updateTheme(jsi::Runtime& rt,
-                            const jsi::Value& thisValue,
-                            const jsi::Value* args,
-                            size_t count);
-    jsi::Value createHybridStatusBar(jsi::Runtime& rt,
-                            const jsi::Value& thisValue,
-                            const jsi::Value* args,
-                            size_t count);
-    jsi::Value createHybridNavigationBar(jsi::Runtime& rt,
-                            const jsi::Value& thisValue,
-                            const jsi::Value* args,
-                            size_t count);
-
-    void loadHybridMethods() override {
-        HybridUnistylesRuntimeSpec::loadHybridMethods();
-
-        registerHybrids(this, [](Prototype& prototype) {
-            prototype.registerRawHybridMethod("getTheme", 1, &HybridUnistylesRuntime::getTheme);
-            prototype.registerRawHybridMethod("updateTheme", 1, &HybridUnistylesRuntime::updateTheme);
-            prototype.registerRawHybridMethod("createHybridStatusBar", 0, &HybridUnistylesRuntime::createHybridStatusBar);
-            prototype.registerRawHybridMethod("createHybridNavigationBar", 0, &HybridUnistylesRuntime::createHybridNavigationBar);
-        });
-    };
-
-    ColorScheme getColorScheme() override;
-    bool getHasAdaptiveThemes() override;
-    bool getRtl() override;
-    bool getIsLandscape() override;
-    bool getIsPortrait() override;
-    Dimensions getScreen() override;
-    std::optional<std::string> getThemeName() override;
-    std::string getContentSizeCategory() override;
-    std::optional<std::string> getBreakpoint() override;
-    Insets getInsets() override;
-    Orientation getOrientation() override;
-    double getPixelRatio() override;
-    double getFontScale() override;
-    void registerPlatformListener(const std::function<void(std::vector<UnistyleDependency>)>& listener);
-    void registerNativePlatformListener(const std::function<void(std::vector<UnistyleDependency>, UnistylesNativeMiniRuntime)>& listener);
-    void registerImeListener(const std::function<void(UnistylesNativeMiniRuntime)>& listener);
-    void unregisterNativePlatformListeners();
-
-    void setTheme(const std::string &themeName) override;
-    void setAdaptiveThemes(bool isEnabled) override;
-    void setImmersiveMode(bool isEnabled) override;
-    void nativeSetRootViewBackgroundColor(double color) override;
-    UnistylesCxxMiniRuntime getMiniRuntime() override;
-    std::unordered_map<std::string, double> getBreakpoints() override;
-
-    jsi::Runtime& getRuntime();
-    UnistylesCxxMiniRuntime buildMiniRuntimeFromNativeRuntime(UnistylesNativeMiniRuntime& nativeMiniRuntime);
-    jsi::Value getMiniRuntimeAsValue(jsi::Runtime& rt, std::optional<UnistylesNativeMiniRuntime> maybeMiniRuntime);
-    void includeDependenciesForColorSchemeChange(std::vector<UnistyleDependency>& deps);
-    void calculateNewThemeAndDependencies(std::vector<UnistyleDependency>& deps);
-    std::function<void(std::function<void(jsi::Runtime&)>&&)> runOnJSThread;
-
-private:
-    jsi::Runtime* _rt;
-    std::shared_ptr<HybridNavigationBar> _navigationBar;
-    std::shared_ptr<HybridStatusBar> _statusBar;
-    std::shared_ptr<HybridNativePlatformSpec> _nativePlatform;
-    std::function<void(std::vector<UnistyleDependency>)> _onDependenciesChange;
-    std::function<void(std::vector<UnistyleDependency>, UnistylesNativeMiniRuntime)> _onNativeDependenciesChange;
-};
-
-}
-
-
-
-================================================
-FILE: cxx/parser/Parser.cpp
-================================================
-#include "Parser.h"
-#include "UnistyleWrapper.h"
-
-using namespace margelo::nitro::unistyles;
-using namespace facebook;
-using namespace facebook::react;
-
-using Variants = std::vector<std::pair<std::string, std::string>>;
-
-// called only once while processing StyleSheet.create
-void parser::Parser::buildUnistyles(jsi::Runtime& rt, std::shared_ptr<StyleSheet> styleSheet) {
-    jsi::Object unwrappedStyleSheet = this->unwrapStyleSheet(rt, styleSheet, std::nullopt);
-
-    helpers::enumerateJSIObject(rt, unwrappedStyleSheet, [&](const std::string& styleKey, jsi::Value& propertyValue){
-        helpers::assertThat(rt, propertyValue.isObject(), "Unistyles: Style with name '" + styleKey + "' is not a function or object.");
-
-        jsi::Object styleValue = propertyValue.asObject(rt);
-
-        if (styleValue.isFunction(rt)) {
-            styleSheet->unistyles[styleKey] = std::make_shared<UnistyleDynamicFunction>(
-                helpers::HashGenerator::generateHash(styleKey + std::to_string(styleSheet->tag)),
-                UnistyleType::DynamicFunction,
-                styleKey,
-                styleValue,
-                styleSheet
-            );
-
-            return;
-        }
-
-        styleSheet->unistyles[styleKey] = std::make_shared<Unistyle>(
-            helpers::HashGenerator::generateHash(styleKey + std::to_string(styleSheet->tag)),
-            UnistyleType::Object,
-            styleKey,
-            styleValue,
-            styleSheet
-        );
-    });
-}
-
-jsi::Value parser::Parser::getParsedStyleSheetForScopedTheme(jsi::Runtime& rt, core::Unistyle::Shared unistyle, std::string& scopedTheme) {
-    // for static stylesheets and exotic styles we don't need to do anything
-    if (unistyle->parent == nullptr || unistyle->parent->type == StyleSheetType::Static) {
-        return jsi::Value::undefined();
-    }
-
-    auto& state = core::UnistylesRegistry::get().getState(rt);
-    auto jsTheme = state.getJSThemeByName(scopedTheme);
-
-    if (unistyle->parent->type == StyleSheetType::Themable) {
-        return unistyle->parent->rawValue
-            .asFunction(rt)
-            .call(rt, std::move(jsTheme))
-            .asObject(rt);
-    }
-
-    auto miniRuntime = this->_unistylesRuntime->getMiniRuntimeAsValue(rt, std::nullopt);
-
-    return unistyle->parent->rawValue
-        .asFunction(rt)
-        .call(rt, std::move(jsTheme), std::move(miniRuntime))
-        .asObject(rt);
-}
-
-void parser::Parser::rebuildUnistyleWithScopedTheme(jsi::Runtime& rt, jsi::Value& scopedStyleSheet, std::shared_ptr<core::UnistyleData> unistyleData) {
-    auto parsedStyleSheet = scopedStyleSheet.isUndefined()
-        ? this->getParsedStyleSheetForScopedTheme(rt, unistyleData->unistyle, unistyleData->scopedTheme.value())
-        : scopedStyleSheet.asObject(rt);
-
-    if (parsedStyleSheet.isUndefined()) {
-        return;
-    }
-
-    // get target style
-    auto targetStyle = parsedStyleSheet.asObject(rt).getProperty(rt, unistyleData->unistyle->styleKey.c_str()).asObject(rt);
-
-    // for object we just need to parse it
-    if (unistyleData->unistyle->type == UnistyleType::Object) {
-        // we need to temporarly swap rawValue to enforce correct parings
-        auto sharedRawValue = std::move(unistyleData->unistyle->rawValue);
-
-        unistyleData->unistyle->rawValue = std::move(targetStyle);
-        unistyleData->parsedStyle = this->parseFirstLevel(rt, unistyleData->unistyle, unistyleData->variants);
-        unistyleData->unistyle->rawValue = std::move(sharedRawValue);
-
-        return;
-    }
-
-    // for functions we need to call them with memoized arguments
-    auto unistyleFn = std::dynamic_pointer_cast<UnistyleDynamicFunction>(unistyleData->unistyle);
-
-    // convert arguments to jsi::Value
-    std::vector<jsi::Value> args{};
-    auto arguments = unistyleData->dynamicFunctionMetadata.value();
-
-    args.reserve(arguments.size());
-
-    for (int i = 0; i < arguments.size(); i++) {
-        folly::dynamic& arg = arguments.at(i);
-
-        args.emplace_back(jsi::valueFromDynamic(rt, arg));
-    }
-
-    const jsi::Value *argStart = args.data();
-
-    // we need to temporarly swap unprocessed value to enforce correct parings
-    auto sharedUnprocessedValue = std::move(unistyleFn->unprocessedValue);
-
-    // call cached function with memoized arguments
-    auto functionResult = targetStyle
-        .asFunction(rt)
-        .call(rt, argStart, arguments.size())
-        .asObject(rt);
-
-    unistyleFn->unprocessedValue = std::move(functionResult);
-    unistyleData->parsedStyle = this->parseFirstLevel(rt, unistyleFn, unistyleData->variants);
-    unistyleFn->unprocessedValue = std::move(sharedUnprocessedValue);
-}
-
-jsi::Object parser::Parser::unwrapStyleSheet(jsi::Runtime& rt, std::shared_ptr<StyleSheet> styleSheet, std::optional<UnistylesNativeMiniRuntime> maybeMiniRuntime) {
-    // firstly we need to get object representation of user's StyleSheet
-    // StyleSheet can be a function or an object
-
-    // StyleSheet is already an object
-    if (styleSheet->type == StyleSheetType::Static) {
-        return jsi::Value(rt, styleSheet->rawValue).asObject(rt);
-    }
-
-    // StyleSheet is a function
-    auto& state = core::UnistylesRegistry::get().getState(rt);
-    auto theme = state.getCurrentJSTheme();
-
-    if (styleSheet->type == StyleSheetType::Themable) {
-        return styleSheet->rawValue
-            .asFunction(rt)
-            .call(rt, std::move(theme))
-            .asObject(rt);
-    }
-
-    // stylesheet also has a mini runtime dependency
-    // StyleSheetType::ThemableWithMiniRuntime
-    auto miniRuntime = this->_unistylesRuntime->getMiniRuntimeAsValue(rt, maybeMiniRuntime);
-
-    return styleSheet->rawValue
-        .asFunction(rt)
-        .call(rt, std::move(theme), std::move(miniRuntime))
-        .asObject(rt);
-}
-
-// parses all unistyles in StyleSheet
-void parser::Parser::parseUnistyles(jsi::Runtime& rt, std::shared_ptr<StyleSheet> styleSheet) {
-    for (const auto& [_, unistyle] : styleSheet->unistyles) {
-        if (unistyle->type == core::UnistyleType::Object) {
-            auto result = this->parseFirstLevel(rt, unistyle, std::nullopt);
-
-            unistyle->parsedStyle = std::move(result);
-            unistyle->seal();
-        }
-
-        if (unistyle->type == core::UnistyleType::DynamicFunction) {
-            auto hostFn = this->createDynamicFunctionProxy(rt, unistyle);
-            auto unistyleFn = std::dynamic_pointer_cast<UnistyleDynamicFunction>(unistyle);
-
-            // defer parsing dynamic functions
-            unistyleFn->proxiedFunction = std::move(hostFn);
-        }
-    }
-}
-
-// rebuild all unistyles in StyleSheet that depends on variants
-void parser::Parser::rebuildUnistyleWithVariants(jsi::Runtime& rt, std::shared_ptr<core::UnistyleData> unistyleData) {
-    if (unistyleData->unistyle->styleKey == helpers::EXOTIC_STYLE_KEY) {
-        unistyleData->parsedStyle = std::move(unistyleData->unistyle->rawValue);
-
-        return;
-    }
-
-    if (unistyleData->unistyle->type == UnistyleType::Object) {
-        unistyleData->parsedStyle = this->parseFirstLevel(rt, unistyleData->unistyle, unistyleData->variants);
-
-        return;
-    }
-
-    // for functions we need to call them with memoized arguments
-    auto unistyleFn = std::dynamic_pointer_cast<UnistyleDynamicFunction>(unistyleData->unistyle);
-
-    // convert arguments to jsi::Value
-    std::vector<jsi::Value> args{};
-    auto arguments = unistyleData->dynamicFunctionMetadata.value();
-
-    args.reserve(arguments.size());
-
-    for (int i = 0; i < arguments.size(); i++) {
-        folly::dynamic& arg = arguments.at(i);
-
-        args.emplace_back(jsi::valueFromDynamic(rt, arg));
-    }
-
-    const jsi::Value *argStart = args.data();
-
-    // we need to temporarly swap unprocessed value to enforce correct parings
-    auto sharedUnprocessedValue = std::move(unistyleFn->unprocessedValue);
-
-    // call cached function with memoized arguments
-    auto functionResult = unistyleFn->rawValue
-        .asFunction(rt)
-        .call(rt, argStart, arguments.size())
-        .asObject(rt);
-
-    unistyleFn->unprocessedValue = std::move(functionResult);
-    unistyleData->parsedStyle = this->parseFirstLevel(rt, unistyleFn, unistyleData->variants);
-    unistyleFn->unprocessedValue = std::move(sharedUnprocessedValue);
-}
-
-// rebuild all unistyles that are affected by platform event
-void parser::Parser::rebuildUnistylesInDependencyMap(
-    jsi::Runtime& rt,
-    DependencyMap& dependencyMap,
-    std::vector<std::shared_ptr<core::StyleSheet>>& styleSheets,
-    std::optional<UnistylesNativeMiniRuntime> maybeMiniRuntime
-) {
-    std::unordered_map<std::shared_ptr<StyleSheet>, jsi::Value> parsedStyleSheetsWithDefaultTheme;
-    std::unordered_map<std::string, std::unordered_map<std::shared_ptr<StyleSheet>, jsi::Value>> parsedStyleSheetsWithScopedTheme;
-    std::unordered_set<std::shared_ptr<core::Unistyle>> parsedUnistyles;
-
-    // Parse all stylesheets that depend on changes
-    for (const auto& styleSheet : styleSheets) {
-        parsedStyleSheetsWithDefaultTheme.emplace(
-            styleSheet,
-            this->unwrapStyleSheet(rt, styleSheet, maybeMiniRuntime)
-        );
-    }
-
-    // Parse all visible Unistyles managed by Unistyle
-    for (auto& [shadowNode, unistyles] : dependencyMap) {
-        auto styleSheet = unistyles.front()->unistyle->parent;
-
-        // Stylesheet may be optional for exotic unistyles
-        if (styleSheet && parsedStyleSheetsWithDefaultTheme.find(styleSheet) == parsedStyleSheetsWithDefaultTheme.end()) {
-            parsedStyleSheetsWithDefaultTheme.emplace(
-                styleSheet,
-                this->unwrapStyleSheet(rt, styleSheet, maybeMiniRuntime)
-            );
-        }
-
-        for (auto& unistyleData : unistyles) {
-            auto& unistyle = unistyleData->unistyle;
-
-            // For RN styles or inline styles, compute styles only once
-            if (unistyle->styleKey == helpers::EXOTIC_STYLE_KEY) {
-                if (!unistyleData->parsedStyle.has_value()) {
-                    unistyleData->parsedStyle = jsi::Value(rt, unistyle->rawValue).asObject(rt);
-                    parsedUnistyles.insert(unistyle);
-                }
-
-                continue;
-            }
-
-            // Reference Unistyles StyleSheet as we may mix them for one style
-            auto unistyleStyleSheet = unistyle->parent;
-
-            // We may hit now other StyleSheets that are referenced from affected nodes
-            if (unistyleStyleSheet && parsedStyleSheetsWithDefaultTheme.find(unistyleStyleSheet) == parsedStyleSheetsWithDefaultTheme.end()) {
-                parsedStyleSheetsWithDefaultTheme.emplace(
-                    unistyleStyleSheet,
-                    this->unwrapStyleSheet(rt, unistyleStyleSheet, maybeMiniRuntime)
-                );
-            }
-
-            // StyleSheet might have styles that are not affected
-            auto& parsedSheetValue = parsedStyleSheetsWithDefaultTheme[unistyleStyleSheet];
-            auto parsedSheetObj = parsedSheetValue.asObject(rt);
-
-            if (!parsedSheetObj.hasProperty(rt, unistyle->styleKey.c_str())) {
-                continue;
-            }
-
-            // For scoped themes we need to parse unistyle exclusively
-            if (unistyleData->scopedTheme.has_value()) {
-                auto& scopedThemeName = unistyleData->scopedTheme.value();
-                auto& scopedThemeMap = parsedStyleSheetsWithScopedTheme[scopedThemeName];
-
-                jsi::Value parsedStyleSheet = jsi::Value::undefined();
-                auto it = scopedThemeMap.find(unistyle->parent);
-
-                if (it != scopedThemeMap.end()) {
-                    parsedStyleSheet = jsi::Value(rt, it->second);
-                }
-
-                if (parsedStyleSheet.isUndefined()) {
-                    parsedStyleSheet = this->getParsedStyleSheetForScopedTheme(rt, unistyle, scopedThemeName);
-                    scopedThemeMap.emplace(
-                        unistyle->parent,
-                        jsi::Value(rt, parsedStyleSheet)
-                    );
-                }
-
-                this->rebuildUnistyleWithScopedTheme(rt, parsedStyleSheet, unistyleData);
-            } else {
-                unistyle->rawValue = parsedSheetObj
-                    .getProperty(rt, unistyle->styleKey.c_str())
-                    .asObject(rt);
-                this->rebuildUnistyle(
-                    rt, unistyle, unistyleData->variants,
-                    unistyleData->dynamicFunctionMetadata
-                );
-                unistyleData->parsedStyle = jsi::Value(rt, unistyle->parsedStyle.value()).asObject(rt);
-                unistyle->isDirty = true;
-            }
-
-            parsedUnistyles.insert(unistyle);
-        }
-    }
-
-    // Parse whatever left in StyleSheets to be later accessible
-    for (const auto& styleSheet : styleSheets) {
-        auto& parsedSheetValue = parsedStyleSheetsWithDefaultTheme[styleSheet];
-        auto parsedSheetObj = parsedSheetValue.asObject(rt);
-
-        for (auto& [_, unistyle] : styleSheet->unistyles) {
-            if (!parsedUnistyles.contains(unistyle)) {
-                unistyle->rawValue = parsedSheetObj
-                    .getProperty(rt, unistyle->styleKey.c_str())
-                    .asObject(rt);
-                unistyle->isDirty = true;
-            }
-        }
-    }
-}
-
-// rebuild single unistyle
-void parser::Parser::rebuildUnistyle(jsi::Runtime& rt, Unistyle::Shared unistyle, const Variants& variants, std::optional<std::vector<folly::dynamic>> metadata) {
-    if (unistyle->type == core::UnistyleType::Object) {
-        auto result = this->parseFirstLevel(rt, unistyle, variants);
-
-        unistyle->parsedStyle = std::move(result);
-    }
-
-    // for functions we need to call memoized function
-    // with last know arguments and parse it with new theme and mini runtime
-    if (unistyle->type == core::UnistyleType::DynamicFunction && metadata.has_value()) {
-        auto unistyleFn = std::dynamic_pointer_cast<UnistyleDynamicFunction>(unistyle);
-
-        // convert arguments to jsi::Value
-        auto dynamicFunctionMetadata = metadata.value();
-        std::vector<jsi::Value> args{};
-
-        args.reserve(dynamicFunctionMetadata.size());
-
-        for (int i = 0; i < dynamicFunctionMetadata.size(); i++) {
-            folly::dynamic& arg = dynamicFunctionMetadata.at(i);
-
-            args.emplace_back(jsi::valueFromDynamic(rt, arg));
-        }
-
-        const jsi::Value *argStart = args.data();
-
-        // call cached function with memoized arguments
-        auto functionResult = unistyleFn->rawValue
-            .asFunction(rt)
-            .call(rt, argStart, dynamicFunctionMetadata.size())
-            .asObject(rt);
-
-        unistyleFn->unprocessedValue = std::move(functionResult);
-        unistyleFn->parsedStyle = this->parseFirstLevel(rt, unistyleFn, variants);
-    }
-
-    if (unistyle->isDirty) {
-        unistyle->isDirty = false;
-    }
-}
-
-// convert dependency map to shadow tree updates
-void parser::Parser::rebuildShadowLeafUpdates(jsi::Runtime& rt, core::DependencyMap& dependencyMap) {
-    auto& registry = core::UnistylesRegistry::get();
-
-    registry.trafficController.withLock([this, &rt, &dependencyMap, &registry]() {
-        shadow::ShadowLeafUpdates updates;
-        updates.reserve(dependencyMap.size());
-
-        for (const auto& [shadowNode, unistyles] : dependencyMap) {
-            // Parse string colors (e.g., "#000000") to int representation
-            auto rawProps = this->parseStylesToShadowTreeStyles(rt, unistyles);
-
-            updates.emplace(shadowNode, std::move(rawProps));
-        }
-
-        registry.trafficController.setUpdates(updates);
-        registry.trafficController.resumeUnistylesTraffic();
-    });
-}
-
-
-// first level of StyleSheet, we can expect here different properties than on second level
-// eg. variants, compoundVariants, mq, breakpoints etc.
-jsi::Object parser::Parser::parseFirstLevel(jsi::Runtime& rt, Unistyle::Shared unistyle, std::optional<Variants> variants) {
-    // for objects - we simply operate on them
-    // for functions we need to work on the unprocessed result (object)
-    auto& style = unistyle->type == core::UnistyleType::Object
-        ? unistyle->rawValue
-        : std::dynamic_pointer_cast<UnistyleDynamicFunction>(unistyle)->unprocessedValue.value();
-    auto parsedStyle = jsi::Object(rt);
-
-    // we need to be sure that compoundVariants are parsed after variants and after every other style
-    bool shouldParseVariants = style.hasProperty(rt, "variants");
-    bool shouldParseCompoundVariants = style.hasProperty(rt, "compoundVariants") && shouldParseVariants;
-
-    helpers::enumerateJSIObject(rt, style, [&](const std::string& propertyName, jsi::Value& propertyValue){
-        // parse dependencies only once
-        if (propertyName == helpers::STYLE_DEPENDENCIES && !unistyle->isSealed()) {
-            auto newDeps = this->parseDependencies(rt, propertyValue.asObject(rt));
-
-            unistyle->dependencies.insert(unistyle->dependencies.end(), newDeps.begin(), newDeps.end());
-
-            return;
-        }
-
-        if (propertyName == helpers::STYLE_DEPENDENCIES && !unistyle->dependencies.empty()) {
-            return;
-        }
-
-        // ignore web styles
-        if (propertyName == helpers::WEB_STYLE_KEY) {
-            return;
-        }
-
-        // special case as we need to convert it to jsi::Array<jsi::Object>
-        if (propertyName == "boxShadow" && propertyValue.isString()) {
-            parsedStyle.setProperty(rt, jsi::PropNameID::forUtf8(rt, propertyName), parseBoxShadowString(rt, propertyValue.asString(rt).utf8(rt)));
-
-            return;
-        }
-
-        // primitives
-        if (propertyValue.isNumber() || propertyValue.isString() || propertyValue.isUndefined() || propertyValue.isNull()) {
-            parsedStyle.setProperty(rt, jsi::PropNameID::forUtf8(rt, propertyName), propertyValue);
-
-            return;
-        }
-        
-        if (propertyValue.isBool() && propertyName == "includeFontPadding") {
-            parsedStyle.setProperty(rt, jsi::PropNameID::forUtf8(rt, propertyName), propertyValue);
-            
-            return;
-        }
-
-        // at this point ignore non objects
-        if (!propertyValue.isObject()) {
-            return;
-        }
-
-        auto propertyValueObject = propertyValue.asObject(rt);
-
-        // also, ignore any functions at this level
-        if (propertyValueObject.isFunction(rt)) {
-            return;
-        }
-
-        // variants and compoundVariants are computed soon after all styles
-        if (propertyName == "variants" || propertyName == "compoundVariants") {
-            return;
-        }
-
-        if (propertyName == "transform" && propertyValueObject.isArray(rt)) {
-            parsedStyle.setProperty(rt, jsi::PropNameID::forUtf8(rt, propertyName), parseTransforms(rt, unistyle, propertyValueObject));
-
-            return;
-        }
-
-        if (propertyName == "boxShadow" && propertyValueObject.isArray(rt)) {
-            parsedStyle.setProperty(rt, jsi::PropNameID::forUtf8(rt, propertyName), parseBoxShadow(rt, unistyle, propertyValueObject));
-
-            return;
-        }
-
-        if (propertyName == "filter" && propertyValueObject.isArray(rt)) {
-            parsedStyle.setProperty(rt, jsi::PropNameID::forUtf8(rt, propertyName), parseFilters(rt, unistyle, propertyValueObject));
-
-            return;
-        }
-
-        if (propertyName == "fontVariant" && propertyValueObject.isArray(rt)) {
-            parsedStyle.setProperty(rt, jsi::PropNameID::forUtf8(rt, propertyName), propertyValue);
-
-            return;
-        }
-
-        if (propertyName == "shadowOffset" || propertyName == "textShadowOffset") {
-            parsedStyle.setProperty(rt, jsi::PropNameID::forUtf8(rt, propertyName), this->parseSecondLevel(rt, unistyle, propertyValue));
-
-            return;
-        }
-
-        if (helpers::isPlatformColor(rt, propertyValueObject)) {
-            parsedStyle.setProperty(rt, jsi::PropNameID::forUtf8(rt, propertyName), propertyValueObject);
-
-            return;
-        }
-
-        // 'mq' or 'breakpoints'
-        auto valueFromBreakpoint = getValueFromBreakpoints(rt, unistyle, propertyValueObject);
-
-        parsedStyle.setProperty(rt, jsi::PropNameID::forUtf8(rt, propertyName), this->parseSecondLevel(rt, unistyle, valueFromBreakpoint));
-    });
-
-    if (shouldParseVariants && variants.has_value()) {
-        auto propertyValueObject = style.getProperty(rt, "variants").asObject(rt);
-        auto parsedVariant = this->parseVariants(rt, unistyle, propertyValueObject, variants.value());
-
-        helpers::mergeJSIObjects(rt, parsedStyle, parsedVariant);
-
-        if (shouldParseCompoundVariants) {
-            auto compoundVariants = style.getProperty(rt, "compoundVariants").asObject(rt);
-            auto parsedCompoundVariants = this->parseCompoundVariants(rt, unistyle, compoundVariants, variants.value());
-
-            helpers::mergeJSIObjects(rt, parsedStyle, parsedCompoundVariants);
-        }
-    }
-
-    return parsedStyle;
-}
-
-// function replaces original user dynamic function with additional logic to memoize arguments
-jsi::Function parser::Parser::createDynamicFunctionProxy(jsi::Runtime& rt, Unistyle::Shared unistyle) {
-    auto unistylesRuntime = this->_unistylesRuntime;
-
-    return jsi::Function::createFromHostFunction(
-        rt,
-        jsi::PropNameID::forUtf8(rt, unistyle->styleKey),
-        1,
-        [this, unistylesRuntime, unistyle](jsi::Runtime& rt, const jsi::Value& thisVal, const jsi::Value* args, size_t count) {
-            auto thisObject = thisVal.isObject()
-                ? thisVal.asObject(rt)
-                : jsi::Object(rt);
-            auto parser = parser::Parser(unistylesRuntime);
-            // call user function
-            auto result = unistyle->rawValue.asFunction(rt).call(rt, args, count);
-
-            // memoize metadata to call it later
-            auto unistyleFn = std::dynamic_pointer_cast<UnistyleDynamicFunction>(unistyle);
-
-            unistyleFn->unprocessedValue = jsi::Value(rt, result).asObject(rt);
-
-            jsi::Value rawVariants = thisObject.hasProperty(rt, helpers::STYLESHEET_VARIANTS.c_str())
-                ? thisObject.getProperty(rt, helpers::STYLESHEET_VARIANTS.c_str())
-                : jsi::Object(rt);
-
-            Variants variants = helpers::variantsToPairs(rt, rawVariants.asObject(rt));
-
-            unistyleFn->parsedStyle = parser.parseFirstLevel(rt, unistyleFn, variants);
-            unistyleFn->seal();
-
-            // for compatibility purpose save last arguments to style instance. It will work ok, if user sees warning about multiple unistyles
-            helpers::defineHiddenProperty(rt, thisObject, helpers::ARGUMENTS.c_str() + std::string("_") + unistyleFn->styleKey, helpers::functionArgumentsToArray(rt, args, count));
-
-            return core::objectFromUnistyle(rt, unistylesRuntime, unistyle, variants, std::make_optional<jsi::Array>(helpers::functionArgumentsToArray(rt, args, count))).asObject(rt);
-    });
-}
-
-// function converts babel generated dependencies to C++ dependencies
-std::vector<UnistyleDependency> parser::Parser::parseDependencies(jsi::Runtime &rt, jsi::Object&& dependencies) {
-    helpers::assertThat(rt, dependencies.isArray(rt), "Unistyles: Babel transform is invalid - unexpected type for dependencies.");
-
-    std::vector<UnistyleDependency> parsedDependencies{};
-
-    parsedDependencies.reserve(5);
-
-    helpers::iterateJSIArray(rt, dependencies.asArray(rt), [&](size_t i, jsi::Value& value){
-        auto dependency = static_cast<UnistyleDependency>(value.asNumber());
-
-        parsedDependencies.push_back(dependency);
-    });
-
-    return parsedDependencies;
-}
-
-// eg. [{ scale: 2 }, { translateX: 100 }]
-jsi::Value parser::Parser::parseTransforms(jsi::Runtime& rt, Unistyle::Shared unistyle, jsi::Object& obj) {
-    std::vector<jsi::Value> parsedTransforms{};
-
-    parsedTransforms.reserve(2);
-
-    helpers::iterateJSIArray(rt, obj.asArray(rt), [&](size_t i, jsi::Value& value){
-        if (!value.isObject()) {
-            return;
-        }
-
-        auto parsedResult = this->parseSecondLevel(rt, unistyle, value);
-
-        helpers::enumerateJSIObject(rt, parsedResult.asObject(rt), [&](const std::string& propertyName, jsi::Value& propertyValue){
-            // we shouldn't allow undefined in transforms, simply remove entire object from array
-            if (!propertyValue.isUndefined()) {
-                parsedTransforms.emplace_back(std::move(parsedResult));
-            }
-        });
-    });
-
-    // create jsi::Array result with correct transforms
-    jsi::Array result = jsi::Array(rt, parsedTransforms.size());
-
-    for (size_t i = 0; i < parsedTransforms.size(); i++) {
-        result.setValueAtIndex(rt, i, parsedTransforms[i]);
-    }
-
-    return result;
-}
-
-// eg [{offsetX: 5, offsetY: 5, blurRadius: 5, spreadDistance: 0, color: ‘rgba(255, 0, 0, 0.5)’}]
-jsi::Value parser::Parser::parseBoxShadow(jsi::Runtime &rt, Unistyle::Shared unistyle, jsi::Object &obj) {
-    std::vector<jsi::Value> parsedBoxShadows{};
-
-    parsedBoxShadows.reserve(1);
-
-    helpers::iterateJSIArray(rt, obj.asArray(rt), [&](size_t i, jsi::Value& value){
-        if (!value.isObject()) {
-            return;
-        }
-
-        auto parsedResult = this->parseSecondLevel(rt, unistyle, value);
-
-        parsedBoxShadows.emplace_back(std::move(parsedResult));
-    });
-
-    // create jsi::Array result with correct box shadows
-    jsi::Array result = jsi::Array(rt, parsedBoxShadows.size());
-
-    for (size_t i = 0; i < parsedBoxShadows.size(); i++) {
-        result.setValueAtIndex(rt, i, parsedBoxShadows[i]);
-    }
-
-    return result;
-}
-
-jsi::Array parser::Parser::parseBoxShadowString(jsi::Runtime& rt, std::string&& boxShadowString) {
-    auto& registry = core::UnistylesRegistry::get();
-    auto& state = registry.getState(rt);
-
-    return state.parseBoxShadowString(std::move(boxShadowString));
-}
-
-// eg. [{ brightness: 0.5 }, { opacity: 0.25 }]
-jsi::Value parser::Parser::parseFilters(jsi::Runtime &rt, Unistyle::Shared unistyle, jsi::Object &obj) {
-    std::vector<jsi::Value> parsedFilters{};
-
-    parsedFilters.reserve(2);
-
-    helpers::iterateJSIArray(rt, obj.asArray(rt), [&](size_t i, jsi::Value& value){
-        if (!value.isObject()) {
-            return;
-        }
-
-        auto parsedResult = this->parseSecondLevel(rt, unistyle, value);
-
-        // take only one filter per object
-        jsi::Array propertyNames = parsedResult.asObject(rt).getPropertyNames(rt);
-        size_t length = propertyNames.size(rt);
-
-        // ignore no filters
-        if (length == 0) {
-            return;
-        }
-
-        parsedFilters.emplace_back(std::move(parsedResult));
-    });
-
-    // create jsi::Array result with correct filters
-    jsi::Array result = jsi::Array(rt, parsedFilters.size());
-
-    for (size_t i = 0; i < parsedFilters.size(); i++) {
-        result.setValueAtIndex(rt, i, parsedFilters[i]);
-    }
-
-    return result;
-}
-
-// find value based on breakpoints and mq
-jsi::Value parser::Parser::getValueFromBreakpoints(jsi::Runtime& rt, Unistyle::Shared unistyle, jsi::Object& obj) {
-    auto& registry = core::UnistylesRegistry::get();
-    auto& state = registry.getState(rt);
-
-    auto sortedBreakpoints = state.getSortedBreakpointPairs();
-    auto hasBreakpoints = !sortedBreakpoints.empty();
-    auto currentBreakpoint = state.getCurrentBreakpointName();
-    auto rawDimensions = this->_unistylesRuntime->getScreen();
-    auto pixelRatio = this->_unistylesRuntime->getPixelRatio();
-    auto dimensions = registry.shouldUsePointsForBreakpoints
-        ? Dimensions(rawDimensions.width / pixelRatio, rawDimensions.height / pixelRatio)
-        : rawDimensions;
-    auto currentOrientation = dimensions.width > dimensions.height
-        ? "landscape"
-        : "portrait";
-
-    jsi::Array propertyNames = obj.getPropertyNames(rt);
-    size_t length = propertyNames.size(rt);
-
-    // mq has the biggest priority, so check if first
-    for (size_t i = 0; i < length; i++) {
-        auto propertyName = propertyNames.getValueAtIndex(rt, i).asString(rt).utf8(rt);
-        auto propertyValue = obj.getProperty(rt, propertyName.c_str());
-        auto mq = core::UnistylesMQ{propertyName};
-
-        if (mq.isMQ()) {
-            unistyle->addBreakpointDependency();
-        }
-
-        if (mq.isWithinTheWidthAndHeight(dimensions)) {
-            // we have direct hit
-            return propertyValue;
-        }
-    }
-
-    // check orientation breakpoints if user didn't register own breakpoint
-    bool hasOrientationBreakpoint = obj.hasProperty(rt, currentOrientation);
-
-    if (hasOrientationBreakpoint) {
-        unistyle->addBreakpointDependency();
-    }
-
-    if (!hasBreakpoints && hasOrientationBreakpoint) {
-        return obj.getProperty(rt, currentOrientation);
-    }
-
-    if (!currentBreakpoint.has_value()) {
-        return jsi::Value::undefined();
-    }
-
-    unistyle->addBreakpointDependency();
-
-    // if you're still here it means that there is no
-    // matching mq nor default breakpoint, let's find the user defined breakpoint
-    auto currentBreakpointIt = std::find_if(
-        sortedBreakpoints.rbegin(),
-        sortedBreakpoints.rend(),
-        [&currentBreakpoint](const std::pair<std::string, double>& breakpoint){
-            return breakpoint.first == currentBreakpoint.value();
-        }
-    );
-
-    // look for any hit in reversed vector
-    for (auto it = currentBreakpointIt; it != sortedBreakpoints.rend(); ++it) {
-        auto breakpoint = it->first.c_str();
-
-        if (obj.hasProperty(rt, breakpoint)) {
-            return obj.getProperty(rt, breakpoint);
-        }
-    }
-
-    // at this point we have no match, return undefined
-    return jsi::Value::undefined();
-}
-
-// parse all types of variants
-jsi::Object parser::Parser::parseVariants(jsi::Runtime& rt, Unistyle::Shared unistyle, jsi::Object& obj, Variants& variants) {
-    jsi::Object parsedVariant = jsi::Object(rt);
-    jsi::Array propertyNames = obj.getPropertyNames(rt);
-
-    helpers::enumerateJSIObject(rt, obj, [&](const std::string& groupName, jsi::Value& groupValue) {
-        // try to match groupName to selected variants
-        auto it = std::find_if(
-            variants.cbegin(),
-            variants.cend(),
-            [&groupName](auto& variant){
-                return variant.first == groupName;
-            }
-        );
-
-        auto selectedVariant = it != variants.end()
-            ? std::make_optional(it->second)
-            : std::nullopt;
-
-        // we've got a match, but we need to check some condition
-        auto styles = this->getStylesForVariant(rt, groupName, groupValue.asObject(rt), selectedVariant, variants);
-
-        // oops, invalid variant
-        if (styles.isUndefined() || !styles.isObject()) {
-            return;
-        }
-
-        auto parsedNestedStyles = this->parseSecondLevel(rt, unistyle, styles).asObject(rt);
-
-        helpers::mergeJSIObjects(rt, parsedVariant, parsedNestedStyles);
-    });
-
-    return parsedVariant;
-}
-
-// helpers function to support 'default' variants
-jsi::Value parser::Parser::getStylesForVariant(jsi::Runtime& rt, const std::string groupName, jsi::Object&& groupValue, std::optional<std::string> selectedVariant, Variants& variants) {
-    // if there is no value, let's try 'default'
-    auto selectedVariantKey = selectedVariant.has_value()
-        ? selectedVariant.value().c_str()
-        : "default";
-    auto hasKey = groupValue.hasProperty(rt, selectedVariantKey);
-
-    if (!hasKey || !selectedVariant.has_value()) {
-        // for no key, add 'default' selection to variants map
-        variants.emplace_back(groupName, selectedVariantKey);
-    }
-
-    if (hasKey) {
-        return groupValue.getProperty(rt, selectedVariantKey);
-    }
-
-    return jsi::Value::undefined();
-}
-
-// get styles from compound variants based on selected variants
-jsi::Object parser::Parser::parseCompoundVariants(jsi::Runtime& rt, Unistyle::Shared unistyle, jsi::Object& obj, Variants& variants) {
-    if (!obj.isArray(rt)) {
-        return jsi::Object(rt);
-    }
-
-    jsi::Object parsedCompoundVariants = jsi::Object(rt);
-
-    helpers::iterateJSIArray(rt, obj.asArray(rt), [&](size_t i, jsi::Value& value){
-        if (!value.isObject()) {
-            return;
-        }
-
-        auto valueObject = value.asObject(rt);
-
-        // check if every condition for given compound variant is met
-        if (this->shouldApplyCompoundVariants(rt, variants, valueObject)) {
-            auto styles = valueObject.getProperty(rt, "styles");
-            auto parsedNestedStyles = this->parseSecondLevel(rt, unistyle, styles).asObject(rt);
-
-            unistyles::helpers::mergeJSIObjects(rt, parsedCompoundVariants, parsedNestedStyles);
-        }
-    });
-
-    return parsedCompoundVariants;
-}
-
-// check every condition in compound variants, supports boolean variants
-bool parser::Parser::shouldApplyCompoundVariants(jsi::Runtime& rt, const Variants& variants, jsi::Object& compoundVariant) {
-    if (variants.empty()) {
-        return false;
-    }
-
-    for (auto it = variants.cbegin(); it != variants.cend(); ++it) {
-        auto variantKey = it->first;
-        auto variantValue = it->second;
-
-        if (!compoundVariant.hasProperty(rt, variantKey.c_str())) {
-            continue;
-        }
-
-        auto property = compoundVariant.getProperty(rt, variantKey.c_str());
-        auto propertyName = property.isBool()
-            ? (property.asBool() ? "true" : "false")
-            : property.isString()
-                ? property.asString(rt).utf8(rt)
-                : "";
-
-        if (propertyName != variantValue) {
-            return false;
-        }
-    }
-
-    return true;
-}
-
-// second level of parser
-// we expect here only primitives, arrays and objects
-jsi::Value parser::Parser::parseSecondLevel(jsi::Runtime &rt, Unistyle::Shared unistyle, jsi::Value& nestedStyle) {
-    // primitives
-    if (nestedStyle.isString() || nestedStyle.isNumber() || nestedStyle.isUndefined() || nestedStyle.isNull()) {
-        return jsi::Value(rt, nestedStyle);
-    }
-
-    // ignore any non objects at this level
-    if (!nestedStyle.isObject()) {
-        return jsi::Value::undefined();
-    }
-
-    auto nestedObjectStyle = nestedStyle.asObject(rt);
-
-    // too deep to accept any functions or arrays
-    if (nestedObjectStyle.isArray(rt) || nestedObjectStyle.isFunction(rt)) {
-        return jsi::Value::undefined();
-    }
-
-    if (helpers::isPlatformColor(rt, nestedObjectStyle)) {
-        return jsi::Value(rt, nestedStyle);
-    }
-
-    jsi::Object parsedStyle = jsi::Object(rt);
-
-    helpers::enumerateJSIObject(rt, nestedObjectStyle, [&](const std::string& propertyName, jsi::Value& propertyValue){
-        // special case as we need to convert it to jsi::Array<jsi::Object>
-        // possible with variants and compoundVariants
-        if (propertyName == "boxShadow" && propertyValue.isString()) {
-            parsedStyle.setProperty(rt, jsi::PropNameID::forUtf8(rt, propertyName), parseBoxShadowString(rt, propertyValue.asString(rt).utf8(rt)));
-
-            return;
-        }
-
-        // primitives, bool is possible for boxShadow inset
-        if (propertyValue.isString() || propertyValue.isNumber() || propertyValue.isUndefined() || propertyValue.isNull() || propertyValue.isBool()) {
-            parsedStyle.setProperty(rt, propertyName.c_str(), propertyValue);
-
-            return;
-        }
-
-        // ignore any non objects at this level
-        if (!propertyValue.isObject()) {
-            parsedStyle.setProperty(rt, propertyName.c_str(), jsi::Value::undefined());
-
-            return;
-        }
-
-        auto nestedObjectStyle = propertyValue.asObject(rt);
-
-        if (nestedObjectStyle.isFunction(rt)) {
-            parsedStyle.setProperty(rt, propertyName.c_str(), jsi::Value::undefined());
-
-            return;
-        }
-
-        auto isArray = nestedObjectStyle.isArray(rt);
-
-        if (!isArray) {
-            parsedStyle.setProperty(rt, propertyName.c_str(), this->getValueFromBreakpoints(rt, unistyle, nestedObjectStyle));
-        }
-
-        // possible with variants and compoundVariants
-        if (propertyName == "transform") {
-            parsedStyle.setProperty(rt, propertyName.c_str(), parseTransforms(rt, unistyle, nestedObjectStyle));
-
-            return;
-        }
-
-        if (propertyName == "boxShadow") {
-            parsedStyle.setProperty(rt, propertyName.c_str(), parseBoxShadow(rt, unistyle, nestedObjectStyle));
-
-            return;
-        }
-
-        if (propertyName == "filter") {
-            parsedStyle.setProperty(rt, propertyName.c_str(), parseFilters(rt, unistyle, nestedObjectStyle));
-
-            return;
-        }
-
-        if (propertyName == "fontVariant") {
-            parsedStyle.setProperty(rt, propertyName.c_str(), propertyValue);
-
-            return;
-        }
-
-        if (propertyName == "shadowOffset" || propertyName == "textShadowOffset") {
-            parsedStyle.setProperty(rt, propertyName.c_str(), this->parseSecondLevel(rt, unistyle, propertyValue));
-
-            return;
-        }
-    });
-
-    return parsedStyle;
-}
-
-// convert unistyles to folly with int colors
-folly::dynamic parser::Parser::parseStylesToShadowTreeStyles(jsi::Runtime& rt, const std::vector<std::shared_ptr<UnistyleData>>& unistyles) {
-    jsi::Object convertedStyles(rt);
-    auto& state = core::UnistylesRegistry::get().getState(rt);
-
-    for (const auto& unistyleData : unistyles) {
-        if (!unistyleData->parsedStyle.has_value()) {
-            continue;
-        }
-
-        helpers::enumerateJSIObject(
-            rt,
-            unistyleData->parsedStyle.value(),
-            [this, &rt, &state, &convertedStyles](const std::string& propertyName, jsi::Value& propertyValue) {
-                if (this->isColor(propertyName)) {
-                    convertedStyles.setProperty(
-                        rt,
-                        propertyName.c_str(),
-                        jsi::Value(state.parseColor(propertyValue))
-                    );
-
-                    return;
-                }
-
-                if (!propertyValue.isObject()) {
-                    convertedStyles.setProperty(
-                        rt,
-                        propertyName.c_str(),
-                        propertyValue
-                    );
-
-                    return;
-                }
-
-                jsi::Object objValue = propertyValue.asObject(rt);
-
-                if (!objValue.isArray(rt)) {
-                    convertedStyles.setProperty(
-                        rt,
-                        propertyName.c_str(),
-                        propertyValue
-                    );
-
-                    return;
-                }
-
-                // parse nested arrays like boxShadow
-                jsi::Array arrValue = objValue.asArray(rt);
-                size_t arrLen = arrValue.length(rt);
-                jsi::Array parsedArray(rt, arrLen);
-
-                helpers::iterateJSIArray(
-                    rt,
-                    arrValue,
-                    [this, &rt, &state, &propertyName, &parsedArray](size_t i, jsi::Value& nestedValue) {
-                        if (nestedValue.isObject()) {
-                            jsi::Object obj(rt);
-
-                            helpers::enumerateJSIObject(
-                                rt,
-                                nestedValue.asObject(rt),
-                                [this, &rt, &state, &obj](const std::string& nestedPropName, jsi::Value& nestedPropValue) {
-                                    if (this->isColor(nestedPropName)) {
-                                        obj.setProperty(
-                                            rt,
-                                            nestedPropName.c_str(),
-                                            state.parseColor(nestedPropValue)
-                                        );
-                                    } else {
-                                        obj.setProperty(
-                                            rt,
-                                            nestedPropName.c_str(),
-                                            nestedPropValue
-                                        );
-                                    }
-                                }
-                            );
-
-                            parsedArray.setValueAtIndex(rt, i, obj);
-
-                            return;
-                        }
-
-                        if (this->isColor(propertyName)) {
-                            parsedArray.setValueAtIndex(
-                                rt,
-                                i,
-                                jsi::Value(state.parseColor(nestedValue))
-                            );
-                        } else {
-                            parsedArray.setValueAtIndex(rt, i, nestedValue);
-                        }
-                    }
-                );
-
-                convertedStyles.setProperty(rt, propertyName.c_str(), parsedArray);
-            }
-        );
-    }
-
-    return jsi::dynamicFromValue(rt, jsi::Value(rt, convertedStyles));
-}
-
-
-// check is styleKey contains color
-bool parser::Parser::isColor(const std::string& propertyName) {
-    std::string str = propertyName;
-    std::transform(str.begin(), str.end(), str.begin(), ::tolower);
-
-    return str.find("color") != std::string::npos;
-}
-
-
-
-================================================
-FILE: cxx/parser/Parser.h
-================================================
-#pragma once
-
-#include <jsi/jsi.h>
-#include <folly/dynamic.h>
-#include "Unistyle.h"
-#include "Dimensions.hpp"
-#include "UnistylesConstants.h"
-#include "Helpers.h"
-#include "MediaQueries.h"
-#include "HybridUnistylesRuntime.h"
-#include "StyleSheet.h"
-#include "ShadowLeafUpdate.h"
-#include "HashGenerator.h"
-
-namespace margelo::nitro::unistyles::parser {
-
-using namespace facebook;
-using namespace margelo::nitro::unistyles::core;
-
-using Variants = std::vector<std::pair<std::string, std::string>>;
-
-struct Parser {
-    Parser(std::shared_ptr<HybridUnistylesRuntime> unistylesRuntime): _unistylesRuntime{unistylesRuntime} {}
-
-    void buildUnistyles(jsi::Runtime& rt, std::shared_ptr<StyleSheet> styleSheet);
-    void parseUnistyles(jsi::Runtime& rt, std::shared_ptr<StyleSheet> styleSheet);
-    void rebuildUnistyleWithVariants(jsi::Runtime& rt, std::shared_ptr<core::UnistyleData> unistyleData);
-    void rebuildUnistylesInDependencyMap(jsi::Runtime& rt, core::DependencyMap& dependencyMap, std::vector<std::shared_ptr<core::StyleSheet>>& styleSheets, std::optional<UnistylesNativeMiniRuntime> maybeMiniRuntime);
-    void rebuildShadowLeafUpdates(jsi::Runtime& rt, core::DependencyMap& dependencyMap);
-    folly::dynamic parseStylesToShadowTreeStyles(jsi::Runtime& rt, const std::vector<std::shared_ptr<UnistyleData>>& unistyles);
-    void rebuildUnistyle(jsi::Runtime& rt, Unistyle::Shared unistyle, const Variants& variants, std::optional<std::vector<folly::dynamic>>);
-    void rebuildUnistyleWithScopedTheme(jsi::Runtime& rt, jsi::Value& jsScopedTheme, std::shared_ptr<core::UnistyleData> unistyleData);
-    jsi::Value getParsedStyleSheetForScopedTheme(jsi::Runtime& rt, core::Unistyle::Shared unistyle, std::string& scopedTheme);
-
-private:
-    jsi::Object unwrapStyleSheet(jsi::Runtime& rt, std::shared_ptr<StyleSheet> styleSheet, std::optional<UnistylesNativeMiniRuntime>);
-    jsi::Object parseFirstLevel(jsi::Runtime& rt, Unistyle::Shared unistyle, std::optional<Variants> variants);
-    jsi::Value parseSecondLevel(jsi::Runtime& rt, Unistyle::Shared unistyle, jsi::Value& nestedObject);
-    jsi::Function createDynamicFunctionProxy(jsi::Runtime& rt, Unistyle::Shared unistyle);
-    std::vector<UnistyleDependency> parseDependencies(jsi::Runtime &rt, jsi::Object&& dependencies);
-    jsi::Value parseTransforms(jsi::Runtime& rt, Unistyle::Shared unistyle, jsi::Object& obj);
-    jsi::Value parseBoxShadow(jsi::Runtime& rt, Unistyle::Shared unistyle, jsi::Object& obj);
-    jsi::Array parseBoxShadowString(jsi::Runtime& rt, std::string&& boxShadowString);
-    jsi::Value parseFilters(jsi::Runtime& rt, Unistyle::Shared unistyle, jsi::Object& obj);
-    jsi::Value getValueFromBreakpoints(jsi::Runtime& rt, Unistyle::Shared unistyle, jsi::Object& obj);
-    jsi::Object parseVariants(jsi::Runtime& rt, Unistyle::Shared unistyle, jsi::Object& obj, Variants& variants);
-    jsi::Value getStylesForVariant(jsi::Runtime& rt, const std::string groupName, jsi::Object&& groupValue, std::optional<std::string> selectedVariant, Variants& variants);
-    jsi::Object parseCompoundVariants(jsi::Runtime& rt, Unistyle::Shared unistyle, jsi::Object& obj, Variants& variants);
-    bool shouldApplyCompoundVariants(jsi::Runtime& rt, const Variants& variants, jsi::Object& compoundVariant);
-    bool isColor(const std::string& propertyName);
-
-    std::shared_ptr<HybridUnistylesRuntime> _unistylesRuntime;
-};
-
-}
-
-
-
-================================================
-FILE: cxx/shadowTree/ShadowLeafUpdate.h
-================================================
-#pragma once
-
-#include <jsi/jsi.h>
-#include <folly/dynamic.h>
-#include <react/renderer/uimanager/UIManager.h>
-
-namespace margelo::nitro::unistyles::shadow {
-
-using namespace facebook;
-using namespace facebook::react;
-
-// translates Unistyles changes to unified shadow tree changes
-using ShadowLeafUpdates = std::unordered_map<const ShadowNodeFamily*, folly::dynamic>;
-
-}
-
-
-
-================================================
-FILE: cxx/shadowTree/ShadowTrafficController.h
-================================================
-#pragma once
-
-#import "mutex"
-#import "ShadowLeafUpdate.h"
-
-namespace margelo::nitro::unistyles::shadow {
-
-// Like a traffic officer managing a jam, this struct ensures everything
-// is synchronized within a set timeframe, controlling flow and preventing chaos.
-struct ShadowTrafficController {
-    inline bool shouldStop() {
-        return !_canCommit;
-    }
-
-    inline void stopUnistylesTraffic() {
-        this->_canCommit = false;
-    }
-
-    inline void resumeUnistylesTraffic() {
-        this->_canCommit = true;
-    }
-
-    inline shadow::ShadowLeafUpdates& getUpdates() {
-        // call it only within withLock!
-        return _unistylesUpdates;
-    }
-
-    inline void setUpdates(shadow::ShadowLeafUpdates& newUpdates) {
-        // call it only within withLock!
-        auto& targetUpdates = _unistylesUpdates;
-
-        // this is important as overriding updates may skip some interim changes
-        // Unistyles emits different events so this will make sure that everything is synced
-        std::for_each(newUpdates.begin(), newUpdates.end(), [&targetUpdates](auto& pair){
-            if (targetUpdates.contains(pair.first)) {
-                targetUpdates[pair.first] = std::move(pair.second);
-
-                return;
-            }
-
-            targetUpdates.emplace(pair.first, std::move(pair.second));
-        });
-    }
-
-    inline void removeShadowNode(const ShadowNodeFamily* shadowNodeFamily) {
-        // call it only within withLock!
-        if (_unistylesUpdates.contains(shadowNodeFamily)) {
-            _unistylesUpdates.erase(shadowNodeFamily);
-        }
-    }
-
-    inline void restore() {
-        // call it only within withLock!
-
-        _unistylesUpdates = {};
-        _canCommit = false;
-    }
-
-    template <typename F>
-    inline auto withLock(F&& func) {
-        std::lock_guard<std::mutex> lock(_mutex);
-
-        return std::forward<F>(func)();
-    }
-
-private:
-    std::atomic<bool> _canCommit = false;
-    shadow::ShadowLeafUpdates _unistylesUpdates{};
-
-    // this struct should be accessed in thread-safe manner. Otherwise shadow tree updates
-    // from different threads will break it
-    std::mutex _mutex;
-};
-
-}
-
-
-
-================================================
-FILE: cxx/shadowTree/ShadowTreeManager.cpp
-================================================
-#include "ShadowTreeManager.h"
-
-using namespace margelo::nitro::unistyles;
-using namespace facebook::react;
-using namespace facebook;
-
-using AffectedNodes = std::unordered_map<const ShadowNodeFamily*, std::unordered_set<int>>;
-
-void shadow::ShadowTreeManager::updateShadowTree(jsi::Runtime& rt) {
-    auto& registry = core::UnistylesRegistry::get();
-
-    registry.trafficController.withLock([&](){
-        auto updates = registry.trafficController.getUpdates();
-
-        if (updates.empty()) {
-            return;
-        }
-
-#if REACT_NATIVE_VERSION_MINOR >= 81
-        std::unordered_map<Tag, folly::dynamic> tagToProps;
-
-        for (const auto& [family, props] : updates) {
-            tagToProps.insert({family->getTag(), props});
-
-            // Store in native props system to preserve during Reanimated cloning
-            const_cast<ShadowNodeFamily*>(family)->nativeProps_DEPRECATED =
-                std::make_unique<folly::dynamic>(props);
-        }
-
-        UIManagerBinding::getBinding(rt)->getUIManager().updateShadowTree(tagToProps);
-#else
-        const auto& shadowTreeRegistry = UIManagerBinding::getBinding(rt)->getUIManager().getShadowTreeRegistry();
-
-        shadowTreeRegistry.enumerate([&updates](const ShadowTree& shadowTree, bool& stop){
-            // we could iterate via updates and create multiple commits
-            // but it can cause performance issues for hundreds of nodes
-            // so let's mutate Shadow Tree in single transaction
-            auto transaction = [&updates](const RootShadowNode& oldRootShadowNode) {
-                auto affectedNodes = shadow::ShadowTreeManager::findAffectedNodes(oldRootShadowNode, updates);
-
-                for (const auto& [family, props] : updates) {
-                    // Merge props to fix glitches caused by REA updates
-                    const_cast<ShadowNodeFamily*>(family)->nativeProps_DEPRECATED =
-                        std::make_unique<folly::dynamic>(props);
-                }
-
-                return  std::static_pointer_cast<RootShadowNode>(shadow::ShadowTreeManager::cloneShadowTree(
-                    oldRootShadowNode,
-                    updates,
-                    affectedNodes
-                ));
-            };
-
-            // commit once!
-            // CommitOptions:
-            // enableStateReconciliation: https://reactnative.dev/architecture/render-pipeline#react-native-renderer-state-updates
-            // mountSynchronously: must be true as this is update from C++ not React
-            shadowTree.commit(transaction, {false, true});
-
-            // for now we're assuming single surface, can be improved in the future
-            // stop = true means stop enumerating next shadow tree
-            // so in other words first shadow tree is our desired tree
-            stop = true;
-        });
-#endif
-    });
-}
-
-// based on Reanimated algorithm
-// For each affected family we're gathering affected nodes (their indexes)
-// Example:
-//      A
-//    /   \
-//   B     C
-//  / \
-// D   E*
-//    / \
-//   F   G
-//
-// For ShadowFamily E* we will get:
-//[
-//  0 - because B is a first children of A,
-//  1 - because E is a second children of B
-//]
-// A, B and E are affected now
-AffectedNodes shadow::ShadowTreeManager::findAffectedNodes(const RootShadowNode& rootNode, ShadowLeafUpdates& updates) {
-    AffectedNodes affectedNodes;
-
-    for (const auto& [family, _] : updates) {
-        auto familyAncestors = family->getAncestors(rootNode);
-
-        for (auto it = familyAncestors.rbegin(); it != familyAncestors.rend(); ++it) {
-            const auto& [parentNode, index] = *it;
-            const auto parentFamily = &parentNode.get().getFamily();
-            auto [setIt, inserted] = affectedNodes.try_emplace(parentFamily, std::unordered_set<int>{});
-
-            setIt->second.insert(index);
-        }
-    }
-
-    return affectedNodes;
-}
-
-Props::Shared shadow::ShadowTreeManager::computeUpdatedProps(const ShadowNode &shadowNode, ShadowLeafUpdates& updates) {
-    const auto family = &shadowNode.getFamily();
-    const auto rawPropsIt = updates.find(family);
-
-    if (rawPropsIt == updates.end()) {
-        return ShadowNodeFragment::propsPlaceholder();
-    }
-
-    const auto& componentDescriptor = shadowNode.getComponentDescriptor();
-    const auto& props = shadowNode.getProps();
-
-    PropsParserContext propsParserContext{
-        shadowNode.getSurfaceId(),
-        *shadowNode.getContextContainer()
-    };
-
-    folly::dynamic newProps = rawPropsIt->second == nullptr
-        ? folly::dynamic::object()
-        : rawPropsIt->second;
-
-    return componentDescriptor.cloneProps(
-        propsParserContext,
-        props,
-        RawProps(newProps)
-    );
-}
-
-// based on Reanimated algorithm
-// clone affected nodes recursively, inject props and commit tree
-std::shared_ptr<ShadowNode> shadow::ShadowTreeManager::cloneShadowTree(const ShadowNode &shadowNode, ShadowLeafUpdates& updates, AffectedNodes& affectedNodes) {
-    const auto family = &shadowNode.getFamily();
-    const auto childrenIt = affectedNodes.find(family);
-
-    // Only copy children if we need to update them
-    std::shared_ptr<std::vector<std::shared_ptr<const ShadowNode>>> childrenPtr;
-    const auto& originalChildren = shadowNode.getChildren();
-
-    if (childrenIt != affectedNodes.end()) {
-        auto children = originalChildren;
-
-        for (const auto index : childrenIt->second) {
-            children[index] = cloneShadowTree(*children[index], updates, affectedNodes);
-        }
-
-        childrenPtr = std::make_shared<std::vector<std::shared_ptr<const ShadowNode>>>(std::move(children));
-    } else {
-        childrenPtr = std::make_shared<std::vector<std::shared_ptr<const ShadowNode>>>(originalChildren);
-    }
-
-    Props::Shared updatedProps = computeUpdatedProps(shadowNode, updates);
-
-    return shadowNode.clone({
-        .props = updatedProps,
-        .children = childrenPtr,
-        .state = shadowNode.getState()
-    });
-}
-
-
-
-================================================
-FILE: cxx/shadowTree/ShadowTreeManager.h
-================================================
-#pragma once
-
-#include <jsi/jsi.h>
-#include <react/renderer/uimanager/UIManagerBinding.h>
-#include <react/renderer/uimanager/UIManager.h>
-#include <ranges>
-#include "ShadowLeafUpdate.h"
-#include "UnistylesRegistry.h"
-#include <cxxreact/ReactNativeVersion.h>
-
-namespace margelo::nitro::unistyles::shadow {
-
-using namespace facebook::react;
-using namespace facebook;
-
-using AffectedNodes = std::unordered_map<const ShadowNodeFamily *, std::unordered_set<int>>;
-
-struct ShadowTreeManager {
-    static void updateShadowTree(jsi::Runtime& rt);
-    static AffectedNodes findAffectedNodes(const RootShadowNode& rootNode, ShadowLeafUpdates& updates);
-    static std::shared_ptr<ShadowNode> cloneShadowTree(const ShadowNode& shadowNode, ShadowLeafUpdates& updates, AffectedNodes& affectedNodes);
-    static Props::Shared computeUpdatedProps(const ShadowNode &shadowNode, ShadowLeafUpdates& updates);
-};
-
-}
-
-
-
-================================================
-FILE: docs/astro.config.mjs
-================================================
-import { defineConfig } from 'astro/config'
-import starlight from '@astrojs/starlight'
-import sitemap from '@astrojs/sitemap'
-import starlightLlmsTxt from 'starlight-llms-txt'
-import expressiveCode, { ExpressiveCodeTheme } from 'astro-expressive-code'
-import fs from 'node:fs'
-
-const themeJson = fs.readFileSync(new URL(`./theme.json`, import.meta.url), 'utf8')
-const customTheme = ExpressiveCodeTheme.fromJSONString(themeJson)
-
-const oldPaths = {
-    'start': [
-        'basic-usage',
-        'benchmarks',
-        'introduction',
-        'migration-from-1',
-        'migration-from-stylesheet',
-        'setup',
-    ],
-    'reference': [
-        'breakpoints',
-        'compound-variants',
-        'content-size-category',
-        'create-stylesheet',
-        'debugging',
-        'dimensions',
-        'dynamic-functions',
-        'edge-to-edge',
-        'errors',
-        'faq',
-        'media-queries',
-        'plugins',
-        'server-side-rendering',
-        'testing',
-        'theming',
-        'unistyles-registry',
-        'unistyles-runtime',
-        'use-initial-theme',
-        'use-styles',
-        'unistyles-provider',
-        'variants',
-        'web-support'
-    ],
-    'other': [
-        'for-library-authors',
-        'for-sponsors',
-    ],
-    'examples': [
-        'all'
-    ]
-}
-
-export default defineConfig({
-    site: 'https://unistyl.es/v3/',
-	integrations: [
-        expressiveCode({
-            themes: [customTheme],
-            languages: ['typescript', 'tsx']
-        }),
-		starlight({
-			title: 'react-native-unistyles',
-            description: 'React Native StyleSheet 3.0',
-            customCss: ['./src/styles/docs.css'],
-            logo: {
-                src: './public/favicon.png'
-            },
-            social: {
-                github: 'https://github.com/jpudysz/react-native-unistyles',
-                'x.com': 'https://x.com/jpudysz',
-                discord: 'https://discord.gg/akGHf27P4C'
-            },
-			sidebar: [
-                {
-                    label: 'Tutorial', slug: 'v3/tutorial/intro', badge: 'New!'
-                },
-                {
-                    label: 'LLMS', slug: 'v3/llms/info', badge: 'Hot!',
-                },
-				{
-					label: 'Start here',
-					items: [
-						{ label: 'Introduction', slug: 'v3/start/introduction' },
-                        { label: 'Getting started', slug: 'v3/start/getting-started' },
-                        { label: 'Configuration', slug: 'v3/start/configuration' },
-                        { label: 'When to use Unistyles?', slug: 'v3/start/when-to-use-unistyles'},
-                        { label: 'New features', slug: 'v3/start/new-features' },
-                        { label: 'Look under the hood', slug: 'v3/start/how-unistyles-works' },
-                        { label: 'Migration guide', slug: 'v3/start/migration-guide' },
-                        { label: 'Testing', slug: 'v3/start/testing' }
-					],
-				},
-                {
-                    label: 'Guides',
-                    items: [
-                        { label: 'Merging styles', slug: 'v3/guides/merging-styles' },
-                        { label: 'Why my view doesn\'t update?', slug: 'v3/guides/why-my-view-doesnt-update' },
-                        { label: 'Theming', slug: 'v3/guides/theming' },
-                        { label: 'Avoiding Keyboard', slug: 'v3/guides/avoiding-keyboard' },
-                        { label: 'Expo Router', slug: 'v3/guides/expo-router' },
-                        { label: 'React Compiler', slug: 'v3/guides/react-compiler' },
-                        { label: 'Custom web', slug: 'v3/guides/custom-web' },
-                        { label: 'Reanimated', slug: 'v3/guides/reanimated' },
-                        { label: 'Server side rendering', slug: 'v3/guides/server-side-rendering' },
-                    ]
-                },
-                {
-                    label: 'API reference',
-                    items: [
-                        { label: 'StyleSheet', slug: 'v3/references/stylesheet' },
-                        { label: 'Unistyles Runtime', slug: 'v3/references/unistyles-runtime' },
-                        { label: 'Mini Runtime', slug: 'v3/references/mini-runtime' },
-                        { label: 'Dynamic Functions', slug: 'v3/references/dynamic-functions' },
-                        { label: 'Breakpoints', slug: 'v3/references/breakpoints' },
-                        { label: 'Media Queries', slug: 'v3/references/media-queries' },
-                        { label: 'Variants', slug: 'v3/references/variants' },
-                        { label: 'Compound Variants', slug: 'v3/references/compound-variants' },
-                        { label: 'Web styles', slug: 'v3/references/web-styles' },
-                        { label: 'Web Only Features', slug: 'v3/references/web-only' },
-                        { label: 'Scoped theme', slug: 'v3/references/scoped-theme', badge: 'Updated!' },
-                        { label: 'Update 3rd party views', slug: 'v3/references/3rd-party-views' },
-                        { label: 'withUnistyles', slug: 'v3/references/with-unistyles' },
-                        { label: 'useUnistyles', slug: 'v3/references/use-unistyles' },
-                        { label: 'Display and Hide', slug: 'v3/references/display-hide' },
-                        { label: 'Edge to edge', slug: 'v3/references/edge-to-edge' },
-                        { label: 'Dimensions', slug: 'v3/references/dimensions' },
-                        { label: 'Content size category', slug: 'v3/references/content-size-category' },
-                    ]
-                },
-                {
-                    label: 'Other',
-                    items: [
-                        { label: 'Babel plugin', slug: 'v3/other/babel-plugin' },
-                        { label: 'Dependencies', slug: 'v3/other/dependencies' },
-                        { label: 'For library authors', slug: 'v3/other/for-library-authors' },
-                        { label: 'For sponsors', slug: 'v3/other/for-sponsors' },
-                        { label: 'FAQ', slug: 'v3/other/frequently-asked-questions' },
-                    ]
-                },
-                {
-                    label: 'Unistyles 2.0 documentation', link: 'https://v2.unistyl.es'
-                },
-                {
-                    label: 'React Native Crossroads', link: 'https://reactnativecrossroads.com'
-                },
-                {
-                    label: 'Codemask', link: 'https://codemask.com'
-                },
-                {
-                    label: 'Hire us!',
-                    badge: 'Hot!',
-                    link: 'https://x.com/messages/compose?recipient_id=769868612198887425'
-                }
-			],
-            plugins: [
-                starlightLlmsTxt({
-                    projectName: 'React Native Unistyles 3.0',
-                    description: 'Easily style cross platform React Native apps with a single StyleSheet',
-                    details: 'This documentation site is a source of truth for the good practices while building apps with React Native Unistyles.',
-                    promote: [
-                        'v3/start/**', 'v3/guides/**', 'v3/references/**'
-                    ],
-                    exclude: [
-                        'v3/examples/**', 'v3/tutorial/**', 'v3/guides/custom-web', 'v3/other/for-sponsors'
-                    ]
-                })
-            ]
-		}),
-        sitemap(),
-	],
-    redirects: Object.fromEntries(Object.entries(oldPaths).flatMap(([parentpath, subPaths]) => {
-        return subPaths.map(subPath => {
-            const path = `/${parentpath}/${subPath}`
-
-            return [path, `https://v2.unistyl.es/${path}`]
-        })
-    }))
-});
-
-
-
-================================================
-FILE: docs/package.json
-================================================
-{
-  "name": "react-native-unistyles-docs",
-  "type": "module",
-  "version": "1.0.0",
-  "scripts": {
-    "dev": "astro dev",
-    "start": "astro dev",
-    "build": "astro build",
-    "preview": "astro preview",
-    "astro": "astro"
-  },
-  "dependencies": {
-    "@astrojs/check": "0.9.4",
-    "@astrojs/sitemap": "3.2.1",
-    "@astrojs/starlight": "0.32.1",
-    "@fontsource-variable/nunito": "5.1.1",
-    "astro": "5.3.1",
-    "astro-expressive-code": "0.40.2",
-    "astro-seo": "0.8.4",
-    "autoprefixer": "10.4.20",
-    "postcss-easing-gradients": "3.0.1",
-    "postcss-nested": "7.0.2",
-    "sharp": "0.33.5",
-    "starlight-llms-txt": "0.4.1",
-    "typescript": "5.7.3"
-  }
-}
-
-
-
-================================================
-FILE: docs/postcss.config.mjs
-================================================
-import autoprefixer from 'autoprefixer'
-import postcssNested from 'postcss-nested'
-import gradients from 'postcss-easing-gradients'
-
-export default {
+    // other config
     plugins: [
-        autoprefixer,
-        postcssNested,
-        gradients
+        // other plugins
+        ['react-native-unistyles/plugin', {
+            // pass root folder of your application
+            // all files under this folder will be processed by the Babel plugin
+            // if you need to include more folders, or customize discovery process
+            // check available babel options
+            root: 'src'
+        }]
     ]
+  }
+}
+```
+
+Note
+
+See additional Babel plugin configuration options [here](/v3/other/babel-plugin#extra-configuration).
+
+Learn why you need Babel plugin [here](/v3/other/babel-plugin).
+
+Finish installation based on your platform:
+
+* Expo
+
+  ```shell
+  yarn expo prebuild --clean
+  ```
+
+  Do you use Expo Router?
+
+  Finish installation for Expo Router [here](/v3/guides/expo-router).
+
+  Dev client only
+
+  Unistyles includes custom native code, which means it does not support **Expo Go.**
+
+* React Native
+
+  ```shell
+  cd ios && pod install
+  ```
+
+* React Native Web
+
+  Unistyles offers first-class support for React Native Web. To run the project, we recommend following the guidelines provided by [Expo](https://docs.expo.dev/workflow/web/).
+
+* Custom Web
+
+  You can use Unistyles without React Native Web as a dependency. Check [this guide](/v3/guides/custom-web) for more details.
+
+* SSR
+
+  Unistyles offers first-class support for Next.js Server Side Rendering. To run the project, we recommend following the guidelines provided by [Next.JS](https://nextjs.org/docs).
+
+  Then follow [SSR guide](/v3/guides/server-side-rendering).
+
+  Babel only
+
+  You need to disable SWC and rely on Babel for transpiling your code.
+
+### As easy as React Native StyleSheet
+
+Getting started with Unistyles couldn’t be easier. Simply replace React Native’s `StyleSheet` with the `StyleSheet` exported from Unistyles. From that moment, you’ll be using a `StyleSheet` with superpowers 🦸🏼‍♂️.
+
+Example.tsx
+
+```tsx
+ import { StyleSheet } from 'react-native'
+ import { StyleSheet } from 'react-native-unistyles'
+
+
+const MyComponent = () => {
+  return (
+    <View style={styles.container}>
+      <Text>Hello world from Unistyles</Text>
+    </View>
+  )
 }
 
 
-
-================================================
-FILE: docs/theme.json
-================================================
-{
-	"$schema": "vscode://schemas/color-theme",
-	"type": "dark",
-	"colors": {
-		"activityBar.background": "#161624",
-		"activityBar.border": "#161624",
-		"activityBar.foreground": "#5f7e97",
-		"activityBarBadge.background": "#44596b",
-		"activityBarBadge.foreground": "#ffffff",
-		"badge.background": "#5f7e97",
-		"badge.foreground": "#ffffff",
-		"breadcrumb.activeSelectionForeground": "#ffffff",
-		"breadcrumb.focusForeground": "#ffffff",
-		"breadcrumb.foreground": "#a599e9",
-		"breadcrumbPicker.background": "#001122",
-		"button.background": "#7e57c2cc",
-		"button.foreground": "#ffffffcc",
-		"button.hoverBackground": "#7e57c2",
-		"contrastBorder": "#122d42",
-		"debugExceptionWidget.background": "#161624",
-		"debugExceptionWidget.border": "#5f7e97",
-		"debugToolBar.background": "#161624",
-		"diffEditor.insertedTextBackground": "#99b76d23",
-		"diffEditor.insertedTextBorder": "#c5e47833",
-		"diffEditor.removedTextBackground": "#ef535033",
-		"diffEditor.removedTextBorder": "#ef53504d",
-		"dropdown.background": "#161624",
-		"dropdown.border": "#5f7e97",
-		"dropdown.foreground": "#ffffffcc",
-		"editor.background": "#161624",
-		"editor.findMatchBackground": "#5f7e9779",
-		"editor.findMatchHighlightBackground": "#1085bb5d",
-		"editor.foreground": "#d6deeb",
-		"editor.hoverHighlightBackground": "#7e57c25a",
-		"editor.inactiveSelectionBackground": "#7e57c25a",
-		"editor.lineHighlightBackground": "#00000033",
-		"editor.rangeHighlightBackground": "#7e57c25a",
-		"editor.selectionBackground": "#1d3b53",
-		"editor.selectionHighlightBackground": "#5f7e9779",
-		"editor.wordHighlightBackground": "#f6bbe533",
-		"editor.wordHighlightStrongBackground": "#e2a2f433",
-		"editorBracketMatch.background": "#5f7e974d",
-		"editorCodeLens.foreground": "#5e82ceb4",
-		"editorCursor.foreground": "#80a4c2",
-		"editorError.foreground": "#ef5350",
-		"editorGroup.border": "#161624",
-		"editorGroup.dropBackground": "#7e57c273",
-		"editorGroup.emptyBackground": "#161624",
-		"editorGroupHeader.noTabsBackground": "#161624",
-		"editorGroupHeader.tabsBackground": "#161624",
-		"editorGroupHeader.tabsBorder": "#262a39",
-		"editorGutter.addedBackground": "#9ccc65",
-		"editorGutter.background": "#161624",
-		"editorGutter.deletedBackground": "#ef5350",
-		"editorGutter.modifiedBackground": "#e2b93d",
-		"editorHoverWidget.background": "#161624",
-		"editorHoverWidget.border": "#5f7e97",
-		"editorIndentGuide.activeBackground": "#7e97ac",
-		"editorIndentGuide.background": "#5e81ce52",
-		"editorLineNumber.activeForeground": "#c5e4fd",
-		"editorLineNumber.foreground": "#4b6479",
-		"editorMarkerNavigation.background": "#0b2942",
-		"editorMarkerNavigationError.background": "#ef5350",
-		"editorMarkerNavigationWarning.background": "#ffca28",
-		"editorOverviewRuler.commonContentForeground": "#7e57c2",
-		"editorOverviewRuler.currentContentForeground": "#7e57c2",
-		"editorOverviewRuler.incomingContentForeground": "#7e57c2",
-		"editorRuler.foreground": "#5e81ce52",
-		"editorSuggestWidget.background": "#2c3043",
-		"editorSuggestWidget.border": "#2b2f40",
-		"editorSuggestWidget.foreground": "#d6deeb",
-		"editorSuggestWidget.highlightForeground": "#ffffff",
-		"editorSuggestWidget.selectedBackground": "#5f7e97",
-		"editorWarning.foreground": "#b39554",
-		"editorWidget.background": "#021320",
-		"editorWidget.border": "#5f7e97",
-		"errorForeground": "#ef5350",
-		"extensionButton.prominentBackground": "#7e57c2cc",
-		"extensionButton.prominentForeground": "#ffffffcc",
-		"extensionButton.prominentHoverBackground": "#7e57c2",
-		"focusBorder": "#122d42",
-		"foreground": "#d6deeb",
-		"gitDecoration.conflictingResourceForeground": "#ffeb95cc",
-		"gitDecoration.deletedResourceForeground": "#ef535090",
-		"gitDecoration.ignoredResourceForeground": "#395a75",
-		"gitDecoration.modifiedResourceForeground": "#a2bffc",
-		"gitDecoration.untrackedResourceForeground": "#c5e478",
-		"input.background": "#0b253a",
-		"input.border": "#5f7e97",
-		"input.foreground": "#ffffffcc",
-		"input.placeholderForeground": "#5f7e97",
-		"inputOption.activeBorder": "#ffffffcc",
-		"inputValidation.errorBackground": "#ab0300f2",
-		"inputValidation.errorBorder": "#ef5350",
-		"inputValidation.infoBackground": "#00589ef2",
-		"inputValidation.infoBorder": "#64b5f6",
-		"inputValidation.warningBackground": "#675700f2",
-		"inputValidation.warningBorder": "#ffca28",
-		"list.activeSelectionBackground": "#234d708c",
-		"list.activeSelectionForeground": "#ffffff",
-		"list.dropBackground": "#161624",
-		"list.focusBackground": "#010d18",
-		"list.focusForeground": "#ffffff",
-		"list.highlightForeground": "#ffffff",
-		"list.hoverBackground": "#161624",
-		"list.hoverForeground": "#ffffff",
-		"list.inactiveSelectionBackground": "#0e293f",
-		"list.inactiveSelectionForeground": "#5f7e97",
-		"list.invalidItemForeground": "#975f94",
-		"merge.currentHeaderBackground": "#5f7e97",
-		"merge.incomingHeaderBackground": "#7e57c25a",
-		"notificationCenter.border": "#262a39",
-		"notificationLink.foreground": "#80cbc4",
-		"notificationToast.border": "#262a39",
-		"notifications.background": "#01111d",
-		"notifications.border": "#262a39",
-		"notifications.foreground": "#ffffffcc",
-		"panel.background": "#161624",
-		"panel.border": "#5f7e97",
-		"panelTitle.activeBorder": "#5f7e97",
-		"panelTitle.activeForeground": "#ffffffcc",
-		"panelTitle.inactiveForeground": "#d6deeb80",
-		"peekView.border": "#5f7e97",
-		"peekViewEditor.background": "#161624",
-		"peekViewEditor.matchHighlightBackground": "#7e57c25a",
-		"peekViewResult.background": "#161624",
-		"peekViewResult.fileForeground": "#5f7e97",
-		"peekViewResult.lineForeground": "#5f7e97",
-		"peekViewResult.matchHighlightBackground": "#ffffffcc",
-		"peekViewResult.selectionBackground": "#2e3250",
-		"peekViewResult.selectionForeground": "#5f7e97",
-		"peekViewTitle.background": "#161624",
-		"peekViewTitleDescription.foreground": "#697098",
-		"peekViewTitleLabel.foreground": "#5f7e97",
-		"pickerGroup.border": "#161624",
-		"pickerGroup.foreground": "#d1aaff",
-		"scrollbar.shadow": "#010b14",
-		"scrollbarSlider.activeBackground": "#084d8180",
-		"scrollbarSlider.background": "#084d8180",
-		"scrollbarSlider.hoverBackground": "#084d8180",
-		"selection.background": "#4373c2",
-		"sideBar.background": "#161624",
-		"sideBar.border": "#161624",
-		"sideBar.foreground": "#89a4bb",
-		"sideBarSectionHeader.background": "#161624",
-		"sideBarSectionHeader.foreground": "#5f7e97",
-		"sideBarTitle.foreground": "#5f7e97",
-		"statusBar.background": "#161624",
-		"statusBar.border": "#262a39",
-		"statusBar.debuggingBackground": "#202431",
-		"statusBar.debuggingBorder": "#1f2330",
-		"statusBar.foreground": "#5f7e97",
-		"statusBar.noFolderBackground": "#161624",
-		"statusBar.noFolderBorder": "#25293a",
-		"statusBarItem.activeBackground": "#202431",
-		"statusBarItem.hoverBackground": "#202431",
-		"statusBarItem.prominentBackground": "#202431",
-		"statusBarItem.prominentHoverBackground": "#202431",
-		"tab.activeBackground": "#0b2942",
-		"tab.activeBorder": "#262a39",
-		"tab.activeForeground": "#d2dee7",
-		"tab.border": "#272b3b",
-		"tab.inactiveBackground": "#01111d",
-		"tab.inactiveForeground": "#5f7e97",
-		"tab.unfocusedActiveBorder": "#262a39",
-		"tab.unfocusedActiveForeground": "#5f7e97",
-		"tab.unfocusedInactiveForeground": "#5f7e97",
-		"terminal.ansiBlack": "#161624",
-		"terminal.ansiBlue": "#82aaff",
-		"terminal.ansiBrightBlack": "#575656",
-		"terminal.ansiBrightBlue": "#82aaff",
-		"terminal.ansiBrightCyan": "#7fdbca",
-		"terminal.ansiBrightGreen": "#22da6e",
-		"terminal.ansiBrightMagenta": "#c792ea",
-		"terminal.ansiBrightRed": "#ef5350",
-		"terminal.ansiBrightWhite": "#ffffff",
-		"terminal.ansiBrightYellow": "#ffeb95",
-		"terminal.ansiCyan": "#21c7a8",
-		"terminal.ansiGreen": "#22da6e",
-		"terminal.ansiMagenta": "#c792ea",
-		"terminal.ansiRed": "#ef5350",
-		"terminal.ansiWhite": "#ffffff",
-		"terminal.ansiYellow": "#c5e478",
-		"terminal.selectionBackground": "#1b90dd4d",
-		"terminalCursor.background": "#234d70",
-		"textCodeBlock.background": "#4f4f4f",
-		"titleBar.activeBackground": "#161624",
-		"titleBar.activeForeground": "#eeefff",
-		"titleBar.inactiveBackground": "#010e1a",
-		"walkThrough.embeddedEditorBackground": "#161624",
-		"widget.shadow": "#161624",
-	},
-	"tokenColors": [
-		{
-			"scope": [
-				"markup.changed",
-				"meta.diff.header.git",
-				"meta.diff.header.from-file",
-				"meta.diff.header.to-file"
-			],
-			"settings": {
-				"foreground": "#A2BFFC",
-				"fontStyle": "italic"
-			}
-		},
-		{
-			"scope": "markup.deleted.diff",
-			"settings": {
-				"foreground": "#EF535090",
-				"fontStyle": "italic"
-			}
-		},
-		{
-			"scope": "markup.inserted.diff",
-			"settings": {
-				"foreground": "#80EEFB",
-				"fontStyle": "italic"
-			}
-		},
-		{
-			"scope": "comment",
-			"settings": {
-				"foreground": "#637777",
-				"fontStyle": "italic"
-			}
-		},
-		{
-			"scope": "string",
-			"settings": {
-				"foreground": "#ECC48D"
-			}
-		},
-		{
-			"scope": [
-				"string.quoted",
-				"variable.other.readwrite.js"
-			],
-			"settings": {
-				"foreground": "#ECC48D"
-			}
-		},
-		{
-			"scope": "support.constant.math",
-			"settings": {
-				"foreground": "#80EEFB"
-			}
-		},
-		{
-			"scope": [
-				"constant.numeric",
-				"constant.character.numeric"
-			],
-			"settings": {
-				"foreground": "#FF70DB",
-				"fontStyle": ""
-			}
-		},
-		{
-			"scope": [
-				"constant.language",
-				"punctuation.definition.constant",
-				"variable.other.constant"
-			],
-			"settings": {
-				"foreground": "#82AAFF"
-			}
-		},
-		{
-			"scope": [
-				"constant.character",
-				"constant.other"
-			],
-			"settings": {
-				"foreground": "#82AAFF"
-			}
-		},
-		{
-			"scope": "constant.character.escape",
-			"settings": {
-				"foreground": "#FF70DB"
-			}
-		},
-		{
-			"scope": [
-				"string.regexp",
-				"string.regexp keyword.other"
-			],
-			"settings": {
-				"foreground": "#5CA7E4"
-			}
-		},
-		{
-			"scope": "meta.function punctuation.separator.comma",
-			"settings": {
-				"foreground": "#5F7E97"
-			}
-		},
-		{
-			"scope": "variable",
-			"settings": {
-				"foreground": "#80EEFB"
-			}
-		},
-		{
-			"scope": [
-				"punctuation.accessor",
-				"keyword"
-			],
-			"settings": {
-				"foreground": "#C792EA",
-				"fontStyle": "italic"
-			}
-		},
-		{
-			"scope": [
-				"storage",
-				"meta.var.expr",
-				"meta.class meta.method.declaration meta.var.expr storage.type.js",
-				"storage.type.property.js",
-				"storage.type.property.ts",
-				"storage.type.property.tsx"
-			],
-			"settings": {
-				"foreground": "#C792EA",
-				"fontStyle": "italic"
-			}
-		},
-		{
-			"scope": "storage.type",
-			"settings": {
-				"foreground": "#C792EA"
-			}
-		},
-		{
-			"scope": "storage.type.function.arrow.js",
-			"settings": {
-				"fontStyle": ""
-			}
-		},
-		{
-			"scope": [
-				"entity.name.class",
-				"meta.class entity.name.type.class"
-			],
-			"settings": {
-				"foreground": "#FFCB8B"
-			}
-		},
-		{
-			"scope": "entity.other.inherited-class",
-			"settings": {
-				"foreground": "#80EEFB"
-			}
-		},
-		{
-			"scope": "entity.name.function",
-			"settings": {
-				"foreground": "#C792EA",
-				"fontStyle": "italic"
-			}
-		},
-		{
-			"scope": [
-				"punctuation.definition.tag",
-				"meta.tag"
-			],
-			"settings": {
-				"foreground": "#7FDBCA"
-			}
-		},
-		{
-			"scope": [
-				"entity.name.tag",
-				"meta.tag.other.html",
-				"meta.tag.other.js",
-				"meta.tag.other.tsx",
-				"entity.name.tag.tsx",
-				"entity.name.tag.js",
-				"entity.name.tag",
-				"meta.tag.js",
-				"meta.tag.tsx",
-				"meta.tag.html"
-			],
-			"settings": {
-				"foreground": "#CAECE6",
-				"fontStyle": ""
-			}
-		},
-		{
-			"scope": "entity.other.attribute-name",
-			"settings": {
-				"foreground": "#80EEFB",
-				"fontStyle": "italic"
-			}
-		},
-		{
-			"scope": "entity.name.tag.custom",
-			"settings": {
-				"foreground": "#FF70DB"
-			}
-		},
-		{
-			"scope": [
-				"support.function",
-				"support.constant"
-			],
-			"settings": {
-				"foreground": "#82AAFF"
-			}
-		},
-		{
-			"scope": "support.constant.meta.property-value",
-			"settings": {
-				"foreground": "#7FDBCA"
-			}
-		},
-		{
-			"scope": [
-				"support.type",
-				"support.class"
-			],
-			"settings": {
-				"foreground": "#80EEFB"
-			}
-		},
-		{
-			"scope": "support.variable.dom",
-			"settings": {
-				"foreground": "#80EEFB"
-			}
-		},
-		{
-			"scope": "invalid",
-			"settings": {
-				"foreground": "#FFFFFF",
-				"background": "#FF2C83"
-			}
-		},
-		{
-			"scope": "invalid.deprecated",
-			"settings": {
-				"foreground": "#FFFFFF",
-				"background": "#D3423E"
-			}
-		},
-		{
-			"scope": "keyword.operator",
-			"settings": {
-				"foreground": "#7FDBCA",
-				"fontStyle": ""
-			}
-		},
-		{
-			"scope": "keyword.operator.relational",
-			"settings": {
-				"foreground": "#C792EA",
-				"fontStyle": "italic"
-			}
-		},
-		{
-			"scope": "keyword.operator.assignment",
-			"settings": {
-				"foreground": "#C792EA"
-			}
-		},
-		{
-			"scope": "keyword.operator.arithmetic",
-			"settings": {
-				"foreground": "#C792EA"
-			}
-		},
-		{
-			"scope": "keyword.operator.bitwise",
-			"settings": {
-				"foreground": "#C792EA"
-			}
-		},
-		{
-			"scope": "keyword.operator.increment",
-			"settings": {
-				"foreground": "#C792EA"
-			}
-		},
-		{
-			"scope": "keyword.operator.ternary",
-			"settings": {
-				"foreground": "#C792EA"
-			}
-		},
-		{
-			"scope": "comment.line.double-slash",
-			"settings": {
-				"foreground": "#637777"
-			}
-		},
-		{
-			"scope": "object",
-			"settings": {
-				"foreground": "#CDEBF7"
-			}
-		},
-		{
-			"scope": "constant.language.null",
-			"settings": {
-				"foreground": "#FF5874"
-			}
-		},
-		{
-			"scope": "meta.brace",
-			"settings": {
-				"foreground": "#D6DEEB"
-			}
-		},
-		{
-			"scope": "meta.delimiter.period",
-			"settings": {
-				"foreground": "#C792EA",
-				"fontStyle": "italic"
-			}
-		},
-		{
-			"scope": "punctuation.definition.string",
-			"settings": {
-				"foreground": "#D9F5DD"
-			}
-		},
-		{
-			"scope": "punctuation.definition.string.begin.markdown",
-			"settings": {
-				"foreground": "#FF5874"
-			}
-		},
-		{
-			"scope": "constant.language.boolean",
-			"settings": {
-				"foreground": "#FF5874"
-			}
-		},
-		{
-			"scope": "object.comma",
-			"settings": {
-				"foreground": "#FFFFFF"
-			}
-		},
-		{
-			"scope": "variable.parameter.function",
-			"settings": {
-				"foreground": "#7FDBCA",
-				"fontStyle": ""
-			}
-		},
-		{
-			"scope": [
-				"support.type.vendor.property-name",
-				"support.constant.vendor.property-value",
-				"support.type.property-name",
-				"meta.property-list entity.name.tag"
-			],
-			"settings": {
-				"foreground": "#80CBC4",
-				"fontStyle": ""
-			}
-		},
-		{
-			"scope": "meta.property-list entity.name.tag.reference",
-			"settings": {
-				"foreground": "#57EAF1"
-			}
-		},
-		{
-			"scope": "constant.other.color.rgb-value punctuation.definition.constant",
-			"settings": {
-				"foreground": "#FF70DB"
-			}
-		},
-		{
-			"scope": "constant.other.color",
-			"settings": {
-				"foreground": "#FFEB95"
-			}
-		},
-		{
-			"scope": "keyword.other.unit",
-			"settings": {
-				"foreground": "#FFEB95"
-			}
-		},
-		{
-			"scope": "meta.selector",
-			"settings": {
-				"foreground": "#C792EA",
-				"fontStyle": "italic"
-			}
-		},
-		{
-			"scope": "entity.other.attribute-name.id",
-			"settings": {
-				"foreground": "#FAD430"
-			}
-		},
-		{
-			"scope": "meta.property-name",
-			"settings": {
-				"foreground": "#80CBC4"
-			}
-		},
-		{
-			"scope": [
-				"entity.name.tag.doctype",
-				"meta.tag.sgml.doctype"
-			],
-			"settings": {
-				"foreground": "#C792EA",
-				"fontStyle": "italic"
-			}
-		},
-		{
-			"scope": "punctuation.definition.parameters",
-			"settings": {
-				"foreground": "#D9F5DD"
-			}
-		},
-		{
-			"scope": "keyword.control.operator",
-			"settings": {
-				"foreground": "#7FDBCA"
-			}
-		},
-		{
-			"scope": "keyword.operator.logical",
-			"settings": {
-				"foreground": "#C792EA",
-				"fontStyle": ""
-			}
-		},
-		{
-			"scope": [
-				"variable.instance",
-				"variable.other.instance",
-				"variable.readwrite.instance",
-				"variable.other.readwrite.instance",
-				"variable.other.property"
-			],
-			"settings": {
-				"foreground": "#BAEBE2"
-			}
-		},
-		{
-			"scope": [
-				"variable.other.object.property"
-			],
-			"settings": {
-				"foreground": "#FAF39F",
-				"fontStyle": "italic"
-			}
-		},
-		{
-			"scope": [
-				"variable.other.object.js"
-			],
-			"settings": {
-				"fontStyle": ""
-			}
-		},
-		{
-			"scope": [
-				"entity.name.function"
-			],
-			"settings": {
-				"foreground": "#82AAFF",
-				"fontStyle": "italic"
-			}
-		},
-		{
-			"scope": [
-				"keyword.operator.comparison",
-				"keyword.control.flow.js",
-				"keyword.control.flow.ts",
-				"keyword.control.flow.tsx",
-				"keyword.control.ruby",
-				"keyword.control.module.ruby",
-				"keyword.control.class.ruby",
-				"keyword.control.def.ruby",
-				"keyword.control.loop.js",
-				"keyword.control.loop.ts",
-				"keyword.control.import.js",
-				"keyword.control.import.ts",
-				"keyword.control.import.tsx",
-				"keyword.control.from.js",
-				"keyword.control.from.ts",
-				"keyword.control.from.tsx",
-				"keyword.operator.instanceof.js",
-				"keyword.operator.expression.instanceof.ts",
-				"keyword.operator.expression.instanceof.tsx"
-			],
-			"settings": {
-				"foreground": "#C792EA",
-				"fontStyle": "italic"
-			}
-		},
-		{
-			"scope": [
-				"keyword.control.conditional.js",
-				"keyword.control.conditional.ts",
-				"keyword.control.switch.js",
-				"keyword.control.switch.ts"
-			],
-			"settings": {
-				"foreground": "#C792EA",
-				"fontStyle": ""
-			}
-		},
-		{
-			"scope": [
-				"support.constant",
-				"keyword.other.special-method",
-				"keyword.other.new",
-				"keyword.other.debugger",
-				"keyword.control"
-			],
-			"settings": {
-				"foreground": "#7FDBCA"
-			}
-		},
-		{
-			"scope": "support.function",
-			"settings": {
-				"foreground": "#80EEFB"
-			}
-		},
-		{
-			"scope": "invalid.broken",
-			"settings": {
-				"foreground": "#020E14",
-				"background": "#FF70DB"
-			}
-		},
-		{
-			"scope": "invalid.unimplemented",
-			"settings": {
-				"foreground": "#FFFFFF",
-				"background": "#8BD649"
-			}
-		},
-		{
-			"scope": "invalid.illegal",
-			"settings": {
-				"foreground": "#FFFFFF",
-				"background": "#EC5F67"
-			}
-		},
-		{
-			"scope": "variable.language",
-			"settings": {
-				"foreground": "#7FDBCA"
-			}
-		},
-		{
-			"scope": "support.variable.property",
-			"settings": {
-				"foreground": "#7FDBCA"
-			}
-		},
-		{
-			"scope": "variable.function",
-			"settings": {
-				"foreground": "#82AAFF"
-			}
-		},
-		{
-			"scope": "variable.interpolation",
-			"settings": {
-				"foreground": "#EC5F67"
-			}
-		},
-		{
-			"scope": "meta.function-call",
-			"settings": {
-				"foreground": "#82AAFF"
-			}
-		},
-		{
-			"scope": "punctuation.section.embedded",
-			"settings": {
-				"foreground": "#D3423E"
-			}
-		},
-		{
-			"scope": [
-				"punctuation.terminator.expression",
-				"punctuation.definition.arguments",
-				"punctuation.definition.array",
-				"punctuation.section.array",
-				"meta.array"
-			],
-			"settings": {
-				"foreground": "#D6DEEB"
-			}
-		},
-		{
-			"scope": [
-				"punctuation.definition.list.begin",
-				"punctuation.definition.list.end",
-				"punctuation.separator.arguments",
-				"punctuation.definition.list"
-			],
-			"settings": {
-				"foreground": "#D9F5DD"
-			}
-		},
-		{
-			"scope": "string.template meta.template.expression",
-			"settings": {
-				"foreground": "#D3423E"
-			}
-		},
-		{
-			"scope": "string.template punctuation.definition.string",
-			"settings": {
-				"foreground": "#D6DEEB"
-			}
-		},
-		{
-			"scope": "italic",
-			"settings": {
-				"foreground": "#C792EA",
-				"fontStyle": "italic"
-			}
-		},
-		{
-			"scope": "bold",
-			"settings": {
-				"foreground": "#80EEFB",
-				"fontStyle": "bold"
-			}
-		},
-		{
-			"scope": "quote",
-			"settings": {
-				"foreground": "#697098",
-				"fontStyle": "italic"
-			}
-		},
-		{
-			"scope": "raw",
-			"settings": {
-				"foreground": "#80CBC4"
-			}
-		},
-		{
-			"scope": "variable.assignment.coffee",
-			"settings": {
-				"foreground": "#31E1EB"
-			}
-		},
-		{
-			"scope": "variable.parameter.function.coffee",
-			"settings": {
-				"foreground": "#D6DEEB"
-			}
-		},
-		{
-			"scope": "variable.assignment.coffee",
-			"settings": {
-				"foreground": "#7FDBCA"
-			}
-		},
-		{
-			"scope": "variable.other.readwrite.cs",
-			"settings": {
-				"foreground": "#D6DEEB"
-			}
-		},
-		{
-			"scope": [
-				"entity.name.type.class.cs",
-				"storage.type.cs"
-			],
-			"settings": {
-				"foreground": "#FFCB8B"
-			}
-		},
-		{
-			"scope": "entity.name.type.namespace.cs",
-			"settings": {
-				"foreground": "#B2CCD6"
-			}
-		},
-		{
-			"scope": "string.unquoted.preprocessor.message.cs",
-			"settings": {
-				"foreground": "#D6DEEB"
-			}
-		},
-		{
-			"scope": [
-				"punctuation.separator.hash.cs",
-				"keyword.preprocessor.region.cs",
-				"keyword.preprocessor.endregion.cs"
-			],
-			"settings": {
-				"foreground": "#FFCB8B",
-				"fontStyle": "bold"
-			}
-		},
-		{
-			"scope": "variable.other.object.cs",
-			"settings": {
-				"foreground": "#B2CCD6"
-			}
-		},
-		{
-			"scope": "entity.name.type.enum.cs",
-			"settings": {
-				"foreground": "#80EEFB"
-			}
-		},
-		{
-			"scope": [
-				"string.interpolated.single.dart",
-				"string.interpolated.double.dart"
-			],
-			"settings": {
-				"foreground": "#FFCB8B"
-			}
-		},
-		{
-			"scope": "support.class.dart",
-			"settings": {
-				"foreground": "#FFCB8B"
-			}
-		},
-		{
-			"scope": [
-				"entity.name.tag.css",
-				"entity.name.tag.less",
-				"entity.name.tag.custom.css",
-				"support.constant.property-value.css"
-			],
-			"settings": {
-				"foreground": "#FF6363",
-				"fontStyle": ""
-			}
-		},
-		{
-			"scope": [
-				"entity.name.tag.wildcard.css",
-				"entity.name.tag.wildcard.less",
-				"entity.name.tag.wildcard.scss",
-				"entity.name.tag.wildcard.sass"
-			],
-			"settings": {
-				"foreground": "#7FDBCA"
-			}
-		},
-		{
-			"scope": "keyword.other.unit.css",
-			"settings": {
-				"foreground": "#FFEB95"
-			}
-		},
-		{
-			"scope": [
-				"meta.attribute-selector.css entity.other.attribute-name.attribute",
-				"variable.other.readwrite.js"
-			],
-			"settings": {
-				"foreground": "#FF70DB"
-			}
-		},
-		{
-			"scope": [
-				"source.elixir support.type.elixir",
-				"source.elixir meta.module.elixir entity.name.class.elixir"
-			],
-			"settings": {
-				"foreground": "#82AAFF"
-			}
-		},
-		{
-			"scope": "source.elixir entity.name.function",
-			"settings": {
-				"foreground": "#80EEFB"
-			}
-		},
-		{
-			"scope": [
-				"source.elixir constant.other.symbol.elixir",
-				"source.elixir constant.other.keywords.elixir"
-			],
-			"settings": {
-				"foreground": "#82AAFF"
-			}
-		},
-		{
-			"scope": "source.elixir punctuation.definition.string",
-			"settings": {
-				"foreground": "#80EEFB"
-			}
-		},
-		{
-			"scope": [
-				"source.elixir variable.other.readwrite.module.elixir",
-				"source.elixir variable.other.readwrite.module.elixir punctuation.definition.variable.elixir"
-			],
-			"settings": {
-				"foreground": "#80EEFB"
-			}
-		},
-		{
-			"scope": "source.elixir .punctuation.binary.elixir",
-			"settings": {
-				"foreground": "#C792EA",
-				"fontStyle": "italic"
-			}
-		},
-		{
-			"scope": "constant.keyword.clojure",
-			"settings": {
-				"foreground": "#7FDBCA"
-			}
-		},
-		{
-			"scope": "source.go meta.function-call.go",
-			"settings": {
-				"foreground": "#DDDDDD"
-			}
-		},
-		{
-			"scope": [
-				"source.go keyword.package.go",
-				"source.go keyword.import.go",
-				"source.go keyword.function.go",
-				"source.go keyword.type.go",
-				"source.go keyword.struct.go",
-				"source.go keyword.interface.go",
-				"source.go keyword.const.go",
-				"source.go keyword.var.go",
-				"source.go keyword.map.go",
-				"source.go keyword.channel.go",
-				"source.go keyword.control.go"
-			],
-			"settings": {
-				"foreground": "#C792EA",
-				"fontStyle": "italic"
-			}
-		},
-		{
-			"scope": [
-				"source.go constant.language.go",
-				"source.go constant.other.placeholder.go"
-			],
-			"settings": {
-				"foreground": "#FF5874"
-			}
-		},
-		{
-			"scope": [
-				"entity.name.function.preprocessor.cpp",
-				"entity.scope.name.cpp"
-			],
-			"settings": {
-				"foreground": "#7FDBCA"
-			}
-		},
-		{
-			"scope": [
-				"meta.namespace-block.cpp"
-			],
-			"settings": {
-				"foreground": "#E0DEC6"
-			}
-		},
-		{
-			"scope": [
-				"storage.type.language.primitive.cpp"
-			],
-			"settings": {
-				"foreground": "#FF5874"
-			}
-		},
-		{
-			"scope": [
-				"meta.preprocessor.macro.cpp"
-			],
-			"settings": {
-				"foreground": "#D6DEEB"
-			}
-		},
-		{
-			"scope": [
-				"variable.parameter"
-			],
-			"settings": {
-				"foreground": "#FFCB8B"
-			}
-		},
-		{
-			"scope": [
-				"variable.other.readwrite.powershell"
-			],
-			"settings": {
-				"foreground": "#82AAFF"
-			}
-		},
-		{
-			"scope": [
-				"support.function.powershell"
-			],
-			"settings": {
-				"foreground": "#7FDBCA"
-			}
-		},
-		{
-			"scope": "entity.other.attribute-name.id.html",
-			"settings": {
-				"foreground": "#80EEFB"
-			}
-		},
-		{
-			"scope": "punctuation.definition.tag.html",
-			"settings": {
-				"foreground": "#6AE9F0"
-			}
-		},
-		{
-			"scope": "meta.tag.sgml.doctype.html",
-			"settings": {
-				"foreground": "#C792EA",
-				"fontStyle": "italic"
-			}
-		},
-		{
-			"scope": "meta.class entity.name.type.class.js",
-			"settings": {
-				"foreground": "#FFCB8B"
-			}
-		},
-		{
-			"scope": "meta.method.declaration storage.type.js",
-			"settings": {
-				"foreground": "#82AAFF"
-			}
-		},
-		{
-			"scope": "terminator.js",
-			"settings": {
-				"foreground": "#D6DEEB"
-			}
-		},
-		{
-			"scope": "meta.js punctuation.definition.js",
-			"settings": {
-				"foreground": "#D6DEEB"
-			}
-		},
-		{
-			"scope": [
-				"entity.name.type.instance.jsdoc",
-				"entity.name.type.instance.phpdoc"
-			],
-			"settings": {
-				"foreground": "#5F7E97"
-			}
-		},
-		{
-			"scope": [
-				"variable.other.jsdoc",
-				"variable.other.phpdoc"
-			],
-			"settings": {
-				"foreground": "#78CCF0"
-			}
-		},
-		{
-			"scope": [
-				"variable.other.meta.import.js",
-				"meta.import.js variable.other",
-				"variable.other.meta.export.js",
-				"meta.export.js variable.other"
-			],
-			"settings": {
-				"foreground": "#D6DEEB"
-			}
-		},
-		{
-			"scope": "variable.parameter.function.js",
-			"settings": {
-				"foreground": "#7986E7"
-			}
-		},
-		{
-			"scope": [
-				"variable.other.object.js",
-				"variable.other.object.jsx",
-				"variable.object.property.js",
-				"variable.object.property.jsx"
-			],
-			"settings": {
-				"foreground": "#D6DEEB"
-			}
-		},
-		{
-			"scope": [
-				"variable.js",
-				"variable.other.js"
-			],
-			"settings": {
-				"foreground": "#D6DEEB"
-			}
-		},
-		{
-			"scope": [
-				"entity.name.type.js",
-				"entity.name.type.module.js"
-			],
-			"settings": {
-				"foreground": "#FFCB8B",
-				"fontStyle": ""
-			}
-		},
-		{
-			"scope": "support.class.js",
-			"settings": {
-				"foreground": "#D6DEEB"
-			}
-		},
-		{
-			"scope": "support.type.property-name.json",
-			"settings": {
-				"foreground": "#7FDBCA"
-			}
-		},
-		{
-			"scope": "support.constant.json",
-			"settings": {
-				"foreground": "#80EEFB"
-			}
-		},
-		{
-			"scope": "meta.structure.dictionary.value.json string.quoted.double",
-			"settings": {
-				"foreground": "#C789D6"
-			}
-		},
-		{
-			"scope": "string.quoted.double.json punctuation.definition.string.json",
-			"settings": {
-				"foreground": "#80CBC4"
-			}
-		},
-		{
-			"scope": "meta.structure.dictionary.json meta.structure.dictionary.value constant.language",
-			"settings": {
-				"foreground": "#FF5874"
-			}
-		},
-		{
-			"scope": "variable.other.object.js",
-			"settings": {
-				"foreground": "#7FDBCA",
-				"fontStyle": "italic"
-			}
-		},
-		{
-			"scope": [
-				"variable.other.ruby"
-			],
-			"settings": {
-				"foreground": "#D6DEEB"
-			}
-		},
-		{
-			"scope": [
-				"entity.name.type.class.ruby"
-			],
-			"settings": {
-				"foreground": "#ECC48D"
-			}
-		},
-		{
-			"scope": "constant.language.symbol.hashkey.ruby",
-			"settings": {
-				"foreground": "#7FDBCA"
-			}
-		},
-		{
-			"scope": "constant.language.symbol.ruby",
-			"settings": {
-				"foreground": "#7FDBCA"
-			}
-		},
-		{
-			"scope": "entity.name.tag.less",
-			"settings": {
-				"foreground": "#7FDBCA"
-			}
-		},
-		{
-			"scope": "keyword.other.unit.css",
-			"settings": {
-				"foreground": "#FFEB95"
-			}
-		},
-		{
-			"scope": "meta.attribute-selector.less entity.other.attribute-name.attribute",
-			"settings": {
-				"foreground": "#FF70DB"
-			}
-		},
-		{
-			"scope": [
-				"markup.heading.markdown",
-				"markup.heading.setext.1.markdown",
-				"markup.heading.setext.2.markdown"
-			],
-			"settings": {
-				"foreground": "#82B1FF"
-			}
-		},
-		{
-			"scope": "markup.italic.markdown",
-			"settings": {
-				"foreground": "#C792EA",
-				"fontStyle": "italic"
-			}
-		},
-		{
-			"scope": "markup.bold.markdown",
-			"settings": {
-				"foreground": "#80EEFB",
-				"fontStyle": "bold"
-			}
-		},
-		{
-			"scope": "markup.quote.markdown",
-			"settings": {
-				"foreground": "#697098",
-				"fontStyle": "italic"
-			}
-		},
-		{
-			"scope": "markup.inline.raw.markdown",
-			"settings": {
-				"foreground": "#80CBC4"
-			}
-		},
-		{
-			"scope": [
-				"markup.underline.link.markdown",
-				"markup.underline.link.image.markdown"
-			],
-			"settings": {
-				"foreground": "#FF869A"
-			}
-		},
-		{
-			"scope": [
-				"string.other.link.title.markdown",
-				"string.other.link.description.markdown"
-			],
-			"settings": {
-				"foreground": "#D6DEEB"
-			}
-		},
-		{
-			"scope": [
-				"punctuation.definition.string.markdown",
-				"punctuation.definition.string.begin.markdown",
-				"punctuation.definition.string.end.markdown",
-				"meta.link.inline.markdown punctuation.definition.string"
-			],
-			"settings": {
-				"foreground": "#82B1FF"
-			}
-		},
-		{
-			"scope": [
-				"punctuation.definition.metadata.markdown"
-			],
-			"settings": {
-				"foreground": "#7FDBCA"
-			}
-		},
-		{
-			"scope": [
-				"beginning.punctuation.definition.list.markdown"
-			],
-			"settings": {
-				"foreground": "#82B1FF"
-			}
-		},
-		{
-			"scope": "markup.inline.raw.string.markdown",
-			"settings": {
-				"foreground": "#80EEFB"
-			}
-		},
-		{
-			"scope": [
-				"variable.other.php",
-				"variable.other.property.php"
-			],
-			"settings": {
-				"foreground": "#BEC5D4"
-			}
-		},
-		{
-			"scope": "support.class.php",
-			"settings": {
-				"foreground": "#FFCB8B"
-			}
-		},
-		{
-			"scope": "meta.function-call.php punctuation",
-			"settings": {
-				"foreground": "#D6DEEB"
-			}
-		},
-		{
-			"scope": "variable.other.global.php",
-			"settings": {
-				"foreground": "#80EEFB"
-			}
-		},
-		{
-			"scope": "variable.other.global.php punctuation.definition.variable",
-			"settings": {
-				"foreground": "#80EEFB"
-			}
-		},
-		{
-			"scope": "constant.language.python",
-			"settings": {
-				"foreground": "#FF5874"
-			}
-		},
-		{
-			"scope": [
-				"variable.parameter.function.python",
-				"meta.function-call.arguments.python"
-			],
-			"settings": {
-				"foreground": "#82AAFF"
-			}
-		},
-		{
-			"scope": [
-				"meta.function-call.python",
-				"meta.function-call.generic.python"
-			],
-			"settings": {
-				"foreground": "#B2CCD6"
-			}
-		},
-		{
-			"scope": "punctuation.python",
-			"settings": {
-				"foreground": "#D6DEEB"
-			}
-		},
-		{
-			"scope": "entity.name.function.decorator.python",
-			"settings": {
-				"foreground": "#80EEFB"
-			}
-		},
-		{
-			"scope": "source.python variable.language.special",
-			"settings": {
-				"foreground": "#8EACE3"
-			}
-		},
-		{
-			"scope": "keyword.control",
-			"settings": {
-				"foreground": "#C792EA",
-				"fontStyle": "italic"
-			}
-		},
-		{
-			"scope": [
-				"variable.scss",
-				"variable.sass",
-				"variable.parameter.url.scss",
-				"variable.parameter.url.sass"
-			],
-			"settings": {
-				"foreground": "#80EEFB"
-			}
-		},
-		{
-			"scope": [
-				"source.css.scss meta.at-rule variable",
-				"source.css.sass meta.at-rule variable"
-			],
-			"settings": {
-				"foreground": "#82AAFF"
-			}
-		},
-		{
-			"scope": [
-				"source.css.scss meta.at-rule variable",
-				"source.css.sass meta.at-rule variable"
-			],
-			"settings": {
-				"foreground": "#BEC5D4"
-			}
-		},
-		{
-			"scope": [
-				"meta.attribute-selector.scss entity.other.attribute-name.attribute",
-				"meta.attribute-selector.sass entity.other.attribute-name.attribute"
-			],
-			"settings": {
-				"foreground": "#FF70DB"
-			}
-		},
-		{
-			"scope": [
-				"entity.name.tag.scss",
-				"entity.name.tag.sass"
-			],
-			"settings": {
-				"foreground": "#7FDBCA"
-			}
-		},
-		{
-			"scope": [
-				"keyword.other.unit.scss",
-				"keyword.other.unit.sass"
-			],
-			"settings": {
-				"foreground": "#FFEB95"
-			}
-		},
-		{
-			"scope": [
-				"variable.other.readwrite.alias.ts",
-				"variable.other.readwrite.alias.tsx",
-				"variable.other.readwrite.ts",
-				"variable.other.readwrite.tsx",
-				"variable.other.object.ts",
-				"variable.other.object.tsx",
-				"variable.object.property.ts",
-				"variable.object.property.tsx",
-				"variable.other.ts",
-				"variable.other.tsx",
-				"variable.tsx",
-				"variable.ts"
-			],
-			"settings": {
-				"foreground": "#D6DEEB"
-			}
-		},
-		{
-			"scope": [
-				"entity.name.type.ts",
-				"entity.name.type.tsx"
-			],
-			"settings": {
-				"foreground": "#FFCB8B"
-			}
-		},
-		{
-			"scope": [
-				"support.class.node.ts",
-				"support.class.node.tsx"
-			],
-			"settings": {
-				"foreground": "#82AAFF"
-			}
-		},
-		{
-			"scope": [
-				"meta.type.parameters.ts entity.name.type",
-				"meta.type.parameters.tsx entity.name.type"
-			],
-			"settings": {
-				"foreground": "#5F7E97"
-			}
-		},
-		{
-			"scope": [
-				"meta.import.ts punctuation.definition.block",
-				"meta.import.tsx punctuation.definition.block",
-				"meta.export.ts punctuation.definition.block",
-				"meta.export.tsx punctuation.definition.block"
-			],
-			"settings": {
-				"foreground": "#D6DEEB"
-			}
-		},
-		{
-			"scope": [
-				"meta.decorator punctuation.decorator.ts",
-				"meta.decorator punctuation.decorator.tsx"
-			],
-			"settings": {
-				"foreground": "#82AAFF"
-			}
-		},
-		{
-			"scope": "meta.tag.js meta.jsx.children.tsx",
-			"settings": {
-				"foreground": "#82AAFF"
-			}
-		},
-		{
-			"scope": "entity.name.tag.yaml",
-			"settings": {
-				"foreground": "#7FDBCA"
-			}
-		},
-		{
-			"scope": [
-				"variable.other.readwrite.js",
-				"variable.parameter"
-			],
-			"settings": {
-				"foreground": "#D7DBE0"
-			}
-		},
-		{
-			"scope": [
-				"support.class.component.js",
-				"support.class.component.tsx"
-			],
-			"settings": {
-				"foreground": "#FF70DB",
-				"fontStyle": ""
-			}
-		},
-		{
-			"scope": [
-				"meta.jsx.children",
-				"meta.jsx.children.js",
-				"meta.jsx.children.tsx"
-			],
-			"settings": {
-				"foreground": "#D6DEEB"
-			}
-		},
-		{
-			"scope": "meta.class entity.name.type.class.tsx",
-			"settings": {
-				"foreground": "#FFCB8B"
-			}
-		},
-		{
-			"scope": [
-				"entity.name.type.tsx",
-				"entity.name.type.module.tsx"
-			],
-			"settings": {
-				"foreground": "#FFCB8B"
-			}
-		},
-		{
-			"scope": [
-				"meta.class.ts meta.var.expr.ts storage.type.ts",
-				"meta.class.tsx meta.var.expr.tsx storage.type.tsx"
-			],
-			"settings": {
-				"foreground": "#C792EA"
-			}
-		},
-		{
-			"scope": [
-				"meta.method.declaration storage.type.ts",
-				"meta.method.declaration storage.type.tsx"
-			],
-			"settings": {
-				"foreground": "#82AAFF"
-			}
-		},
-		{
-			"scope": [
-				"meta.property-list.css meta.property-value.css variable.other.less",
-				"meta.property-list.scss variable.scss",
-				"meta.property-list.sass variable.sass",
-				"meta.brace",
-				"keyword.operator.operator",
-				"keyword.operator.or.regexp",
-				"keyword.operator.expression.in",
-				"keyword.operator.relational",
-				"keyword.operator.assignment",
-				"keyword.operator.comparison",
-				"keyword.operator.type",
-				"keyword.operator",
-				"keyword",
-				"punctuation.definintion.string",
-				"punctuation",
-				"variable.other.readwrite.js",
-				"storage.type",
-				"source.css",
-				"string.quoted"
-			],
-			"settings": {
-				"fontStyle": ""
-			}
-		},
-		{
-			"scope": "token.info-token",
-			"settings": {
-				"foreground": "#6796E6"
-			}
-		},
-		{
-			"scope": "token.warn-token",
-			"settings": {
-				"foreground": "#CD9731"
-			}
-		},
-		{
-			"scope": "token.error-token",
-			"settings": {
-				"foreground": "#F44747"
-			}
-		},
-		{
-			"scope": "token.debug-token",
-			"settings": {
-				"foreground": "#B267E6"
-			}
-		}
-	]
-}
-
-
-
-================================================
-FILE: docs/tsconfig.json
-================================================
-{
-  "extends": "astro/tsconfigs/strict"
-}
-
-
-
-================================================
-FILE: docs/src/animate.ts
-================================================
-const unicorn = document.querySelector<HTMLDivElement>('.unicorn')!
-const light = document.querySelector<HTMLDivElement>('.light')!
-const clouds = document.querySelector<HTMLDivElement>('.clouds')!
-const mobileQuery = window.matchMedia('(max-width: 991px)')
-
-const handler = (event: MouseEvent) => {
-    const x = mobileQuery.matches ? 0 : (event.clientX - (window.innerWidth / 2)) / window.innerWidth * 2
-    const y = mobileQuery.matches ? 0 : (event.clientY - (window.innerHeight / 2)) / window.innerHeight * 2
-
-    unicorn.style.transform = `translate(${x * 15}px, ${y * 15}px)`
-    light.style.transform = `translate(${x * 15}px, ${y * 15}px)`
-    clouds.style.transform = `translate(${x * 30}px, ${y * 30}px)`
-    canvas.style.transform = `rotateY(${x * -7}deg) rotateX(${y * -7}deg)`
-}
-
-window.addEventListener('mousemove', handler)
-
-type Star = {
-    x: number
-    y: number
-    size: number
-    speedX: number
-    speedY: number
-    glow: number
-}
-
-const createStar = () => ({
-    x: Math.random() * canvas.width,
-    y: Math.random() * canvas.height,
-    size: getRandom(0.5, 2),
-    speedX: getRandom(-0.05, 0.05),
-    speedY: getRandom(-0.05, 0.05),
-    glow: getRandom(0, 10)
+const styles = StyleSheet.create({
+   container: {
+     backgroundColor: 'red'
+   }
 })
+```
 
-const canvas = document.querySelector<HTMLCanvasElement>('.galaxy')!
-const ctx = canvas.getContext('2d')!
-const getRandom = (min: number, max: number) => Math.random() * (max - min) + min
-const stars = new Set<Star>()
+By replacing `StyleSheet`, you immediately gain several benefits that aren’t available in React Native’s `StyleSheet`:
 
-const configCanvas = () => {
-    canvas.width = window.innerWidth
-    canvas.height = window.innerHeight
-    ctx.shadowColor = '#fff'
-    ctx.fillStyle = `rgba(255, 255, 255, ${0.7})`
-    stars.clear()
-    Array.from({ length: Math.floor(canvas.width * canvas.height / 25_000) }, () => stars.add(createStar()))
-}
+* [Variants](/v3/references/variants)
+* [Compound variants](/v3/references/compound-variants)
+* [Dynamic functions](/v3/references/dynamic-functions)
+* [Media queries](/v3/references/media-queries)
+* [Horizontal and vertical breakpoints for Native](/v3/references/breakpoints#built-in-breakpoints-landscape-and-portrait)
+* [Custom web styles](/v3/references/web-styles)
+* [Web only features](/v3/references/web-only)
 
-configCanvas()
+When you’re ready to customize your styles and unlock additional features you can [configure](/v3/start/configuration) Unistyles.
 
-let debounceId: NodeJS.Timeout
+# How Unistyles works?
 
-window.addEventListener('resize', () => {
-    clearTimeout(debounceId)
-    debounceId = setTimeout(() => {
-        configCanvas()
-    }, 50)
+> Understanding how Unistyles 3.0 works
+
+To get the most out of Unistyles, it’s important to understand how it works and how it updates your styles.
+
+### 1. StyleSheets
+
+A typical app consists of many `StyleSheets`. A `StyleSheet` is a JavaScript object that holds one or many styles. Each style is associated with a native view. What’s more important is that each `StyleSheet` is unique, tailored to the needs of the view, or to a shared component.
+
+![](/_astro/how-1.ClhanbTT.png)
+
+Your app’s StyleSheets
+
+### 2. Babel plugin: dependencies
+
+Unistyles needs to understand your `StyleSheet` dependencies in order to update them only when necessary. This process begins when Babel transforms your app’s code. At this stage, the Unistyles Babel plugin scans your `StyleSheets` and determines the dependencies for each style:
+
+```ts
+const styles = StyleSheet.create((theme, rt) => ({
+  // static: no dependencies
+  container: {
+    backgroundColor: 'red',
+  },
+  // depends on theme and font scale
+  text: {
+    color: theme.colors.text,
+    fontSize: rt.fontScale * 16
+  },
+  dynamic: (isOdd: boolean) => ({
+    // depends on theme
+    color: isOdd ? theme.colors.primary : theme.colors.secondary,
+  })
 })
+```
 
-const drawStars = () => {
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
-    stars.forEach(star => {
-        ctx.beginPath()
-        ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2)
-        ctx.shadowBlur = star.glow
-        ctx.fill()
+### 3. Babel plugin: component factory
 
-        star.x += star.speedX
-        star.y += star.speedY
+As you already know, Unistyles has no components. This means your native view hierarchy remains exactly the same as in your original code. The Babel plugin processes your components through our component factory to borrow `refs` and bind the `ShadowNode` with `Unistyle`.
 
-        if (star.x < 0) star.x = canvas.width
-        if (star.x > canvas.width) star.x = 0
-        if (star.y < 0) star.y = canvas.height
-        if (star.y > canvas.height) star.y = 0
+You might be wondering, what is `Unistyle`? We refer to it as your `StyleSheet` style that has been parsed by the Unistyles compiler, and with the attached `C++` state.
+
+![](/_astro/how-2.CKBxY89P.png)
+
+Your styles are transformed into Unistyles
+
+Note
+
+Learn more on how the Babel plugin works [here](/v3/other/babel-plugin).
+
+### 4. StyleSheet registry
+
+We don’t just extract metadata from your styles. We do the same for your `StyleSheet`. On the C++ side, we know exactly which `StyleSheet` is static, which depends on a `theme`, and which `Unistyles` it contains. At this point, your app’s `StyleSheets` are reconstructed on the C++ side and stored in native C++ `StyleSheets`, which contain the parsed `Unistyles`.
+
+![](/_astro/how-3.C8JEACBb.png)
+
+C++ StyleSheets that contain parsed styles (Unistyles)
+
+To make this process easier to visualize, imagine that the Unistyles engine is a production line. It takes your raw `StyleSheets`, parses them, and produces their C++ representation with `Unistyles`:
+
+![](/_astro/how-4.DbcKjxwq.png)
+
+Unistyles workflow
+
+### 5. Reacting to events
+
+When you access your `StyleSheet` styles in your component, you’ll get a regular JS object as expected. If your component re-renders, we simply return the same `Unistyle` that’s already parsed and stored in the cache.
+
+To visualize the true power of `Unistyles`, imagine that some event occurs, such as:
+
+* A theme change triggered by the user clicking a button
+* A phone color scheme change
+* A phone orientation change
+* Accessibility settings being updated
+* and much more! Unistyles can update your styles based on 16 different events
+
+At this point, the Unistyles algorithm scans the `StyleSheetRegistry` and looks for styles that depend on this event:
+
+![](/_astro/how-5.Bu7A8bBJ.png)
+
+Finding affected styles
+
+Affected styles are then re-computed to reflect the new state of your app.
+
+### 6. Shadow Tree updates
+
+With the list of affected styles, we can now browse the `ShadowRegistry`, where we keep the bindings between `ShadowNode` and `Unistyles`. In other words, we know which `component` relies on which `style`. With all this information, we can translate the update into atomic `ShadowTree` instructions.
+
+With Unistyles 2.0 or any other library, we would need to re-render your entire app to reflect the changes:
+
+![](/_astro/how-6.D5izBS6T.png)
+
+Regular flow: your app is re-rendered
+
+Instead, with all the optimizations and features that Unistyles 3.0 brings, we can target only specific nodes and update your `ShadowTree` directly from C++:
+
+![](/_astro/how-7.DHJpQ7un.png)
+
+Unistyles 3.0 updates only selected ShadowNodes from C++
+
+With this architecture and the power of selective updates through `ShadowTree`, your components are never re-rendered.
+
+*Engineering is the closest thing to magic that exists in the world.*
+
+\~Elon Musk
+
+# Introduction
+
+> Welcome to Unistyles!
+
+![](/_astro/uni2.CWBtkH-A.png)
+
+Unistyles is a cross-platform library that enables you to share up to 100% of your styles across all platforms. It combines the simplicity of `StyleSheet` with the performance of `C++`.
+
+**`Unistyles` is a superset of `StyleSheet`** similar to how `TypeScript` is a superset of `JavaScript`. If you’re familiar with styling in React Native, then you already know how to use `Unistyles`.
+
+### Why should you use Unistyles?
+
+* Guarantees no re-renders across the entire app (no hooks, no context—just pure JSI bindings)
+* Doesn’t pollute your native view hierarchy, you can use any component you want
+* Includes a cross-platform parser written in C++, ensuring consistent output across all platforms
+* Leverages [Nitro Modules](https://nitro.margelo.com/) under the hood (everything is strongly typed!)
+* Transforms your `StyleSheets` into enhanced `StyleSheets` with superpowers 🦸🏼‍♂️ that can access themes, platform-specific values, and more!
+* Loved by developers worldwide: 2M+ downloads and over 2.2K stars on GitHub
+* Backed by [@jpudysz](https://github.com/jpudysz) since 2023
+
+# Migration guide
+
+> How to migrate from previous version
+
+The migration process is quite simple, but it can be tedious since you’ll need to remove a lot of the existing code.
+
+1. Follow installation steps from [Getting started](/v3/start/getting-started) guide.
+
+2. Replace your configuration with [new](/v3/start/configuration) one.
+
+   `UnistylesRegistry` can be easily replaced with `StyleSheet.configure` as it follows the same syntax. `Themes` and `Breakpoints` work exactly the same. For `Settings` we removed 4 out of 6 options:
+
+   ```tsx
+   import { UnistylesRegistry } from 'react-native-unistyles'
+   import { StyleSheet } from 'react-native-unistyles'
+
+
+    UnistylesRegistry.addConfig({
+       adaptiveThemes: false,
+       initialTheme: 'dark',
+       plugins: [...],
+       experimentalCSSMediaQueries: true,
+       windowResizeDebounceTimeMs: 100,
+       disableAnimatedInsets: true
     })
-}
 
-const animate = () => {
-    drawStars()
-    requestAnimationFrame(animate)
-}
 
-const createAnimation = (updateFn: (progress: number) => void, duration: number) => {
-    let startTime: number | null = null
-
-    const animate = (currentTime: number) => {
-        if (startTime === null) startTime = currentTime
-        const elapsedTime = currentTime - startTime
-        const progress = Math.min(elapsedTime / duration, 1)
-
-        updateFn(progress)
-
-        if (progress < 1) {
-            requestAnimationFrame(animate)
+    StyleSheet.configure({
+         settings: {
+             adaptiveThemes: false, // works exactly the same like in 2.0
+             initialTheme: 'dark', // works exactly the same like in 2.0
+             // plugins are removed, instead transform your styles with static functions
+             // experimentalCSSMediaQueries: these options is also removed, and enabled by default with custom parser
+             // windowResizeDebounceTimeMs: removed, there is no debouncing anymore. Styles are updated with CSS media queries
+             // disableAnimatedInsets: removed, insets won't re-render your views
         }
+    })
+   ```
+
+3. Import `StyleSheet` from `react-native-unistyles`:
+
+   ```tsx
+   import { createStyleSheet, useStyles } from 'react-native-unistyles'
+   import { StyleSheet } from 'react-native-unistyles'
+   ```
+
+4. Replace `createStyleSheet` with `StyleSheet.create`:
+
+   ```tsx
+   const stylesheet = createStyleSheet(theme => ({
+   const stylesheet = StyleSheet.create(theme => ({
+   ```
+
+5. Remove all occurrences of `useStyles` hook:
+
+   ```tsx
+   const { styles } = useStyles(stylesheet)
+   ```
+
+6. Rename your `stylesheet` to `styles`:
+
+   ```tsx
+   const stylesheet = StyleSheet.create(theme => ({
+   const styles = StyleSheet.create(theme => ({
+   ```
+
+7. If you used `useInitialTheme`, remove it and set initial theme in `StyleSheet.configure`:
+
+   ```tsx
+   import { StyleSheet } from 'react-native-unistyles'
+
+
+   StyleSheet.configure({
+       themes,
+       breakpoints,
+       settings: {
+           initialTheme: () => {
+               // get preferred theme from user's preferences/MMKV/SQL/StanJS etc.
+               // must be synchronous
+               return storage.getString('preferredTheme') ?? 'light'
+           }
+       }
+   })
+   ```
+
+8. If you need to access your `theme` in component, refactor it to use `withUnistyles`:
+
+   ```tsx
+   import { Button } from 'react-native'
+   import { useStyles } from 'react-native-unistyles'
+   import { withUnistyles } from 'react-native-unistyles'
+
+
+   const UniButton = withUnistyles(Button, theme => ({
+       color: theme.colors.primary
+   }))
+
+
+   const MyButton = () => {
+       return <UniButton />
+   }
+
+
+   const MyButton = () => {
+       const { theme } = useStyles(stylesheet)
+
+
+        return <Button color={theme.colors.primary} />
+       return <UniButton />
+   }
+   ```
+
+9. If you want to speed up the migration process, but keep your views re-rendered, use [useUnistyles](/v3/references/use-unistyles) hook:
+
+   ```tsx
+   import { Button } from 'react-native'
+   import { useUnistyles } from 'react-native-unistyles'
+
+
+   const MyText = () => {
+       const { theme } = useUnistyles()
+
+
+       return (
+           <Button color={theme.colors.primary} />
+       )
+   }
+   ```
+
+10. If you need to access `breakpoint` to show/hide your components use `Display` and `Hide` components instead:
+
+    ```tsx
+    import { Text } from 'react-native'
+    import { Display, Hide, mq } from 'react-native-unistyles'
+
+
+    const MyText = () => {
+        return (
+            <Display mq={mq.only.width(0, 400)}>
+                <Text>This text is visible on small devices</Text>
+            </Display>
+            <Hide mq={mq.only.width(400)}>
+                <Text>This text is hidden on big devices</Text>
+            </Hide>
+        )
     }
+    ```
 
-    requestAnimationFrame(animate)
-}
+11. If you used `UnistylesProvider`, remove it as it’s not available anymore:
 
-const beamA = document.getElementById('beam-a')
-const beamB = document.getElementById('beam-b')
-
-requestAnimationFrame(() => {
-    createAnimation(progress => {
-        beamA?.setAttribute('offset', String(progress * 0.9))
-        beamB?.setAttribute('offset', String(progress * 0.8))
-    }, 500)
-    animate()
-})
+    ```tsx
+    import { UnistylesProvider } from 'react-native-unistyles'
 
 
+    <UnistylesProvider>
+        <App />
+    </UnistylesProvider>
+    ```
 
-================================================
-FILE: docs/src/env.d.ts
-================================================
-/// <reference path="../.astro/types.d.ts" />
-/// <reference types="astro/client" />
+12. If you want to move your component based on keyboard position, use `ime` inset:
 
-
-
-================================================
-FILE: docs/src/components/Beam.astro
-================================================
-<svg class="beam" viewBox="0 0 2342 1348" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <g filter="url(#filter0_f_146_6710)">
-    <path d="M286.582 241.545L100 100L2241.85 526.563L1741.55 1175.37L286.582 241.545Z" fill="url(#paint0_linear_146_6710)"/>
-    </g>
-    <g filter="url(#filter1_f_146_6710)">
-    <path d="M238 346.276C227 335.566 230.346 314.5 250.408 321C270.47 327.5 1147.54 838.888 1722.38 1170.73L1244.9 1247.02C1244.9 1247.02 249 356.985 238 346.276Z" fill="url(#paint1_linear_146_6710)"/>
-    </g>
-    <defs>
-    <filter id="filter0_f_146_6710" x="0" y="0" width="2341.85" height="1275.37" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
-    <feFlood flood-opacity="0" result="BackgroundImageFix"/>
-    <feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
-    <feGaussianBlur stdDeviation="50" result="effect1_foregroundBlur_146_6710"/>
-    </filter>
-    <filter id="filter1_f_146_6710" x="131.802" y="219.779" width="1690.58" height="1127.24" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
-    <feFlood flood-opacity="0" result="BackgroundImageFix"/>
-    <feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
-    <feGaussianBlur stdDeviation="50" result="effect1_foregroundBlur_146_6710"/>
-    </filter>
-    <linearGradient id="paint0_linear_146_6710" x1="99.0007" y1="-290.325" x2="1824.15" y2="1476.76" gradientUnits="userSpaceOnUse">
-    <stop stop-color="#02B5CB"/>
-    <stop id="beam-a" offset="0" stop-color="#02B5CB" stop-opacity="0"/>
-    </linearGradient>
-    <linearGradient id="paint1_linear_146_6710" x1="231.106" y1="-16.7767" x2="1692.51" y2="1191.41" gradientUnits="userSpaceOnUse">
-    <stop stop-color="#02B5CB"/>
-    <stop id="beam-b" offset="0" stop-color="#02B5CB" stop-opacity="0"/>
-    </linearGradient>
-    </defs>
-</svg>
-
-<style>
-    .beam {
-        position: absolute;
-        top: max(-200px, -10vw);
-        width: min(2000px, 100vw);
-        aspect-ratio: 16 / 9;
-        right: max(-600px, -30vw);
-
-        @media (max-width: 991px) {
-            display: none;
+    ```tsx
+    const style = StyleSheet.create({
+        container: {
+          paddingBottom: rt.insets.bottom // bottom is no longer dynamic
+          paddingBottom: rt.insets.ime
         }
+    })
+    ```
+
+13. Some `UnistylesRuntime` methods have been renamed. Follow TypeScript types to use new names.
+
+14. Some `UnistylesRuntime` methods have been removed:
+
+    ```tsx
+    UnistylesRuntime.addPlugin(plugin) // Unistyles has no plugins anymore
+    UnistylesRuntime.removePlugin(plugin) // Unistyles has no plugins anymore
+    UnistylesRuntime.statusBar.setColor(color) // removed due to Android 15 deprecation
+    UnistylesRuntime.navigationBar.setColor(color) // removed due to Android 15 deprecation
+    ```
+
+15. `UnistylesRuntime` methods that accepted `color` and `alpha` have been changed to accept `color` only. Each method supports **any** color that is respected by React Native:
+
+    ```tsx
+    UnistylesRuntime.setRootViewBackgroundColor(color, alpha) // no need for separate alpha
+    UnistylesRuntime.setRootViewBackgroundColor(color) // accepts any color
+    ```
+
+16. `hairlineWidth` has been moved from `UnistylesRuntime` to `StyleSheet`. Use `StyleSheet.hairlineWidth` instead:
+
+    ```tsx
+    UnistylesRuntime.hairlineWidth // no longer available
+    StyleSheet.hairlineWidth // matches StyleSheet API
+    ```
+
+17. If your app used variants, move config to `styles.useVariants` instead:
+
+    ```tsx
+     import { useStyles } from 'react-native-unistyles'
+     import { StyleSheet } from 'react-native-unistyles'
+
+
+    const MyComponent = () => {
+       const { styles } = useStyles(stylesheet, {
+           variant1: 'primary',
+           variant2: 'secondary'
+       })
+       styles.useVariants({
+           variant1: 'primary',
+           variant2: 'secondary'
+       })
+
+
+        return <View style={styles.container} />
     }
-</style>
+    ```
+
+18. `Style is not bound!` error or `Unistyles: we detected style object with N unistyles styles. (...)` warning
+
+    If you encountered this warning or error, it means that you’re spreading your styles. This is not possible in Unistyles 3.0 anymore as spreading will remove `C++` state:
+
+    ```tsx
+    // not ok
+    const styles = {...style1, ...style2}
 
 
-
-================================================
-FILE: docs/src/components/Button.astro
-================================================
----
-export type Props = {
-    text: string
-    github?: boolean
-    href: string
-}
-
-const { text, github, href } = Astro.props
----
-
-<a href={href} target={github ? '_blank' : '_self'} class=`button ${github ? 'button__github' : 'button__primary'}`>
-    {github && (
-        <svg xmlns="http://www.w3.org/2000/svg" width="34" height="32" fill="none"><path fill="#000" d="M31.72 8.169c-1.52-2.513-3.582-4.502-6.186-5.97C22.929.734 20.084 0 17 0c-3.084 0-5.929.733-8.533 2.2C5.863 3.665 3.801 5.655 2.28 8.168.76 10.68 0 13.426 0 16.4c0 3.574 1.08 6.788 3.243 9.642 2.162 2.855 4.954 4.83 8.377 5.925.398.071.693.021.886-.149a.822.822 0 0 0 .288-.64c0-.042-.003-.426-.011-1.153-.008-.727-.011-1.36-.011-1.9l-.51.084a6.698 6.698 0 0 1-1.228.075 9.652 9.652 0 0 1-1.538-.15 3.503 3.503 0 0 1-1.484-.64 2.725 2.725 0 0 1-.974-1.313l-.221-.492c-.148-.327-.38-.69-.698-1.088-.317-.399-.638-.669-.963-.811l-.155-.108a1.598 1.598 0 0 1-.288-.256c-.089-.1-.156-.199-.2-.298-.044-.1-.008-.182.111-.247.118-.064.333-.095.642-.095l.443.064c.295.057.66.227 1.095.512.436.284.793.654 1.073 1.11.34.585.749 1.03 1.229 1.336.48.306.963.458 1.45.458.486 0 .907-.036 1.26-.106.354-.071.687-.178.996-.32.133-.955.495-1.688 1.085-2.2a15.693 15.693 0 0 1-2.269-.384 9.231 9.231 0 0 1-2.08-.833 5.913 5.913 0 0 1-1.782-1.43c-.472-.57-.86-1.318-1.161-2.242-.303-.926-.454-1.993-.454-3.203 0-1.724.583-3.19 1.749-4.4-.546-1.295-.495-2.747.155-4.356.428-.128 1.063-.031 1.904.288.841.32 1.457.595 1.848.822.392.227.705.42.94.577 1.373-.37 2.79-.555 4.25-.555 1.462 0 2.878.185 4.25.555l.842-.513a12.12 12.12 0 0 1 2.036-.94c.783-.284 1.38-.363 1.794-.234.663 1.609.722 3.061.177 4.357 1.166 1.21 1.748 2.676 1.748 4.399 0 1.21-.152 2.281-.453 3.213-.303.933-.693 1.68-1.173 2.243a6.145 6.145 0 0 1-1.793 1.42 9.237 9.237 0 0 1-2.082.833c-.671.17-1.428.3-2.268.385.767.64 1.151 1.651 1.151 3.032v4.505c0 .256.092.47.277.64.185.171.475.222.874.15 3.425-1.097 6.217-3.072 8.38-5.926 2.16-2.854 3.242-6.068 3.242-9.642 0-2.974-.761-5.719-2.281-8.231l.002-.002Z"/></svg>
-    )}
-    {text}
-</a>
-
-<style>
-    .button {
-        font-size: 20px;
-        font-weight: 600;
-        height: 66px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        position: relative;
-        border-radius: 33px;
-        cursor: pointer;
-        gap: 10px;
-
-        &__primary {
-            width: 192px;
-            background: linear-gradient(324.94deg, #241836 12.16%, #D928A4 95.36%)
-        }
-
-        &__github {
-            width: 188px;
-            background: rgba(255, 255, 255, 0.5);
-            color: var(--black);
-        }
-
-        @media (max-width: 991px) {
-            width: 100%;
-        }
-    }
-</style>
+    <View style={styles} />
 
 
+    // not ok
+    <View style={{...style1, ...style2}} />
+    ```
 
-================================================
-FILE: docs/src/components/CompareChanges.astro
-================================================
----
-import { Icon } from '@astrojs/starlight/components';
+    Instead, use array syntax provided by React Native:
 
-export interface Props {
-  commitUrl: string;
-}
+    ```tsx
+    // ok
+    <View style={[style1, style2]} />
+    ```
 
-const { commitUrl } = Astro.props;
+    By using array syntax, we know **the order of merging** that is necessary to resolve styles correctly.
 
-// Extract commit hash from URL
-const getCommitHash = () => {
-  const match = commitUrl.match(/commit\/([a-f0-9]{7,40})/);
-  return match ? match[1].substring(0, 7) : 'commit';
-};
+    Learn more about [merging styles](/v3/guides/merging-styles).
 
-// Extract repository name from URL
-const getRepositoryName = () => {
-  const match = commitUrl.match(/github\.com\/([^\/]+\/[^\/]+)/);
-  return match ? match[1] : 'repository';
-};
+# New features
 
-const displayCommitHash = getCommitHash();
-const displayRepository = getRepositoryName();
----
+> Whats new in Unistyles 3.0?
 
-<div class="compare-changes">
-  <div class="compare-header">
-    <Icon name="github" />
-    <span class="compare-title">Compare changes with commit</span>
-  </div>
-  <a href={commitUrl} target="_blank" rel="noopener noreferrer" class="compare-link">
-    {displayRepository}@{displayCommitHash}
-  </a>
-</div>
+Unistyles comes packed with many exciting new features. If you’re upgrading from Unistyles 2.0, here’s a quick summary of what’s new:
 
-<style>
-  .compare-changes {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    padding: 1rem;
-    border: 1px solid var(--sl-color-gray-6);
-    border-radius: 0.375rem;
-    background: var(--sl-color-bg);
-    margin: 1rem 0;
-    position: relative;
-  }
+1. No re-renders
 
-  .compare-changes::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, var(--sl-color-accent) 0%, transparent 100%);
-    opacity: 0.6;
-    border-radius: 0.375rem 0.375rem 0 0;
-  }
+   Unistyles is primarily written in `C++` with a thin `JS` layer for both iOS and Android. The key feature of this version is that it doesn’t trigger re-renders—there are no hooks, no context, just pure `JSI` bindings managing your `StyleSheet` styles. Unistyles is integrated with Fabric and the Shadow Tree, directly updating your views from C++.
 
-  .compare-header {
-    display: flex;
-    align-items: center;
-    gap: 0.375rem;
-  }
+2. Selective updates
 
-  .compare-title {
-    margin: 0;
-    font-size: 0.75rem;
-    font-weight: 400;
-    color: var(--sl-color-gray-2);
-    line-height: 1;
-  }
+   Unistyles includes a special algorithm that only recalculates styles dependent on the change. For example, if the app user switches to a dark color scheme, Unistyles will only recalculate and update the styles affected by the change.
 
-  .compare-link {
-    font-family: var(--sl-font-mono);
-    font-size: 0.75rem;
-    color: var(--sl-color-gray-2);
-    text-decoration: none;
-    padding: 0.125rem 0;
-    border-radius: 0.25rem;
-    transition: all 0.2s ease;
-  }
+3. Compound variants
 
-  .compare-link:hover {
-    color: var(--sl-color-accent);
-    text-decoration: underline;
-  }
+   Unistyles extends the `variants` feature by allowing you to define `compound variants`. These are additional styles that are applied when certain conditions are met. For instance, you can define a compound variant to change the text color when the text is bold and uses the primary color.
 
-  .compare-link:focus {
-    outline: 2px solid var(--sl-color-accent);
-    outline-offset: 2px;
-  }
+4. Scoped themes
 
-  /* GitHub icon styling */
-  .compare-header :global(svg) {
-    color: var(--sl-color-gray-3);
-    width: 1rem;
-    height: 1rem;
-  }
-</style>
+   You can now limit the scope of your theme to specific components, allowing different themes for different screens. For example, you can enforce a dark theme only on the login screen.
 
+5. Custom web parser
 
+   We’ve moved away from relying on `react-native-web` and implemented a custom parser that translates your styles into CSS classes. This parser is tailored to Unistyles syntax, including `mq`, `breakpoints`, `variants`, and `compoundVariants`. Importantly, it remains backwards compatible with React Native Web!
 
-================================================
-FILE: docs/src/components/index.ts
-================================================
-export { default as Button } from './Button.astro'
-export { default as Beam } from './Beam.astro'
-export { default as TutorialNavigation } from './TutorialNavigation.astro'
-export { default as CompareChanges } from './CompareChanges.astro'
+6. Custom CSS classes binded to styles
 
+   For cross-platform apps, styling components like `tr` or `td` — which aren’t available in React Native can be challenging. Unistyles 3.0 allows you to define custom CSS classes that bind directly to your styles, so you can apply extra CSS styles as needed. This also means that you can use `Tailwind` implementation for your web app!
 
+7. Pseudo-classes
 
-================================================
-FILE: docs/src/components/Seo.astro
-================================================
----
-import { SEO } from 'astro-seo'
+   Unistyles 3.0 now supports all available CSS pseudo-classes! Easily add hover, focus, and active effects to your components.
 
-type Props = {
-    seo: {
-        title: string,
-        description?: string,
-        image?: {
-            src: string,
-            mimeType: string,
-            alt: string
-        }
+8. Custom web styles
+
+   If you need to style a component with web-only properties, it’s now possible. Add any CSS web property directly to your `StyleSheet` styles, such as web-based animations.
+
+9. 1:1 parity with React Native StyleSheet
+
+   You can now mix Unistyles with React Native StyleSheet and enable superpowers 🦸🏼‍♂️ on selected screens without additional configuration. If Unistyles doesn’t suit your needs, you can easily revert to React Native StyleSheet.
+
+10. Support for any color format
+
+    Unistyles now supports any color format that React Native can handle, including HEX, RGB, HSL, and more. We’ll also auto-convert your colors in any call to UnistylesRuntime.
+
+And much more! Unistyles 3.0 is loaded with new features, so we encourage you to explore the docs and dive into the library!
+
+# Testing
+
+> How to test Unistyles
+
+Unistyles provides its own mocks to help you test your components. Follow this guide to learn how to use them.
+
+### Including Mocks
+
+You don’t need to mock anything manually, as Unistyles supplies all necessary mocks for its core and for `NitroModules`. To use them, simply include `react-native-unistyles/mocks` in your `jest.setup.ts` file.
+
+package.json
+
+```tsx
+{
+    "jest": {
+        "preset": "jest-expo",  // or use own config for bare react native
+        "setupFiles": [
+            "react-native-unistyles/mocks"
+        ]
     }
 }
+```
 
-const { seo: { title, description, image } } = Astro.props as Props
-const DEFAULT_TITLE_PAGE = 'Unistyles 3.0'
-const DEFAULT_DESCRIPTION_PAGE = 'Level up your React Native StyleSheet!'
-const DEFAULT_URL_SITE = 'https://unistyl.es'
-const openGraph = {
-    title: title || DEFAULT_TITLE_PAGE,
-    type: image?.mimeType || 'image/png',
-    image: image?.src || `${DEFAULT_URL_SITE}/opengraph-image3.png`,
-    alt: image?.alt || 'Unistyles',
-    url: DEFAULT_URL_SITE,
-    description: description || DEFAULT_DESCRIPTION_PAGE
-}
----
+### Include Unistyles Configuration
 
-<head>
-    <SEO
-        charset="UTF-8"
-        title={title || DEFAULT_TITLE_PAGE}
-        description={description || DEFAULT_DESCRIPTION_PAGE}
-        openGraph={{
-            basic: {
-                title: openGraph.title,
-                type: openGraph.type,
-                image: openGraph.image
-            },
-            image: {
-                alt: openGraph.alt
-            },
-            optional: {
-                description: openGraph.description
-            }
-        }}
-        twitter={{
-            creator: '@jpudysz'
-        }}
-        extend={{
-            link: [
-                { rel: 'icon', href: '/favicon.png' },
-                { rel: 'sitemap', href: '/sitemap-index.xml' }
-            ],
-            meta: [
-                { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-                { name: 'generator', content: Astro.generator },
-                { name: 'twitter:image', content: openGraph.image },
-                { name: 'twitter:card', content: 'summary_large_image' },
-                { name: 'twitter:title', content: openGraph.title },
-                { name: 'twitter:description', content: openGraph.description },
-                { name: 'twitter:site', content: '@jpudysz' }
-            ]
-        }}
-    />
-    <script>
-        window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
-    </script>
-    <script defer src="/_vercel/insights/script.js"></script>
-</head>
-<slot/>
+Each `StyleSheet` requires a configuration object passed to the `StyleSheet.configure` function. This is also true in the test environment. Extend the configuration from the previous step by including the file where you configure Unistyles.
 
+package.json
 
-
-================================================
-FILE: docs/src/components/TutorialNavigation.astro
-================================================
----
-export interface Props {
-  prev?: {
-    title: string;
-    href: string;
-  };
-  next?: {
-    title: string;
-    href: string;
-  };
-}
-
-const { prev, next } = Astro.props;
-
-const getNavigationClass = () => {
-  if (prev && next) return 'has-both';
-  if (prev && !next) return 'prev-only';
-  if (!prev && next) return 'next-only';
-  return '';
-};
----
-
-<div class={`tutorial-navigation ${getNavigationClass()}`}>
-  {prev && (
-    <a href={prev.href} class="tutorial-nav-link prev">
-      <div class="nav-content">
-        <div class="nav-header">
-          <svg class="arrow" viewBox="0 0 24 24" fill="none">
-            <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          <span class="nav-label">Previous</span>
-        </div>
-        <span class="nav-title">{prev.title}</span>
-      </div>
-    </a>
-  )}
-  
-  {next && (
-    <a href={next.href} class="tutorial-nav-link next">
-      <div class="nav-content">
-        <div class="nav-header">
-          <span class="nav-label">Next</span>
-          <svg class="arrow" viewBox="0 0 24 24" fill="none">
-            <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </div>
-        <span class="nav-title">{next.title}</span>
-      </div>
-    </a>
-  )}
-</div>
-
-<style>
-  .tutorial-navigation {
-    display: flex;
-    gap: 1rem;
-    margin: 2rem 0;
-  }
-
-  .tutorial-navigation.has-both {
-    justify-content: space-between;
-  }
-
-  .tutorial-navigation.prev-only {
-    justify-content: flex-start;
-  }
-
-  .tutorial-navigation.next-only {
-    justify-content: flex-end;
-  }
-
-  .tutorial-nav-link {
-    display: flex;
-    padding: 1rem 1.5rem;
-    border: 1px solid var(--sl-color-gray-5);
-    border-radius: 0.5rem;
-    text-decoration: none;
-    color: var(--sl-color-text);
-    background: var(--sl-color-bg-nav);
-    transition: all 0.2s ease;
-    flex: 1;
-    max-width: 45%;
-    min-height: 80px;
-  }
-
-  .tutorial-nav-link:hover {
-    border-color: var(--sl-color-accent);
-    background: var(--sl-color-bg-sidebar);
-    transform: translateY(-2px);
-  }
-
-  .tutorial-navigation.prev-only .tutorial-nav-link,
-  .tutorial-navigation.next-only .tutorial-nav-link {
-    flex: 0 0 auto;
-    width: 45%;
-    max-width: 45%;
-  }
-
-  .nav-content {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    width: 100%;
-  }
-
-  .tutorial-nav-link.prev .nav-content {
-    align-items: flex-start;
-  }
-
-  .tutorial-nav-link.next .nav-content {
-    align-items: flex-end;
-  }
-
-  .nav-header {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .nav-label {
-    font-size: 0.875rem;
-    color: var(--sl-color-text-accent);
-    font-weight: 500;
-  }
-
-  .nav-title {
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--sl-color-text);
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    line-height: 1.4;
-  }
-
-  .arrow {
-    width: 1.25rem;
-    height: 1.25rem;
-    color: var(--sl-color-text-accent);
-    transition: color 0.2s ease;
-  }
-
-  .tutorial-nav-link:hover .arrow {
-    color: var(--sl-color-accent);
-  }
-
-  @media (max-width: 768px) {
-    .tutorial-navigation {
-      flex-direction: column;
-      gap: 0.75rem;
+```tsx
+{
+    "jest": {
+        "preset": "jest-expo",
+        "setupFiles": [
+            "react-native-unistyles/mocks",
+            "./unistyles.ts" // provide the correct path to your Unistyles configuration file
+        ]
     }
-
-    .tutorial-nav-link {
-      max-width: 100%;
-    }
-
-    .tutorial-nav-link.next {
-      margin-left: 0;
-    }
-  }
-</style>
-
-
-================================================
-FILE: docs/src/content/config.ts
-================================================
-import { defineCollection } from 'astro:content'
-import { docsSchema } from '@astrojs/starlight/schema'
-
-export const collections = {
-	docs: defineCollection({ schema: docsSchema() }),
 }
+```
 
+Caution
 
+You must include configuration file **after** the mocks as they provide all necessary stubs for `StyleSheet.configure`.
 
-================================================
-FILE: docs/src/content/docs/v3/guides/avoiding-keyboard.mdx
-================================================
----
-title: Avoiding keyboard
-description: Learn how to avoid keyboard with Unistyles
----
+### Babel Plugin
 
-import { Card } from '@astrojs/starlight/components'
-import Seo from '../../../../components/Seo.astro'
+The Babel plugin is automatically disabled in the `jest` test environment or when `NODE_ENV === 'test'`.
 
-<Seo
-    seo={{
-        title: 'Keyboard insets (IME)',
-        description: 'Learn how to avoid keyboard with Unistyles'
-    }}
->
+### Understanding the role of mocks
 
-Unistyles 3.0 introduces a new `inset` called `ime`, which is automatically animated when the keyboard appears or disappears.
-Using this inset in your style will automatically register it for future updates.
+Mocks contain basic logic to correctly execute Unistyles code. The Jest environment does not provide a `screen` (width and height), pixel ratio, or any other values from `UnistylesRuntime`.
+
+You should never test how Unistyles parses your styles, whether your component has certain styles, or if it is visible. These tests can result in false positives.
+
+Instead, configure E2E tests using eg. Playwright or Maestro.
+
+In these environments, you can test how Unistyles parses your styles and how your app looks like.
+
+# When to use Unistyles 3.0?
+
+> Learn more when should you consider using Unistyles 3.0
+
+This guide will explain when you should consider using Unistyles and when it’s not the best option.
+
+### When should you use Unistyles?
+
+Unistyles is recommended for projects that:
+
+* leverage the New Architecture and care about performance and memory usage
+* use two or more themes (we support an unlimited number of themes and [adaptive themes](/v3/guides/theming#adaptive-themes))
+* require rendering on the web (we [auto-generate](/v3/references/web-styles) CSS classes and variables)
+* want to use [variants](/v3/references/variants) and [compound variants](/v3/references/compound-variants)
+* want to use pseudo-classes and custom web styles ([learn more](/v3/references/web-only))
+* feel confident with the styling patterns introduced by React Native (Unistyles follows the same approach)
+* don’t want to pollute your native view hierarchy
+
+### When is Unistyles not the best option?
+
+* You’re looking for a component library (Unistyles has no components, instead we encourage you to build your own design system specifically tailored to your project)
+* You use Tailwind on the web, as Unistyles has no native bindings to process `classNames` on the native side. Instead, we recommend using [Nativewind](https://www.nativewind.dev/)
+* You’re building a super simple app that doesn’t require theme changes or any advanced features. In this case, stick with React Native’s `StyleSheet` and consider updating to Unistyles 3.0 when it will be more efficient
+
+### When you can’t use Unistyles 3.0?
+
+* In Expo Go apps, as Unistyles is not (yet) selected by the Expo team
+* In apps that can’t update to the New Architecture. Instead, consider using [Unistyles 2.0](https://v2.unistyl.es/start/introduction/)
+* In apps that target unsupported platforms (eg. TV, Windows, macOS etc.), again consider using [Unistyles 2.0](https://v2.unistyl.es/start/introduction/)
+
+### Other alternatives
+
+To find other alternatives, please check the latest [State of React Native survey](https://stateofreactnative.com/).
+
+# Avoiding keyboard
+
+> Learn how to avoid keyboard with Unistyles
+
+Unistyles 3.0 introduces a new `inset` called `ime`, which is automatically animated when the keyboard appears or disappears. Using this inset in your style will automatically register it for future updates.
 
 Unistyles dynamically recalculates your styles based on their dependencies. To learn more about how Unistyles re-calculates your styles, please refer to the [guide](/v3/start/how-unistyles-works).
 
 ### Usage
 
-```tsx /rt.insets.ime/
+```tsx
 import { TextInput, View } from 'react-native'
 import { StyleSheet } from 'react-native-unistyles'
+
 
 const KeyboardAvoidingView = () => {
     return (
@@ -9609,6 +897,7 @@ const KeyboardAvoidingView = () => {
         </View>
     )
 }
+
 
 const styles = StyleSheet.create((theme, rt) => ({
     container: {
@@ -9632,30 +921,11 @@ const styles = StyleSheet.create((theme, rt) => ({
 
 In this example, the `container` will automatically adjust to avoid the keyboard, ensuring the `input` remains visible at all times.
 
+# Custom Web
 
-</Seo>
+> Learn how to use Unistyles 3.0 without React Native Web
 
-
-
-================================================
-FILE: docs/src/content/docs/v3/guides/custom-web.mdx
-================================================
----
-title: Custom Web
-description: Learn how to use Unistyles 3.0 without React Native Web
----
-
-import { Card, Aside } from '@astrojs/starlight/components'
-import Seo from '../../../../components/Seo.astro'
-
-<Seo
-    seo={{
-        title: 'Custom Web integration',
-        description: 'Learn how to use Unistyles 3.0 without React Native Web'
-    }}
->
-
-It's possible to render Unistyles without `react-native-web` dependency by simply creating your own web-only components.
+It’s possible to render Unistyles without `react-native-web` dependency by simply creating your own web-only components.
 
 Unfortunately, you still need to install `react-native-web` in order to run your app, because most of the React Native libraries do not work without it.
 
@@ -9665,17 +935,22 @@ For this we recommend following the guidelines provided by [Expo](https://docs.e
 
 In order to create custom web components, you need to use `getWebProps` function. It takes a `StyleProp` and returns an object with `className` and `ref` properties.
 
-```tsx title="src/components/Header.tsx" /getWebProps/
+src/components/Header.tsx
+
+```tsx
 import { StyleProp, TextStyle } from 'react-native'
 import { getWebProps } from 'react-native-unistyles/web'
+
 
 type HeaderProps = {
     style: StyleProp<TextStyle>
     children: string
 }
 
+
 export const Header: React.FC<HeaderProps> = ({ style, children }) => {
     const { ref, className } = getWebProps(style)
+
 
     return (
         <h1
@@ -9690,18 +965,23 @@ export const Header: React.FC<HeaderProps> = ({ style, children }) => {
 
 Or merge multiple styles:
 
-```tsx title="src/components/Header.tsx" /getWebProps/
+src/components/Header.tsx
+
+```tsx
 import { StyleProp, TextStyle } from 'react-native'
 import { StyleSheet } from 'react-native-unistyles'
 import { getWebProps } from 'react-native-unistyles/web'
+
 
 type HeaderProps = {
     customStyle: StyleProp<TextStyle>
     children: string
 }
 
+
 export const Header: React.FC<HeaderProps> = ({ customStyle, children }) => {
     const webProps = getWebProps([customStyle, style.text])
+
 
     return (
         <h1 {...webProps}>
@@ -9709,6 +989,7 @@ export const Header: React.FC<HeaderProps> = ({ customStyle, children }) => {
         </h1>
     )
 }
+
 
 const style = StyleSheet.create(theme => ({
     text: {
@@ -9722,71 +1003,57 @@ const style = StyleSheet.create(theme => ({
 }))
 ```
 
-That's it! Now you can use your custom web components in your app.
+That’s it! Now you can use your custom web components in your app.
 
-<Aside type="caution">
-    If you're creating multiplatform app, remember to create a native fallback for your web components.
-</Aside>
+Caution
 
-</Seo>
+If you’re creating multiplatform app, remember to create a native fallback for your web components.
 
+# Expo Router
 
+> Integrate Expo Router with Unistyles
 
-================================================
-FILE: docs/src/content/docs/v3/guides/expo-router.mdx
-================================================
----
-title: Expo Router
-description: Integrate Expo Router with Unistyles
----
-
-import { Card, Aside } from '@astrojs/starlight/components'
-import Seo from '../../../../components/Seo.astro'
-
-<Seo
-    seo={{
-        title: 'Expo Router integration',
-        description: 'Integrate Expo Router with Unistyles'
-    }}
->
-
-
-[Expo Router](https://docs.expo.dev/router/introduction/) is a popular routing library from Expo that is built on top of React Navigation. When using Unistyles with Expo Router, it's necessary to configure it properly.
+[Expo Router](https://docs.expo.dev/router/introduction/) is a popular routing library from Expo that is built on top of React Navigation. When using Unistyles with Expo Router, it’s necessary to configure it properly.
 
 ### Modify main entry
 
-Expo Router resolves routes differently than expected. Also, Unistyles 3.0 is parsing your `StyleSheets` as soon as you import file containing it.
-This combination may cause some issues. To prevent that you need to modify your main entry file:
+Expo Router resolves routes differently than expected. Also, Unistyles 3.0 is parsing your `StyleSheets` as soon as you import file containing it. This combination may cause some issues. To prevent that you need to modify your main entry file:
 
-```diff lang="json" title="package.json"
+package.json
+
+```json
 {
--   "main": "expo-router/entry"
-+   "main": "index.ts"
+   "main": "expo-router/entry"
+   "main": "index.ts"
 }
 ```
 
 Then, create `index.ts` file with following content:
 
-```js title="index.ts"
+index.ts
+
+```js
 import 'expo-router/entry'
 import './unistyles' // <-- file that initializes Unistyles
 ```
 
-<Aside>
+Note
+
 The `unistyles.ts` file is where Unistyles is configured. For more details, refer to the [configuration guide](/v3/start/configuration).
-</Aside>
 
 With this setup, we will ensure that Unistyles is initialized before any other component.
 
 ### Expo Router Web - Static rendering
 
-:::caution
+Caution
+
 This is the default option since Expo SDK 52.
-:::
 
 You can check if you are using static rendering in `app.json`:
 
-```json title="app.json"
+app.json
+
+```json
 {
   "expo": {
     "web": {
@@ -9797,16 +1064,18 @@ You can check if you are using static rendering in `app.json`:
 }
 ```
 
-For Expo static rendering, every page will be resolved with the root HTML file. Unfortunately, this file is hidden, and you need to create it manually.
-Please follow the [Expo guide](https://docs.expo.dev/router/reference/static-rendering/#root-html) and add a `+html.tsx` file.
+For Expo static rendering, every page will be resolved with the root HTML file. Unfortunately, this file is hidden, and you need to create it manually. Please follow the [Expo guide](https://docs.expo.dev/router/reference/static-rendering/#root-html) and add a `+html.tsx` file.
 
 In this file, initialize Unistyles by importing the config file:
 
-```diff lang="tsx" title="+html.tsx"
++html.tsx
+
+```tsx
 import React from 'react'
 import { ScrollViewStyleReset } from 'expo-router/html'
 import { type PropsWithChildren } from 'react'
-+ import '../unistyles' // <-- file that initializes Unistyles
+ import '../unistyles' // <-- file that initializes Unistyles
+
 
 export default function Root({ children }: PropsWithChildren) {
     ...
@@ -9815,13 +1084,7533 @@ export default function Root({ children }: PropsWithChildren) {
 
 This ensures that Unistyles is initialized whenever Expo Router renders the next static page.
 
-</Seo>
+# Merging styles
+
+> Learn about how to merge styles with Unistyles 3.0
+
+While using Unistyles, it’s crucial to understand how styles need to be merged and why it is so important.
+
+### Introduction
+
+In the early versions of Unistyles 3.0, we tried to solve this issue with a Babel plugin. However, it was too complex to maintain various edge cases (especially with `Pressable`), and developers frequently encountered many `Unistyles: Style is not bound!` errors.
+
+With the new approach, we shift the responsibility of merging styles to the user. In other words, the Babel plugin will no longer convert your style tags from objects to arrays.
+
+### How to merge multiple styles
+
+Unistyles doesn’t provide any extra API for merging styles. Instead, we encourage you to use the `[]` syntax supported by React Native components.
+
+```tsx
+<View style={[styles.container, styles.container2]} />
+```
+
+If Unistyles detects that you’ve used the spread operator and the styles have no attached C++ state, it will:
+
+* Restore the state on the C++ side
+* Merge styles in an unpredictable order (as we lose order information)
+* Warn you in `__DEV__` mode about this
+
+Example error
+
+Unistyles: We detected a style object with 2 Unistyles styles. This might cause no updates or unpredictable behavior. Please check the `style` prop for `View` and use array syntax instead of object syntax.
+
+When you see this warning, your component will render correctly, but any new event that re-computes your styles could:
+
+* Output incorrect styles due to the unknown order of merging
+* Not update at all if during the merging process, you altered props that were previously listening for changes
+
+It’s critical to ship Unistyles 3.0 apps without this warning, as it can cause unexpected behavior.
+
+### Reanimated
+
+In older versions of Reanimated, the `Animated` component was flattening your styles array, causing warnings and only allowing to pass a **single** unistyles to an `Animated` component ([original issue](https://github.com/jpudysz/react-native-unistyles/issues/512)).
+
+However, from `react-native-reanimated@3.17.2` or `react-native-reanimated@4.0.0-beta.3`, styles are no longer flattened.
+
+### Spreading a single Unistyle
+
+Another problematic case is spreading a single Unistyle and merging it, e.g., with inline styles:
+
+```tsx
+<View style={{...styles.container, ...{ backgroundColor: 'red' }}} />
+```
+
+Although we can restore the C++ state for `styles.container`, we cannot identify that `backgroundColor: red` should override the `backgroundColor` used in `styles.container`. The order of merging will be preserved until the first re-computation of styles.
+
+Also, keep in mind that restoring the C++ state takes unnecessary extra time, so it’s better to avoid it.
+
+### Summary
+
+* Use the `[]` syntax to merge styles
+* Avoid spreading Unistyles
+* Avoid merging your styles with the spread operator
+* Unistyles will warn you about this in `__DEV__` mode
+
+With this new approach, you’re in control of merging your styles.
+
+# React Compiler
+
+> Integrate React Compiler with Unistyles
+
+React Compiler is a build-time tool that automatically optimizes your React app. To integrate Unistyles with React Compiler, proper configuration is essential.
+
+## With Expo
+
+For Expo projects, simply follow the [official Expo guide](https://docs.expo.dev/guides/react-compiler/). No additional configuration changes are necessary!
+
+## With Bare React Native
+
+For bare React Native projects, refer to the [official React guide](https://react.dev/learn/react-compiler#usage-with-babel) with one key adjustment:
+
+Ensure that the React Compiler runs *after* the Unistyles Babel plugin. Failure to do so may result in errors because Unistyles needs to process `Variants` before the React Compiler does. You can read more about the Babel plugin [here](/v3/other/babel-plugin).
+
+Here’s a sample configuration for your `babel.config.js`:
+
+babel.config.js
+
+```js
+module.exports = function () {
+  return {
+    plugins: [
+      ['react-native-unistyles/plugin'], // Must run before react-compiler
+     'babel-plugin-react-compiler',
+      // Add other plugins here
+    ]
+  }
+}
+```
+
+# Reanimated
+
+> Learn how to use Unistyles 3.0 with Reanimated
+
+Unistyles works seamlessly with `react-native-reanimated`. Learn best practices for combining both libraries.
+
+Note
+
+Reanimated works the best with Unistyles in:
+
+* `react-native-reanimated@3.17.3` and above
+* `react-native-reanimated@4.0.0-beta.3` and above
+
+### Access theme in worklets
+
+Using the theme from `UnistylesRuntime.getTheme()` will not trigger worklet updates. Importing it from `useUnistyles` will cause a re-render.
+
+That’s why to use Unistyles theme in worklets (e.g. in `useAnimatedStyle`), you need to import a special hook from `react-native-unistyles/reanimated`.
+
+```tsx
+import { useAnimatedTheme } from 'react-native-unistyles/reanimated'
+import Animated, { useAnimatedStyle, interpolate } from 'react-native-reanimated'
 
 
+export const MyAnimatedComponent = () => {
+    const theme = useAnimatedTheme()
+    const style = useAnimatedStyle(() => ({
+        backgroundColor: theme.value.colors.background,
+        // other animated styles
+    }))
 
-================================================
-FILE: docs/src/content/docs/v3/guides/merging-styles.mdx
-================================================
----
-title: Merging styles
-description: Learn about how to
+
+    return (
+        <Animated.View style={style} />
+    )
+}
+```
+
+Note
+
+`useAnimatedTheme` is a first-class `SharedValue`, so you can use it in worklets. It also triggers worklet updates if any change occurs and doesn’t cause re-renders.
+
+### Animating variant colors
+
+It’s possible to reuse Unistyles variant colors and animate them using the `useAnimatedStyle` hook.
+
+Define your variants with a `color` property:
+
+Note
+
+You can animate any prop that contains a `color` property.
+
+```tsx
+const styles = StyleSheet.create((theme, rt) => ({
+    styleWithVariants: {
+        height: 100,
+        width: 100,
+        variants: {
+            variant: {
+                red: {
+                    backgroundColor: theme.colors.primary
+                },
+                blue: {
+                    backgroundColor: theme.colors.secondary
+                }
+            }
+        }
+    }
+}))
+```
+
+In this case, `styleWithVariants` can transition the `backgroundColor` property from `primary` to `secondary` and vice versa.
+
+Import the `useAnimatedVariantColor` hook to animate variant colors:
+
+```tsx
+import { useAnimatedVariantColor } from 'react-native-unistyles/reanimated'
+
+
+// Select backgroundColor from styles.styleWithVariants (TypeScript will infer all possible color properties)
+const color = useAnimatedVariantColor(styles.styleWithVariants, 'backgroundColor')
+const animatedStyle = useAnimatedStyle(() => {
+    return {
+        // color is a SharedValue that can be animated however you want
+        backgroundColor: withTiming(color.value, {
+            duration: 500
+        })
+    }
+})
+```
+
+`useAnimatedVariantColor` also respects theme and breakpoint changes and will animate to the new color automatically.
+
+### Merging styles
+
+When you want to use `Unistyles` styles in `Animated` components, never mix them with `Reanimated` styles:
+
+```tsx
+import { StyleSheet } from 'react-native-unistyles'
+import Animated, { useAnimatedStyle } from 'react-native-reanimated'
+
+
+export const MyAnimatedComponent = () => {
+    const style = useAnimatedStyle(() => ({
+        ...styles.container, // never do that! 💥
+        // other animated styles
+    }))
+
+
+    return (
+        <Animated.View style={style} />
+    )
+}
+
+
+const style = StyleSheet.create(theme => ({
+    container: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: theme.colors.background,
+    }
+}))
+```
+
+This will produce a single style with both `Unistyles` C++ state and `Reanimated` animation metadata, which might cause performance issues at the `ShadowTree` level (both libraries will animate and override the same style nodes).
+
+Instead, separate both styles:
+
+```tsx
+import { StyleSheet } from 'react-native-unistyles'
+import Animated, { useAnimatedStyle } from 'react-native-reanimated'
+
+
+export const MyAnimatedComponent = () => {
+    const animatedStyles = useAnimatedStyle(() => ({
+        // animated styles
+    }))
+
+
+    return (
+        <Animated.View style={[styles.container, animatedStyles]} /> // ✅ Good!
+    )
+}
+
+
+const style = StyleSheet.create(theme => ({
+    container: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: theme.colors.background,
+    }
+}))
+```
+
+With this approach, both libraries will focus on updating own styles, which will result in better performance.
+
+# SSR
+
+> Learn about SSR with Unistyles 3.0
+
+Unistyles 3.0 is fully compatible with Next.js Server Side Rendering (SSR). We’re supporting both client and server components.
+
+### Usage
+
+* App router
+
+  To use server-side rendered styles, create the following **client-side** component:
+
+  Style.tsx
+
+  ```tsx
+  'use client'
+
+
+  import { PropsWithChildren, useRef } from 'react'
+  import { useServerUnistyles } from 'react-native-unistyles/server'
+  import { useServerInsertedHTML } from 'next/navigation'
+  import './unistyles'
+
+
+  export const Style = ({ children }: PropsWithChildren) => {
+      const isServerInserted = useRef(false)
+      const unistyles = useServerUnistyles()
+
+
+      useServerInsertedHTML(() => {
+          if (isServerInserted.current) {
+              return null
+          }
+
+
+          isServerInserted.current = true
+
+
+          return unistyles
+      })
+
+
+      return <>{children}</>
+  }
+  ```
+
+  With the component in place, make sure it wraps your body’s children:
+
+  layout.tsx
+
+  ```tsx
+   import '../unistyles'
+   import { Style } from '../Style'
+
+
+  export default function RootLayout({
+  children,
+  }: Readonly<{
+  children: React.ReactNode;
+  }>) {
+  return (
+      <html lang="en">
+      <body>
+          <Style>
+              {children}
+          </Style>
+      </body>
+      </html>
+  );
+  }
+  ```
+
+  Note
+
+  The `unistyles.ts` file is where Unistyles is configured. For more details, refer to the [configuration guide](/v3/start/configuration).
+
+  With this setup, we will ensure that Unistyles is initialized correctly and injects CSS on the server-side.
+
+  ### Config (Optional)
+
+  `useServerUnistyles` accepts an optional config object:
+
+  * **`includeRNWStyles`** – a boolean that enables or disables injecting React Native Web default CSS styles. Defaults to `true`.
+
+* Pages router
+
+  To use server-side rendered styles, add the following code to your codebase:
+
+  \_document.tsx
+
+  ```tsx
+  import { getServerUnistyles, resetServerUnistyles } from 'react-native-unistyles/server'
+
+
+    export default class Document extends NextDocument {
+        static async getInitialProps({ renderPage }: DocumentContext) {
+            const page = await renderPage()
+            const styles = getServerUnistyles()
+
+
+            resetServerUnistyles()
+
+
+            return {
+                ...page,
+                styles
+            }
+        }
+  ```
+
+  And add the following use effect to your `_app.tsx`
+
+  \_app.tsx
+
+  ```tsx
+   import { hydrateServerUnistyles } from 'react-native-unistyles/server'
+
+
+  {/* JSX of your component */}
+   useEffect(() => {
+       hydrateServerUnistyles()
+   }, [])
+  ```
+
+  ### Config (Optional)
+
+  `getServerUnistyles` accepts an optional config object:
+
+  * **`includeRNWStyles`** – a boolean that enables or disables injecting React Native Web default CSS styles. Defaults to `true`.
+
+## Troubleshooting
+
+### Hydration error
+
+If you’re not using adaptive themes, you might encounter hydration error on your root html element. This is because unistyles is adding a className to it based on the current theme.
+
+To fix this simply add `suppressHydrationWarning` to your root html element.
+
+layout.tsx
+
+```tsx
+<html lang="en">
+<html lang="en" suppressHydrationWarning>
+```
+
+Or you can directly add the className to your root html element.
+
+layout.tsx
+
+```tsx
+<html lang="en">
+<html lang="en" className="dark">
+```
+
+# Theming
+
+> Best practices for theming in Unistyles
+
+Theming in `Unistyles` differs from other libraries as it doesn’t impose any specific syntax.
+
+**Any JavaScript object can be a Unistyles theme**.
+
+There is also no limit to the number of themes. You can even register dozens of them eg. when you needs to support some premium ones.
+
+Theming is optional. If you don’t register themes with [StyleSheet.configure](/v3/start/configuration#themes-optional) the library will use an empty object by default.
+
+### Create a theme
+
+You can organize your themes however you want:
+
+```tsx
+const myTheme = {
+    // any keys
+    colors: {
+        // your colors
+    },
+    components: {
+        // any number of nesting
+        button: {
+            deepKey: {}
+        }
+    },
+    utils: {
+        // you can even use functions here
+        hexToRGBA: () => {}
+    },
+    // or compute your themes with functions and spread operators
+    ...premiumFeatures,
+    ...getMyColors()
+}
+```
+
+Note
+
+It’s also possible to update the theme during runtime. Please check `updateTheme` method in the [UnistylesRuntime](/v3/references/unistyles-runtime) guide.
+
+If you use TypeScript you need to override the library’s type:
+
+```tsx
+type AppThemes = {
+  name: typeof myTheme
+}
+
+
+declare module 'react-native-unistyles' {
+  export interface UnistylesThemes extends AppThemes {}
+}
+```
+
+Finally, to register the theme, you need to call `StyleSheet.configure`:
+
+```tsx
+import { StyleSheet } from 'react-native-unistyles'
+import { myTheme } from './themes'
+
+
+StyleSheet.configure({
+    themes: {
+        name: myTheme,
+        // you can add more themes here
+    }
+})
+```
+
+Where `name` is the unique name of your theme.
+
+Note
+
+It’s not recommended to use themes with different shapes. Unistyles allows that, but it might cause some TypeScript errors.
+
+### Select theme
+
+If you’ve registered more than one theme, Unistyles won’t know which one is the initial one. At this point, you have 3 options:
+
+* If you know the initial theme upfront, select it with `settings` from [StyleSheet.configure](/v3/start/configuration#settings-optional)
+
+```tsx
+StyleSheet.configure({
+    settings: {
+        initialTheme: 'premium'
+    }
+})
+```
+
+* If you need to resolve the user-selected theme during runtime, use a synchronous function:
+
+```tsx
+StyleSheet.configure({
+    settings: {
+        initialTheme: () =>  {
+            // get preferred theme from user's preferences/MMKV/SQL/StanJS etc.
+            return storage.getString('preferredTheme') ?? 'light'
+        }
+    }
+})
+```
+
+Note
+
+It’s not possible to use `async` functions with `initialTheme` option.
+
+* Use adaptive themes, which are described below
+
+### Get the current theme
+
+To get the current theme you can access it in the `StyleSheet.create` function:
+
+```tsx
+const styles = StyleSheet.create(theme => ({
+    ...
+}))
+```
+
+Other, discouraged way is to access it in the hook `useUnistyles`:
+
+```tsx
+import { useUnistyles } from 'react-native-unistyles'
+
+
+const MyComponent = () => {
+    const { theme } = useUnistyles()
+
+
+    return (
+        <Text>
+            My theme is {theme.colors.primary}
+        </Text>
+    )
+}
+```
+
+Caution
+
+`useUnistyles` is not recommended as it will re-render your component on every change of the theme. Learn more about [useUnistyles](/v3/references/use-unistyles)
+
+### Get the current theme name
+
+To get the current theme name, import `UnistylesRuntime`:
+
+```tsx
+import { UnistylesRuntime } from 'react-native-unistyles'
+
+
+// access the current theme name in your component
+export const UserTheme = () => (
+    <Text>
+        Selected theme is {UnistylesRuntime.themeName}
+    </Text>
+)
+```
+
+### Adaptive themes
+
+Adaptive themes allow Unistyles to automatically manage the selection of your themes based on device color scheme settings. To enable this, you need to meet two conditions:
+
+* register two themes with reserved names `light` and `dark`:
+
+```tsx
+StyleSheet.configure({
+    themes: {
+        light: lightTheme,
+        dark: darkTheme,
+        // you may have more themes
+    }
+})
+```
+
+* Explicitly enable `adaptiveThemes`:
+
+```tsx
+StyleSheet.configure({
+    themes: {
+        light: lightTheme,
+        dark: darkTheme
+    },
+    settings: {
+        adaptiveThemes: true
+    }
+})
+```
+
+Caution
+
+Setting initial theme and enabling adaptive themes at the same time will throw an error as this options are mutually exclusive.
+
+### Toggle adaptive themes during runtime
+
+To toggle adaptive themes support at any point, use `UnistylesRuntime`:
+
+```tsx
+import { UnistylesRuntime } from 'react-native-unistyles'
+
+
+// toggle support for adaptive themes at any point
+export const ToggleAdaptiveThemes = () => (
+    <Button
+        title="Disable adaptive themes"
+        onPress={() => UnistylesRuntime.setAdaptiveThemes(false)}
+    />
+)
+```
+
+With adaptive themes disabled, you can now manually change the theme.
+
+### Check if adaptive themes are enabled
+
+To check if adaptive themes are enabled, use `UnistylesRuntime` again:
+
+```tsx
+import { UnistylesRuntime } from 'react-native-unistyles'
+
+
+// check if you've enabled adaptive themes
+export const AdaptiveThemes = () => (
+    <Text>
+        Adaptive themes are {UnistylesRuntime.hasAdaptiveThemes ? 'enabled' : 'disabled'}
+    </Text>
+)
+```
+
+### Get device color scheme
+
+Check your device color preference with `UnistylesRuntime`:
+
+```tsx
+import { UnistylesRuntime } from 'react-native-unistyles'
+
+
+// check the current device scheme preference
+export const UserTheme = () => (
+    <Text>
+        My device is using the {UnistylesRuntime.colorScheme} scheme.
+    </Text>
+)
+```
+
+Available options are: `dark`, `light` or `unspecified` for devices that don’t support color schemes.
+
+Caution
+
+Unistyles will read your device settings, not user preferences. It’s not compatible with the React Native `Appearance` module.
+
+If your app’s theme is not changing based on device settings, please refer to the [FAQ](/v3/other/frequently-asked-questions/#adaptive-mode-doesnt-work-for-me)
+
+### Change theme
+
+To change the theme at any time, simply call `setTheme` function:
+
+```tsx
+import { UnistylesRuntime } from 'react-native-unistyles'
+
+
+// change the theme in any component
+export const ChangeTheme = () => (
+    <Button
+        title="Change theme"
+        onPress={() => UnistylesRuntime.setTheme('dark')}
+    />
+)
+```
+
+Caution
+
+Calling this function with enabled adaptive themes will throw an error.
+
+### Update theme during runtime
+
+Unistyles allows you to update your theme during runtime. This is useful if you want to show the user interface with default colors and later alter theme based on user preferences.
+
+If you update the currently selected theme, it will be automatically applied, and Unistyles will notify all stylesheets about the change. Otherwise, theme will be updated silently.
+
+To update the theme during runtime, call `updateTheme` function, and return new theme object:
+
+```tsx
+import { UnistylesRuntime } from 'react-native-unistyles'
+
+
+// update the theme at any time
+export const UpdateTheme = ({ selectedColors }) => (
+    <Button
+        title="Update theme"
+        onPress={() => UnistylesRuntime.updateTheme('dark', currentTheme => ({
+            ...currentTheme,
+            colors: {
+                ...currentTheme.colors,
+                ...selectedColors
+            }
+        }))}
+    />
+)
+```
+
+### Update rootView background color during runtime
+
+You can also change dynamically the root view background color with `UnistylesRuntime`:
+
+```tsx
+import { UnistylesRuntime } from 'react-native-unistyles'
+
+
+// update the theme at any time
+export const UpdateTheme = ({ selectedColors }) => (
+    <Button
+        title="Update theme"
+        onPress={() => UnistylesRuntime.setRootViewBackgroundColor(theme.colors.primary)}
+    />
+)
+```
+
+Changing rootView background color is useful when your app supports different orientations and you want to match the background color with your theme while transitioning.
+
+Note
+
+Unistyles supports all colors that React Native supports eg. #FFFFFF, rgba(255, 255, 255, 0.5), red etc.
+
+# Why my view doesn't update?
+
+> Learn how to resolve the issue when your view is not updating as expected
+
+If you start working with Unistyles 3.0, it might be unclear why some views are updated while others aren’t. Before diving into this guide, make sure you’ve read the other guides covering the basics of the new Unistyles:
+
+* [Look under the hood](/v3/start/how-unistyles-works)
+* [Merging styles](/v3/guides/merging-styles)
+* [Babel plugin](/v3/other/babel-plugin)
+
+### Problem 1: Babel
+
+To leverage ShadowTree updates and avoid unnecessary re-renders, Unistyles must process both `StyleSheets` and your components. By default, the Babel plugin looks for `react-native-unistyles` imports and always ignores the `node_modules` folder.
+
+If you separate `StyleSheets` from your components, it’s your responsibility to configure Babel to detect components that lack a Unistyles import. We’ve added plenty of options, so be sure to [check them out](/v3/other/babel-plugin##extra-configuration).
+
+### Problem 2: Dependency detection
+
+Unistyles will automatically detect all your dependencies for every `StyleSheet`, but there’s a chance you used custom syntax that isn’t covered by the plugin. If Babel fails to detect some style dependencies, they won’t be updated when necessary.
+
+You can easily debug this issue by adding the following Babel plugin configuration:
+
+babel.config.js
+
+```js
+module.exports = function (api) {
+  api.cache(true)
+
+
+  return {
+    // other config
+    plugins: [
+        // other plugins
+        ['react-native-unistyles/plugin', {
+            root: 'src',
+            debug: true // add this option
+        }]
+    ]
+  }
+}
+```
+
+Then, restart the Metro server cache and check the console, where you’ll find every file and style with its detected dependencies.
+
+### Problem 3: Non React Native components
+
+Unistyles can only update React Native components. If you’re using a third-party component, you’ll need to apply a different strategy. Follow our [decision algorithm](/v3/references/3rd-party-views) to help you choose the best approach.
+
+### Problem 4: Web styles are not applied
+
+This issue indicates that the Babel plugin didn’t detect some of your components. Initially, it may seem like native styles are working correctly, but that’s not the case.
+
+On mobile, styles are returned the same way as in React Native. You can always `console.log` them to inspect the parsed values:
+
+mobile
+
+```tsx
+export const MyView: React.FunctionComponent = () => {
+    console.log(styles.container) // { backgroundColor: 'red' }
+
+
+    return (
+        ...
+    )
+}
+
+
+const styles = StyleSheet.create({
+    container: {
+        backgroundColor: 'red'
+    }
+})
+```
+
+For the web, styles are not returned directly, as they are converted into CSS classes. If you try to log them, there will be no output:
+
+web
+
+```tsx
+export const MyView: React.FunctionComponent = () => {
+    console.log(styles.container) // {}
+
+
+    return (
+        ...
+    )
+}
+
+
+const styles = StyleSheet.create({
+    container: {
+        backgroundColor: 'red'
+    }
+})
+```
+
+That’s why you might mistakenly think the problem is only on the web. Please follow the [Babel config](/v3/other/babel-plugin##extra-configuration) to ensure all your components and StyleSheets are detected correctly.
+
+# How to auto-update 3rd party views?
+
+> Learn how to use Unistyles with 3rd party components
+
+Tip
+
+This is our decision algorithm to ensure best practices for your app.
+
+1. If you’re using `react-native` or `react-native-reanimated` components with `style` prop, avoid doing anything. It will work out of the box.
+
+2. For `react-native` components with `contentContainerStyle` prop, you can use the [withUnistyles](/v3/references/with-unistyles) factory. Wrapping your component in `withUnistyles` will [auto map](/v3/references/with-unistyles#auto-mapping-for-style-and-contentcontainerstyle-props) `contentContainerStyle` prop.
+
+3. If you’re using third-party components and you’re confident they internally use `react-native` components, check the [Babel plugin configuration](/v3/other/babel-plugin#extra-configuration) to see if they can be processed to work out of the box.
+
+4. If that fails, try migrating to the [withUnistyles](/v3/references/with-unistyles) factory. It follows best practices and ensures that only a single component is re-rendered when dependencies change. It’s also recommended to map `react-native` properties like `color` or `trackColor`.
+
+5. If that also fails, follow best practices and use the [useUnistyles](/v3/references/use-unistyles) hook.
+
+# Breakpoints
+
+> Learn about breakpoints in Unistyles 3.0
+
+Breakpoints are user-defined key/value pairs that describe the boundaries of screen sizes. There’s no limit to the number of breakpoints; you can define as many as you want.
+
+### Register breakpoints
+
+To register your breakpoints, create an object with **any** keys:
+
+unistyles.ts
+
+```tsx
+const breakpoints = {
+    xs: 0,
+    sm: 576,
+    md: 768,
+    lg: 992,
+    xl: 1200,
+    superLarge: 2000,
+    tvLike: 4000
+} as const
+```
+
+The first breakpoint **must** start with `0`. This is required to simulate CSS cascading, e.g., everything below 576px (`sm` breakpoint) will resolve to `xs` breakpoint.
+
+If you use TypeScript you need to override the library’s type:
+
+```tsx
+type AppBreakpoints = typeof breakpoints
+
+
+declare module 'react-native-unistyles' {
+  export interface UnistylesBreakpoints extends AppBreakpoints {}
+}
+```
+
+Finally, to register the breakpoints, call `StyleSheet.configure`:
+
+```tsx
+import { UnistylesRegistry } from 'react-native-unistyles'
+
+
+StyleSheet.configure({
+    breakpoints
+})
+```
+
+To learn more, follow the configuration [guide](/v3/start/configuration).
+
+### How to use breakpoints?
+
+Any style can change based on breakpoints. To do this, change a `value` to an `object`:
+
+```tsx
+const styles = StyleSheet.create(theme => ({
+    container: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: theme.colors.background,
+        backgroundColor: {
+            // your breakpoints
+            xs: theme.colors.background,
+            sm: theme.colors.barbie
+        }
+    },
+    text: {
+        color: theme.colors.typography
+    }
+}))
+```
+
+You can even use it with nested objects like `transform`, `shadowOffset`, or `filters`:
+
+```ts
+const styles = StyleSheet.create(theme => ({
+    container: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: {
+            xs: theme.colors.background,
+            sm: theme.colors.barbie
+        },
+        transform: [
+            {
+                translateX: 100
+            },
+            {
+                scale: {
+                    xs: 1.5,
+                    xl: 0.9
+                }
+            }
+        ]
+    }
+}))
+```
+
+Breakpoints are also available with [variants](/v3/references/variants/) and [compound variants](/v3/references/compound-variants/).
+
+### Built-in breakpoints `landscape` and `portrait`
+
+Even if you don’t use custom breakpoints, you can still utilize Unistyles’ predefined breakpoints available on mobile devices: `portrait` and `landscape`.
+
+* `portrait` will resolve to your device’s width in portrait mode
+* `landscape` will resolve to your device’s width in landscape mode
+
+Tip
+
+These breakpoints are only available on mobile unless you register your own.
+
+```ts
+const styles = StyleSheet.create(theme => ({
+    container: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: {
+            landscape: theme.colors.background,
+            portrait: theme.colors.barbie
+        }
+    }
+}))
+```
+
+### Pixel/Point mode for native breakpoints
+
+By default, Unistyles will use `pixels` for native breakpoints. This means that the breakpoints and [mq](/v3/references/media-queries) will be computed based on mobile screen pixels. You can change this behavior by setting `nativeBreakpointsMode` to `points` in your [configuration](/v3/start/configuration#settings-optional).
+
+If `nativeBreakpointsMode` is set to `points`, all breakpoints and `mq` will be computed based on mobile screen points (screen in pixels divided by pixel ratio).
+
+### Show/Hide your components based on breakpoints
+
+In order to show or hide your components based on the screen size, you can leverage the `mq` utility and one of the two built-in components: `Display` and `Hide`.
+
+```tsx
+import { Display, Hide, mq } from 'react-native-unistyles'
+
+
+const MyComponent = () => {
+    return (
+        <Display mq={mq.only.width(0, 400)}>
+            <Text>This text is visible on small devices</Text>
+        </Display>
+        <Hide mq={mq.only.width(400)}>
+            <Text>This text is hidden on big devices</Text>
+        </Hide>
+    )
+}
+```
+
+You can also access your current breakpoint with `UnistylesRuntime`:
+
+```tsx
+import { UnistylesRuntime } from 'react-native-unistyles'
+
+
+// check the current breakpoint
+export const CurrentBreakpoint = () => (
+    <Text>
+        Current breakpoint is {UnistylesRuntime.breakpoint}
+    </Text>
+)
+```
+
+### Get registered breakpoints
+
+Access your registered breakpoints object with `UnistylesRuntime`:
+
+```tsx
+import { UnistylesRuntime } from 'react-native-unistyles'
+
+
+// check the registered breakpoints
+export const RegisteredBreakpoints = () => (
+    <Text>
+        My registered breakpoint are {JSON.stringify(UnistylesRuntime.breakpoints)}
+    </Text>
+)
+```
+
+# Compound Variants
+
+> Learn about compound variants in Unistyles 3.0
+
+You can extend your `StyleSheets` even further by using `compound variants`.
+
+Compound variants are a way of applying additional styles when certain conditions are met. This approach simplifies the management of complex styling by reducing redundancy and increasing the flexibility of your `StyleSheets`.
+
+### Basic usage
+
+Let’s say you created a base `Typography` component with the following variants:
+
+```tsx
+const styles = StyleSheet.create(theme => ({
+    baseText: {
+        fontFamily: theme.fonts.base,
+        fontWeight: 'normal'
+    },
+    themedText: {
+        variants: {
+            size: {
+                small: {
+                    fontSize: 12
+                },
+                medium: {
+                    fontSize: 16
+                },
+                large: {
+                    fontSize: 20
+                }
+            },
+            isBold: {
+                true: {
+                    fontWeight: 'bold'
+                }
+            },
+            color: {
+                primary: {
+                    color: theme.colors.primary
+                },
+                secondary: {
+                    color: theme.colors.secondary
+                },
+                link: {
+                    color: theme.colors.link
+                }
+            }
+        }
+    }
+}
+```
+
+What if you’ve received a new requirement where the text should be underlined when `isBold` is `true` and `color` is `link`? This task could be challenging while using features like [dynamic functions](/v3/references/dynamic-functions/) as you would need to use `if` statements in your `StyleSheet`.
+
+### Usage with Compound variants
+
+With compound variants, it can be achieved in a more concise way:
+
+```tsx
+const styles = StyleSheet.create(theme => ({
+    baseText: {
+        fontFamily: theme.fonts.base,
+        fontWeight: 'normal'
+    },
+    themedText: {
+        variants: {
+            size: {
+                small: {
+                    fontSize: 12
+                },
+                medium: {
+                    fontSize: 16
+                },
+                large: {
+                    fontSize: 20
+                }
+            },
+            isBold: {
+                true: {
+                    fontWeight: 'bold'
+                }
+            },
+            color: {
+                primary: {
+                    color: theme.colors.primary
+                },
+                secondary: {
+                    color: theme.colors.secondary
+                },
+                link: {
+                    color: theme.colors.link
+                }
+            }
+        },
+        compoundVariants: [
+            {
+                isBold: true, // when isBold is true
+                color: 'link', // and color is link
+                // apply following styles
+                styles: {
+                    textDecorationLine: 'underline'
+                    // and more styles
+                }
+            }
+        ]
+    }
+}
+```
+
+Styles from the `compoundVariants` array will take precedence over the styles defined in the `variants` object. You can define multiple `compoundVariants` in the array to handle different combinations of style properties. This allows for more granular control and customization of your component’s appearance.
+
+# Content size category
+
+> Learn about content size category in Unistyles 3.0
+
+Content size category is a user preference used to adjust text size and control content magnification in your app. This feature is especially useful for users with visual impairments or limited vision.
+
+It’s also possible to use these values to build responsive layouts based on native settings rather than screen size.
+
+### iOS
+
+Unistyles’ implementation is based on [Human Interface Guidelines](https://developer.apple.com/design/human-interface-guidelines/typography#Specifications) and the available values are:
+
+`xSmall`, `Small`, `Medium`, `Large`, `xLarge`, `xxLarge`, `xxxLarge`, `unspecified`
+
+In addition to the above categories, you can also use the [Accessibility sizes](https://developer.apple.com/documentation/uikit/uicontentsizecategory#2901207), and the available values are:
+
+`accessibilityMedium`, `accessibilityLarge`, `accessibilityExtraLarge`, `accessibilityExtraExtraLarge`, `accessibilityExtraExtraExtraLarge`
+
+### Android
+
+There is no direct equivalent to the iOS content size category on Android. The implementation is based on [Font Scale](https://developer.android.com/reference/android/content/res/Configuration#fontScale), and the available values are:
+
+`Small`, `Default`, `Large`, `ExtraLarge`, `Huge`
+
+Mapping is based on the following table:
+
+| Value          | Font Scale |
+| -------------- | ---------- |
+| Small          | <= 0.85    |
+| Default        | <= 1.0     |
+| Large          | <= 1.15    |
+| ExtraLarge     | <= 1.3     |
+| Huge           | <=1.5      |
+| ExtraHuge      | <=1.8      |
+| ExtraExtraHuge | >1.8       |
+
+### Web
+
+There is no support for the content size category on the web. Reading the value will always resolve to `unspecified`.
+
+### Usage
+
+To get the current `contentSizeCategory`, you need to use `UnistylesRuntime`:
+
+```tsx
+import { UnistylesRuntime } from 'react-native-unistyles'
+
+
+// check the current content size category
+export const ContentSizeCategory = () => (
+    <Text>
+        My device is using the {UnistylesRuntime.contentSizeCategory} size.
+    </Text>
+)
+```
+
+For convenience, the library exposes two enums to map the values mentioned above:
+
+```tsx
+import { AndroidContentSizeCategory, IOSContentSizeCategory } from 'react-native-unistyles'
+
+
+// compare the current content size category based on platform
+```
+
+# Dimensions
+
+> Learn about Dimensions in Unistyles 3.0
+
+Unistyles provides rich metadata about your device dimensions. This is useful for creating responsive designs as well as avoiding installing third-party libraries. Every property listed below can be accessed with [UnistylesRuntime](/v3/references/unistyles-runtime). Dimensions are always up to date and are updated based on Unistyles’ core logic, e.g., when the device orientation changes.
+
+### Accessing dimensions
+
+In order to start using the dimensions metadata, you need to import `UnistylesRuntime`:
+
+```tsx
+import { UnistylesRuntime } from 'react-native-unistyles'
+```
+
+### Screen dimensions
+
+The most basic dimensions are the screen dimensions. These are the dimensions of the screen that your app is running on. You can access them with the `screen` prop:
+
+```tsx
+import { UnistylesRuntime } from 'react-native-unistyles'
+
+
+UnistylesRuntime.screen.width // eg. 400
+UnistylesRuntime.screen.height // eg. 760
+```
+
+### Status bar
+
+You can access status bar dimensions with the `statusBar` prop:
+
+```tsx
+import { UnistylesRuntime } from 'react-native-unistyles'
+
+
+UnistylesRuntime.statusBar.width // eg. 400
+UnistylesRuntime.statusBar.height // eg. 24
+```
+
+This prop may be useful for creating custom headers. In most of the cases status bar height is equal to the top inset, but on some devices it may be different.
+
+### Navigation bar
+
+You can access navigation bar dimensions with `navigationBar` prop:
+
+```tsx
+import { UnistylesRuntime } from 'react-native-unistyles'
+
+
+UnistylesRuntime.navigationBar.width // eg. 400
+UnistylesRuntime.navigationBar.height // eg. 24
+```
+
+This prop may be useful for creating custom bottom bars. In most of the cases navigation bar height is equal to the bottom inset, but on some devices it may be different.
+
+### Insets
+
+Insets are the safe areas of the screen. They are used to avoid overlapping with system UI elements such as the status bar, navigation bar, and home indicator. You can access them with `insets` prop:
+
+```tsx
+import { UnistylesRuntime } from 'react-native-unistyles'
+
+
+UnistylesRuntime.insets.top // eg. 42
+UnistylesRuntime.insets.bottom // eg. 24
+UnistylesRuntime.insets.left // eg. 0, or in vertical orientation can be top inset
+UnistylesRuntime.insets.right // eg. 0
+UnistylesRuntime.insets.ime // eg. 0
+```
+
+Note
+
+Read more about IME insets in keyboard [guide](/v3/guides/avoiding-keyboard/).
+
+Insets can be used directly in your stylesheets to avoid passing values from `useSafeAreaInsets` hook from [react-native-safe-area-context](https://github.com/th3rdwave/react-native-safe-area-context?tab=readme-ov-file#usesafeareainsets) library.
+
+Note
+
+Unistyles uses `WindowsInsetsCompat` API to handle insets on Android. This API requires your app to have edge to edge layout enabled. Read more about it [here](/v3/references/edge-to-edge/).
+
+Insets on Android respect following setups:
+
+```tsx
+<StatusBar />
+<StatusBar hidden />
+<StatusBar translucent /> // enabled by default
+```
+
+Unistyles automatically reacts when you hide or show status and navigation bars. Yo can do that with `UnistylesRuntime` [as well](/v3/references/unistyles-runtime/#setters).
+
+### Pixel ratio
+
+Device Pixel Ratio (DPR) is the ratio between physical pixels and device-independent pixels (DIPs) on a screen. It determines how many physical pixels are used to represent a single CSS pixel.
+
+Most likely, your phone pixel ratio ranges between 1.0 to 3.0 (retina).
+
+```tsx
+UnistylesRuntime.pixelRatio // eg. 2.0
+```
+
+### Font scale
+
+Font scale is a ratio between the font size of the device and the default font size. It is used to adjust the size of text on the screen in companion with [content size category](/v3/references/content-size-category/).
+
+```tsx
+UnistylesRuntime.fontScale // eg. 1.0
+```
+
+# Display and Hide components
+
+> Learn about Display and Hide components
+
+In Unistyles 2.0, developers could retrieve the `breakpoint` value from the `useStyles` hook. This was helpful for hiding certain JSX components based on specific screen sizes.
+
+However, this pattern was a bit tedious, as it required writing custom logic to determine whether a component should be visible or not.
+
+With Unistyles 3.0, preferred way of listening for breakpoint changes is with `Display` and `Hide` components.
+
+### Display
+
+The Display component helps you show its children based on `breakpoints` or `media queries`.
+
+```tsx
+import React from 'react'
+import { View } from 'react-native'
+import { Display, mq } from 'react-native-unistyles'
+
+
+const Component = () => {
+    return (
+        <View style={styles.container}>
+            <Display mq={mq.only.width('sm')}>
+                <View style={styles.text}>
+                    I will be visible from 'sm' breakpoint and up
+                </View>
+            </Display>
+        </View>
+    )
+}
+```
+
+You can also use pixel-based values:
+
+```tsx
+import React from 'react'
+import { View } from 'react-native'
+import { Display, mq } from 'react-native-unistyles'
+
+
+const Component = () => {
+    return (
+        <View style={styles.container}>
+            <Display mq={mq.only.width(0, 500)}>
+                <View style={styles.text}>
+                    I will be visible from 0 to 500px
+                </View>
+            </Display>
+        </View>
+    )
+}
+```
+
+### Hide
+
+On the opposite side, the `Hide` component helps you hide its children based on `breakpoints` or `media queries`. It works exactly the same way as the Display component.
+
+```tsx
+import React from 'react'
+import { View } from 'react-native'
+import { Hide, mq } from 'react-native-unistyles'
+
+
+const Component = () => {
+    return (
+        <View style={styles.container}>
+            <Hide mq={mq.only.width('sm', 'lg')}>
+                <View style={styles.text}>
+                    I will be hidden from 'sm' breakpoint to 'lg' breakpoint
+                </View>
+            </Hide>
+        </View>
+    )
+}
+```
+
+Caution
+
+Does it mean that Unistyles introduced a new components?
+
+Well, no! These components are simple if-else statements used to conditionally render your JSX. We won’t wrap your components in any additional layers.
+
+We believe this saves you a lot of time and effort, eliminating the need to implement the logic yourself or causing re-renders by listening to any hooks.
+
+# Dynamic Functions
+
+> Learn about dynamic functions in Unistyles 3.0
+
+If you need to pass a value from JSX to your `stylesheet` you can do so using a concept called `dynamic function`.
+
+### Usage
+
+To use a dynamic function, change **any** stylesheet’s value from an `object` to a `function`:
+
+```tsx
+const styles = StyleSheet.create(theme => ({
+    container: {
+    container: () => ({
+        backgroundColor: theme.colors.background,
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center'
+    }
+    })
+}))
+```
+
+Now, you can pass **any** number of arguments, and all with TypeScript hints:
+
+```tsx
+export const Example = ({ maxWidth, isOdd, children }) => {
+    return (
+        <View style={styles.container(maxWidth, isOdd)}>
+            {children}
+        </View>
+    )
+}
+
+
+const styles = StyleSheet.create(theme => ({
+    container: (maxWidth: number, isOdd: boolean) => ({
+        backgroundColor: theme.colors.background,
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        maxWidth,
+        borderBottomWidth: isOdd ? 1 : undefined
+    })
+}))
+```
+
+Serializable arguments
+
+Keep in mind that a dynamic function can accept only serializable arguments. These arguments will be passed to C++, so anything that can be represented as `folly::dynamic` is supported (such as strings, numbers, booleans, arrays, objects, etc.).
+
+# Edge to edge layout with Unistyles
+
+> Learn how Unistyles leverages edge to edge layout
+
+### iOS
+
+Unistyles uses native `SafeAreaInsets` API to handle insets on iOS. This API is stable and works the same across all iOS versions.
+
+Most likely, you’ll never receive incorrect inset values on iOS.
+
+### Android
+
+Unistyles uses `WindowsInsetsCompat` API to handle insets on Android. This API requires your app to have edge to edge layout enabled. In other words, it means that your `StatusBar` is always `translucent` and the app can draw behind the `NavigationBar`. A translucent status bar is also the default when you build your app with Expo. To leverage `WindowInsetsCompat`, Unistyles enables `edgeToEdge` layout by default.
+
+As a result you need to use paddings to draw your app content above system bars. To learn more about `edgeToEdge` layout please check [Window insets in Compose](https://developer.android.com/develop/ui/compose/layouts/insets).
+
+```tsx
+import { StyleSheet } from 'react-native-unistyles'
+
+
+const App = () => (
+    <View style={styles.container}>
+        <Text style={styles.text}>
+            Correct insets
+        </Text>
+    </View>
+)
+
+
+const styles = StyleSheet.create((theme, rt) => ({
+    container: {
+        backgroundColor: theme.colors.background,
+        flex: 1,
+        // apply insets to the container,
+        // so it will add required paddings
+        paddingTop: rt.insets.top,
+        paddingBottom: rt.insets.bottom,
+        paddingLeft: rt.insets.left,
+        paddingRight: rt.insets.right
+    },
+})
+```
+
+Edge-to-edge enforcement
+
+Apps are edge-to-edge by default on devices running Android 15 if the app is targeting Android 15 (API level 35).
+
+[Learn more](https://developer.android.com/about/versions/15/behavior-changes-15)
+
+Caution
+
+Unistyles enables `edgeToEdge` by default, but sometimes other libraries might interfere with it. We decided to depend on `react-native-edge-to-edge` package, to help reduce these issues. Learn more [here](/v3/other/dependencies#react-native-edge-to-edge).
+
+# Media Queries
+
+> Learn about media queries in Unistyles 3.0
+
+Media queries provide more power and allow you to style cross-platform apps with pixel-perfect accuracy.
+
+### Basic usage
+
+To use media queries, you need to import the `mq` utility and convert your value to an `object`:
+
+```tsx
+import { Stylesheet, mq } from 'react-native-unistyles'
+
+
+const styles = Stylesheet.create(theme => ({
+    container: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center'
+        backgroundColor: theme.colors.background,
+        backgroundColor: {
+            [mq.only.width(240, 380)]: theme.colors.background,
+            [mq.only.width(380)]: theme.colors.barbie
+       }
+    }
+}))
+```
+
+The `mq` utility provides Intellisense for quickly building your media queries.
+
+### Advanced usage
+
+You can also combine `width` media queries with `height` media queries:
+
+```tsx
+import { StyleSheet, mq } from 'react-native-unistyles'
+
+
+const styles = Stylesheet.create(theme => ({
+    container: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center'
+        backgroundColor: theme.colors.background,
+        backgroundColor: {
+            [mq.width(240, 380).and.height(300)]: theme.colors.background,
+            [mq.width(380).and.height(300)]: theme.colors.barbie
+        }
+    }
+}))
+```
+
+Or use only `height` media queries:
+
+```tsx
+import { StyleSheet, mq } from 'react-native-unistyles'
+
+
+const styles = Stylesheet.create(theme => ({
+    container: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center'
+        backgroundColor: theme.colors.background,
+        backgroundColor: {
+            [mq.only.height(300, 500)]: theme.colors.background,
+            [mq.only.height(500)]: theme.colors.barbie
+        }
+    }
+}))
+```
+
+You can also reuse your defined [breakpoints](/v3/references/breakpoints/):
+
+```tsx
+import { StyleSheet, mq } from 'react-native-unistyles'
+
+
+const styles = Stylesheet.create(theme => ({
+    container: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center'
+        backgroundColor: theme.colors.background,
+        backgroundColor: {
+            [mq.only.height(500)]: theme.colors.background,
+            [mq.only.width(200, 'xl')]: theme.colors.barbie
+        }
+    }
+}))
+```
+
+### Reference
+
+Available combinations
+
+```shell
+mq.only.width // target only width
+mq.only.height // target only height
+mq.width(...).and.height(...) // target both width and height
+mq.height(...).and.width(...) // target both height and width
+```
+
+Available values
+
+```shell
+(100, 200) // from 100 to 199
+(400, 'xl') // from 400 to 'xl' breakpoint
+('sm', 'md') // from 'sm' to 'md' breakpoint
+(undefined, 1000) // from 0 to 999
+(null, 800) // from 0 to 799
+(500) // from 500 onwards
+```
+
+Full example
+
+```shell
+mq.only.width(100, 200) // width from 100 to 199
+mq.height(500).and.width('sm') // heigh from 500 onwards and width from 'sm' breakpoint onwards
+mq.only.height(null, 1000) // height from 0 to 999
+```
+
+Tip
+
+If you pass an invalid range to mq utility eg. (‘xl’, ‘sm’) or (500, 200) the media query will be marked as invalid and won’t be used to resolve your styles.
+
+### Combining media queries with breakpoints
+
+You can mix media queries with breakpoints, but media queries will always have higher priority:
+
+```tsx
+import { StyleSheet, mq} from 'react-native-unistyles'
+
+
+const styles = Stylesheet.create(theme => ({
+    container: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center'
+        backgroundColor: {
+            sm: theme.colors.background,
+            // Unistyles will firsly resolve to this style, even though 'sm' breakpoint may be also correct
+            [mq.only.width(200, 'xl')]: theme.colors.barbie
+        }
+    }
+}))
+```
+
+### CSS Media Queries
+
+`Breakpoints` and `Media Queries` will be auto converted to Web CSS media queries. Learn more about [Web Media Queries](/v3/references/web-styles#how-it-works).
+
+# Mini Runtime
+
+> Learn about mini runtime in Unistyles 3.0
+
+Mini runtime was introduced in Unistyles `2.8.0` as a subset of `UnistylesRuntime` containing only the properties that are useful in your `StyleSheet`.
+
+It doesn’t include any functions, as they aren’t necessary when you’re referencing your platform values.
+
+Mini runtime returns following object:
+
+```tsx
+type MiniRuntime = {
+    readonly themeName?: string, // eg. light or undefined if you haven't registered any themes
+    readonly breakpoint?: string, // eg. sm or undefined if you haven't registered any breakpoints
+    readonly hasAdaptiveThemes: boolean, //  true if you have enabled adaptive themes
+    readonly colorScheme: ColorScheme, // eg. light or dark or unspecified
+    readonly screen: Dimensions, // eg. {width: 1024, height: 768}
+    readonly contentSizeCategory: string, // eg. Large
+    readonly insets: Insets, // eg. { top: 28, bottom: 40, left: 0, right: 0 , ime: 0 }
+    readonly pixelRatio: number, // eg. 3.0
+    readonly fontScale: number, // eg. 1.5
+    readonly rtl: boolean // true if your user prefers RTL
+    readonly statusBar: Dimensions, // eg. { width: 240, height: 20,  }
+    readonly navigationBar: Dimensions // eg. { width: 240, height: 44,  }
+    readonly isPortrait: boolean, // true if your device is in portrait mode
+    readonly isLandscape: boolean // true if your device is in landscape mode
+}
+```
+
+Mini runtime is automatically injected when Unistyles resolves a `StyleSheet` that depends on it.
+
+# Scoped Theme
+
+> Learn about scoped theme in Unistyles 3.0
+
+There are cases where you may want to render specific components or screens with a fixed theme. For instance, a `Camera` view might require a dark background for better contrast, even if the user has selected light mode for the app. Other examples include modals, dialogs, or enabling users to preview the app in different themes to choose their preferred one.
+
+To address this, Unistyles 3.0 introduces the concept of a `Scoped Theme`, which allows you to assign a fixed theme to a specific component or screen.
+
+### Usage with named theme
+
+To use scoped theme, you need to import `ScopedTheme` component from `react-native-unistyles`:
+
+```ts
+import { ScopedTheme } from 'react-native-unistyles'
+```
+
+Scoped theme accepts one of your registered theme names as a prop:
+
+```tsx
+<ScopedTheme name="dark">
+    // components here will be fixed to dark theme
+    <View style={styles.container}>
+        <Text style={styles.text}>
+            Hello world
+        </Text>
+    </View>
+</ScopedTheme>
+```
+
+You can also nest `ScopedTheme` components:
+
+```tsx
+<ScopedTheme name="dark">
+    // I will be dark!
+    <View style={styles.container}>
+        <Text style={styles.text}>
+            Dark
+        </Text>
+    </View>
+    <ScopedTheme name="light">
+        // I will be light!
+        <View style={styles.container}>
+            <Text style={styles.text}>
+                Light
+            </Text>
+        </View>
+    </ScopedTheme>
+    // I will be dark again!
+    <View style={styles.container}>
+        <Text style={styles.text}>
+            Dark
+        </Text>
+    </View>
+</ScopedTheme>
+```
+
+### Usage with inverted adaptive theme
+
+You can also use `ScopedTheme` with the `invertedAdaptive` prop. This prop cannot be used together with a named `ScopedTheme`, as these options are mutually exclusive. The purpose of `invertedAdaptive` is to apply the opposite adaptive theme to the one that is currently active.
+
+In other words, if your app supports [adaptive themes](/v3/guides/theming#adaptive-themes) and you use `ScopedTheme` with the `invertedAdaptive` prop, it will apply:
+
+```plaintext
+the dark theme when the color scheme is light
+the light theme when the color scheme is dark
+```
+
+**Use Cases**:
+
+The `invertedAdaptive` prop is useful in scenarios where you want to highlight a specific section of your app by contrasting it with the current theme. For example:
+
+* **Modal dialogs or popups:** Make a modal stand out by using the opposite theme, drawing the user’s attention
+* **Preview components:** Show users how your app looks in both light and dark modes by inverting the theme for a preview section
+* **Special content areas:** Emphasize warnings, tips, or promotional banners by displaying them with a contrasting theme
+
+By using `invertedAdaptive`, you can create visually distinct areas in your app that improve user experience and accessibility.
+
+```tsx
+<ScopedTheme invertedAdaptive>
+    <View style={styles.container}>
+        <Text style={styles.text}>
+            Text is light when color scheme is dark and dark when color scheme is light
+        </Text>
+    </View>
+</ScopedTheme>
+```
+
+You can also nest other `ScopedThemes` inside `ScopedTheme` with `invertedAdaptive` prop.
+
+### Reset
+
+If you wrap multiple children in `ScopedTheme` you can disable scoped theme for some of them by using `reset` prop:
+
+```tsx
+<ScopedTheme name="dark">
+    <View style={styles.container}>
+        <Text style={styles.text}>
+            I will be dark!
+        </Text>
+    </View>
+    <ScopedTheme reset>
+        <View style={styles.container}>
+            <Text style={styles.text}>
+                I will be light again!
+            </Text>
+        </View>
+    </ScopedTheme>
+    <View style={styles.container}>
+        <Text style={styles.text}>
+            I'm dark again
+        </Text>
+    </View>
+</ScopedTheme>
+```
+
+### Reading current scoped theme
+
+Information about the current `ScopedTheme` is temporary and only available during the component render phase.
+
+For the following example, `themeName` will be different based on the place where we access it:
+
+```tsx
+import { UnistylesRuntime, ScopedTheme } from 'react-native-unistyles'
+
+
+const MyComponent = () => {
+    // themeName will be 'light' here 💥
+    const themeName = UnistylesRuntime.themeName
+
+
+    return (
+        <ScopedTheme name="dark">
+            <ScopedText>
+                I'm scoped
+            </ScopedText>
+        </ScopedTheme>
+    )
+}
+
+
+const ScopedText = ({ children }) => {
+    // themeName will be 'dark' here ✅
+    // because we're "inside" of the ScopedTheme
+    const themeName = UnistylesRuntime.themeName
+
+
+    return (
+        <Text style={styles.text}>
+            {children}
+        </Text>
+    )
+}
+```
+
+If you want to react to changes in the scoped theme, you can use the `useUnistyles` hook or the `withUnistyles` helper:
+
+```tsx
+import { useUnistyles, ScopedTheme } from 'react-native-unistyles'
+
+
+// My parent is wrapped with ScopedTheme invertedAdaptive
+const ScopedComponent = () => {
+    // reading themeName from `useUnistyles` will always log
+    // correctly parent scoped theme name 🤯
+    const { rt } = useUnistyles()
+
+
+    return (
+        <Text>
+            {rt.themeName} // light for dark mode, dark for light mode
+        </Text>
+    )
+}
+
+
+// JSX
+<ScopedTheme invertedAdaptive>
+    <ScopedComponent />
+</ScopedTheme>
+```
+
+Same goes for the `withUnistyles` helper:
+
+```tsx
+import { withUnistyles, ScopedTheme } from 'react-native-unistyles'
+
+
+const ScopedTextInput = withUnistyles(TextInput, (theme, rt) => ({
+    // I will always take in count parent scoped theme
+    color: rt.themeName === 'light'
+        ? theme.colors.text
+        : theme.colors.background
+}))
+
+
+// My parent is wrapped with ScopedTheme invertedAdaptive
+const ScopedComponent = () => {
+    return (
+        <ScopedTextInput />
+    )
+}
+
+
+// JSX
+<ScopedTheme invertedAdaptive>
+    <ScopedComponent />
+</ScopedTheme>
+```
+
+### Scoped Theme with Suspense
+
+When using `ScopedTheme` with React’s `Suspense`, there’s an important consideration about component placement due to how React handles suspension and re-rendering.
+
+React Suspense works by catching promises thrown by child components that are waiting for data. When this happens:
+
+1. React pauses rendering and shows the fallback content
+2. Components that successfully rendered before the suspension may be reused
+3. Parent components might not re-render when the suspended data becomes available
+
+This means if you place `ScopedTheme` above a component that suspends, the scoped theme might not be applied correctly when the component finally renders:
+
+```tsx
+// ❌ This won't work correctly
+<Suspense fallback={<Loading />}>
+    <ScopedTheme name="dark">
+        <SuspendedComponent /> {/* ScopedTheme already rendered before suspension */}
+    </ScopedTheme>
+</Suspense>
+```
+
+Unistyles ScopedTheme is only available during render phase, we decided to not use `React.Context` to keep the API performant and easy to use.
+
+To fix this issue, you can move the `ScopedTheme` inside the suspended component:
+
+```tsx
+// ✅ Place ScopedTheme inside the component that suspends
+const SuspendedComponent = () => {
+    const data = useSuspenseQuery(); // This throws a promise
+
+
+    return (
+        <ScopedTheme name="dark">
+            <View style={styles.container}>
+                <Text style={styles.text}>
+                    {data.title}
+                </Text>
+            </View>
+        </ScopedTheme>
+    );
+};
+
+
+<Suspense fallback={<Loading />}>
+    <SuspendedComponent />
+</Suspense>
+```
+
+The key is to ensure that `ScopedTheme` is rendered **after** the suspension occurs, so that when React re-renders the suspended component tree, the scoped theme context is properly established.
+
+This pattern ensures that your themed components will render with the correct theme once the suspended data becomes available.
+
+### Scoped Theme and Hot Module Reloading (HMR)
+
+When working with `ScopedTheme` in development, you might notice that Hot Module Reloading doesn’t always update the theme when you make changes to child components. This is a limitation of Metro’s Fast Refresh system.
+
+Unlike Webpack, Metro’s Fast Refresh only re-runs code in the file you’re actively editing and its direct imports. It doesn’t have a global event system that can notify parent components when child modules change.
+
+Metro provides these HMR functions:
+
+```tsx
+module.hot.accept(fn)   // fires if *this* module is updated
+module.hot.dispose(fn)  // fires just before *this* module is replaced
+```
+
+However, **neither of these runs** when other modules change. This means that changes in child components won’t trigger a re-render of their parent `ScopedTheme`:
+
+```tsx
+<ScopedTheme name="light">
+    <ChildComponent /> {/* Changes in this file won't trigger ScopedTheme to update */}
+</ScopedTheme>
+```
+
+#### Why We Don’t Use React Context
+
+The “ideal” solution would be to use React Context for theme propagation, which would work seamlessly with HMR. However, we’ve chosen performance over convenience. Using React Context would introduce additional re-renders and overhead that could impact your app’s performance, especially in complex component trees.
+
+We prioritize keeping the API fast and lightweight, even if it means accepting some development-time limitations with HMR.
+
+# StyleSheet
+
+> Learn about StyleSheet in Unistyles 3.0
+
+`StyleSheet` replaces the old `createStyleSheet` function and aims for 1:1 parity with the React Native API. When we say that Unistyles is a superset of StyleSheet, we mean it! That’s why we are taking it one step further!
+
+### create
+
+The `create` function supports all styles that React Native’s StyleSheet does, and it also enables some superpowers 🦸🏼‍♂️. It can parse your `variants`, `compoundVariants` or `dynamic functions` (even if you haven’t configured Unistyles yet!).
+
+Once you register your `themes` and `breakpoints`, it unlocks even more features, like injecting the current `theme` or `miniRuntime` into your stylesheet. It also assists you with TypeScript autocompletion for your styles.
+
+Example usage:
+
+```tsx
+import { StyleSheet } from 'react-native-unistyles'
+
+
+const styles = StyleSheet.create((theme, rt) => ({
+    container: {
+        backgroundColor: theme.colors.background,
+        variants: {
+            size: {
+                small: {
+                    width: 100,
+                    height: 100
+                },
+                medium: {
+                    width: 200,
+                    height: 200
+                },
+                large: {
+                    width: 300,
+                    height: 300
+                }
+            },
+            isPrimary: {
+                true: {
+                    color: theme.colors.primary
+                },
+                default: {
+                    color: theme.colors.secondary
+                },
+                special: {
+                    color: theme.colors.special
+                }
+            }
+        }
+    },
+    text: {
+        fontSize: rt.fontScale * 20,
+        color: {
+            sm: theme.colors.text,
+            md: theme.colors.textSecondary
+        }
+    })
+}))
+```
+
+Will be eg. parsed to:
+
+```ts
+{
+    container: {
+        backgroundColor: '#000',
+        width: 200,
+        height: 200,
+        color: '#ff33aa'
+    },
+    text: {
+        fontSize: 32,
+        color: 'gold'
+    }
+}
+```
+
+Unistyles StyleSheet will automatically react and recalculate your styles if any of your dependencies change. Learn more about it [here](/v3/start/how-unistyles-works).
+
+`StyleSheet.create` supports 3 ways of defining your stylesheets:
+
+#### Static StyleSheet
+
+```tsx
+import { StyleSheet } from 'react-native-unistyles'
+
+
+const styles = StyleSheet.create({
+    container: {
+        backgroundColor: 'red'
+    }
+})
+```
+
+#### Themable StyleSheet
+
+```tsx
+import { StyleSheet } from 'react-native-unistyles'
+
+
+const styles = StyleSheet.create(theme => ({
+    container: {
+        backgroundColor: theme.colors.background
+    }
+}))
+```
+
+#### Themable StyleSheet with `miniRuntime`
+
+```tsx
+import { StyleSheet } from 'react-native-unistyles'
+
+
+const styles = StyleSheet.create((theme, rt) => ({
+    container: {
+        backgroundColor: theme.colors.background,
+        paddingTop: rt.insets.top
+    }
+}))
+```
+
+Learn more about `miniRuntime` [here](/v3/references/mini-runtime/).
+
+### configure
+
+`StyleSheet.configure` is used to configure Unistyles. It accepts an object with the following properties:
+
+* `themes` your apps themes
+* `breakpoints` your apps breakpoints
+* `settings` additional settings
+
+Your themes are scoped across the whole app, unless your limit it with a [scoped themes](/v3/references/scoped-theme/).
+
+The `configure` function **must** be called before you import any component that uses Unistyles StyleSheet.
+
+You can learn more about how to configure Unistyles [here](/v3/start/configuration).
+
+### hairlineWidth
+
+`StyleSheet.hairlineWidth` is a static value representing the smallest value that can be drawn on your device. It’s helpful for borders or dividers.
+
+```tsx
+import { StyleSheet } from 'react-native-unistyles'
+
+
+const styles = StyleSheet.create(theme => ({
+    container: {
+        borderBottomWidth: StyleSheet.hairlineWidth,
+        borderColor: theme.colors.accent
+    }
+}))
+```
+
+### compose
+
+Maps to React Native’s [compose function](https://reactnative.dev/docs/stylesheet#compose).
+
+### flatten
+
+Maps to React Native’s [flatten function](https://reactnative.dev/docs/stylesheet#flatten).
+
+### absoluteFillObject
+
+Returns following object:
+
+```ts
+{
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    right: 0,
+    bottom: 0
+}
+```
+
+### absoluteFill
+
+Returns following object:
+
+```ts
+{
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    right: 0,
+    bottom: 0
+}
+```
+
+# Unistyles Runtime
+
+> Learn about Unistyles Runtime in Unistyles 3.0
+
+Unistyles Runtime is a powerful feature that allows you to access platform specific values directly from `JavaScript`. It allows you to skip many dependencies and keep a lot of functionality under one object.
+
+### Usage
+
+You can import `UnistylesRuntime` from `react-native-unistyles`:
+
+```tsx
+import { UnistylesRuntime } from 'react-native-unistyles'
+```
+
+and use it anywhere in your code, even outside a React component.
+
+### Available getters
+
+| Name                | Type                                                                      | Description                                                                         |
+| ------------------- | ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| colorScheme         | string                                                                    | Get your device’s color scheme. Available options `dark`, `light` or `unspecified`  |
+| hasAdaptiveThemes   | boolean                                                                   | Indicates if you have enabled [adaptive themes](/v3/guides/theming#adaptive-themes) |
+| themeName           | string?                                                                   | Name of the selected theme or `undefined` if you haven’t register any theme         |
+| breakpoint          | string?                                                                   | Current breakpoint or undefined if you haven’t registered any                       |
+| breakpoints         | Object                                                                    | Your registered breakpoints                                                         |
+| screen              | {width: number, height: number}                                           | Screen dimensions                                                                   |
+| isPortrait          | boolean                                                                   | Indicates if your device is in portrait mode                                        |
+| isLandscape         | boolean                                                                   | Indicates if your device is in landscape mode                                       |
+| contentSizeCategory | IOSContentSizeCategory or AndroidContentSizeCategory                      | Your device’s [content size category](/v3/references/content-size-category/)        |
+| insets              | { top: number, bottom: number, left: number, right: number, ime: number } | Device insets which are safe to put content into                                    |
+| statusBar           | {width: number, height: number}                                           | Status bar dimensions                                                               |
+| navigationBar       | {width: number, height: number}                                           | Navigation bar dimensions (Android only)                                            |
+| pixelRatio          | number                                                                    | Pixel density of the device                                                         |
+| fontScale           | number                                                                    | Font scale of the device                                                            |
+| rtl                 | boolean                                                                   | Indicates if the device is in RTL mode                                              |
+| getTheme            | (themeName?: string) => Theme                                             | Get theme by name or current theme if name was not specified                        |
+
+## Setters
+
+| Name                       | Type                                                                 | Description                                                                    |
+| -------------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| setTheme                   | (themeName: string) => void                                          | Change the current theme                                                       |
+| setAdaptiveThemes          | (enabled: boolean) => void                                           | Toggle [adaptive themes](/v3/guides/theming#adaptive-themes)                   |
+| updateTheme                | (themeName: string, updater: (currentTheme: Theme) => Theme) => void | Update the [theme](/v3/guides/theming/#update-theme-during-runtime) at runtime |
+| statusBar.setHidden        | (hidden: boolean) => void                                            | Show/hide status bar at runtime                                                |
+| navigationBar.setHidden    | (hidden: boolean) => void                                            | Show/hide navigation bar at runtime                                            |
+| setImmersiveMode           | (enabled: boolean) => void                                           | Enable/disable immersive mode (hiding both status and navigation bars)         |
+| setRootViewBackgroundColor | (color: string) => void                                              | set root view background color                                                 |
+
+### Why `UnistylesRuntime` doesn’t re-render my component?
+
+You should think of `UnistylesRuntime` as a JavaScript object. It’s not a React hook, so it doesn’t re-render your component when eg. screen size or breakpoint changes. Instead it will return up to date value whenever you access it.
+
+If you’re looking for a way to get fresh values and re-render your component, please check [useUnistyles](/v3/references/use-unistyles) hook.
+
+### How to re-render my stylesheets based on `UnistylesRuntime`?
+
+You can do that while accessing [miniRuntime](/v3/references/mini-runtime/) in your `StyleSheet`:
+
+One example could be reading device width and height:
+
+```tsx
+import { StyleSheet } from 'react-native-unistyles'
+
+
+// your component
+
+
+const style = StyleSheet.create((theme, rt) => ({
+    container: {
+        backgroundColor: theme.colors.background,
+        width: rt.screen.width,
+        height: rt.screen.height
+    }
+}))
+```
+
+Your `container` style will be auto-recalculated when `screen` changes.
+
+Learn more on how Unistyles [recalculates your styles](/v3/start/how-unistyles-works).
+
+# useUnistyles
+
+> Learn about escape hatch in Unistyles 3.0
+
+Unistyles provides a way to access your app’s theme and runtime within your components through a hook.
+
+Caution
+
+We strongly recommend **not using** this hook, as it will re-render your component on every change. This hook was created to simplify the migration process and should only be used when other methods fail.
+
+Follow our [decision algorithm](/v3/references/3rd-party-views) to learn when to use this hook.
+
+### When to use it?
+
+If you’re using `react-native`, or `react-native-reanimated` components, you should avoid this hook. Unistyles updates these views via the ShadowTree without causing **any re-renders**.
+
+Consider using this hook only if:
+
+* You need to update a view in a third-party library like `react-native-blurhash`
+* You’ve already tried using [withUnistyles](/v3/references/with-unistyles) without success
+* You want to style [navigation](https://reactnavigation.org/) props as `react-navigation` is optimized for that and never re-render your screens
+* some libraries like `react-navigation` warns you that only specific children are allowed, so `withUnistyles` is not an option
+
+### How to use it?
+
+This is a standard hook that exposes `theme` and `rt` ([runtime](/v3/references/mini-runtime)) properties. You can import it from `react-native-unistyles`:
+
+```tsx
+import { useUnistyles } from 'react-native-unistyles'
+
+
+const MyComponent = () => {
+    const { theme, rt } = useUnistyles()
+
+
+    return (
+        // your view
+    )
+}
+```
+
+Subscriptions
+
+Unistyles will monitor your destructured props and re-render your component only when the desired value changes. If you use `theme`, it will automatically subscribe to theme changes. Destructuring `rt` won’t create an automatic subscription, as this object contains multiple values that can change frequently during your app’s lifecycle. To create a subscription, you need to use a specific property on the `rt` object, such as `rt.colorScheme` or `rt.screen.width`.
+
+Case 1 - theme only subscription
+
+```tsx
+// subscribes to theme changes, rt is not yet used
+const { theme, rt } = useUnistyles()
+```
+
+vs
+
+Case 2 - theme and insets subscription
+
+```tsx
+// subscribes to theme changes
+const { theme, rt } = useUnistyles()
+
+
+rt.insets // reading this value will automatically subscribe to insets changes
+```
+
+### Why isn’t it recommended?
+
+We encourage using `withUnistyles` instead because it ensures only a single component is re-rendered instead of multiple components or the entire app. If you use this hook in a root component, you lose all the benefits of ShadowTree updates and trigger full app re-renders on every change.
+
+Learn more about [How Unistyles works?](/v3/start/how-unistyles-works) to understand why this is not ideal.
+
+Another advantage of `withUnistyles` is that it tracks style dependencies, ensuring only components with changed dependencies are re-rendered. In contrast, `useUnistyles` will re-render the component whenever `theme` or `rt` properties change. Note that `runtime` contains multiple values that can change frequently during your app’s lifecycle.
+
+### How to use it correctly?
+
+If you must use this hook, follow these best practices:
+
+#### 1. Use it only for a single component
+
+```tsx
+import { useUnistyles } from 'react-native-unistyles'
+import Icon from 'react-native-cool-icons/MaterialIcons'
+
+
+const MyComponent = () => {
+    const { theme } = useUnistyles()
+
+
+    // Ensure this component has no children
+    return (
+        <Icon color={theme.colors.primary} />
+    )
+}
+```
+
+Like `withUnistyles`, create a new component and use the hook there. Avoid using this hook in your root component or screen, as it will cause unnecessary re-renders for other components.
+
+#### 2. Use it with `react-navigation` components like `Stack` or `Tabs`
+
+```tsx
+import { Stack } from 'expo-router'
+
+
+export default function Layout() {
+    const { theme } = useUnistyles()
+
+
+    return (
+        <Stack
+            screenOptions={{
+                headerStyle: {
+                    backgroundColor: theme.colors.background
+                }
+            }}
+        >
+            <Stack.Screen name="home" />
+        </Stack>
+    )
+}
+```
+
+This is allowed because `react-navigation` does not re-render screens on style prop change. Note that using `withUnistyles` instead may generate a warning since `Stack` components won’t allow other external components.
+
+#### 3. Migration from Unistyles 2.0
+
+If you’re migrating from version 2.0 to 3.0, you can use `useUnistyles` to access the theme and runtime in your components. This works similarly to the `useStyles` hook in 2.0. Once migration is complete, refactor your code to align with Unistyles 3.0 principles.
+
+### Bad Practices
+
+#### 1. Using it with complex components:
+
+```tsx
+import { useUnistyles } from 'react-native-unistyles'
+import { Blurhash } from 'react-native-blurhash'
+
+
+const MyComponent = () => {
+    const { theme } = useUnistyles()
+
+
+    return (
+        <View>
+            <Component1 />
+            <Component2 />
+            <ComponentN />
+            <Blurhash
+                blurhash="LGFFaXYk^6#M@-5c,1J5@[or[Q6."
+                style={{
+                    backgroundColor: theme.colors.primary
+                }}
+            />
+        </View>
+    )
+}
+```
+
+This will re-render multiple components unnecessarily. Instead move `Blurhash` to a separate component and use `useUnistyles` there.
+
+#### 2. Using it at the root level:
+
+```tsx
+import { useUnistyles } from 'react-native-unistyles'
+
+
+const MyApp = () => {
+    const { theme } = useUnistyles()
+
+
+    return (
+        <View>
+            <App />
+        </View>
+    )
+}
+```
+
+Using the hook at the root level eliminates all Unistyles benefits, causing your app to re-render unnecessarily.
+
+#### 3. Using it with `react-native` components:
+
+```tsx
+import { useUnistyles } from 'react-native-unistyles'
+import { Text } from 'react-native'
+
+
+const MyComponent = () => {
+    const { theme } = useUnistyles()
+
+
+    return (
+        <Text style={{ color: theme.colors.primary }}>
+            Hello world
+        </Text>
+    )
+}
+```
+
+This is a bad practice. Unistyles updates `react-native` components through the ShadowTree without re-rendering. Using this hook here will cause unnecessary re-renders. Once again follow our [decision algorithm](/v3/references/3rd-party-views) to learn about another options.
+
+# Variants
+
+> Learn about variants in Unistyles 3.0
+
+Variants helps you to create a more flexible and reusable stylesheet eg. for your base components. You can mix them with other Unistyles features like [media queries](/v3/references/media-queries/) and [breakpoints](/v3/references/breakpoints/).
+
+### Basic usage
+
+Variants are objects that can be nested in any style object:
+
+```tsx
+const styles = StyleSheet.create(theme => ({
+    container: {
+        backgroundColor: theme.colors.background,
+        variants: {
+            // here you can define your variants
+        }
+    },
+    text: {
+        color: theme.colors.text,
+        variants: {
+            // here you can define other variants!
+        }
+    }
+}))
+```
+
+Variants contain `groups` of atomic variants.
+
+To define a group, first you need to name it and then define variants within it:
+
+```tsx
+const styles = StyleSheet.create(theme => ({
+    container: {
+        flex: 1,
+        variants: {
+            color: {},
+            size: {},
+            otherGroupName: {}
+        }
+    }
+}
+```
+
+These groups will later be used to select your variants, so remember to name them appropriately.
+
+With the given structure, you can now define your variants that can contain any number of styles. You can also use `breakpoints`, `media queries` or styles like `transform`:
+
+```tsx
+const styles = StyleSheet.create(theme => ({
+    container: {
+        flex: 1,
+        variants: {
+            color: {
+                primary: {
+                    backgroundColor: theme.colors.primary
+                },
+                secondary: {
+                    backgroundColor: theme.colors.secondary
+                }
+            },
+            size: {
+                small: {
+                    width: 100,
+                    height: 100
+                },
+                medium: {
+                    width: 200,
+                    height: 200
+                },
+                large: {
+                    width: 300,
+                    height: 300
+                }
+            },
+            otherGroupName: {
+                // other variants
+            }
+        }
+    }
+}
+```
+
+### Selecting variants
+
+With your named groups, you can now select any variant from your stylesheet using the `useVariants`:
+
+```tsx
+import { StyleSheet } from 'react-native-unistyles'
+
+
+const Component = () => {
+    styles.useVariants({
+        color: 'primary',
+        size: 'small'
+    })
+
+
+    return (
+        <View style={styles.container} />
+    )
+}
+
+
+const styles = ...
+```
+
+TypeScript will provide perfect autocompletion for your variants, ensuring accuracy!
+
+### Selecting variants with boolean values
+
+You can also use boolean values to select variants:
+
+```tsx
+import { StyleSheet } from 'react-native-unistyles'
+
+
+const Component = ({ isPrimary, isDisabled }) => {
+    styles.useVariants({
+        color: !isDisabled,
+        borderColor: isPrimary
+        // you can also use strings
+        // color: "true" | "false"
+    })
+
+
+    return (
+        <View style={styles.container} />
+    )
+}
+
+
+const styles = StyleSheet.create(theme => ({
+    container: {
+        // other styles
+        variants: {
+            color: {
+                true: {
+                    backgroundColor: theme.colors.primary
+                },
+                false: {
+                    backgroundColor: theme.colors.disabled
+                },
+                // you can still specify a default variant
+                default: {
+                    backgroundColor: theme.colors.barbie
+                }
+                // or other variants
+                special: {
+                    backgroundColor: theme.colors.special
+                }
+            },
+            borderColor: {
+                true: {
+                    borderColor: theme.colors.primary
+                }
+                // you can also skip "false" here
+            }
+        }
+    }
+})
+```
+
+If you specify a boolean variants like “true”, there is no requirement to specify a “false” variant (and vice versa). You can mix boolean variants with other variants as well.
+
+Caution
+
+Boolean variants respects other rules, eg. `false` is not equal to `default`. To select `false` variant you need to pass `false` as a value, to fallback to `default` variant you need to pass `undefined`.
+
+### Default variant
+
+You can define a `default` variant that will be used when you don’t pass any variant to the `useVariants` hook:
+
+```tsx
+const styles = StyleSheet.create(theme => ({
+    container: {
+        flex: 1,
+        variants: {
+            color: {
+                primary: {
+                    backgroundColor: theme.colors.primary
+                },
+                secondary: {
+                    backgroundColor: theme.colors.secondary
+                },
+                default: {
+                    backgroundColor: theme.colors.barbie
+                }
+            }
+        }
+    }
+}
+```
+
+### Options to select the variant
+
+If you pass `undefined` or `empty object` Unsityles will try to find the `default` variant in your stylesheet:
+
+```tsx
+styles.useVariants(undefined) // will use default variant (if any)
+styles.useVariants({}) // will use default variant (if any)
+```
+
+Default variant
+
+If you don’t explicitly call `styles.useVariants`, the Unistyles C++ parser will ignore your variants and will not resolve to the `default` variant, even if it is present.
+
+```tsx
+styles.useVariants({
+    color: undefined // will use default variant (if any)
+})
+```
+
+Lastly, you can pass the correct variant name for a variant group:
+
+```tsx
+styles.useVariants({
+    color: 'secondary' // will use secondary variant
+})
+```
+
+### Pass variants as component props
+
+Variants were designed to be used as component props:
+
+```tsx
+import React from 'react'
+import { StyleSheet } from 'react-native-unistyles'
+
+
+type ComponentProps = {
+    color: 'primary' | 'secondary'
+    size: 'small' | 'medium' | 'large'
+}
+
+
+const Component: React.FunctionComponent = ({ color, size }) => {
+    styles.useVariants({
+        color,
+        size
+    })
+
+
+    return (
+        <View style={styles.container} />
+    )
+}
+```
+
+### Infer TypeScript type for your variants
+
+Instead of using `enum` or `strings` with `|` , you can use `UnistylesVariants` to infer the type of your variants:
+
+```tsx
+import React from 'react'
+import { StyleSheet, UnistylesVariants } from 'react-native-unistyles'
+
+
+type ComponentProps = UnistylesVariants<typeof styles>
+
+
+const Component: React.FunctionComponent = ({ color, size }) => {
+    styles.useVariants({
+        color,
+        size
+    })
+
+
+    return (
+        <View style={styles.container} />
+    )
+}
+
+
+// infers type of your variants from the stylesheet below
+const styles = ...
+```
+
+### Defining the same variant across multiple styles
+
+It’s possible to define the same variant group across multiple styles:
+
+```tsx
+const styles = StyleSheet.create(theme => ({
+    container: {
+        flex: 1,
+        variants: {
+            size: {
+                small: {
+                    width: 100,
+                    height: 100
+                },
+                medium: {
+                    width: 200,
+                    height: 200
+                },
+                large: {
+                    width: 300,
+                    height: 300
+                }
+            }
+        }
+    },
+    text: {
+        fontWeight: 'bold',
+        variants: {
+            size: {
+                small: {
+                    fontSize: 12
+                },
+                medium: {
+                    fontSize: 16
+                },
+                large: {
+                    fontSize: 20
+                }
+            }
+        }
+    }
+}
+```
+
+Caution
+
+Unistyles will work as intended, selecting the correct variant for each style. However, you need to repeat all your options like `small`, `medium`, and `large` in each style to avoid TypeScript errors.
+
+```tsx
+const styles = StyleSheet.create(theme => ({
+    container: {
+        flex: 1,
+        variants: {
+            size: {
+                small: {
+                    width: 100,
+                    height: 100
+                },
+                medium: {
+                    width: 200,
+                    height: 200
+                },
+                large: {
+                    width: 300,
+                    height: 300
+                }
+            }
+        }
+    },
+    text: {
+        fontWeight: 'bold',
+        variants: {
+            size: {
+                small: {
+                    fontSize: 12
+                },
+                // missing medium and large variants!
+            }
+        }
+    }
+}
+```
+
+In this case, the generated TypeScript type will be:
+
+```plaintext
+size: ('small' | 'medium' | 'large') | ('small')
+```
+
+If you don’t need all variants and want the correct type, please add empty variants:
+
+```tsx
+const styles = StyleSheet.create(theme => ({
+    container: {
+        flex: 1,
+        variants: {
+            size: {
+                small: {
+                    width: 100,
+                    height: 100
+                },
+                medium: {
+                    width: 200,
+                    height: 200
+                },
+                large: {
+                    width: 300,
+                    height: 300
+                }
+            }
+        }
+    },
+    text: {
+        fontWeight: 'bold',
+        variants: {
+            size: {
+                small: {
+                    fontSize: 12
+                },
+                medium: {},
+                large: {}
+            }
+        }
+    }
+}
+```
+
+The generated TypeScript type will then be:
+
+```plaintext
+size: ('small' | 'medium' | 'large')
+```
+
+# Web only features
+
+> Learn about web only features in Unistyles 3.0
+
+Unistyles comes with some web-only features that are not available with React Native or React Native Web.
+
+### Web only styles
+
+In Unistyles, you can use web-specific styles for your web app under the `_web` key.
+
+```ts
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        // Web only styles:
+        _web: {
+            display: 'grid',
+        }
+    }
+})
+```
+
+Web styles support **any** CSS property and value that matches the `CSSProperties` type from React.
+
+Note
+
+The `_web` styles are ignored on Android and iOS, but are merged with other styles on web.
+
+Within `_web` block, you can’t use any React Native specific styles:
+
+```ts
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        _web: {
+          display: 'grid',
+          // 💥 Error! This is React Native specific style
+          transform: [{ translateX: 10 }],
+        }
+    }
+})
+```
+
+The `transform` property on the web should be a string:
+
+```ts
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        _web: {
+            display: 'grid',
+           transform: [{ translateX: 10 }],
+           transform: 'translateX(10px)',
+        }
+     }
+})
+```
+
+If you want to use React Native specific styles on web simply move them to the `style` level:
+
+```ts
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        // ✅ This is React Native specific style, and will be parsed correctly for web
+        transform: [{ translateX: 10 }],
+        _web: {
+            display: 'grid',
+           transform: [{ translateX: 10 }],
+        }
+    }
+})
+```
+
+You can also use variants, breakpoints, and other Unistyles features under the `_web` key!
+
+### Pseudo elements
+
+Unistyles also introduces a way to use **any** pseudo-elements and selectors in your web styles.
+
+```ts
+const styles = StyleSheet.create(theme => ({
+    button: {
+        backgroundColor: theme.colors.button,
+        _web: {
+            _hover: {
+                backgroundColor: theme.colors.hovered,
+            },
+            _before: {
+                content: '"🦄"',
+            }
+        }
+    },
+}))
+```
+
+As you can see, `:` and `::` have been replaced with `_` for easier usage.
+
+### Injecting custom classNames
+
+If you want to write some part of your app with plain CSS, you can add custom `classNames` to your styles:
+
+```ts
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        _web: {
+            _classNames: 'my-custom-class',
+        }
+    }
+})
+```
+
+The `_classNames` key under the `_web` key will be injected into the DOM element as a `className`. You can pass a string or an array of strings into it:
+
+```ts
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        _web: {
+           _classNames: 'my-custom-class',
+           _classNames: ['my-custom-class', 'my-other-class'],
+            // or _classNames: 'my-custom-class my-other-class'
+        }
+    }
+})
+```
+
+You can also use some conditions while resolving your classes:
+
+```ts
+const styles = StyleSheet.create({
+    button: (isPrimary: boolean) => ({
+        _web: {
+            _classNames: isPrimary ? 'primary-button' : 'secondary-button',
+        }
+    })
+})
+```
+
+### CSS Variables
+
+Unistyles 3.0 converts all your themes to CSS variables by default, eliminating heavy JS processing when changing the theme and allowing the CSS engine to take over.
+
+In more detail, it converts all **strings** into CSS variables. For example, if we have the following theme:
+
+```ts
+const darkTheme = {
+    colors: {
+        primary: '#4b7594'
+    },
+    gap: (v: number) => v * 8,
+    fontSize: 16
+}
+```
+
+It will be converted to:
+
+```css
+:root.dark {
+    --colors-primary: #4b7594;
+}
+```
+
+After conversion, Unistyles will use CSS variable instead of string to reference the theme value.
+
+##### If you’re using `adaptiveThemes`
+
+CSS variables will be placed under the `@media (prefers-color-scheme)` [query](https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-color-scheme) ensuring that the app will automatically switch to the new theme.
+
+##### If you’re not using `adaptiveThemes`
+
+Class of your html root element will be updated to match the new one.
+
+Caution
+
+It’s possible to [disable](/v3/start/configuration#settings-optional) this feature in some cases.
+
+### When to disable CSS variables?
+
+##### When you have different size variables / functions in your themes
+
+```tsx
+// ❌ Not OK
+const regularTheme = {
+    colors: sharedColors,
+    gap: (v: number) => v * 8,
+    fontSize: 16
+}
+
+
+const largeTheme = {
+    colors: sharedColors,
+    // gap function has a different factor
+    gap: (v: number) => v * 16,
+    // fontSize is a different value
+    fontSize: 32
+}
+```
+
+```tsx
+// ✅ OK
+const lightTheme = {
+    colors: {
+        ...sharedColors,
+        background: '#fff',
+        typography: '#000'
+    },
+    gap: (v: number) => v * 8,
+    fontSize: 16
+}
+
+
+const darkTheme = {
+    colors: {
+        ...sharedColors,
+        background: '#000',
+        typography: '#fff'
+    },
+    gap: (v: number) => v * 8,
+    fontSize: 16
+}
+```
+
+##### When you use conditions to style your components instead of relying on the same theme values
+
+```tsx
+// ❌ Not OK
+const styles = StyleSheet.create(theme => ({
+    container: {
+        // this is a condition and won't work with CSS variables
+        backgroundColor: theme.isDark
+            ? theme.colors.grey200
+            : theme.colors.grey700
+    }
+}))
+```
+
+```tsx
+// ✅ OK
+const styles = StyleSheet.create(theme => ({
+    container: {
+        // your rely on the same theme values across different themes
+        backgroundColor: theme.colors.background
+    }
+}))
+```
+
+If none of the above applies to you, you can use CSS variables to boost your app’s performance.
+
+# Web Styles
+
+> Learn about web styles in Unistyles 3.0
+
+Unistyles Web is independent from React Native Web, utilizing a custom web parser that directly generates CSS from your `StyleSheet` definitions.
+
+### How It Works
+
+Unistyles web parser generates unique `classNames` for your styles and assigns them to corresponding DOM elements. This ensures that only the necessary styles are applied, avoiding redundancy. Additionally, media queries are automatically created based on your `breakpoints`, eliminating the need for recalculation on every resize.
+
+Example:
+
+```ts
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        fontSize: 32,
+    },
+    text: {
+        fontSize: {
+            xs: 28,
+            lg: 40
+        },
+    },
+    parentContainer: {
+        flex: 1,
+    }
+})
+```
+
+Will produce the following CSS output:
+
+```css
+# because flex: 1 is shared across multiple styles
+.unistyles_1u0egm6 {
+  flex: 1;
+}
+
+
+# to cover "container" fontSize
+@media (min-width: 0px) {
+  .unistyles_kaoph5 {
+    font-size: 32px;
+  }
+}
+
+
+# to cover "text" fontSize
+@media (min-width: 1200px) {
+  .unistyles_kaoph5 {
+    font-size: 40px;
+  }
+}
+```
+
+### Updating Styles
+
+When you change your app’s theme, Unistyles automatically updates your CSS without triggering any re-renders. This applies to dynamic functions and variants as well.
+
+For instance, if you define your styles dynamically:
+
+```ts
+const styles = StyleSheet.create(theme => ({
+    container: {
+        flex: 1,
+        backgroundColor: theme.colors.background
+    }
+}))
+```
+
+The generated CSS might look like this:
+
+```css
+.unistyles_1u0egm6 {
+  flex: 1;
+  background-color: #000;
+}
+```
+
+Upon switching the theme:
+
+```ts
+UnistylesRuntime.setTheme('light')
+```
+
+The CSS will automatically update to:
+
+```css
+.unistyles_1u0egm6 {
+  flex: 1;
+  background-color: #fff;
+}
+```
+
+### Limitations
+
+Due to Unistyles custom parser, styles cannot be accessed directly as they would be with React Native Web. Passing styles to the `RNW` parser would modify them and generate unnecessary new classes.
+
+As a result, when you try to `console.log` the styles, there will be no output:
+
+```ts
+const styles = StyleSheet.create({
+    container: {
+        flex: 1
+    }
+})
+
+
+// This will result in an empty object since we generate classes instead of inline styles
+console.log(styles) // {}
+```
+
+### Web-Only Features
+
+Unistyles includes some features specific to the web. Learn more about them [here](/v3/references/web-only).
+
+# withUnistyles
+
+> Learn about how to integrate 3rd party libraries with Unistyles engine
+
+Before reading this guide, make sure that you understand [How Unistyles works](/v3/start/how-unistyles-works) and how [Babel plugin](/v3/other/babel-plugin) manipulates your code. Also read our [decision algorithm](/v3/references/3rd-party-views) to learn when to use this factory.
+
+### Why do you need it?
+
+* Unistyles cannot retrieve `ShadowNode` from third-party components because they might not expose a native view via the ref prop
+
+```ts
+import { Blurhash } from 'react-native-blurhash'
+
+
+const MyComponent = () => {
+    return
+        <Blurhash
+            blurhash="LGFFaXYk^6#M@-5c,1J5@[or[Q6."
+            // 💥 Oops! Blurhash is 3rd party view, that might not expose the `ref` prop
+            // it will never update when theme changes
+            style={styles.container}
+        />
+    }
+}
+
+
+const styles = StyleSheet.create(theme => ({
+    container: {
+        borderWidth: 1,
+        borderColor: theme.colors.primary
+    }
+}))
+```
+
+* Another use case is when you use components that do not expect a `style` prop but require, for example, a `color` prop.
+
+```ts
+import { Button } from 'react-native'
+
+
+const MyComponent = () => {
+    return (
+        <Button
+            // 💥 Oops! Button is React Native component, so it has a ref, but it doesn't expect `style` prop
+            // it will never update when theme changes
+            // Also, from where will we get `theme` value?
+            color={theme.colors.primary}
+        />
+    )
+}
+```
+
+That’s why we created a way to subscribe such component to Unistyles updates.
+
+Note
+
+This pattern is only recommended when you need an escape hatch to use Unistyles with third-party components. If you don’t rely on styles in these components, you should not wrap your component with `withUnistyles`.
+
+Caution
+
+`withUnistyles` detects automatically your component dependencies and re-renders it only when they change.
+
+### Auto mapping for `style` and `contentContainerStyle` props
+
+If your component expects the `style` or `contentContainerStyle` prop, Unistyles will automatically handle the mapping under the hood. You just need to wrap your custom view in `withUnistyles`. We will also respect your style dependencies, so, for example, the `Blurhash` component will only re-render when the theme changes.
+
+```ts
+import { Blurhash } from 'react-native-blurhash'
+import { withUnistyles } from 'react-native-unistyles'
+
+
+// ✨ Magic auto mapping
+const UniBlurHash = withUnistyles(Blurhash)
+
+
+const MyComponent = () => {
+    return (
+        <UniBlurHash
+            blurhash="LGFFaXYk^6#M@-5c,1J5@[or[Q6."
+            // now Blurhash will re-render when theme changes
+            style={styles.container}
+        />
+    )
+}
+
+
+const styles = StyleSheet.create(theme => ({
+    container: {
+        borderWidth: 1,
+        // blurhash depends on theme
+        borderColor: theme.colors.primary
+    }
+}))
+```
+
+### Mapping custom props to Unistyles styles
+
+If you need to ensure your component updates but it doesn’t use `style` or `contentContainerStyle` props, you can use `mappings`:
+
+```ts
+import { Button } from 'react-native'
+import { withUnistyles } from 'react-native-unistyles'
+
+
+// ✨ Some magic happens under the hood
+const UniButton = withUnistyles(Button, (theme, rt) => ({
+    // map `primary` color to `color` prop
+    color: theme.colors.primary
+    // any other props that Button supports
+}))
+
+
+const MyComponent = () => {
+    return (
+        // you don't need to specify color props here
+        <UniButton />
+    )
+}
+```
+
+TypeScript will autocomplete all your props, so there is no need to specify type manually.
+
+### Custom mappings for external props
+
+Sometimes, you might want to map your props based on a function or value that is only accessible within the component. For example, if you are using `FlashList` and want to modify the `numColumns` prop based on a condition. Using `mappings` in `withUnistyles` is not an option because it doesn’t allow referencing other props.
+
+```tsx
+import { withUnistyles } from 'react-native-unistyles'
+import { FlashList } from 'react-native-flash-list'
+
+
+const MyFlashList = withUnistyles(FlashList, (theme, rt) => ({
+    numColumns: 💥 Oops! getNumColumns function is not available here
+}))
+
+
+const MyComponent = () => {
+    const getNumColumns = () => {
+        // your logic
+    }
+
+
+    return (
+        <MyFlashList />
+    )
+}
+```
+
+Another example is React Native’s `Switch` component:
+
+```tsx
+import { Switch } from 'react-native'
+import { withUnistyles } from 'react-native-unistyles'
+
+
+const MySwitch = withUnistyles(Switch, (theme, rt) => ({
+    trackColor: 💥 Opps! isDisabled prop is not available here
+}))
+
+
+const MyComponent = ({ isDisabled }) => {
+    return (
+        <MySwitch />
+    )
+}
+```
+
+For such dynamic mappings, we provide a prop called `uniProps` that allows you to pass any props to the component. From there, you can access any function or variable or map the prop to any value based on your state and needs.
+
+```tsx
+import { Switch } from 'react-native'
+import { withUnistyles } from 'react-native-unistyles'
+
+
+// leave it empty here
+const MySwitch = withUnistyles(Switch)
+
+
+const MyComponent = ({ isDisabled }) => {
+    return (
+        <MySwitch
+            uniProps={(theme, rt) => ({
+                trackColor: isDisabled
+                    ? theme.colors.disabled
+                    : theme.colors.primary
+            })}
+        />
+    )
+}
+```
+
+`uniProps` is a function that receives `theme` and `rt` as arguments. These values will be always up-to-date, so you can use them to map colors or value to new props.
+
+Note
+
+Components that use `uniProps` are also aware of your dependencies. In the example above, `MySwitch` will re-render only when `theme` changes.
+
+### Props resolution priority
+
+We will respect your order of prop resolution, applying them with the following priority:
+
+1. Global mappings
+2. `uniProps`
+3. Inline props
+
+**Example: Modifying a Button**
+
+```ts
+// By default, Button is red
+const UniButton = withUnistyles(Button, theme => ({
+    color: theme.colors.red
+}))
+
+
+// `uniProps` have higher priority,
+// so the button is orange
+<UniButton
+    uniProps={theme => ({
+       color: theme.colors.orange
+    })}
+/>
+
+
+// Inline props have the highest priority,
+// so Button is pink
+<UniButton
+    color="pink"
+    uniProps={theme => ({
+       color: theme.colors.orange
+    })}
+/>
+```
+
+# LLMS
+
+> How to feed LLMS with Unistyles 3.0
+
+Unistyles can feed LLMs with auto-generated documentation:
+
+* [llms.txt](https://www.unistyl.es/llms.txt)
+* [short documentation](https://unistyl.es/llms-small.txt)
+* [full documentation](https://unistyl.es/llms-full.txt)
+
+# Babel plugin
+
+> How Unistyles babel plugin works?
+
+Unistyles 3.0 relies heavily on the Babel plugin, which helps convert your code in a way that allows binding the `ShadowNode` with `Unistyles`. Before reading this guide, make sure to check the [Look under the hood](/v3/start/how-unistyles-works) guide.
+
+Our golden rule is to never introduce any component that could pollute your native view hierarchy. In other words, if you use a `View`, it will be rendered as-is in the native view hierarchy.
+
+Let’s discuss the responsibilities of the Babel plugin:
+
+### 1. Detecting StyleSheet dependencies
+
+Each `StyleSheet` is different. One might rely on a `theme`, another on `miniRuntime`, and so on. The same applies to `styles`. Each style depends on different things. For example, you can wrap your app in a `View` that safeguards your app from rendering behind the notch or navigation bar. Another style might be used in your `Typography` component and provides text color based on the apps’ theme.
+
+Should the `Typography` style re-calculate on an `insets` change? Or should the `View` that relies on insets re-render on a theme change?
+
+We don’t think that’s a good idea. The first responsibility of the Babel plugin is to detect all dependencies in your `StyleSheet`. This ensures that only the relevant styles are recalculated when necessary.
+
+```ts
+// Babel: depends on theme
+const stylesheet = StyleSheet.create(theme => ({
+    container: {
+        // Babel: depends on theme
+        backgroundColor: theme.colors.background
+    },
+    text: {
+        // Babel: static (no dependencies)
+        fontSize: 12
+    }
+}))
+```
+
+```ts
+// Babel: depends on theme and miniRuntime
+const stylesheet = StyleSheet.create((theme, rt) => ({
+    container: {
+        // Babel: depends on theme and insets
+        paddingTop: rt.insets.top,
+        paddingBottom: rt.insets.bottom,
+        backgroundColor: theme.colors.background
+    },
+    text: (fontSize: number) => ({
+        // Babel: depends on theme
+        color: theme.colors.text,
+        // Babel: depends on fontScale
+        fontSize: rt.fontScale >= 3
+            ? fontSize * 1.5
+            : fontSize * 0.8
+    })
+}))
+```
+
+Dependency detection limitation
+
+We put a lot of effort into making dependency detection as accurate as possible, thus we support:
+
+* destructuring of `theme` and `rt` objects
+* style’s as functions / arrow functions / objects
+* nested ifs and other conditionals
+* ternary operators
+* logical operators
+* binary operators
+* and much more…
+
+**What we don’t support**:
+
+* moving functions/arrow functions out of StyleSheet.create
+* `theme` and `rt` reassignment to other variables (we don’t track them)
+
+### 2. Attaching unique id to each StyleSheet
+
+This helps us identify your `StyleSheet` while you’re developing your app and trigger multiple `hot-reloads`. Such identification is required to swap your `StyleSheet` with another one, ensuring that you get up-to-date values during reloads. This feature does not affect your app in production, as the bundle never reloads in that environment.
+
+### 3. Component factory (borrowing ref)
+
+This is the most crucial part—without it, Unistyles won’t be able to update your views from C++. In the early versions of Unistyles 3.0, we tried solving this problem by using the `ref` prop, but it wasn’t reliable enough. Many developers use different style syntaxes, making it impossible to support all of them.
+
+Instead, we decided to leave the user’s `ref` as is and transfer the implementation from Babel to our component factory. This way we have more control and we have an unified way of registering your `ShadowNodes`.
+
+The component factory is a function that takes your component and renders it with an overridden `ref` prop:
+
+```ts
+const factory = Component => <Component ref={someMagic✨} {...props} />;
+```
+
+Note
+
+We override your `ref` prop to connect a `ShadowNode` to the attached Unistyle(s). From the runtime perspective, your component will render the same way as before! We only borrow your `ref` momentarily to update the ShadowRegistry.
+
+We’re also React 19–ready and will call your `ref` cleanup function if it’s present.
+
+Let’s go through some examples so you can better understand how this works:
+
+Your code
+
+```ts
+import { View } from 'react-native'
+
+
+const ref = useRef()
+
+
+<View ref={ref} />
+```
+
+Babel transform
+
+```ts
+import { View } from 'react-native-unistyles/src/components/native/View'
+
+
+const ref = useRef()
+
+
+// no changes
+<View ref={ref} />
+```
+
+We also support other components to extract `ShadowNode` from them:
+
+Your code
+
+```ts
+import { Pressable, Image } from 'react-native'
+
+
+<Pressable
+    ref={ref => {
+        doSomething(ref)
+    }}
+    onPress={() => {}}
+/>
+<Image source={require('./image.png')} style={styles.image} ref={ref2} />
+```
+
+Babel transform
+
+```ts
+import { Pressable } from 'react-native-unistyles/components/native/Pressable'
+import { Image } from 'react-native-unistyles/components/native/Image'
+
+
+// no changes
+<Pressable
+    ref={ref => {
+        doSomething(ref)
+    }}
+    onPress={() => {}}
+/>
+<Image source={require('./image.png')} style={styles.image} ref={ref2} />
+```
+
+### 4. Creating scopes for stateless variants
+
+When you use variants, each time you call `useVariants`, a new scope is created. This scope contains a local copy of stylesheet that won’t affect other components. This feature is similar to time travel, allowing you to explore different states of your styles with different calls to `useVariants`.
+
+From your perspective, using variants is simple: you just need to call the `useVariants` hook:
+
+```tsx
+styles.useVariants({
+    size: 'small'
+})
+```
+
+Behind the scenes, we create a scoped constant that can be accessed anywhere within the same block:
+
+```tsx
+const _styles = styles
+{
+    const styles = _styles.useVariants({
+        size: 'small'
+    })
+
+
+    // Your code here
+}
+```
+
+This approach also works seamlessly with `console.log`, allowing you to inspect styles at any point:
+
+```tsx
+// Styles without variants
+console.log(styles.container)
+
+
+styles.useVariants({
+    size: 'small'
+})
+
+
+// Styles with variants: small
+console.log(styles.container)
+
+
+styles.useVariants({
+    size: 'large'
+})
+
+
+// Styles with variants: large
+console.log(styles.container)
+```
+
+By leveraging such scopes, we ensure support for any level of nesting!
+
+### Extra configuration
+
+The Babel plugin comes with a few additional options to extend its usage.
+
+Caution
+
+By default babel plugin will look for any `react-native-unistyles` import to start processing your file. You can change this behaviour with options below:
+
+### `root` (required)
+
+All files within the specified root folder will be processed by the Babel plugin. If you need to process extra folders, use with `autoProcessPaths` option.
+
+```js
+{
+    root: 'src' // or 'app', or any name of your root folder
+}
+```
+
+Folder name will be resolved with `process.cwd()`.
+
+Note
+
+If you use monorepo or a project with Expo Router, you most likely have multiple root folders.
+
+In that case:
+
+* set `root` to the folder containing your components eg. `@myapp/ui` or `components`
+* use the `autoProcessImports` option to whitelist your folder (check example below)
+
+### `autoProcessImports`
+
+This configuration should be used when you want to process files containing specific imports. It can be useful for monorepos that use Unistyles with absolute paths, such as `@codemask/styles`.
+
+```js
+{
+    autoProcessImports: ['@codemask/styles'] // whenever Babel encounters this import, it will process your file
+}
+```
+
+### `autoRemapImports`
+
+This is the most powerful option, but most likely, you won’t need to use it. It allows you to remap uncommon imports to Unistyles components.
+
+This may happen if a 3rd library does not import `react-native` components directly, but instead uses its own factory or a relative path. Unistyles uses it internally to support the following imports from `react-native` internals:
+
+```js
+import { NativeText } from "react-native/Libraries/Text/TextNativeComponent"
+import View from "react-native/Libraries/Components/View/ViewNativeComponent"
+```
+
+Let’s say you have a library called `custom-library` that imports `react-native` raw components directly:
+
+node\_modules/custom-library/components/index.js
+
+```js
+import { NativeText } from "react-native/Libraries/Text/TextNativeComponent"
+import View from "react-native/Libraries/Components/View/ViewNativeComponent"
+```
+
+To convert it to Unistyles, you can use the following configuration:
+
+```ts
+{
+    autoRemapImports: [
+        path: 'node_modules/custom-library/components', // <- must be path from node_modules
+        imports: [
+            {
+                isDefault: false, // <- is default import?
+                name: 'NativeText', // <- if not, what's the import name?
+                path: 'react-native/Libraries/Text/TextNativeComponent' // <- what's the import source?
+                mapTo: 'NativeText' // <- which Unistyles component should be used? Check react-native-unistyles/src/components/native
+            },
+            {
+                isDefault: true,
+                path: 'react-native/Libraries/Components/View/ViewNativeComponent',
+                mapTo: 'NativeView'
+            }
+        ]
+    ]
+}
+```
+
+Caution
+
+If you use raw `react-native` imports within your code, Unistyles will auto map it to `react-native-unistyles` factories. This option should only be used for 3rd party libraries from `node_modules`.
+
+### `autoProcessPaths`
+
+This configuration is unrelated to the `root`, `autoProcessImports`, and `autoRemapImports` options and can be used alongside them. By default, the Babel plugin ignores `node_modules`. However, you can extend these paths to attempt converting 3rd components into Unistyles compatible ones. Within these paths, we will replace `react-native` imports with `react-native-unistyles` factories that borrow component refs. [Read more](/v3/other/babel-plugin#3-component-factory-borrowing-ref).
+
+Defaults to:
+
+```ts
+['react-native-reanimated/src/component']
+```
+
+### `debug`
+
+In order to list detected dependencies by the Babel plugin you can enable the `debug` flag. It will `console.log` name of the file and component with Unistyles dependencies.
+
+### Usage with React Compiler
+
+Check [this guide](/v3/guides/react-compiler) for more details.
+
+#### Usage in `babel.config.js`
+
+You can apply any of the options above as follows:
+
+babel.config.js
+
+```js
+/** @type {import('react-native-unistyles/plugin').UnistylesPluginOptions} */
+const unistylesPluginOptions = {
+    // any component in this folder will be processed
+    root: 'src',
+    // also files with these imports will be processed (in any non-root folder)
+    autoProcessImports: ['@react-native-ui-kit', '@codemask/styles'],
+    // additionally process components from this `node_modules` package
+    autoProcessPaths: ['external-library/components'],
+    // log what you've found
+    debug: true,
+}
+
+
+module.exports = function (api) {
+    api.cache(true)
+
+
+    return {
+        // other config
+        plugins: [
+            ['react-native-unistyles/plugin', unistylesPluginOptions]
+            // other plugins
+        ]
+    }
+}
+```
+
+# Dependencies
+
+> Learn about Unistyles dependencies
+
+Unistyles 3.0 minimizes dependencies to keep your app as lightweight as possible. In the latest version, we’ve opted to include only two essential dependencies that are shaping the future of the React Native ecosystem.
+
+### Nitro Modules
+
+Developed by: [Marc Rousavy](https://github.com/mrousavy)
+
+[Nitro modules](https://nitro.margelo.com/) help Unistyles speed up development time by offering remarkable solutions:
+
+* Type-safe interfaces across multiple languages (`TypeScript`, `C++`, `Swift`, and `Kotlin`)
+* Generating bindings from a single source of truth (specification files)
+* A thin layer that accelerates calls from `JavaScript` to `C++`, `Swift`, or `Kotlin`
+* The ability to convert repository from Objective-C to Swift
+* Support for calling Swift code directly, without routing it through Objective-C++
+
+We highly encourage you to give Nitro a star ⭐ or support Marc through sponsorship.
+
+### React Native Edge to Edge
+
+Developed by: [Mathieu Acthernoene](https://github.com/zoontek)
+
+[React Native Edge to Edge](https://github.com/zoontek/react-native-edge-to-edge) is a library aimed at unifying the handling of edge-to-edge layouts on Android. We fully support this initiative and have made it a dependency for Unistyles.
+
+You likely won’t notice any changes, as Unistyles has enforced edge-to-edge layouts since version 2.8.0. However, other libraries that detect `react-native-edge-to-edge` can now reliably assume that this mode is enabled. Additionally, Mathieu’s initiative is supported by [Expo](https://docs.expo.dev/), which suggests it may become a standard in the future.
+
+If you use any of Mathieu’s libraries, such as `react-native-permissions` or `react-native-bootsplash`, we encourage you to give them a star ⭐ and support him through sponsorship.
+
+# For library authors
+
+> How to use Unistyles 3.0 in your library
+
+Unistyles is highly extensible and can be used to build UI kits and various other projects. We maintain the core, so you can create any abstraction on top of it.
+
+## Using Unistyles in your library
+
+`StyleSheet.configure` **must** be invoked as soon as possible, before any user code references any `StyleSheet` from your library.
+
+You can then call `StyleSheet.configure` multiple times to override configurations. However, keep in mind that `StyleSheet.configure` makes a roundtrip to C++, which can add a few `ms` to your app’s startup time.
+
+To manipulate your config without replacing it, use [UnistylesRuntime](/v3/references/unistyles-runtime/).
+
+## Unistyles never re-renders
+
+Unistyles’ C++ core ensures that your components never re-render. Instead, they are updated directly from C++ and `Shadow Tree`.
+
+## No React Context - no additional setup
+
+Unistyles does not use the React Context API. This means that users do not need to wrap their app with a `Provider`, reducing boilerplate code and making your library more user-friendly.
+
+## New architecture only
+
+Unistyles won’t re-render your components unless you want to. While it requires enabling the New Architecture, we believe this trade-off is worthwhile, as more apps are expected to transition to the New Architecture in the coming months.
+
+Note
+
+As of June 2nd, 2025, Old Architecture is [frozen](https://github.com/reactwg/react-native-new-architecture/discussions/290). It means it is the best time to rely on New Architecture.
+
+## Minimum requirements
+
+Unistyles is compatible with:
+
+* React Native version >= 0.78
+* TypeScript > 5.0
+* iOS 15.0+
+* Android 7+
+
+## Out of the box support for Web
+
+Building a UI kit for both React Native and Web couldn’t be easier. Unistyles automatically manages your styles and converts them into CSS classes.
+
+## Babel config
+
+Make sure to instruct your users to add [autoProcessPaths](/v3/other/babel-plugin#extra-configuration) babel option. It will whitelist your `ui-kit` and process your files even though there are in `node_modules` folder.
+
+You can also consider publishing your UI kit with babel transforms in place. Keep in mind that it could break [testing](/v3/start/testing) views with your components.
+
+## Why to choose Unistyles?
+
+Unistyles offers a unique architecture unavailable in any other library. Fully compatible with the React Native StyleSheet API, it is easy to use and extend.
+
+By avoiding component abstraction, Unistyles gives you the freedom to create your own. It supports various platforms and is designed to be easily extendable.
+
+Tip
+
+If you need any cool feature to support your UI Kit, please open a [discussion](https://github.com/jpudysz/react-native-unistyles/discussions).
+
+I’m happy to help you with your use case!
+
+Do you have any questions? Feel free to ask in our [Discord](https://discord.gg/akGHf27P4C).
+
+# For sponsors
+
+> Sponsor Unistyles 3.0 development
+
+Thank you for all the sponsorships!
+
+We’re so exited about Unistyles 3.0 core and can’t wait for the new possibilities that Unistyles 4.0 will bring!
+
+### Why sponsor Unistyles?
+
+* **Advancing Innovation**: Your sponsorship helps in the continuous innovation and improvement of Unistyles. This support is crucial for developing new features and maintaining the library
+* **Benefit for Developers and Companies**: Both individual developers and large companies that profit from using Unistyles stand to gain from its enhancements. Your support ensures that Unistyles remains a cutting-edge tool in your development arsenal
+* **Limited Free Time Challenge**: The development of innovative libraries like Unistyles is often constrained by the limited free time of creators. Sponsorship can provide the necessary resources for dedicated development time
+
+### How to sponsor?
+
+* **Github Sponsorship**: [link](https://github.com/sponsors/jpudysz)
+* **Ko-Fi**: [link](https://ko-fi.com/jpudysz)
+
+### Free options
+
+* **Sharing Unistyles**: A free yet impactful way to support us is by sharing information about Unistyles within your network. Spreading the word helps increase our visibility and user base
+* **Shoutout**: Give us a shoutout on X or Reddit. Public endorsements and mentions can significantly boost our project’s presence and reach
+
+### Other options
+
+Hire Codemask team
+
+If you’re looking to hire a skilled React Native team, Codemask is open for collaboration. We offer expertise and quality in building React Native applications.
+
+[Contact Codemask](https://codemask.com/contact)
+
+Build something extraordinary
+
+As a Codemask CTO I’m open to share my knowledge and expertise in the React Native ecosystem. Do you need help building a custom native library, or a private project? I’m here to help.
+
+[Contact me on X](https://x.com/jpudysz) or [Contact me with email](mailto:jacekpudysz@gmail.com)
+
+# FAQ
+
+> Frequently asked questions about Unistyles 3.0
+
+### Can I run Unistyles on Expo Go?
+
+No, Unistyles includes custom native code, which means it does not support Expo Go.
+
+### What happened to `macOS`, `windows`, `visionOS`, `tvOS` support?
+
+For now they’re not available. We’re seeking sponsors to help us add support, as they are rarely used by our customers.
+
+### Can I run Unistyles on `Old Architecture`?
+
+No, Unistyles is tightly integrated with `Fabric`. There are no plans to support `Old Architecture`.
+
+### We are not ready to upgrade. What will happen with version `2.0`?
+
+We understand that some apps require more time to migrate to the `New Architecture`. We plan to support Unistyles 2.0 for a few more months or stable React Native versions.
+
+### Adaptive mode doesn’t work for me
+
+To enable adaptive mode, you need to register two themes named `light` and `dark` and set the `adaptiveThemes` flag to true within `StyleSheet.configure`.
+
+If your app still doesn’t automatically switch themes, ensure that:
+
+* For Expo your `app.json` contains a `userInterfaceStyle` key with the value automatic
+* For bare React Native, your `Info.plist` does not have the `UIUserInterfaceStyle` key set to a hardcoded value
+* `Appearance` from `react-native` is set to null
+* You have phone with iOS 15+ or Android 10+
+* Your device supports dark mode
+
+### ld.lld: error: Undefined symbols margelo::nitro::\*
+
+This error occurs due to the strong caching mechanism in Android Studio. The cache can even survive the `expo prebuild --clean` command in Expo projects.
+
+To clean the cache, please follow these steps:
+
+```sh
+cd android
+./gradlew clean
+git clean -dfX
+```
+
+Now, try rebuilding your app.
+
+# Part 3: Cleanup components
+
+> Learn how to build a cross-platform app from scratch with Unistyles 3.0, Expo, and Reanimated
+
+Now that our screens are adapted, let’s refactor the default components. This is where we’ll see the true power of Unistyles in cleaning up component logic. We’ll focus on `ThemedText` and `ThemedView`. The other files can be removed.
+
+After cleaning up, your components folder should look like this:
+
+* app/
+
+  * …
+
+* components/
+
+  * ui/
+
+    * IconSymbol.ios.tsx
+    * IconSymbol.tsx
+    * TabBarBackground.ios.tsx
+    * TabBarBackground.tsx
+
+  * ThemedText.tsx
+
+  * ThemedView\.tsx
+
+### ThemedText
+
+The default `ThemedText` component is a perfect candidate for a Unistyles refactor. It contains conditional style logic directly in the JSX - a pattern we can significantly improve.
+
+First, let’s swap the `StyleSheet` import and remove unnecessary `useThemeColor` hook.
+
+components/ThemedText.tsx
+
+```tsx
+import { StyleSheet, Text, type TextProps } from 'react-native';
+import { Text, type TextProps } from 'react-native';
+import { StyleSheet } from 'react-native-unistyles';
+import { useThemeColor } from '@/hooks/useThemeColor';
+```
+
+The original component used the `useThemeColor` hook to get a color based on the current theme. We’ll replace this imperative logic with a dynamic function in our stylesheet. A dynamic function is a Unistyles feature that allows a style to accept arguments. Let’s create one called `textColor` to handle the `lightColor` and `darkColor` props.
+
+components/ThemedText.tsx
+
+```tsx
+export function ThemedText({
+  style,
+  lightColor,
+  darkColor,
+  type = 'default',
+  ...rest
+}: ThemedTextProps) {
+ const color = useThemeColor({ light: lightColor, dark: darkColor });
+
+
+  return (
+    <Text
+      style={[
+        { color },
+        styles.textColor(lightColor, darkColor),
+        type === 'default' ? styles.default : undefined,
+        type === 'title' ? styles.title : undefined,
+        type === 'defaultSemiBold' ? styles.defaultSemiBold : undefined,
+        type === 'subtitle' ? styles.subtitle : undefined,
+        type === 'link' ? styles.link : undefined,
+        style,
+      ]}
+      {...rest}
+    />
+  );
+}
+
+
+const styles = StyleSheet.create({
+  default: {
+    fontSize: 16,
+    lineHeight: 24,
+  },
+  textColor: (lightColor?: string, darkColor?: string) => ({
+     // todo
+  }),
+  defaultSemiBold: {
+    fontSize: 16,
+    lineHeight: 24,
+    fontWeight: '600',
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    lineHeight: 32,
+  },
+  subtitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  link: {
+    lineHeight: 30,
+    fontSize: 16,
+    color: '#0a7ea4',
+  },
+});
+```
+
+Note
+
+Learn more about dynamic functions and how they work in the dedicated [guide](/v3/references/dynamic-functions).
+
+To implement this, we need to know the current color scheme. Unistyles provides access to this via the runtime object (which we’ll alias as rt).
+
+What’s unique compared to React Native `StyleSheet` is that with Unistyles your `StyleSheet` can be converted to a function that receives both the `theme` and the `rt` as arguments. First argument - `theme` is the current, always up-to-date theme object. Second argument - `rt` is the runtime object, containing useful device metadata, including `rt.colorScheme`.
+
+Note
+
+If you’re interested in learning more about the `rt` object, check out the [mini runtime guide](/v3/references/mini-runtime).
+
+Because we are accessing a runtime value, Unistyles is smart enough to know this style depends on the color scheme and will automatically update it when it changes - without re-rendering the component!
+
+Let’s complete our dynamic function:
+
+components/ThemedText.tsx
+
+```tsx
+export function ThemedText({
+  style,
+  lightColor,
+  darkColor,
+  type = 'default',
+  ...rest
+}: ThemedTextProps) {
+  return (
+    <Text
+      style={[
+        styles.textColor(lightColor, darkColor),
+        type === 'default' ? styles.default : undefined,
+        type === 'title' ? styles.title : undefined,
+        type === 'defaultSemiBold' ? styles.defaultSemiBold : undefined,
+        type === 'subtitle' ? styles.subtitle : undefined,
+        type === 'link' ? styles.link : undefined,
+        style,
+      ]}
+      {...rest}
+    />
+  );
+}
+
+
+ const styles = StyleSheet.create({
+ const styles = StyleSheet.create((theme, rt) => ({
+  default: {
+    fontSize: 16,
+    lineHeight: 24,
+  },
+  textColor: (lightColor: string, darkColor: string) => ({
+    // todo
+    color: rt.colorScheme === 'dark' ? darkColor : lightColor,
+  }),
+  defaultSemiBold: {
+    fontSize: 16,
+    lineHeight: 24,
+    fontWeight: '600',
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    lineHeight: 32,
+  },
+  subtitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  link: {
+    lineHeight: 30,
+    fontSize: 16,
+    color: '#0a7ea4',
+  },
+ })
+ }));
+```
+
+Next, let’s tackle the chain of conditional checks for the type prop. This is a classic use case for variants. Variants allow you to move all of this style logic out of your component and into the stylesheet.
+
+components/ThemedText.tsx
+
+```tsx
+export function ThemedText({
+  style,
+  lightColor,
+  darkColor,
+  type = 'default',
+  ...rest
+}: ThemedTextProps) {
+  return (
+    <Text
+      style={[
+        styles.textColor(lightColor, darkColor),
+        type === 'default' ? styles.default : undefined,
+        type === 'title' ? styles.title : undefined,
+        type === 'defaultSemiBold' ? styles.defaultSemiBold : undefined,
+        type === 'subtitle' ? styles.subtitle : undefined,
+        type === 'link' ? styles.link : undefined,
+        style,
+      ]}
+      {...rest}
+    />
+  );
+}
+
+
+const styles = StyleSheet.create((theme, rt) => ({
+  default: {
+    fontSize: 16,
+    lineHeight: 24,
+  },
+  textColor: (lightColor?: string, darkColor?: string) => ({
+    color: rt.colorScheme === 'dark' ? darkColor : lightColor,
+  }),
+  defaultSemiBold: {
+    fontSize: 16,
+    lineHeight: 24,
+    fontWeight: '600',
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    lineHeight: 32,
+  },
+  subtitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  link: {
+    lineHeight: 30,
+    fontSize: 16,
+    color: '#0a7ea4',
+  },
+}));
+```
+
+components/ThemedText.tsx
+
+```tsx
+export function ThemedText({
+  style,
+  lightColor,
+  darkColor,
+  type = 'default',
+  ...rest
+}: ThemedTextProps) {
+ styles.useVariants({ type })
+
+
+  return (
+    <Text
+      style={[
+        styles.textColor(lightColor, darkColor),
+        styles.textType,
+        style,
+      ]}
+      {...rest}
+    />
+  );
+}
+
+
+const styles = StyleSheet.create((theme, rt) => ({
+  textType: {
+    variants: {
+        type: {
+            default: {
+                fontSize: 16,
+                lineHeight: 24,
+            },
+            defaultSemiBold: {
+                fontSize: 16,
+                lineHeight: 24,
+                fontWeight: '600',
+            },
+            title: {
+                fontSize: 32,
+                fontWeight: 'bold',
+                lineHeight: 32,
+            },
+            subtitle: {
+                fontSize: 20,
+                fontWeight: 'bold',
+            },
+            link: {
+                lineHeight: 30,
+                fontSize: 16,
+                color: '#0a7ea4',
+            },
+        }
+    }
+  },
+  textColor: (lightColor?: string, darkColor?: string) => ({
+    color: rt.colorScheme === 'dark' ? darkColor : lightColor,
+  }),
+}));
+```
+
+Notice how much cleaner the component is! We simply pass the `type` prop to the `useVariants` hook, and Unistyles applies the correct styles from our variants block.
+
+To make this component perfectly type-safe, we can use the `UnistylesVariants` helper type. It automatically infers all possible variant props from your stylesheet.
+
+Currently, our component has following props:
+
+components/ThemedText.tsx
+
+```tsx
+export type ThemedTextProps = TextProps & {
+  lightColor?: string;
+  darkColor?: string;
+  type?: 'default' | 'title' | 'defaultSemiBold' | 'subtitle' | 'link';
+};
+```
+
+Instead of specifying `type` prop manually, we can use `UnistylesVariants` generic type:
+
+components/ThemedText.tsx
+
+```tsx
+ import { StyleSheet } from 'react-native-unistyles';
+ import { StyleSheet, type UnistylesVariants } from 'react-native-unistyles';
+
+
+ export type ThemedTextProps = TextProps & {
+ export type ThemedTextProps = TextProps & UnistylesVariants<typeof styles> & {
+  lightColor?: string;
+  darkColor?: string;
+  type?: 'default' | 'title' | 'defaultSemiBold' | 'subtitle' | 'link';
+};
+
+
+export function ThemedText({
+  style,
+  lightColor,
+  darkColor,
+  type = 'default',
+  type,
+  ...rest
+}: ThemedTextProps) {
+```
+
+Our component is clean, but we can make it even better! Why are we passing `lightColor` and `darkColor` as props when Unistyles already has access to our app theme?
+
+Let’s remove those props and use the theme object directly.
+
+components/ThemedText.tsx
+
+```tsx
+import { Text, type TextProps } from 'react-native';
+import { StyleSheet, type UnistylesVariants } from 'react-native-unistyles';
+
+
+ export type ThemedTextProps = TextProps & UnistylesVariants<typeof styles>
+ export type ThemedTextProps = TextProps & UnistylesVariants<typeof styles> & {
+  lightColor?: string;
+  darkColor?: string;
+ };
+
+
+export function ThemedText({
+  style,
+  lightColor,
+  darkColor,
+  ...rest
+}: ThemedTextProps) {
+  return (
+    <Text
+      style={[
+        styles.textColor(lightColor, darkColor),
+        styles.textColor,
+        styles.textType,
+        style,
+      ]}
+      {...rest}
+    />
+  );
+}
+
+
+ const styles = StyleSheet.create(theme => ({
+ const styles = StyleSheet.create((theme, rt) => ({
+  textColor: (lightColor?: string, darkColor?: string) => ({
+    color: rt.colorScheme === 'dark' ? darkColor : lightColor,
+  }),
+  textColor: {
+    color: theme.colors.typography
+  },
+  textType: {
+    variants: {
+      type: {
+        default: {
+          fontSize: 16,
+          lineHeight: 24,
+        },
+        title: {
+          fontSize: 32,
+          fontWeight: 'bold',
+          lineHeight: 32,
+        },
+        subtitle: {
+          fontSize: 20,
+          fontWeight: 'bold',
+        },
+        link: {
+          lineHeight: 30,
+          fontSize: 16,
+          color: '#0a7ea4',
+          color: theme.colors.link
+        },
+      }
+    }
+  }
+}));
+```
+
+**Why did we remove the extra code?**
+
+We no longer pass as props `lightColor` and `darkColor` because those colours now come straight from the theme (typography color). When you change the `colorScheme` or update the theme, Unistyles automatically injects the new values into your `StyleSheet`, so there’s nothing to manage manually. Keeping all theming logic inside the `StyleSheet` avoids duplicated work and makes the code easier to maintain.
+
+For the same reason, the `dynamic function` is no longer needed - we’ve replaced it with a regular style object.
+
+This is the final, fully refactored `ThemedText` component. It’s declarative, type-safe, and completely decoupled from style logic.
+
+Note
+
+Curious to learn more about variants? Check out the [variants guide](/v3/references/variants).
+
+### ThemedView - your turn!
+
+Now is the time to refactor the `ThemedView` component. This one is much simpler. Based on what you’ve learned, try refactoring it yourself to use the `theme.colors.background` property.
+
+Once you’re done, check your work against the solution below:
+
+components/ThemedView\.tsx
+
+```tsx
+import { View, type ViewProps } from 'react-native';
+import { StyleSheet } from 'react-native-unistyles';
+
+
+export type ThemedViewProps = ViewProps;
+
+
+export function ThemedView({ style, ...otherProps }: ThemedViewProps) {
+  return <View style={[styles.container, style]} {...otherProps} />;
+}
+
+
+const styles = StyleSheet.create(theme => ({
+  container: {
+    backgroundColor: theme.colors.background,
+  }
+}));
+```
+
+### Constants and hooks
+
+Lastly, we can remove the `constants` and `hooks` folders, as they are now redundant. Your final project structure should be clean and organized.
+
+* app/
+
+  * (tabs)/
+
+    * index.tsx
+    * explore.tsx
+    * \_layout.tsx
+
+  * +not\_found.tsx
+
+  * \_layout.tsx
+
+* assets/
+
+  * fonts/
+
+    * …
+
+  * images/
+
+    * …
+
+* components/
+
+  * ui/
+
+    * IconSymbol.ios.tsx
+    * IconSymbol.tsx
+    * TabBarBackground.ios.tsx
+    * TabBarBackground.tsx
+
+  * ThemedText.tsx
+
+  * ThemedView\.tsx
+
+If you run the app now, it should look and function correctly, but its internal styling logic is now far more powerful and maintainable.
+
+[ Previous](/v3/tutorial/cleanup-screens)
+
+[Part 2: Cleanup screens](/v3/tutorial/cleanup-screens)
+
+[Next ](/v3/tutorial/new-screens)
+
+[Part 4: New Screens](/v3/tutorial/new-screens)
+
+# Part 2: Cleanup screens
+
+> Learn how to build a cross-platform app from scratch with Unistyles 3.0, Expo, and Reanimated
+
+Before we start building our own features, let’s adapt the default Expo Router template. The starter project includes its own theming and styling logic, which we’ll replace with the more powerful Unistyles approach.
+
+### App folder
+
+Let’s start with the root layout file for the entire application.
+
+* app/
+
+  * (tabs)/
+
+    * …
+
+  * \_layout.tsx
+
+  * +not\_found.tsx
+
+This file sets up the root `Stack` navigator and uses React Navigation’s `ThemeProvider` along with a `useColorScheme` hook. We no longer need these, as Unistyles will now manage the app’s theme state globally.
+
+Let’s remove the old theming logic:
+
+app/\_layout.tsx
+
+```tsx
+import React from 'react';
+import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { useFonts } from 'expo-font';
+import { Stack } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import 'react-native-reanimated';
+
+
+import { useColorScheme } from '@/hooks/useColorScheme';
+
+
+export default function RootLayout() {
+  const colorScheme = useColorScheme();
+  const [loaded] = useFonts({
+    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
+  });
+
+
+  if (!loaded) {
+    // Async font loading only occurs in development.
+    return null;
+  }
+
+
+  return (
+    <React.Fragment>
+    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+      <Stack>
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="+not-found" />
+      </Stack>
+      <StatusBar style="auto" />
+    </ThemeProvider>
+    </React.Fragment>
+  );
+}
+```
+
+Next, for the `+not_found.tsx` file, we only need to swap the `StyleSheet` import to use Unistyles:
+
+app/+not\_found.tsx
+
+```tsx
+import { StyleSheet } from 'react-native-unistyles';
+import { StyleSheet } from 'react-native';
+```
+
+### (tabs) folder
+
+This folder contains the layout and screens for your `TabsNavigator`. For the `index.tsx` and `explore.tsx` files, the process is the same: we simply need to replace the standard `StyleSheet` import with the one from Unistyles.
+
+app/(tabs)/index.tsx
+
+```tsx
+import { Platform, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native-unistyles';
+```
+
+For the JSX, we won’t need all these boilerplate components, so we can keep it as simple as possible:
+
+app/(tabs)/index.tsx
+
+```tsx
+import { StyleSheet } from 'react-native-unistyles';
+import { ThemedText } from '@/components/ThemedText';
+import { ThemedView } from '@/components/ThemedView';
+
+
+export default function HomeScreen() {
+  return (
+      <ThemedView style={styles.container}>
+        <ThemedText type="title">
+          Home Screen
+        </ThemedText>
+      </ThemedView>
+  );
+}
+
+
+const styles = StyleSheet.create(theme => ({
+  container: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+}));
+```
+
+Repeat the same steps for the `(tabs)/explore.tsx` file.
+
+app/(tabs)/explore.tsx
+
+```tsx
+import { StyleSheet } from 'react-native-unistyles';
+import { ThemedText } from '@/components/ThemedText';
+import { ThemedView } from '@/components/ThemedView';
+
+
+export default function TabTwoScreen() {
+  return (
+      <ThemedView style={styles.container}>
+        <ThemedText type="title">
+          Explore Screen
+        </ThemedText>
+      </ThemedView>
+  );
+}
+
+
+const styles = StyleSheet.create(theme => ({
+  container: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+}));
+```
+
+Accessing the Theme
+
+Have you noticed how we access the theme object?
+
+```tsx
+const styles = StyleSheet.create(theme => ({ ... }))
+```
+
+This approach is slightly different from the standard React Native `StyleSheet.create` API. With Unistyles, your `StyleSheet.create` function will be automatically re-invoked whenever the theme changes, ensuring your styles are always up-to-date.
+
+**If you’re following the tutorial on the web, you might see an error because additional configuration is required for web support. For now, focus on iOS. We’ll show you how to get it working on the web later.**
+
+The most interesting file here is `_layout.tsx`, which configures the `Tabs` navigator. The default code uses the `useColorScheme` hook to dynamically set the `tabBarActiveTintColor`. Since `@react-navigation` components aren’t aware of the Unistyles C++ core, they can’t be updated automatically. We need a way to get the current theme data into our component and trigger a re-render when the theme changes. This is the perfect use case for the `useUnistyles` hook. It subscribes the component to theme changes, giving you access to the theme object and ensuring the component re-renders when the theme is updated.
+
+Note
+
+The `useUnistyles` hook is powerful but should be used selectively, primarily for integrating with third-party components that need to react to theme changes. To help you decide when to use it, we’ve created a [decision algorithm](/v3/references/3rd-party-views)
+
+Let’s refactor tab layout to use our new theme:
+
+app/(tabs)/\_layout.tsx
+
+```tsx
+import { Tabs } from 'expo-router';
+import React from 'react';
+import { Platform } from 'react-native';
+
+
+ import { HapticTab } from '@/components/HapticTab';
+import { IconSymbol } from '@/components/ui/IconSymbol';
+ import TabBarBackground from '@/components/ui/TabBarBackground';
+ import { Colors } from '@/constants/Colors';
+ import { useColorScheme } from '@/hooks/useColorScheme';
+ import { useUnistyles } from 'react-native-unistyles';
+
+
+export default function TabLayout() {
+  const colorScheme = useColorScheme();
+  const { theme } = useUnistyles();
+
+
+  return (
+    <Tabs
+      screenOptions={{
+        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+        tabBarInactiveTintColor: theme.colors.tint,
+        tabBarActiveTintColor: theme.colors.activeTint,
+        sceneStyle: {
+          backgroundColor: theme.colors.background
+        },
+        tabBarStyle: {
+          backgroundColor: theme.colors.foreground
+        },
+        headerShown: false,
+        tabBarButton: HapticTab,
+        tabBarBackground: TabBarBackground,
+        tabBarStyle: Platform.select({
+          ios: {
+            // Use a transparent background on iOS to show the blur effect
+            position: 'absolute',
+          },
+          default: {},
+        }),
+      }}>
+      <Tabs.Screen
+        name="index"
+        options={{
+          title: 'Home',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="explore"
+        options={{
+          title: 'Explore',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+        }}
+      />
+    </Tabs>
+  );
+}
+```
+
+With these changes, you can now switch your device’s color scheme, and you’ll see the tab bar’s tint color update instantly, powered by Unistyles!
+
+![ios app preview](/_astro/tutorial-2.BW7uS7gg.jpg)
+
+[ Previous](/v3/tutorial/intro)
+
+[Part 1: Intro](/v3/tutorial/intro)
+
+[Next ](/v3/tutorial/cleanup-components)
+
+[Part 3: Cleanup components](/v3/tutorial/cleanup-components)
+
+# Part 8: Cross-platform
+
+> Learn how to build a cross-platform app from scratch with Unistyles 3.0, Expo, and Reanimated
+
+We’re in the final stretch! Our music app is looking great, but there’s one important piece missing. While users can browse songs, navigate between screens, and change theme settings, the accent color selection doesn’t actually work yet. The Button and PlayerControls components still use hardcoded “banana” colors.
+
+In this final part, we’ll connect all the pieces together using a lightweight state management solution, making our app truly dynamic and personalized. We’ll also ensure our app works beautifully across iOS, Android, and Web platforms.
+
+### Adding State Management with StanJS
+
+For managing the user’s accent preference across our app, we need a state management solution that’s both lightweight and efficient. After considering various options, we decided to use our in-house library called StanJS.
+
+Note
+
+StanJS is a powerful yet simple state management library that works similarly to `useUnistyles` subscriptions - only components that listen to specific changes will re-render. Learn more at [StanJS Documentation](https://codemask-labs.github.io/stan-js/).
+
+StanJS automatically generates setters for your state values and provides excellent TypeScript support. With just a few lines of code, we can add persistent state management that feels native to our Unistyles-powered app.
+
+### Installation and Setup
+
+Let’s install StanJS along with MMKV for data persistence:
+
+```bash
+yarn add stan-js react-native-mmkv
+```
+
+and then regenerate native folders:
+
+```bash
+yarn expo prebuild --clean
+```
+
+StanJS has built-in MMKV support that makes data persistence effortless.
+
+#### Create the Store
+
+First, let’s set up our store to manage the user’s preferred accent color:
+
+store/store.ts
+
+```tsx
+import { Accents } from '@/unistyles'
+import { createStore } from 'stan-js'
+import { storage } from 'stan-js/storage'
+
+
+export const { useStore } = createStore({
+    preferredAccent: storage<Accents>('banana'),
+})
+```
+
+The beauty of StanJS lies in its simplicity. To persist data, we just wrap our value in the `storage` helper, which uses MMKV underneath to save the accent preference. StanJS automatically creates a `setPreferredAccent` setter for us - no boilerplate required.
+
+Before we can use our store, we need to create the `Accents` type. Let’s add it to our Unistyles configuration:
+
+unistyles.ts
+
+```tsx
+// ... existing imports and theme definitions
+
+
+ export type Accents = keyof typeof lightTheme['colors']['accents']
+
+
+type AppBreakpoints = typeof breakpoints
+type AppThemes = typeof appThemes
+
+
+declare module 'react-native-unistyles' {
+    export interface UnistylesThemes extends AppThemes {}
+    export interface UnistylesBreakpoints extends AppBreakpoints {}
+}
+
+
+// ... rest of configuration
+```
+
+This type gives us powerful type safety - TypeScript will know exactly which accent colors are available and prevent us from using invalid accent names.
+
+Now let’s create a barrel export for our store:
+
+store/index.ts
+
+```tsx
+export * from './store'
+```
+
+### Connecting the Accent Settings
+
+Now we need to update our accent settings screen to actually save the user’s choice to our store. Currently, it only updates local state that gets lost when the user navigates away.
+
+Let’s update the settings screen to use our StanJS store:
+
+app/settings/settings-accent.tsx
+
+```tsx
+import { Button } from '@/components/Button'
+import { ThemedText } from '@/components/ThemedText'
+ import { useStore } from '@/store'
+import { router } from 'expo-router'
+import React, { useState } from 'react'
+import { Pressable, ScrollView, View } from 'react-native'
+import { StyleSheet, useUnistyles } from 'react-native-unistyles'
+
+
+export default function SettingsAccentScreen() {
+    const { theme } = useUnistyles()
+    const { setPreferredAccent, preferredAccent } = useStore()
+    const allAccents = theme.colors.accents
+    const [selectedAccent, setSelectedAccent] = useState(preferredAccent)
+    const [selectedAccent, setSelectedAccent] = useState('banana')
+
+
+    return (
+        <View style={styles.container}>
+            <ScrollView contentContainerStyle={styles.scrollView}>
+                <View style={styles.row}>
+                    {Object.entries(allAccents).map(([accentName, accentColor]) => (
+                        <Pressable
+                            key={accentName}
+                            style={styles.item}
+                            onPress={() => {
+                                setSelectedAccent(accentName as keyof typeof allAccents)
+                            }}
+                        >
+                            <View
+                                style={styles.box(accentColor, accentName === selectedAccent)}
+                            />
+                            <ThemedText bold>
+                                {accentName}
+                            </ThemedText>
+                        </Pressable>
+                    ))}
+                </View>
+            </ScrollView>
+            <View style={styles.buttonContainer}>
+                <Button
+                    label="Save"
+                    accent={selectedAccent}
+                    onPress={() => {
+                        setPreferredAccent(selectedAccent)
+                        router.back()
+                    }}
+                />
+            </View>
+        </View>
+    )
+}
+
+
+// ... styles remain the same
+```
+
+Now we’re importing `useStore` from StanJS and accessing both the `preferredAccent` value and the auto-generated `setPreferredAccent` setter. We initialize our local state with the persisted value, and when the user saves their selection, we update the global store before navigating back.
+
+The beautiful thing about this approach is that any other component that listens for the `preferredAccent` value will automatically re-render when the accent preference changes.
+
+### Making Components Dynamic
+
+Now let’s update our components to respond to the user’s accent preference instead of using hardcoded values.
+
+#### Update Button Component
+
+The Button component needs to use the store value as a fallback while still allowing accent overrides:
+
+components/Button.tsx
+
+```tsx
+import { Pressable } from 'react-native'
+import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated'
+import { StyleSheet, UnistylesVariants } from 'react-native-unistyles'
+import { useAnimatedVariantColor } from 'react-native-unistyles/reanimated'
+import { ThemedText } from './ThemedText'
+ import { useStore } from '@/store'
+
+
+interface ButtonProps extends UnistylesVariants<typeof style> {
+    label: string,
+    onPress(): void
+}
+
+
+export const Button: React.FunctionComponent<ButtonProps> = ({
+    label,
+    accent,
+    onPress
+}) => {
+    const { preferredAccent } = useStore()
+
+
+    style.useVariants({
+        accent: accent ?? preferredAccent
+        accent: accent
+    })
+
+
+    const color = useAnimatedVariantColor(style.buttonColor, 'backgroundColor')
+    const animatedStyle = useAnimatedStyle(() => ({
+        backgroundColor: withTiming(color.value, {
+            duration: 500
+        })
+    }))
+
+
+    return (
+        <Pressable onPress={onPress}>
+            <Animated.View style={[animatedStyle, style.button]}>
+                <ThemedText bold>
+                    {label}
+                </ThemedText>
+            </Animated.View>
+        </Pressable>
+    )
+}
+
+
+// ... styles remain the same
+```
+
+This implementation is flexible - it uses the accent prop if provided (like in the settings preview), but falls back to the user’s preferred accent from the store. This means the “Pick a song” button on the player screen will now use the user’s chosen accent color.
+
+#### Update PlayerControls Component
+
+The PlayerControls component should always use the user’s preferred accent:
+
+components/PlayerControls.tsx
+
+```tsx
+import { IconSymbol } from '@/components/ui/IconSymbol'
+ import { useStore } from '@/store'
+import { Pressable, View } from 'react-native'
+import { StyleSheet } from 'react-native-unistyles'
+import { useUnistyles } from 'react-native-unistyles'
+
+
+export const PlayerControls = () => {
+    const { preferredAccent } = useStore()
+    const { theme } = useUnistyles()
+    const accent = theme.colors.accents[preferredAccent]
+    const accent = theme.colors.accents['banana']
+
+
+    return (
+        <View style={styles.actions}>
+            <Pressable>
+                <IconSymbol name="backward.end.fill" size={40} color={accent}/>
+            </Pressable>
+            <Pressable>
+                <IconSymbol name="backward.fill" size={50} color={accent}/>
+            </Pressable>
+            <Pressable>
+                <IconSymbol name="play.circle.fill" size={100} color={accent}/>
+            </Pressable>
+            <Pressable>
+                <IconSymbol name="forward.fill" size={50} color={accent}/>
+            </Pressable>
+            <Pressable>
+                <IconSymbol name="forward.end.fill" size={40} color={accent}/>
+            </Pressable>
+        </View>
+    )
+}
+
+
+// ... styles remain the same
+```
+
+Now the player controls will dynamically change color based on the user’s accent preference. The StanJS subscription ensures that the component re-renders only when the `preferredAccent` value changes.
+
+We need to remove one more `banana` from `[songId].tsx` screen when there is no selected song:
+
+screens/player/\[songId].tsx
+
+```tsx
+import { Button } from '@/components/Button'
+import { PlayerControls } from '@/components/PlayerControls'
+import { ThemedText } from '@/components/ThemedText'
+import { ThemedView } from '@/components/ThemedView'
+import { playlist } from '@/mocks'
+import { router, useLocalSearchParams } from 'expo-router'
+import { Image, ScrollView } from 'react-native'
+import { StyleSheet } from 'react-native-unistyles'
+
+
+export default function PlayerScreen() {
+  const { songId } = useLocalSearchParams()
+
+
+  const song = playlist.find(song => song.id === Number(songId))
+
+
+  if (!songId || !song) {
+    return (
+      <ThemedView style={[styles.centerContainer, styles.container]}>
+        <ThemedText type="title">
+          Looking for inspiration?
+        </ThemedText>
+        <ThemedText>
+          Pick a song from the playlist
+        </ThemedText>
+        <Button
+          label="Pick a song"
+          accent="banana"
+          onPress={() => router.replace('/')}
+        />
+      </ThemedView>
+    )
+  }
+
+
+// ... rest of the file remains the same
+```
+
+### Android
+
+Now let’s test our app on Android to see if there are any platform-specific issues that need addressing.
+
+Running the app on Android, you’ll notice it works correctly overall, but there’s one issue - the TabBar icons are missing! This happens because our `IconSymbol` component uses iOS-specific SF Symbols that don’t exist on Android.
+
+Let’s fix the icon mappings in our `IconSymbol` component:
+
+components/ui/IconSymbol.tsx
+
+```tsx
+// ... existing imports and code
+
+
+const MAPPING = {
+  'house.fill': 'home',
+  'paperplane.fill': 'send',
+  'chevron.left.forwardslash.chevron.right': 'code',
+  'chevron.right': 'chevron-right',
+  'music.house': 'queue-music',
+  'play.circle': 'play-circle-outline',
+  'gear.circle': 'settings',
+  'backward.end.fill': 'first-page',
+  'backward.fill': 'fast-rewind',
+  'forward.fill': 'fast-forward',
+  'forward.end.fill': 'last-page',
+  'play.circle.fill': 'play-circle-filled'
+} as IconMapping;
+
+
+// ... rest of the component
+```
+
+These updated mappings use Material Design icons that are available on Android, ensuring our TabBar and player controls display properly across both platforms.
+
+The previous mappings were defaults from the Expo starter template that didn’t match our actual icon usage. With these corrections, your Android app will have proper navigation icons and media controls.
+
+We could also improve the bottom navigation bar by properly configuring `react-native-edge-to-edge` for Android’s gesture navigation, but that’s beyond the scope of this tutorial.
+
+![Android app](/_astro/tutorial-10.M6iz6PRk.jpg)![Android app](/_astro/tutorial-11.GOFOylbE.jpg)
+
+### Web
+
+When you try to run your app on the web, you will encounter a crash:
+
+![Web app](/_astro/tutorial-12.DmmorFmX.png)
+
+This happens because Expo Router uses static rendering by default, and Unistyles needs to be properly initialized for each page during the static rendering process.
+
+To fix this, we need to create a custom HTML root file that ensures Unistyles is initialized correctly:
+
+app/+html.tsx
+
+```tsx
+import { ScrollViewStyleReset } from 'expo-router/html'
+import { type PropsWithChildren } from 'react'
+import '../unistyles'
+
+
+// This file is web-only and used to configure the root HTML for every
+// web page during static rendering.
+// The contents of this function only run in Node.js environments and
+// do not have access to the DOM or browser APIs.
+export default function Root({ children }: PropsWithChildren) {
+  return (
+    <html lang="en">
+      <head>
+        <meta charSet="utf-8" />
+        <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+
+
+        {/*
+          Disable body scrolling on web. This makes ScrollView components work closer to how they do on native.
+          However, body scrolling is often nice to have for mobile web. If you want to enable it, remove this line.
+        */}
+        <ScrollViewStyleReset />
+
+
+        {/* Add any additional <head> elements that you want globally available on web... */}
+      </head>
+      <body>{children}</body>
+    </html>
+  );
+}
+```
+
+The key part is the `import '../unistyles'` line at the top - this ensures that Unistyles is initialized before any components try to use it during static rendering.
+
+Note
+
+Read more about Expo Router setup in [this guide](/v3/guides/expo-router).
+
+After adding this file, your app will render correctly on the web! You might notice a few minor issues like the playlist not being scrollable in some browsers or the app accent button being too close to the edge on wide screens, but the core functionality works beautifully.
+
+Before we wrap up this section, let’s explore how Unistyles handles responsive design, a crucial feature for cross-platform apps that also target the web.
+
+### Breakpoints and Media Queries
+
+When your app needs to scale from a phone in your pocket to a large desktop monitor, you face new challenges. Unistyles provides powerful, built-in tools to help you create adaptive and responsive layouts with ease.
+
+The most direct way to create responsive styles is by using **breakpoint objects**. You can turn any style value into an object where the keys are your predefined breakpoint names (`xs`, `sm`, `md`, etc.) and the values are the styles for that specific breakpoint. This enables you to easily create responsive layouts, but only for the properties you need.
+
+Let’s apply this to our `SongTile` component to make the album art larger on bigger screens.
+
+components/SongTile.tsx
+
+```tsx
+// ... JSX remains the same
+
+
+const style = StyleSheet.create(theme => ({
+    container: {
+        flexDirection: 'row',
+        gap: theme.gap(2),
+        alignItems: 'center'
+    },
+    image: {
+        width: 80,
+        height: 80,
+         width: {
+             xs: 80,
+             md: 120,
+             lg: 200
+         },
+         height: {
+             xs: 80,
+             md: 120,
+             lg: 200
+         },
+        borderRadius: theme.gap(2)
+    },
+    textContainer: {
+        flex: 1
+    }
+}))
+```
+
+With this change, the width and height of the image will automatically adjust based on the screen width. Unistyles handles the media query logic for you.
+
+![Responsive image](/_astro/tutorial-13.hQUnWpZb.jpg)
+
+Note
+
+Learn more about configuring and using `breakpoints` [here](/v3/references/breakpoints).
+
+For more complex or specific conditions, breakpoint objects might not be enough. This is where the mq (media query) utility shines. It gives you granular control to apply styles based on precise width and height conditions.
+
+Let’s modify our `PlayerScreen` to adopt a more traditional web layout on larger screens - a centered content:
+
+app/(tabs)/player/\[songId].tsx
+
+```tsx
+ import { StyleSheet } from 'react-native-unistyles'
+ import { mq, StyleSheet } from 'react-native-unistyles'
+
+
+// ... JSX remains the same
+
+
+const styles = StyleSheet.create((theme, rt) => ({
+    centerContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center'
+      },
+      container: {
+        flex: 1,
+        gap: theme.gap(2),
+        alignItems: 'center',
+        justifyContent: {
+            [mq.only.width(600)]: 'center'
+        },
+        marginTop: rt.insets.top + theme.gap(3),
+      },
+      image: {
+        width: 200,
+        height: 200,
+        borderRadius: theme.gap(2)
+      }
+}));
+```
+
+Using the `mq` utility, you can target both width and height media queries. Importantly, these are automatically transformed into genuine CSS media queries, which offloads the computations from JavaScript for improved performance.
+
+Note
+
+Dive deeper into the `mq` utility and its helpers [here](/v3/references/media-queries).
+
+### Web styling features
+
+While Unistyles excels at universal styling, there are times you’ll want to leverage platform-specific features. On the web, this often means using CSS pseudo-selectors like `:hover` and `:active` for a more native web experience and better performance.
+
+Unistyles makes this incredibly simple with the `_web` property.
+
+Let’s look at our `SettingTile.tsx` component. On native platforms, a common pattern to handle press states is to provide a function to your style definition, which receives the component’s state.
+
+components/SettingTile.tsx
+
+```tsx
+// ... JSX remains the same
+
+
+const styles = StyleSheet.create({
+    container: (state: PressableStateCallbackType) => ({
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        opacity: state.pressed ? 0.75 : 1,
+    })
+})
+```
+
+This works perfectly on iOS and Android, but on the web, it relies on JavaScript to update the style. We can achieve a smoother and more performant result by using native CSS pseudo-selectors.
+
+To do this, we’ll modify our container style and add a `_web` key. Inside this `_web` object, we can use special keys like `_hover` and `_active` that Unistyles will automatically convert to CSS pseudo-selectors.
+
+components/SettingTile.tsx
+
+```tsx
+const styles = StyleSheet.create({
+    container: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        opacity: state.pressed ? 0.75 : 1,
+        _web: {
+            _hover: {
+                opacity: 0.75
+            },
+            _active: {
+                opacity: 0.5
+            }
+        }
+    }
+})
+```
+
+Styles inside the `_web` block will take precedence over the JavaScript-driven opacity logic, replacing it with `_hover` and `_active` selectors.
+
+Now, when you hover over the tile on a web browser, the opacity change is handled entirely by CSS, providing instant feedback.
+
+![Hover effect](/_astro/tutorial-14.1JBIJI7e.png)
+
+This is just the beginning! The `_web` property also allows you to add CSS animations and even target styles using custom class names.
+
+Note
+
+Learn more about all the web-specific features [here](/v3/references/web-only).
+
+### What We’ve Built Together
+
+Congratulations! You’ve built a complete, cross-platform music application that demonstrates the full power of Unistyles 3.0. Let’s recap what we’ve accomplished:
+
+**Core Features:**
+
+* Dynamic theming with light/dark mode support
+* Adaptive themes that follow device settings
+* Custom accent colors with persistent user preferences
+* Cross-platform compatibility (iOS, Android, Web)
+* Type-safe styling with complete TypeScript integration
+
+**Unistyles API**
+
+* Theme configuration with custom color palettes and utility functions
+* Variants system for dynamic component styling
+* Runtime integration for device-aware styling (safe areas, color scheme)
+* Dynamic functions for complex style logic
+* ScopedTheme for theme previews and isolated theming
+* Reanimated integration with smooth accent color transitions
+* Performance optimizations with selective re-rendering
+* withUnistyles for unsupported props and 3rd party views
+* useUnistyles for dynamic subscriptions
+* Breakpoints and mq for responsive design
+* Web only API for custom web components
+
+**Development Patterns:**
+
+* Merging styles managed by Unistyles and Reanimated
+* Component composition with reusable, themed components
+* State management with StanJS for clean, persistent user preferences
+* Navigation integration with Expo Router and dynamic routes
+
+### Summary
+
+You’ve just completed an incredible journey building a full-featured, cross-platform music application with Unistyles 3.0. From initial configuration to advanced theming and state management.
+
+But most importantly, you’ve learned to think in Unistyles. You understand when to use variants vs dynamic functions, how to leverage the runtime for device-aware styling, and how to build components that are both flexible and maintainable.
+
+This is just the beginning. With the foundation you’ve built, you can now tackle any styling challenge React Native throws your way. Whether it’s complex animations, responsive layouts, or intricate theming systems - you have the tools and knowledge to build beautiful, performant apps that work everywhere.
+
+**Ready for your next project?** Take these patterns and run with them. Build the app you’ve always wanted to create, knowing that Unistyles has your back every step of the way.
+
+Welcome to the future of React Native styling.
+
+[ Previous](/v3/tutorial/player-screens)
+
+[Part 7: Player screens](/v3/tutorial/player-screens)
+
+# Tutorial
+
+> Learn how to build a cross-platform app from scratch with Unistyles 3.0, Expo, and Reanimated
+
+In this `1 hour` long tutorial, we’ll build a simple, cross-platform app that targets `iOS`, `Android`, and `Web`. Our stack will be `Expo`, `Reanimated`, and of course `Unistyles` for powerful, performant styling.
+
+During this tutorial, we will cover most of the Unistyles features and best practices.
+
+![ios app preview](/_astro/tutorial-preview.DH5f69P5.jpg)
+
+### Create new project
+
+First, let’s scaffold a new Expo project using the command line:
+
+```bash
+npx create-expo-app@latest unistyles-tutorial
+cd unistyles-tutorial
+```
+
+Next, install Unistyles, its dependencies, and Reanimated:
+
+```bash
+yarn add react-native-reanimated react-native-unistyles react-native-nitro-modules react-native-edge-to-edge
+```
+
+Tip
+
+For best results and to ensure compatibility, we recommend using the `react-native-nitro-modules` version specified in the Unistyles [compatibility table](https://github.com/jpudysz/react-native-unistyles?tab=readme-ov-file#installation).
+
+Finally, generate the native project folders required for the app to run:
+
+```bash
+yarn expo prebuild --clean
+```
+
+### Configure Babel Plugins
+
+Both `Unistyles` and `Reanimated` require a Babel plugin to work. Since a `babel.config.js` file isn’t created by default, we can generate it by running:
+
+```bash
+npx expo customize babel.config.js
+```
+
+Now, add the `unistyles` and `reanimated` plugins to your `babel.config.js`:
+
+```ts
+module.exports = function (api) {
+  api.cache(true);
+  return {
+    presets: ['babel-preset-expo'],
+    plugins: [
+        ['react-native-unistyles/plugin', {
+            root: 'app'
+        }],
+        ['react-native-reanimated/plugin']
+    ]
+  };
+};
+```
+
+Tip
+
+To learn more about the Unistyles Babel plugin and its configuration options, check out the [documentation](/v3/other/babel-plugin).
+
+### Modify app entry point
+
+To use features like themes and breakpoints, Unistyles must be configured before your application code runs. This ensures that all stylesheets are created with the correct theme and device context.
+
+First, update your `package.json`:
+
+```json
+{
+   "main": "expo-router/entry"
+   "main": "index.ts"
+}
+```
+
+Next, create a new `index.ts` file in your project’s root directory. This file will load the standard Expo Router entry point, and then import your Unistyles configuration:
+
+```ts
+import 'expo-router/entry'
+import './unistyles'
+```
+
+We’ll create the `unistyles.ts` file in the next step.
+
+### Configure Unistyles
+
+This is where the magic happens! Create a `unistyles.ts` file in your project’s root. Here, we’ll define our `themes`, `breakpoints`, and register them with Unistyles.
+
+```ts
+import { StyleSheet } from 'react-native-unistyles'
+
+
+const lightTheme = {
+    colors: {
+        background: '#FCFAF8',
+        foreground: '#EDEAE6',
+        typography: '#1B140C',
+        dimmed: '#ECE8E4',
+        tint: '#9A734C',
+        activeTint: '#1B140C',
+        link: '#1E3799',
+        accents: {
+            banana: '#F6E58D',
+            pumpkin: '#FFBE76',
+            apple: '#FF7979',
+            grass: '#BADC58',
+            storm: '#686DE0'
+        }
+    },
+    gap: (v: number) => v * 8,
+} as const
+
+
+const darkTheme = {
+    colors: {
+        background: '#221A11',
+        foreground: '#332618',
+        typography: '#FFFFFF',
+        dimmed: '#A8A198',
+        tint: '#C9AD92',
+        activeTint: '#FFFFFF',
+        link: '#0C2461',
+        accents: {
+            banana: '#f9CA24',
+            pumpkin: '#F0932B',
+            apple: '#EB4D4B',
+            grass: '#6AB04C',
+            storm: '#4834D4'
+        }
+    },
+    gap: (v: number) => v * 8,
+} as const
+
+
+const appThemes = {
+    light: lightTheme,
+    dark: darkTheme
+}
+
+
+const breakpoints = {
+    xs: 0,
+    sm: 300,
+    md: 500,
+    lg: 800,
+    xl: 1200,
+}
+
+
+type AppBreakpoints = typeof breakpoints
+type AppThemes = typeof appThemes
+
+
+declare module 'react-native-unistyles' {
+    export interface UnistylesThemes extends AppThemes {}
+    export interface UnistylesBreakpoints extends AppBreakpoints {}
+}
+
+
+StyleSheet.configure({
+    settings: {
+        adaptiveThemes: true
+    },
+    themes: {
+        light: lightTheme,
+        dark: darkTheme,
+    },
+    breakpoints,
+})
+```
+
+That’s a lot to take in, so let’s break it down:
+
+**Themes**: We defined light and dark themes. There are no restrictions on a theme’s structure, you can add any properties you need, from colors to spacing functions. In our case we defined a custom palette with different accents and one helper function `gap` for spacing.
+
+**Breakpoints**: We defined a set of breakpoints for responsive design. The only requirement is that one breakpoint must be 0.
+
+**Types**: We extended the Unistyles module with our custom `AppThemes` and `AppBreakpoints` types. This is the key to unlocking full auto-completion and type-safety across your entire app.
+
+**Configuration**: Finally, we called the `StyleSheet.configure` function to set all the options. We also enabled `adaptiveThemes`, which will cause Unistyles to automatically transition between themes based on device color scheme.
+
+Note
+
+To learn more about configuration options, check out the [configuration](/v3/start/configuration) page.
+
+[Next ](/v3/tutorial/cleanup-screens)
+
+[Part 2: Cleanup screens](/v3/tutorial/cleanup-screens)
+
+# Part 6: Modals
+
+> Learn how to build a cross-platform app from scratch with Unistyles 3.0, Expo, and Reanimated
+
+Time to build the modal screens for theme and accent selection. We’ll create interactive components that leverage Unistyles’ powerful theming system and introduce `ScopedTheme` for previewing themes.
+
+### Create SettingOptionRadio Component
+
+Let’s start with a radio button component for selecting theme modes. This component brings together concepts we’ve covered in previous steps.
+
+Create `components/SettingOptionRadio.tsx`:
+
+components/SettingOptionRadio.tsx
+
+```tsx
+import { Pressable, PressableStateCallbackType, View } from 'react-native'
+import { StyleSheet, type UnistylesVariants } from 'react-native-unistyles'
+import { ThemedText } from './ThemedText'
+
+
+interface SettingOptionRadioProps extends UnistylesVariants<typeof style> {
+    label: string,
+    onPress(): void
+}
+
+
+export const SettingOptionRadio: React.FunctionComponent<SettingOptionRadioProps> = ({
+    label,
+    isSelected,
+    onPress
+}) => {
+    style.useVariants({
+        isSelected
+    })
+
+
+    return (
+        <Pressable
+            onPress={onPress}
+            style={style.container}
+        >
+            <ThemedText type="subtitle">
+                {label}
+            </ThemedText>
+            <View style={style.radio}>
+                {isSelected && (
+                    <View style={style.radioInner} />
+                )}
+            </View>
+        </Pressable>
+    )
+}
+
+
+const style = StyleSheet.create(theme => ({
+    container: (state: PressableStateCallbackType) => ({
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 8,
+        borderRadius: theme.gap(1),
+        padding: theme.gap(2),
+        borderWidth: 1,
+        borderColor: theme.colors.dimmed,
+        opacity: state.pressed ? 0.75 : 1,
+    }),
+    radio: {
+        width: 24,
+        height: 24,
+        borderRadius: 12,
+        borderWidth: 2,
+        justifyContent: 'center',
+        alignItems: 'center',
+        variants: {
+            isSelected: {
+                true: {
+                    borderColor: theme.colors.tint,
+                },
+                false: {
+                    borderColor: theme.colors.dimmed,
+                }
+            }
+        }
+    },
+    radioInner: {
+        width: 10,
+        height: 10,
+        borderRadius: 5,
+        backgroundColor: theme.colors.tint,
+    }
+}))
+```
+
+This component combines everything we’ve learned: `useVariants` for the radio selection state, boolean variants for styling, `PressableStateCallbackType` for press feedback, and `UnistylesVariants` for type safety.
+
+### Basic Theme Settings Screen
+
+Let’s add this component to the theme settings screen:
+
+app/settings/settings-theme.tsx
+
+```tsx
+ import { ThemedText } from '@/components/ThemedText'
+ import { SettingOptionRadio } from '@/components/SettingOptionRadio'
+ import React from 'react'
+import { ScrollView } from 'react-native'
+import { StyleSheet } from 'react-native-unistyles'
+
+
+export default function SettingsThemeScreen() {
+    return (
+        <ScrollView contentContainerStyle={styles.container}>
+            <ThemedText type="title">
+                Change theme
+            </ThemedText>
+            <SettingOptionRadio
+                label="System"
+                isSelected={false}
+                onPress={() => {}}
+            />
+            <SettingOptionRadio
+                label="User"
+                isSelected={false}
+                onPress={() => {}}
+            />
+        </ScrollView>
+    )
+}
+
+
+const styles = StyleSheet.create(theme => ({
+    container: {
+        flex: 1,
+        gap: theme.gap(2),
+        paddingTop: theme.gap(2),
+        paddingHorizontal: theme.gap(2)
+    }
+}))
+```
+
+### Create ThemeColor Component
+
+Now let’s create a component called `ThemeColor` that will preview different themes.
+
+components/ThemeColor.tsx
+
+```tsx
+import { Pressable } from 'react-native'
+import { ScopedTheme, StyleSheet, UnistylesThemes } from 'react-native-unistyles'
+import { ThemedText } from './ThemedText'
+
+
+type ThemeColorProps = {
+    label: keyof UnistylesThemes,
+    onPress: VoidFunction
+}
+
+
+export const ThemeColor: React.FunctionComponent<ThemeColorProps> = ({ label, onPress }) => {
+    return (
+        <ScopedTheme name={label}>
+            <Pressable
+                style={styles.container}
+                onPress={onPress}
+            >
+                <ThemedText>
+                    {label}
+                </ThemedText>
+            </Pressable>
+        </ScopedTheme>
+    )
+}
+
+
+const styles = StyleSheet.create(theme => ({
+    container: {
+        flex: 1,
+        height: 80,
+        borderRadius: theme.gap(2),
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 1,
+        borderColor: theme.colors.dimmed,
+        backgroundColor: theme.colors.background
+    }
+}))
+```
+
+Here’s were things getting interesting. We’ve used new component called `ScopedTheme`.
+
+`ScopedTheme` empowers you to render child components with a specific, **fixed** theme, regardless of the current global app theme. This feature ensures consistent theming in scenarios like theme previews or within specific screens like camera, where a predetermined visual contract is required.
+
+In other words, if you want some of your components to always use a specific theme, you can use `ScopedTheme`.
+
+Note
+
+Explore the [ScopedTheme guide](/v3/references/scoped-theme) to learn about advanced features such as `invertedAdaptive` and the `reset` functionality.
+
+Before proceeding further, notice that we used `keyof UnistylesTheme` (as label type) to ensure type safety. This type represents the keys of all the themes you’ve registered within Unistyles.
+
+### Enhanced Theme Settings Screen
+
+Let’s update the theme settings screen to include theme previews:
+
+app/settings/settings-theme.tsx
+
+```tsx
+import { SettingOptionRadio } from '@/components/SettingOptionRadio'
+ import { ThemeColor } from '@/components/ThemeColor'
+import React from 'react'
+ import { ScrollView, View } from 'react-native'
+ import { ScrollView } from 'react-native'
+import { StyleSheet } from 'react-native-unistyles'
+
+
+export default function SettingsThemeScreen() {
+  return (
+    <ScrollView contentContainerStyle={styles.container}>
+        <SettingOptionRadio
+            label="System"
+            isSelected={false}
+            onPress={() => {}}
+        />
+        <SettingOptionRadio
+            label="User"
+            isSelected={false}
+            onPress={() => {}}
+        />
+       <View style={styles.row}>
+           <ThemeColor
+               label="light"
+               onPress={() => {}}
+           />
+           <ThemeColor
+               label="dark"
+               onPress={() => {}}
+           />
+       </View>
+    </ScrollView>
+  )
+}
+
+
+const styles = StyleSheet.create(theme => ({
+    container: {
+        flex: 1,
+        gap: theme.gap(2),
+        paddingTop: theme.gap(2),
+        paddingHorizontal: theme.gap(2)
+    },
+   row: {
+       justifyContent: 'center',
+       flexDirection: 'row',
+       gap: theme.gap(2)
+   }
+}))
+```
+
+Change your phone’s color scheme and observe that `ScopedTheme` prevents the boxes from re-rendering with the opposite color palette.
+
+![Settings Theme](/_astro/tutorial-6.UAYDoQcv.jpg)
+
+Note
+
+It seems that we need to also update `react-navigation` Header to use Unistyles theme. We will do it before the end of this part of the tutorial.
+
+### Complete Theme Settings Implementation
+
+Now let’s add the full functionality using `UnistylesRuntime` and `useUnistyles`:
+
+app/settings/settings-theme.tsx
+
+```tsx
+import { SettingOptionRadio } from '@/components/SettingOptionRadio'
+import { ThemeColor } from '@/components/ThemeColor'
+import React from 'react'
+import { ScrollView, View } from 'react-native'
+ import { StyleSheet, UnistylesRuntime, useUnistyles } from 'react-native-unistyles'
+ import { StyleSheet } from 'react-native-unistyles'
+
+
+export default function SettingsThemeScreen() {
+  const { rt } = useUnistyles()
+
+
+  return (
+    <ScrollView contentContainerStyle={styles.container}>
+        <SettingOptionRadio
+            label="System"
+            isSelected={rt.hasAdaptiveThemes}
+            onPress={() => {
+              if (rt.hasAdaptiveThemes) {
+                return
+              }
+
+
+              UnistylesRuntime.setAdaptiveThemes(true)
+            }}
+            isSelected={false}
+            onPress={() => {}}
+        />
+        <SettingOptionRadio
+            label="User"
+            isSelected={!rt.hasAdaptiveThemes}
+            onPress={() => {
+              if (rt.hasAdaptiveThemes) {
+                UnistylesRuntime.setAdaptiveThemes(false)
+              }
+            }}
+            isSelected={false}
+            onPress={() => {}}
+        />
+        {!rt.hasAdaptiveThemes && (
+            <View style={styles.row}>
+                <ThemeColor
+                    label="light"
+                    onPress={() => UnistylesRuntime.setTheme('light')}
+                    onPress={() => {}}
+                />
+                <ThemeColor
+                    label="dark"
+                    onPress={() => UnistylesRuntime.setTheme('dark')}
+                    onPress={() => {}}
+                />
+            </View>
+        )}
+    </ScrollView>
+  )
+}
+```
+
+Here’s what makes this implementation powerful:
+
+**Using `useUnistyles` for subscriptions**: We use `useUnistyles` to get the `rt` object, which creates a subscription and only re-renders the screen when `hasAdaptiveThemes` changes. Other runtime values won’t trigger unnecessary re-renders.
+
+**Theme management logic**: We can’t change themes when adaptive themes are enabled. Adaptive themes follow the device’s color scheme and automatically switch themes. Allowing manual theme switching would interfere with this system, so we disable theme selection when adaptive themes are active.
+
+**Type-safe theme switching**: `UnistylesRuntime.setTheme()` provides TypeScript hints for all available theme names, making it impossible to set an invalid theme.
+
+Try playing with different settings to see how the app adapts to your choices.
+
+### Update navigation header colors
+
+As you probably noticed, navigation header colors are not updated when theme changes. Let’s fix that by updating `app/(tabs)/settings/_layout.tsx` file:
+
+app/(tabs)/settings/\_layout.tsx
+
+```tsx
+import { Stack } from 'expo-router'
+import React from 'react'
+import { useUnistyles } from 'react-native-unistyles'
+
+
+export default function SettingsLayout() {
+    const { theme } = useUnistyles()
+
+
+    return (
+        <Stack
+            screenOptions={{
+                headerTitleStyle: {
+                    color: theme.colors.typography
+                },
+                headerStyle: {
+                    backgroundColor: theme.colors.background
+                },
+                contentStyle: {
+                    backgroundColor: theme.colors.background
+                }
+            }}
+        >
+            <Stack.Screen
+                name="index"
+                options={{
+                    title: 'Settings',
+                    headerShown: false
+                }}
+            />
+            <Stack.Screen
+                name="settings-theme"
+                options={{
+                    title: 'Change theme',
+                    presentation: 'modal',
+                    headerShown: true
+                }}
+            />
+            <Stack.Screen
+                name="settings-accent"
+                options={{
+                    title: 'Change accent',
+                    presentation: 'modal',
+                    headerShown: true
+                }}
+            />
+        </Stack>
+    )
+}
+```
+
+That’s all for theme settings screen!
+
+### Create Button Component
+
+Now let’s learn something new. We will create an animated button component for the accent settings:
+
+components/Button.tsx
+
+```tsx
+import { Pressable } from 'react-native'
+import Animated from 'react-native-reanimated'
+import { StyleSheet, UnistylesVariants } from 'react-native-unistyles'
+import { ThemedText } from './ThemedText'
+
+
+interface ButtonProps extends UnistylesVariants<typeof style> {
+    label: string,
+    onPress(): void
+}
+
+
+export const Button: React.FunctionComponent<ButtonProps> = ({
+    label,
+    accent,
+    onPress
+}) => {
+    style.useVariants({
+        accent: accent
+    })
+
+
+    return (
+        <Pressable onPress={onPress}>
+            <Animated.View style={style.button}>
+                <ThemedText bold>
+                    {label}
+                </ThemedText>
+            </Animated.View>
+        </Pressable>
+    )
+}
+
+
+const style = StyleSheet.create(theme => ({
+    button: {
+        width: '100%',
+        padding: theme.gap(2),
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderRadius: theme.gap(1)
+    },
+    buttonColor: {
+        variants: {
+            accent: {
+                banana: {
+                    backgroundColor: theme.colors.accents.banana
+                },
+                pumpkin: {
+                    backgroundColor: theme.colors.accents.pumpkin
+                },
+                apple: {
+                    backgroundColor: theme.colors.accents.apple
+                },
+                grass: {
+                    backgroundColor: theme.colors.accents.grass
+                },
+                storm: {
+                    backgroundColor: theme.colors.accents.storm
+                },
+                default: {
+                    backgroundColor: theme.colors.accents.banana
+                }
+            }
+        }
+    }
+}))
+```
+
+You should be familiar with all the patterns used here: variants, `UnistylesVariants` type, and `useVariants` for dynamic styling. So no extra comment is needed. Let’s add few more lines of code to showcase `Reanimated` integration.
+
+components/Button.tsx
+
+```tsx
+import { Pressable } from 'react-native'
+import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated'
+import { StyleSheet, UnistylesVariants } from 'react-native-unistyles'
+ import { useAnimatedVariantColor } from 'react-native-unistyles/reanimated'
+import { ThemedText } from './ThemedText'
+
+
+interface ButtonProps extends UnistylesVariants<typeof style> {
+    label: string,
+    onPress(): void
+}
+
+
+export const Button: React.FunctionComponent<ButtonProps> = ({
+    label,
+    accent,
+    onPress
+}) => {
+    style.useVariants({
+        accent: accent
+    })
+
+
+    const color = useAnimatedVariantColor(style.buttonColor, 'backgroundColor')
+    const animatedStyle = useAnimatedStyle(() => ({
+        backgroundColor: withTiming(color.value, {
+            duration: 500
+        })
+    }))
+
+
+    return (
+        <Pressable onPress={onPress}>
+            <Animated.View style={style.button}>
+            <Animated.View style={[animatedStyle, style.button]}>
+                <ThemedText bold>
+                    {label}
+                </ThemedText>
+            </Animated.View>
+        </Pressable>
+    )
+}
+
+
+// no changes in styles
+```
+
+The `useAnimatedVariantColor` hook allows you to reuse Unistyles variants and easily animate them with Reanimated. You simply pass a style that uses variants and select which color property should be animated. TypeScript automatically hints all available color properties.
+
+The hook returns a `SharedValue` from Reanimated, so you’re free to use any animation logic you want. You’ll see this in action in the next section when we implement the accent settings screen.
+
+With just 5 lines of code, we connected Unistyles to Reanimated and animated the button’s background color based on the selected accent variant.
+
+Before moving on, there’s one crucial point: understanding how to merge styles created by Unistyles.
+
+In the `<Animated.View>` component, we used the syntax `[animatedStyle, style.button]` to merge styles. This approach is essential when working with Unistyles. The reason for this specific merging method is that each style managed by Unistyles contains a hidden `JSI NativeState`. This state, stored on the object as an invisible property accessible only via a `Symbol`, is vital for Unistyles’ internal operation. Using the spread operator or other object merging techniques will result in the loss of this state and unpredictable behavior.
+
+For a comprehensive explanation, please refer to our dedicated guide on [Merging styles](/v3/guides/merging-styles).
+
+### Build the Accent Settings Modal
+
+Let’s create the final modal screen for accent selection and animate the accent selection:
+
+app/settings/settings-accent.tsx
+
+```tsx
+import { Button } from '@/components/Button'
+import { ThemedText } from '@/components/ThemedText'
+import { router } from 'expo-router'
+import React, { useState } from 'react'
+import { Pressable, ScrollView, View } from 'react-native'
+import { StyleSheet, useUnistyles } from 'react-native-unistyles'
+
+
+export default function SettingsAccentScreen() {
+    const { theme } = useUnistyles()
+    const allAccents = theme.colors.accents
+    const [selectedAccent, setSelectedAccent] = useState('banana')
+
+
+    return (
+        <View style={styles.container}>
+            <ScrollView contentContainerStyle={styles.scrollView}>
+                <View style={styles.row}>
+                    {Object.entries(allAccents).map(([accentName, accentColor]) => (
+                        <Pressable
+                            key={accentName}
+                            style={styles.item}
+                            onPress={() => {
+                                setSelectedAccent(accentName as keyof typeof allAccents)
+                            }}
+                        >
+                            <View style={styles.box(accentColor, accentName === selectedAccent)}/>
+                            <ThemedText bold>
+                                {accentName}
+                            </ThemedText>
+                        </Pressable>
+                    ))}
+                </View>
+            </ScrollView>
+            <View style={styles.buttonContainer}>
+                <Button
+                    label="Save"
+                    accent={selectedAccent}
+                    onPress={() => {
+                        router.back()
+                    }}
+                />
+            </View>
+        </View>
+    )
+}
+
+
+const styles = StyleSheet.create((theme, rt) => ({
+    container: {
+        flex: 1
+    },
+    scrollView: {
+        flex: 1,
+        gap: theme.gap(2),
+        paddingTop: theme.gap(2),
+        paddingHorizontal: theme.gap(2)
+    },
+    box: (accentColor: string, isSelected: boolean) => ({
+        height: 40,
+        width: 40,
+        backgroundColor: accentColor,
+        borderRadius: 10,
+        borderWidth: isSelected ? 2 : 0,
+        borderColor: theme.colors.tint
+    }),
+    row: {
+        flexWrap: 'wrap',
+        flexDirection: 'row',
+        gap: theme.gap(2)
+    },
+    item: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: theme.gap(2),
+        paddingVertical: theme.gap(2),
+        width: '100%',
+        justifyContent: 'space-between',
+        borderBottomWidth: 1,
+        borderBottomColor: theme.colors.dimmed
+    },
+    buttonContainer: {
+        marginBottom: rt.insets.bottom,
+        paddingHorizontal: theme.gap(2)
+    }
+}))
+```
+
+This screen uses `useUnistyles` to subscribe to theme changes, allowing us to iterate over all available accent colors. Users can select different accents by tapping the colored boxes, and the selection updates the local state.
+
+The `Button` component animates beautifully thanks to the `useAnimatedVariantColor` hook, with a smooth 500ms transition between different accent colors.
+
+![ios app preview](/_astro/tutorial-7.QJN1tUOL.jpeg)
+
+Perfect! You now have fully functional modal screens that demonstrate the power of Unistyles’ theming system. Users can switch between system and manual theme modes, select different themes, and choose from various accent colors - all with smooth animations and immediate visual feedback.
+
+[ Previous](/v3/tutorial/settings-screen)
+
+[Part 5: Settings screen](/v3/tutorial/settings-screen)
+
+[Next ](/v3/tutorial/player-screens)
+
+[Part 7: Player screens](/v3/tutorial/player-screens)
+
+# Part 4: New screens
+
+> Learn how to build a cross-platform app from scratch with Unistyles 3.0, Expo, and Reanimated
+
+With the initial repository cleanup complete, we’re ready to build the screens for our app.
+
+Our application will feature three primary screens, with the Settings screen also containing two modals:
+
+* **PlaylistScreen**: The main screen to display a list of songs
+
+* **PlayerScreen**: A screen to display the currently playing song
+
+* **SettingsScreen**: A screen with options to customize the app
+
+  * **SettingsThemeScreen**: A modal for changing the app’s theme
+  * **SettingsAccentScreen**: A modal for changing the app’s accent color
+
+### PlaylistScreen
+
+First, let’s repurpose the existing `app/(tabs)/index.tsx` file to become our `PlaylistScreen`. This involves changing the component name from `HomeScreen` to `PlaylistScreen` and wrapping the content in a `ScrollView`:
+
+app/(tabs)/index.tsx
+
+```tsx
+ import { ScrollView } from 'react-native';
+import { ThemedText } from '@/components/ThemedText'
+import { ThemedView } from '@/components/ThemedView'
+import { StyleSheet } from 'react-native-unistyles'
+
+
+ export default function PlaylistScreen() {
+ export default function HomeScreen() {
+  return (
+      <ScrollView contentContainerStyle={styles.container}>
+      <ThemedView style={styles.container}>
+        <ThemedText type="title">
+          Home Screen
+        </ThemedText>
+      </ThemedView>
+      </ScrollView>
+  );
+}
+
+
+const styles = StyleSheet.create(theme => ({
+  container: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  }
+}));
+```
+
+Next, let’s update the title and adjust the container styles. We’ll remove the centering styles for now, as we want our content to start from the top.
+
+app/(tabs)/index.tsx
+
+```tsx
+import { ThemedText } from '@/components/ThemedText'
+import { ScrollView } from 'react-native'
+import { StyleSheet } from 'react-native-unistyles'
+
+
+export default function PlaylistScreen() {
+  return (
+      <ScrollView contentContainerStyle={styles.container}>
+        <ThemedText type="title">
+          Home Screen
+          Playlist
+        </ThemedText>
+      </ScrollView>
+  );
+}
+
+
+const styles = StyleSheet.create(theme => ({
+  container: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+}));
+```
+
+Oops! We have a problem. Our title has no padding, and the phone’s notch is overlapping it.
+
+![iOS app preview showing title overlapped by notch](/_astro/tutorial-3.B8qsn5Xv.jpeg)
+
+Unistyles to the rescue! We don’t need to rely on any other package or hook to handle this. Remember the `rt` object from `StyleSheet.create`? It contains useful device metadata, including `rt.insets`.
+
+Safe area insets define the portion of the view that is unobscured by system elements like notches or the home indicator. With Unistyles, you have direct access to these values:
+
+* top
+* bottom
+* left
+* right
+* ime (an animated inset that changes when the keyboard is shown)
+
+Let’s use `rt.insets.top` to add a top margin to our container, pushing the content below the notch:
+
+app/(tabs)/index.tsx
+
+```tsx
+ const styles = StyleSheet.create((theme, rt) => ({
+ const styles = StyleSheet.create(theme => ({
+  container: {
+    flex: 1,
+    marginTop: rt.insets.top,
+  },
+}));
+```
+
+To give our content some breathing room, let’s also add horizontal padding using our theme’s spacing system:
+
+app/(tabs)/index.tsx
+
+```tsx
+ const styles = StyleSheet.create((theme, rt) => ({
+  container: {
+    flex: 1,
+    marginTop: rt.insets.top,
+    paddingHorizontal: theme.gap(2),
+  },
+}));
+```
+
+### PlayerScreen
+
+For the `PlayerScreen`, we’ll start by creating a new file structure and then use a modified version of our `PlaylistScreen` code.
+
+Expo Router uses a file-based routing system. To create a dynamic route for our player, create the following folder and file:
+
+* app/
+
+  * (tabs)/
+
+    * player/
+
+      * \[songId].tsx
+
+    * \_layout.tsx
+
+    * index.tsx
+
+  * \_layout.tsx
+
+  * +not-found.tsx
+
+Now, populate `app/(tabs)/player/[songId].tsx` with the following code. It’s very similar to `PlaylistScreen`, but with the title changed to “Player”.
+
+app/(tabs)/player/\[songId].tsx
+
+```tsx
+import { ThemedText } from '@/components/ThemedText'
+import { ScrollView } from 'react-native'
+import { StyleSheet } from 'react-native-unistyles'
+
+
+export default function PlayerScreen() {
+    return (
+        <ScrollView contentContainerStyle={styles.container}>
+            <ThemedText type="title">
+                Player
+            </ThemedText>
+        </ScrollView>
+    );
+}
+
+
+const styles = StyleSheet.create((theme, rt) => ({
+    container: {
+        flex: 1,
+        marginTop: rt.insets.top,
+        paddingHorizontal: theme.gap(2)
+    },
+}));
+```
+
+Note
+
+Don’t worry about the TabBar icons and routing just yet - we’ll fix that soon!
+
+### SettingsScreen
+
+The `SettingsScreen` is our final main screen. It will serve as a hub for navigating to the modal screens where users can change the app’s theme and accent color.
+
+First, set up the required files and folders:
+
+* app/
+
+  * settings/
+
+    * \_layout.tsx
+    * index.tsx
+    * settings-theme.tsx
+    * settings-accent.tsx
+
+  * (tabs)/
+
+    * player/
+
+      * \[songId].tsx
+
+    * \_layout.tsx
+
+    * index.tsx
+
+  * \_layout.tsx
+
+  * +not-found.tsx
+
+This is a standard Expo Router stack layout. Let’s add the code for each of these new files.
+
+#### 1. Configure the Stack Navigator (\_layout.tsx)
+
+This file configures the stack navigator for the settings section, defining the main screen and the two modal screens.
+
+app/settings/\_layout.tsx
+
+```tsx
+import { Stack } from 'expo-router'
+import React from 'react'
+import { useUnistyles } from 'react-native-unistyles'
+
+
+export default function SettingsLayout() {
+    const { theme } = useUnistyles()
+
+
+    return (
+        <Stack
+            screenOptions={{
+                contentStyle: {
+                    backgroundColor: theme.colors.background
+                }
+            }}
+        >
+            <Stack.Screen
+                name="index"
+                options={{
+                    title: 'Settings',
+                    headerShown: false
+                }}
+            />
+            <Stack.Screen
+                name="settings-theme"
+                options={{
+                    title: 'Change theme',
+                    presentation: 'modal',
+                    headerShown: true
+                }}
+            />
+            <Stack.Screen
+                name="settings-accent"
+                options={{
+                    title: 'Change accent',
+                    presentation: 'modal',
+                    headerShown: true
+                }}
+            />
+        </Stack>
+    )
+}
+```
+
+#### 2. Create the Main Settings Screen (index.tsx)
+
+This is the main `SettingsScreen`. The code is almost identical to our other screens for now.
+
+app/settings/index.tsx
+
+```tsx
+import { ThemedText } from '@/components/ThemedText'
+import { ScrollView } from 'react-native'
+import { StyleSheet } from 'react-native-unistyles'
+
+
+export default function SettingsScreen() {
+    return (
+        <ScrollView contentContainerStyle={styles.container}>
+            <ThemedText type="title">
+                Settings
+            </ThemedText>
+        </ScrollView>
+    );
+}
+
+
+const styles = StyleSheet.create((theme, rt) => ({
+    container: {
+        flex: 1,
+        marginTop: rt.insets.top,
+        paddingHorizontal: theme.gap(2)
+    },
+}));
+```
+
+#### 3. Create the Modal Screens
+
+The modal screens for changing the theme and accent color are also simple placeholders. Notice the component names and titles are updated for each.
+
+app/settings/settings-theme.tsx
+
+```tsx
+import { ThemedText } from '@/components/ThemedText'
+import { ScrollView } from 'react-native'
+import { StyleSheet } from 'react-native-unistyles'
+
+
+export default function SettingsThemeScreen() {
+    return (
+        <ScrollView contentContainerStyle={styles.container}>
+            <ThemedText type="title">
+                Change theme
+            </ThemedText>
+        </ScrollView>
+    );
+}
+
+
+const styles = StyleSheet.create((theme, rt) => ({
+    container: {
+        flex: 1,
+        marginTop: rt.insets.top,
+        paddingHorizontal: theme.gap(2)
+    },
+}));
+```
+
+app/settings/settings-accent.tsx
+
+```tsx
+import { ThemedText } from '@/components/ThemedText'
+import { ScrollView } from 'react-native'
+import { StyleSheet } from 'react-native-unistyles'
+
+
+export default function SettingsAccentScreen() {
+    return (
+        <ScrollView contentContainerStyle={styles.container}>
+            <ThemedText type="title">
+                Change accent
+            </ThemedText>
+        </ScrollView>
+    );
+}
+
+
+const styles = StyleSheet.create((theme, rt) => ({
+    container: {
+        flex: 1,
+        marginTop: rt.insets.top,
+        paddingHorizontal: theme.gap(2)
+    },
+}));
+```
+
+You should now be able to navigate to all three screens, each with a different title but the same basic layout.
+
+### TabBar
+
+Currently, `TabBar` doesn’t reflect our new screen structure. Let’s update `app/(tabs)/_layout.tsx` to correctly register our routes and assign new icons.
+
+app/(tabs)/\_layout.tsx
+
+```tsx
+import { IconSymbol } from '@/components/ui/IconSymbol'
+import { Tabs } from 'expo-router'
+import React from 'react'
+import { useUnistyles } from 'react-native-unistyles'
+
+
+export default function TabLayout() {
+  const { theme } = useUnistyles()
+
+
+  return (
+    <Tabs
+      screenOptions={{
+        tabBarInactiveTintColor: theme.colors.tint,
+        tabBarActiveTintColor: theme.colors.activeTint,
+        sceneStyle: {
+          backgroundColor: theme.colors.background
+        },
+        tabBarStyle: {
+          backgroundColor: theme.colors.foreground
+        },
+        headerShown: false
+      }}>
+      <Tabs.Screen
+        name="index"
+        options={{
+          title: 'Home',
+          title: 'Playlist',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          tabBarIcon: ({ color }) => <IconSymbol size={24} name="music.house" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="player/[songId]"
+        options={{
+          title: 'Player',
+          tabBarIcon: ({ color }) => <IconSymbol size={24} name="play.circle" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="explore"
+        name="settings"
+        options={{
+          title: 'Explore',
+          title: 'Settings',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          tabBarIcon: ({ color }) => <IconSymbol size={24} name="gear.circle" color={color} />,
+        }}
+      />
+    </Tabs>
+  );
+}
+```
+
+Congratulations! You’ve successfully set up the basic screen structure and navigation for the app. The boilerplate is out of the way, and we’re ready to start bringing the designs to life in the next part!
+
+![iOS app preview showing playlist screen](/_astro/tutorial-4.CB-XZtXx.jpeg)
+
+[ Previous](/v3/tutorial/cleanup-components)
+
+[Part 3: Cleanup components](/v3/tutorial/cleanup-components)
+
+[Next ](/v3/tutorial/settings-screen)
+
+[Part 5: Settings screen](/v3/tutorial/settings-screen)
+
+# Part 7: Player screens
+
+> Learn how to build a cross-platform app from scratch with Unistyles 3.0, Expo, and Reanimated
+
+Now that we have our settings system in place, it’s time to build the heart of our music app - the playlist and player screens. We’ll create a complete music browsing experience with proper TypeScript types, mock data, and dynamic navigation between screens.
+
+By the end of this part, you’ll have a functional music app that displays a list of songs and allows users to navigate to a detailed player view for each track.
+
+### Setting Up Types and Mock Data
+
+Before we can build our screens, we need to establish the data structure for our songs. This step is crucial for maintaining type safety throughout our application and ensuring that our components receive the expected data format.
+
+Let’s start by creating the fundamental types that will power our music app.
+
+#### Create Song Types
+
+First, we’ll define what a song looks like in our application. Each song needs essential information like title, genre, cover image, and duration.
+
+Create `types/song.ts`:
+
+types/song.ts
+
+```tsx
+export type Song = {
+    id: number,
+    title: string,
+    genre: string,
+    imageUrl: string,
+    duration: string
+}
+
+
+export type Playlist = Array<Song>
+```
+
+Now let’s create an index file to make imports cleaner throughout our app.
+
+Create `types/index.ts`:
+
+types/index.ts
+
+```tsx
+export * from './song'
+```
+
+#### Create Mock Playlist Data
+
+For this tutorial, we’ll use a curated list of 20 fictional songs with diverse genres to showcase our app’s capabilities. In a real application, this data would come from an API or music service.
+
+Create `mocks/playlist.ts`:
+
+mocks/playlist.ts
+
+```tsx
+import { Playlist } from '@/types'
+
+
+export const playlist: Playlist = [
+  {
+    "id": 1,
+    "title": "Midnight Bloom",
+    "genre": "Dream Pop",
+    "imageUrl": "https://picsum.photos/200/300",
+    "duration": "03:42"
+  },
+  {
+    "id": 2,
+    "title": "Neon Skyline Drive",
+    "genre": "Synthwave",
+    "imageUrl": "https://picsum.photos/200/300",
+    "duration": "04:15"
+  },
+  {
+    "id": 3,
+    "title": "Forgotten Lullaby",
+    "genre": "Indie Folk",
+    "imageUrl": "https://picsum.photos/200/300",
+    "duration": "02:58"
+  },
+  {
+    "id": 4,
+    "title": "Electric Serenade",
+    "genre": "Electropop",
+    "imageUrl": "https://picsum.photos/200/300",
+    "duration": "03:21"
+  },
+  {
+    "id": 5,
+    "title": "Crimson Tide Rhapsody",
+    "genre": "Orchestral Rock",
+    "imageUrl": "https://picsum.photos/200/300",
+    "duration": "04:55"
+  },
+  {
+    "id": 6,
+    "title": "Static Echo Chamber",
+    "genre": "Noise Rock",
+    "imageUrl": "https://picsum.photos/200/300",
+    "duration": "02:30"
+  },
+  {
+    "id": 7,
+    "title": "Whispers in the Algorithm",
+    "genre": "Glitch Hop",
+    "imageUrl": "https://picsum.photos/200/300",
+    "duration": "03:50"
+  },
+  {
+    "id": 8,
+    "title": "Galactic Ballroom Blitz",
+    "genre": "Space Disco",
+    "imageUrl": "https://picsum.photos/200/300",
+    "duration": "04:38"
+  },
+  {
+    "id": 9,
+    "title": "Shadows of Yesterday",
+    "genre": "Gothic Rock",
+    "imageUrl": "https://picsum.photos/200/300",
+    "duration": "02:45"
+  },
+  {
+    "id": 10,
+    "title": "Renegade Heartbeat",
+    "genre": "Punk Rock",
+    "imageUrl": "https://picsum.photos/200/300",
+    "duration": "02:45"
+  },
+  {
+    "id": 11,
+    "title": "Emerald City Blues",
+    "genre": "Jazz Fusion",
+    "imageUrl": "https://picsum.photos/200/300",
+    "duration": "04:05"
+  },
+  {
+    "id": 12,
+    "title": "Lunar Labyrinth",
+    "genre": "Ambient Techno",
+    "imageUrl": "https://picsum.photos/200/300",
+    "duration": "05:00"
+  },
+  {
+    "id": 13,
+    "title": "Stone Cold Symphony",
+    "genre": "Hard Rock",
+    "imageUrl": "https://picsum.photos/200/300",
+    "duration": "03:33"
+  },
+  {
+    "id": 14,
+    "title": "Celestial Caravan",
+    "genre": "World Music",
+    "imageUrl": "https://picsum.photos/200/300",
+    "duration": "04:22"
+  },
+  {
+    "id": 15,
+    "title": "Velvet Revolution",
+    "genre": "Soul",
+    "imageUrl": "https://picsum.photos/200/300",
+    "duration": "02:17"
+  },
+  {
+    "id": 16,
+    "title": "Binary Sunset Dreams",
+    "genre": "Chillwave",
+    "imageUrl": "https://picsum.photos/200/300",
+    "duration": "03:08"
+  },
+  {
+    "id": 17,
+    "title": "Rusted Gears and Broken Hearts",
+    "genre": "Industrial",
+    "imageUrl": "https://picsum.photos/200/300",
+    "duration": "04:48"
+  },
+  {
+    "id": 18,
+    "title": "Sapphire Rain Dance",
+    "genre": "Trance",
+    "imageUrl": "https://picsum.photos/200/300",
+    "duration": "02:51"
+  },
+  {
+    "id": 19,
+    "title": "Concrete Jungle Ballad",
+    "genre": "Hip Hop",
+    "imageUrl": "https://picsum.photos/200/300",
+    "duration": "03:19"
+  },
+  {
+    "id": 20,
+    "title": "Infinite Horizons Calling",
+    "genre": "Progressive Metal",
+    "imageUrl": "https://picsum.photos/200/300",
+    "duration": "04:30"
+  }
+]
+```
+
+We’re using placeholder images from Picsum Photos, which provides random images perfect for mockups. Each song has a unique ID that we’ll use for navigation, and the variety of genres will help showcase how our components handle different types of content.
+
+Create the barrel export for mocks:
+
+mocks/index.ts
+
+```tsx
+export * from './playlist'
+```
+
+This gives us clean access to our mock data throughout the application with simple imports.
+
+### Building the Playlist Screen
+
+Now that we have our data structure in place, let’s transform the placeholder home screen into a proper playlist that displays our collection of songs. The playlist will serve as the main entry point where users can browse and select tracks.
+
+Currently, our home screen at `app/(tabs)/index.tsx` just displays a simple title. We need to replace this with a scrollable list of songs that users can interact with.
+
+Let’s update the playlist screen to display our songs:
+
+app/(tabs)/index.tsx
+
+```tsx
+ import { SongTile } from '@/components/SongTile'
+import { ThemedText } from '@/components/ThemedText'
+ import { playlist } from '@/mocks'
+ import { router } from 'expo-router'
+ import { ScrollView, View } from 'react-native'
+ import { ScrollView } from 'react-native'
+import { StyleSheet } from 'react-native-unistyles'
+
+
+export default function PlaylistScreen() {
+  return (
+     <View style={styles.container}>
+         <ScrollView contentContainerStyle={styles.contentContainer}>
+           <View style={styles.header}>
+             <ThemedText type="title">
+               Playlist
+             </ThemedText>
+           </View>
+           {playlist.map(song => (
+             <SongTile
+               song={song}
+               onPress={() => router.push(`/(tabs)/player/${song.id}`)}
+               key={song.id}
+             />
+           ))}
+       </ScrollView>
+     </View>
+     <ScrollView contentContainerStyle={styles.container}>
+       <ThemedText type="title">
+         Playlist
+       </ThemedText>
+     </ScrollView>
+  );
+}
+
+
+ const styles = StyleSheet.create((theme, rt) => ({
+   container: {
+     marginTop: rt.insets.top + theme.gap(3),
+     backgroundColor: theme.colors.background
+   },
+   contentContainer: {
+     gap: theme.gap(3),
+     paddingHorizontal: theme.gap(2)
+   },
+   header: {
+     paddingBottom: theme.gap(2)
+   }
+ }));
+ const styles = StyleSheet.create((theme, rt) => ({
+   container: {
+     flex: 1,
+     marginTop: rt.insets.top,
+     paddingHorizontal: theme.gap(2)
+   },
+ }));
+```
+
+Here’s what we’ve changed and why:
+
+**Layout structure**: We now use a `View` container with a `ScrollView` inside, rather than just a `ScrollView`. This gives us better control over the layout and background colors.
+
+**Data integration**: We’re mapping over our playlist array to create a `SongTile` for each song. This approach is scalable and will automatically adapt if we add or remove songs from our playlist.
+
+**Navigation logic**: Each `SongTile` receives an `onPress` callback that navigates to the player screen with the specific song ID. We’re using Expo Router’s dynamic routing with the pattern `/(tabs)/player/${song.id}`.
+
+**Styling considerations**: Notice that we don’t need to wrap the `ScrollView` with `withUnistyles` this time. Unlike in the settings screen, we’re not using any dynamic styles in the `contentContainer` style that need to react to theme changes - just static spacing and padding values.
+
+The key difference is that we’re now structuring our app to handle a list of data items, each with its own navigation destination.
+
+### Creating the SongTile Component
+
+The `SongTile` component will be responsible for displaying individual song information in an attractive, tappable format. This component needs to show the song’s cover art, title, genre, and duration in a clean layout.
+
+Before our playlist screen can work, we need to create the `SongTile` component that will display each song:
+
+components/SongTile.tsx
+
+```tsx
+import { Song } from '@/types'
+import { Image, Pressable, View } from 'react-native'
+import { StyleSheet } from 'react-native-unistyles'
+import { ThemedText } from './ThemedText'
+
+
+type SongProps = {
+    song: Song,
+    onPress(): void
+}
+
+
+export const SongTile: React.FunctionComponent<SongProps> = ({ song, onPress }) => {
+    return (
+        <Pressable style={style.container} onPress={onPress}>
+            <Image
+                source={{ uri: song.imageUrl }}
+                style={style.image}
+            />
+            <View style={style.textContainer}>
+                <ThemedText bold>
+                    {song.title}
+                </ThemedText>
+                <ThemedText dimmed>
+                    {song.genre}
+                </ThemedText>
+            </View>
+            <ThemedText>
+                {song.duration}
+            </ThemedText>
+        </Pressable>
+    )
+}
+
+
+const style = StyleSheet.create(theme => ({
+    container: {
+        flexDirection: 'row',
+        gap: theme.gap(2),
+        alignItems: 'center'
+    },
+    image: {
+        width: 80,
+        height: 80,
+        borderRadius: theme.gap(2)
+    },
+    textContainer: {
+        flex: 1
+    }
+}))
+```
+
+This component follows the patterns we’ve established throughout the tutorial and you should understand it fully.
+
+![iOS app preview showing playlist screen](/_astro/tutorial-8.BcUZ_tQ3.jpg)
+
+We now have a fully functional playlist screen that displays our 20 mock songs in an attractive list format. Each song shows its cover art, title, genre, and duration. Tapping any song will navigate to the player screen with that specific song’s ID. Screen properly handles safe areas and maintains our app’s theme consistency.
+
+### Building the Player Screen
+
+The player screen needs to handle dynamic routing, where the song ID comes from the URL parameter. This screen will display detailed information about the selected song and provide playback controls.
+
+Let’s update our player screen at `app/(tabs)/player/[songId].tsx` to handle the dynamic song data:
+
+app/(tabs)/player/\[songId].tsx
+
+```tsx
+ import { Button } from '@/components/Button'
+ import { PlayerControls } from '@/components/PlayerControls'
+import { ThemedText } from '@/components/ThemedText'
+ import { ThemedView } from '@/components/ThemedView'
+ import { playlist } from '@/mocks'
+ import { router, useLocalSearchParams } from 'expo-router'
+ import { Image, ScrollView } from 'react-native'
+ import { ScrollView } from 'react-native'
+import { StyleSheet } from 'react-native-unistyles'
+
+
+export default function PlayerScreen() {
+   const { songId } = useLocalSearchParams()
+
+
+   const song = playlist.find(song => song.id === Number(songId))
+
+
+   if (!songId || !song) {
+     return (
+       <ThemedView style={[styles.centerContainer, styles.container]}>
+         <ThemedText type="title">
+           Looking for inspiration?
+         </ThemedText>
+         <ThemedText>
+           Pick a song from the playlist
+         </ThemedText>
+         <Button
+           label="Pick a song"
+           accent="banana"
+           onPress={() => router.replace('/')}
+         />
+       </ThemedView>
+     )
+   }
+
+
+  return (
+     <ScrollView contentContainerStyle={styles.container}>
+       <Image
+         source={{ uri: song.imageUrl }}
+         style={styles.image}
+       />
+       <ThemedText type="title">
+         {song.title}
+       </ThemedText>
+       <ThemedText dimmed type="subtitle">
+         {song.genre}
+       </ThemedText>
+       <ThemedText>
+         {song.duration}
+       </ThemedText>
+       <PlayerControls />
+     </ScrollView>
+     <ScrollView contentContainerStyle={styles.container}>
+       <ThemedText type="title">
+         Player
+       </ThemedText>
+     </ScrollView>
+  );
+}
+
+
+ const styles = StyleSheet.create((theme, rt) => ({
+   centerContainer: {
+     flex: 1,
+     justifyContent: 'center',
+     alignItems: 'center'
+   },
+   container: {
+     flex: 1,
+     gap: theme.gap(2),
+     alignItems: 'center',
+     marginTop: rt.insets.top + theme.gap(3),
+   },
+   image: {
+     width: 200,
+     height: 200,
+     borderRadius: theme.gap(2)
+   }
+ }));
+ const styles = StyleSheet.create((theme, rt) => ({
+   container: {
+     flex: 1,
+     marginTop: rt.insets.top,
+     paddingHorizontal: theme.gap(2)
+   },
+ }));
+```
+
+We use `useLocalSearchParams()` to extract the `songId` from the URL. This allows users to navigate directly to any song or bookmark specific tracks.
+
+Notice the `Button` component uses the hardcoded “banana” accent. In the next part of the tutorial, we’ll make this dynamic based on the user’s accent preferences from the settings screen.
+
+Our screen still needs one more component to be complete - the `PlayerControls`.
+
+### Creating the PlayerControls Component
+
+The player controls provide the interface for music playback. While they won’t actually play music in this tutorial, they give users the familiar media controls they expect in a music app.
+
+Let’s create the final component for our player interface:
+
+components/PlayerControls.tsx
+
+```tsx
+import { IconSymbol } from '@/components/ui/IconSymbol'
+import { Pressable, View } from 'react-native'
+import { StyleSheet } from 'react-native-unistyles'
+import { useUnistyles } from 'react-native-unistyles'
+
+
+export const PlayerControls = () => {
+    const { theme } = useUnistyles()
+    const accent = theme.colors.accents['banana']
+
+
+    return (
+        <View style={styles.actions}>
+            <Pressable>
+                <IconSymbol name="backward.end.fill" size={40} color={accent}/>
+            </Pressable>
+            <Pressable>
+                <IconSymbol name="backward.fill" size={50} color={accent}/>
+            </Pressable>
+            <Pressable>
+                <IconSymbol name="play.circle.fill" size={100} color={accent}/>
+            </Pressable>
+            <Pressable>
+                <IconSymbol name="forward.fill" size={50} color={accent}/>
+            </Pressable>
+            <Pressable>
+                <IconSymbol name="forward.end.fill" size={40} color={accent}/>
+            </Pressable>
+        </View>
+    )
+}
+
+
+const styles = StyleSheet.create(theme => ({
+    actions: {
+        marginTop: theme.gap(2),
+        flexDirection: 'row',
+        gap: theme.gap(2),
+        alignItems: 'center'
+    }
+}))
+```
+
+Like the Button component, we’re currently using the hardcoded “banana” accent color.
+
+![iOS app preview showing player screen](/_astro/tutorial-9.EDWNowzr.jpg)
+
+Perfect! You now have a complete music player interface that demonstrates many of Unistyles’ capabilities. Users can browse a playlist of songs, tap to navigate to individual tracks, and see a detailed player interface with media controls. The app maintains consistent theming throughout and handles navigation gracefully.
+
+The hardcoded “banana” accent colors in both the `Button` and `PlayerControls` components are intentional placeholders. In the final part of our tutorial, we’ll connect these to the user’s accent preferences from the settings screen, making the entire app truly dynamic and personalized.
+
+[ Previous](/v3/tutorial/modals)
+
+[Part 6: Modals](/v3/tutorial/modals)
+
+[Next ](/v3/tutorial/cross-platform)
+
+[Part 8: Cross-platform](/v3/tutorial/cross-platform)
+
+# Part 5: Settings screen
+
+> Learn how to build a cross-platform app from scratch with Unistyles 3.0, Expo, and Reanimated
+
+Time to bring our settings screen to life! We’ll create a beautiful settings interface that showcases how Unistyles integrates seamlessly with React Native’s `Pressable` component and explore the difference between `UnistylesRuntime` and the `rt` object.
+
+Our settings screen will feature interactive tiles that users can tap to modify the app’s appearance.
+
+### Create the SettingTile Component
+
+Let’s start by creating a reusable `SettingTile` component. This component will demonstrate one of Unistyles’ coolest features: zero-config integration with `Pressable` and `PressableStateCallbackType`.
+
+Create a new file `components/SettingTile.tsx`:
+
+components/SettingTile.tsx
+
+```tsx
+import { Pressable, PressableStateCallbackType, View } from 'react-native'
+import { StyleSheet } from 'react-native-unistyles'
+import { ThemedText } from './ThemedText'
+
+
+type SettingTileProps = {
+    settingName: string,
+    selectedValue: string,
+    description: string,
+    onPress(): void
+}
+
+
+export const SettingTile: React.FunctionComponent<SettingTileProps> = ({
+    settingName,
+    selectedValue,
+    description,
+    onPress
+}) => {
+    return (
+        <Pressable
+            style={styles.container}
+            onPress={onPress}
+        >
+            <View>
+                <ThemedText bold>
+                    {settingName}
+                </ThemedText>
+                <ThemedText dimmed>
+                    {description}
+                </ThemedText>
+            </View>
+            <ThemedText>
+                {selectedValue}
+            </ThemedText>
+        </Pressable>
+    )
+}
+
+
+const styles = StyleSheet.create({
+    container: (state: PressableStateCallbackType) => ({
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        opacity: state.pressed ? 0.75 : 1,
+    })
+})
+```
+
+This is where Unistyles really shines! Notice how we pass the `PressableStateCallbackType` directly to our style function. **No extra configuration needed** - Unistyles automatically recognizes that this style depends on the pressable state and handles all the complexity for you.
+
+When you press the tile, the opacity changes from `1` to `0.75`, giving users immediate visual feedback.
+
+### Enhance ThemedText with Variants
+
+You might have noticed we’re using `bold` and `dimmed` props on `ThemedText` that don’t exist yet. Let’s add them using Unistyles variants.
+
+Update your `ThemedText` component:
+
+components/ThemedText.tsx
+
+```tsx
+import { Text, type TextProps } from 'react-native'
+import { StyleSheet, type UnistylesVariants } from 'react-native-unistyles'
+
+
+export type ThemedTextProps = TextProps & UnistylesVariants<typeof styles>
+
+
+export function ThemedText({
+  style,
+  type,
+  bold,
+  dimmed,
+  ...rest
+}: ThemedTextProps) {
+  styles.useVariants({
+    type,
+    bold,
+    dimmed
+  })
+
+
+  return (
+    <Text
+      style={[
+        styles.textColor,
+        styles.textType,
+        style,
+      ]}
+      {...rest}
+    />
+  );
+}
+
+
+const styles = StyleSheet.create(theme => ({
+  textColor: {
+    color: theme.colors.typography
+  },
+  textType: {
+    variants: {
+      type: {
+        default: {
+          fontSize: 16,
+          lineHeight: 24,
+        },
+        title: {
+          fontSize: 32,
+          fontWeight: 'bold',
+          lineHeight: 32,
+        },
+        subtitle: {
+          fontSize: 20
+        },
+        link: {
+          lineHeight: 30,
+          fontSize: 16,
+          color: '#0a7ea4',
+        },
+      },
+      bold: {
+        true: {
+          fontWeight: 'bold',
+        }
+      },
+      dimmed: {
+        true: {
+          color: theme.colors.tint
+        }
+      }
+    }
+  }
+}));
+```
+
+**Boolean variants** are incredibly powerful. Unityles supports variants with boolean values like `true` and `false` that can be easily mapped from props.
+
+This pattern makes your components more readable and eliminates the need for multiple style objects or conditional logic in your JSX.
+
+### Build the Settings Interface
+
+Now let’s implement the actual settings screen with our new `SettingTile` component.
+
+Update your `app/settings/index.tsx`:
+
+app/settings/index.tsx
+
+```tsx
+ import { SettingTile } from '@/components/SettingTile'
+import { ThemedText } from '@/components/ThemedText'
+ import { ScrollView, View } from 'react-native'
+ import { StyleSheet, UnistylesRuntime } from 'react-native-unistyles'
+ import { ScrollView } from 'react-native'
+ import { StyleSheet } from 'react-native-unistyles'
+
+
+export default function SettingsScreen() {
+   const systemTheme = UnistylesRuntime.hasAdaptiveThemes
+
+
+    return (
+       <ScrollView contentContainerStyle={styles.container}>
+       <ScrollView contentContainerStyle={styles.scrollView}>
+            <ThemedText type="title">
+               Settings
+               Appearance
+            </ThemedText>
+           <View style={styles.settingsContainer}>
+               <SettingTile
+                   settingName="Theme"
+                   selectedValue="Light"
+                   description={systemTheme ? 'System' : 'User'}
+                   onPress={() => {}}
+               />
+               <SettingTile
+                   settingName="App accent"
+                   selectedValue="Default"
+                   description="Primary app color"
+                   onPress={() => {}}
+               />
+           </View>
+        </ScrollView>
+    );
+}
+
+
+ const styles = StyleSheet.create((theme, rt) => ({
+     scrollView: {
+         marginTop: rt.insets.top + theme.gap(3),
+         backgroundColor: theme.colors.background,
+         paddingHorizontal: theme.gap(2)
+     },
+     settingsContainer: {
+         marginTop: theme.gap(4),
+         gap: theme.gap(4)
+     },
+ }));
+ const styles = StyleSheet.create((theme, rt) => ({
+     container: {
+         flex: 1,
+         marginTop: rt.insets.top,
+         paddingHorizontal: theme.gap(2)
+     },
+ }));
+```
+
+### UnistylesRuntime vs rt Object
+
+Here’s where things get interesting. Notice we’re using `UnistylesRuntime.hasAdaptiveThemes` instead of accessing it through `rt`.
+
+**What’s the difference?**
+
+* **`rt` (mini runtime)**: is only available inside `StyleSheet.create()` function or `useUnistyles` hook. It contains device metadata like insets, screen dimensions, and color scheme that are relevant for styling
+
+* **`UnistylesRuntime`**: A global object accessible **anywhere** in your app, not just in stylesheets or components. It contains all the same information as `rt` plus additional methods (setters)
+
+The key difference is that `UnistylesRuntime` is **not a hook** - it won’t cause your component to re-render when values change. This is by design for performance reasons.
+
+If you need your component to re-render when runtime values change, you should use the `useUnistyles` hook instead:
+
+```tsx
+// This will not re-render when runtime changes
+const isSystemTheme = UnistylesRuntime.hasAdaptiveThemes
+
+
+// This will re-render when runtime changes
+const { rt } = useUnistyles()
+```
+
+Note
+
+Learn more about `UnistylesRuntime` in the [dedicated guide](/v3/references/unistyles-runtime).
+
+### ScrollView Background Issue
+
+Try switching between light and dark themes in your app. You’ll notice something odd - the `ScrollView` background color doesn’t update! This is because `contentContainerStyle` is not a regular style prop that Unistyles can automatically track.
+
+For such cases we created `withUnistyles` higher-order component (HOC) that allows you to wrap any component and automatically re-render it, depending on it’s dependencies.
+
+Note
+
+For views that either don’t use the `style` prop or aren’t React Native components, you can use the `withUnistyles` HOC. Check out the [withUnistyles guide](/v3/references/with-unistyles) for more details on when and how to use it.
+
+In order to update background color of `ScrollView`, we need to wrap it with `withUnistyles`:
+
+app/settings/index.tsx
+
+```tsx
+import { SettingTile } from '@/components/SettingTile'
+import { ThemedText } from '@/components/ThemedText'
+import { ScrollView, View } from 'react-native'
+ import { StyleSheet, UnistylesRuntime } from 'react-native-unistyles'
+ import { StyleSheet, UnistylesRuntime, withUnistyles } from 'react-native-unistyles'
+
+
+ const StyledScrollView = withUnistyles(ScrollView)
+
+
+export default function SettingsScreen() {
+    const systemTheme = UnistylesRuntime.hasAdaptiveThemes
+
+
+    return (
+        <ScrollView contentContainerStyle={styles.scrollView}>
+        <StyledScrollView contentContainerStyle={styles.scrollView}>
+            <ThemedText type="title">
+                Appearance
+            </ThemedText>
+            <View style={styles.settingsContainer}>
+                <SettingTile
+                    settingName="Theme"
+                    selectedValue="Light"
+                    description={systemTheme ? 'System' : 'User'}
+                    onPress={() => {}}
+                />
+                <SettingTile
+                    settingName="App accent"
+                    selectedValue="Default"
+                    description="Primary app color"
+                    onPress={() => {}}
+                />
+            </View>
+        </ScrollView>
+        </StyledScrollView>
+    );
+}
+
+
+const styles = StyleSheet.create((theme, rt) => ({
+    scrollView: {
+        marginTop: rt.insets.top + theme.gap(3),
+        backgroundColor: theme.colors.background,
+        paddingHorizontal: theme.gap(2)
+    },
+    settingsContainer: {
+        marginTop: theme.gap(4),
+        gap: theme.gap(4)
+    },
+}));
+```
+
+That’s it! No additional mappings are required in `withUnistyles` as `contentContainerStyle` is handled automatically.
+
+Remember these key points about `withUnistyles`:
+
+* It intelligently re-renders your component only when its style dependencies change, optimizing performance
+* It accepts a mapping function as a second argument, allowing you to map `theme` or `rt` values to the component’s props
+
+### Add Modal Navigation
+
+Finally, let’s wire up the `onPress` callbacks to navigate to our modal screens:
+
+app/settings/index.tsx
+
+```tsx
+import { SettingTile } from '@/components/SettingTile'
+import { ThemedText } from '@/components/ThemedText'
+import { ScrollView, View } from 'react-native'
+import { StyleSheet, UnistylesRuntime } from 'react-native-unistyles'
+ import { router } from 'expo-router'
+
+
+const StyledScrollView = withUnistyles(ScrollView)
+
+
+export default function SettingsScreen() {
+    const systemTheme = UnistylesRuntime.hasAdaptiveThemes
+
+
+    return (
+        <StyledScrollView contentContainerStyle={styles.scrollView}>
+            <ThemedText type="title">
+                Appearance
+            </ThemedText>
+            <View style={styles.settingsContainer}>
+                <SettingTile
+                    settingName="Theme"
+                    selectedValue="Light"
+                    description={systemTheme ? "System" : 'User'}
+                   onPress={() => {}}
+                   onPress={() => router.push('/(tabs)/settings/settings-theme')}
+                />
+                <SettingTile
+                    settingName="App accent"
+                    selectedValue="Default"
+                    description="Primary app color"
+                   onPress={() => {}}
+                   onPress={() => router.push('/(tabs)/settings/settings-accent')}
+                />
+            </View>
+        </StyledScrollView>
+    );
+}
+```
+
+![ios app preview](/_astro/tutorial-5.DuVD56lx.jpeg)
+
+Perfect! Your settings screen now has interactive tiles that provide immediate visual feedback and navigate to the appropriate modal screens. In the next part, we’ll implement the functionality for these modals and show how to dynamically update themes and accent colors.
+
+[ Previous](/v3/tutorial/new-screens)
+
+[Part 4: New screens](/v3/tutorial/new-screens)
+
+[Next ](/v3/tutorial/modals)
+
+[Part 6: Modals](/v3/tutorial/modals)

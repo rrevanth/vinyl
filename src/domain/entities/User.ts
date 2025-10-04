@@ -1,3 +1,5 @@
+import { randomUUID } from 'expo-crypto'
+
 export type UserAuthState = 'anonymous' | 'authenticated'
 
 export interface TraktAccount {
@@ -28,7 +30,7 @@ export interface UserHelpers {
 export type UserWithHelpers = User & UserHelpers
 
 export const createAnonymousUser = (): User => ({
-  id: crypto.randomUUID(),
+  id: randomUUID(),
   authState: 'anonymous',
   account: null,
   createdAt: Date.now(),
@@ -36,7 +38,7 @@ export const createAnonymousUser = (): User => ({
 })
 
 export const createAuthenticatedUser = (account: UserAccount): User => ({
-  id: crypto.randomUUID(),
+  id: randomUUID(),
   authState: 'authenticated',
   account,
   createdAt: Date.now(),
