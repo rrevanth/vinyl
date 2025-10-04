@@ -1,8 +1,8 @@
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosError } from 'axios'
-import axiosRetry from 'axios-retry'
-import { UnauthorizedError, NotFoundError } from '@/src/domain/errors'
-import { NetworkError } from '@/src/infrastructure/errors'
+import { NotFoundError, UnauthorizedError } from '@/src/domain/errors'
 import { ILoggingService } from '@/src/domain/services/ILoggingService'
+import { NetworkError } from '@/src/infrastructure/errors'
+import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from 'axios'
+import axiosRetry from 'axios-retry'
 
 /**
  * HTTP client with interceptors and retry logic
