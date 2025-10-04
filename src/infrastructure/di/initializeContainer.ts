@@ -10,6 +10,8 @@ import { EnvironmentService } from '../services/EnvironmentService'
 import { HttpClient } from '../http/HttpClient'
 import { TMDBConfigFactory } from '../factories/TMDBConfigFactory'
 import { TMDBClient } from '../api/tmdb/TMDBClient'
+import { TraktConfigFactory } from '../factories/TraktConfigFactory'
+import { TraktClient } from '../api/trakt/TraktClient'
 import type { IStorageService } from '../../domain/services/IStorageService'
 import type { ILoggingService } from '../../domain/services/ILoggingService'
 import type { IEnvironmentService } from '../../domain/services/IEnvironmentService'
@@ -45,6 +47,12 @@ export function initializeContainer(): void {
 
   const tmdbConfigFactory = container.resolve<TMDBConfigFactory>(TOKENS.TMDBConfigFactory)
   container.register(TOKENS.TMDBClient, () => new TMDBClient(tmdbConfigFactory, logger))
+
+  // Register Trakt services
+  container.register(TOKENS.TraktConfigFactory, () => new TraktConfigFactory(environment))
+
+  const traktConfigFactory = container.resolve<TraktConfigFactory>(TOKENS.TraktConfigFactory)
+  container.register(TOKENS.TraktClient, () => new TraktClient(traktConfigFactory, logger))
 }
 
 // Auto-initialize on import (optional, can call manually in _layout.tsx)

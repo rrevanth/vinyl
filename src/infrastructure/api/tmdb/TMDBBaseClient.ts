@@ -239,9 +239,9 @@ export class TMDBBaseClient {
   }
 
   /**
-   * Cleanup method to remove configuration watcher
+   * Clean up subscriptions
    */
-  dispose(): void {
+  destroy(): void {
     if (this.configSubscription) {
       this.configSubscription()
       this.configSubscription = undefined

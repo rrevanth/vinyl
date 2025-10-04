@@ -59,18 +59,27 @@ export class TMDBClient {
   }
 
   /**
-   * Cleanup all clients and remove configuration watchers
-   * Should be called when the client is no longer needed
+   * Clean up all clients and remove configuration watchers
+   *
+   * This method should be called when the client is no longer needed to prevent memory leaks.
+   * It cleans up all reactive subscriptions and specialized client instances.
+   *
+   * Usage:
+   * ```typescript
+   * const tmdb = container.resolve<TMDBClient>(TOKENS.TMDBClient)
+   * // ... use client
+   * tmdb.destroy() // Clean up when done
+   * ```
    */
-  dispose(): void {
-    this.base.dispose()
-    this.movies.dispose()
-    this.tv.dispose()
-    this.search.dispose()
-    this.people.dispose()
-    this.discover.dispose()
-    this.configuration.dispose()
-    this.images.dispose()
+  destroy(): void {
+    this.base.destroy()
+    this.movies.destroy()
+    this.tv.destroy()
+    this.search.destroy()
+    this.people.destroy()
+    this.discover.destroy()
+    this.configuration.destroy()
+    this.images.destroy()
   }
 
   /**

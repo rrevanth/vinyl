@@ -6,9 +6,45 @@ export interface TMDBConfig {
   readonly region: string
 }
 
+export interface TraktCalendarSettings {
+  readonly timeZone?: string
+  readonly daysToShow?: number
+  readonly showFinales?: boolean
+  readonly showPremieres?: boolean
+}
+
+export interface TraktContentSettings {
+  readonly includeAdult?: boolean
+  readonly hideWatched?: boolean
+  readonly autoMarkWatched?: boolean
+}
+
+export interface TraktAdvancedSettings {
+  readonly autoScrobble?: boolean
+  readonly extendedInfoDefault?: readonly ('images' | 'full' | 'metadata')[]
+  readonly cacheTimeout?: number
+}
+
 export interface TraktConfig {
-  readonly clientId: string
-  readonly clientSecret: string
+  // API Configuration
+  readonly clientId?: string
+  readonly clientSecret?: string
+  readonly redirectUri?: string
+  readonly baseUrl?: string
+
+  // Authentication (managed automatically)
+  readonly accessToken?: string
+  readonly refreshToken?: string
+  readonly tokenExpiresAt?: string
+
+  // Core Settings
+  readonly language?: string
+  readonly country?: string
+
+  // Feature Settings
+  readonly calendarSettings?: TraktCalendarSettings
+  readonly contentSettings?: TraktContentSettings
+  readonly advancedSettings?: TraktAdvancedSettings
 }
 
 export interface StremioConfig {
@@ -60,8 +96,32 @@ export const createDefaultTMDBConfig = (): TMDBConfig => ({
 })
 
 export const createDefaultTraktConfig = (): TraktConfig => ({
-  clientId: '', // To be configured by user
-  clientSecret: '', // To be configured by user
+  // API Configuration - will be filled from environment
+  clientId: '',
+  clientSecret: '',
+  redirectUri: '',
+  baseUrl: 'https://api.trakt.tv',
+
+  // Core Settings
+  language: 'en-US',
+  country: 'US',
+
+  // Feature Settings
+  calendarSettings: {
+    daysToShow: 7,
+    showFinales: true,
+    showPremieres: true,
+  },
+  contentSettings: {
+    includeAdult: false,
+    hideWatched: false,
+    autoMarkWatched: true,
+  },
+  advancedSettings: {
+    autoScrobble: true,
+    extendedInfoDefault: ['full'],
+    cacheTimeout: 300, // 5 minutes
+  },
 })
 
 export const createDefaultStremioConfig = (): StremioConfig => ({

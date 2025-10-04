@@ -15,5 +15,9 @@ export const TOKENS = {
   TMDBConfigFactory: Symbol('TMDBConfigFactory'),
   TMDBClient: Symbol('TMDBClient'),
 
+  // Trakt Services
+  TraktConfigFactory: Symbol('TraktConfigFactory'),
+  TraktClient: Symbol('TraktClient'),
+
   // Add more as needed
 } as const
