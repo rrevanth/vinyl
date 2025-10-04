@@ -1,7 +1,7 @@
-import type { IProvider } from '@/src/domain/providers/IProvider'
-import type { ProviderMetadata, ProviderHealth } from '@/src/domain/providers'
-import { ProviderStatus } from '@/src/domain/providers'
-import { CapabilityType } from '@/src/domain/capabilities/CapabilityType'
+import type { IProvider } from '../../../domain/providers/IProvider'
+import type { ProviderMetadata, ProviderHealth } from '../../../domain/providers'
+import { ProviderStatus } from '../../../domain/providers'
+import { CapabilityType } from '../../../domain/capabilities/CapabilityType'
 import type {
   IMediaCatalogCapability,
   IMediaMetadataCapability,
@@ -9,7 +9,7 @@ import type {
   IMediaPeopleCapability,
   IMediaStreamsCapability,
   IPeopleFilmographyCapability,
-} from '@/src/domain/capabilities'
+} from '../../../domain/capabilities'
 
 /**
  * Base provider implementation with null capability fields

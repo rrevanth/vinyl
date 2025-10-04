@@ -6,8 +6,8 @@
  * Values are automatically serialized/deserialized as JSON.
  */
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import { IStorageService } from '@/src/domain/services/IStorageService'
-import { StorageError } from '@/src/infrastructure/errors/StorageError'
+import { IStorageService } from '../../domain/services/IStorageService'
+import { StorageError } from '../errors/StorageError'
 
 export class StorageService implements IStorageService {
   private readonly KEY_PREFIX = '@vnyl:'
@@ -58,12 +58,7 @@ export class StorageService implements IStorageService {
       const serialized = JSON.stringify(value)
       await AsyncStorage.setItem(prefixedKey, serialized)
     } catch (error) {
-      throw new StorageError(
-        `Failed to store value for key: ${key}`,
-        'write',
-        key,
-        error as Error
-      )
+      throw new StorageError(`Failed to store value for key: ${key}`, 'write', key, error as Error)
     }
   }
 
@@ -103,7 +98,9 @@ export class StorageService implements IStorageService {
   async getAllKeys(): Promise<string[]> {
     try {
       const allKeys = await AsyncStorage.getAllKeys()
-      return allKeys.filter((key) => key.startsWith(this.KEY_PREFIX)).map((key) => this.unprefixKey(key))
+      return allKeys
+        .filter((key) => key.startsWith(this.KEY_PREFIX))
+        .map((key) => this.unprefixKey(key))
     } catch (error) {
       throw new StorageError('Failed to retrieve all keys', 'read', undefined, error as Error)
     }

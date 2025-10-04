@@ -9,7 +9,7 @@
  */
 
 import { StyleSheet } from 'react-native-unistyles'
-import { lightTheme, darkTheme } from '@/src/domain/theme'
+import { lightTheme, darkTheme } from '../../domain/theme'
 
 /**
  * Responsive breakpoints for adaptive layouts

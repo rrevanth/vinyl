@@ -1,12 +1,22 @@
 import { computed } from '@legendapp/state'
-import { persistObservable } from '@legendapp/state/persist'
+import { persistObservable, configureObservablePersistence } from '@legendapp/state/persist'
 import { ObservablePersistAsyncStorage } from '@legendapp/state/persist-plugins/async-storage'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import type { User } from '../../../domain/entities'
 import {
   createDefaultUserPreferences,
   addUserHelpers,
   createAnonymousUser,
 } from '../../../domain/entities'
+
+// Configure global persistence settings
+configureObservablePersistence({
+  localOptions: {
+    asyncStorage: {
+      AsyncStorage,
+    },
+  },
+})
 
 interface UserState {
   currentUser: User

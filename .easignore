@@ -1,0 +1,16 @@
+# Exclude development and documentation folders from EAS builds
+repos/
+docs/
+ai-conversations/
+designs/
+.context/
+
+# Exclude git files
+.git
+.gitignore
+.gitmodules
+
+# Exclude development tools
+.vscode/
+CLAUDE.md
+AGENTS.md
