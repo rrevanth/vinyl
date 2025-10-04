@@ -19,5 +19,11 @@ export const TOKENS = {
   TraktConfigFactory: Symbol('TraktConfigFactory'),
   TraktClient: Symbol('TraktClient'),
 
+  // Stremio Services
+  StremioConfigFactory: Symbol('StremioConfigFactory'),
+  StremioAddonStorage: Symbol('StremioAddonStorage'),
+  StremioManifestCache: Symbol('StremioManifestCache'),
+  StremioAddonRegistry: Symbol('StremioAddonRegistry'),
+
   // Add more as needed
 } as const

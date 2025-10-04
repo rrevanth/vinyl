@@ -1,3 +1,6 @@
+import type { StremioUserPreferences } from '../preferences/StremioPreferences'
+import { getDefaultStremioPreferences } from '../preferences/StremioPreferences'
+
 export interface TMDBConfig {
   readonly apiKey: string
   readonly baseURL: string
@@ -47,13 +50,6 @@ export interface TraktConfig {
   readonly advancedSettings?: TraktAdvancedSettings
 }
 
-export interface StremioConfig {
-  readonly enabledAddons: readonly string[]
-  readonly addonTimeout: number
-  readonly maxConcurrentRequests: number
-  readonly fallbackEnabled: boolean
-}
-
 export interface ProviderPriorities {
   readonly metadata: readonly ('tmdb' | 'trakt' | 'stremio')[]
   readonly streams: readonly ('stremio' | 'torrent' | 'direct')[]
@@ -81,7 +77,7 @@ export interface UserPreferences {
   readonly updatedAt: number
   readonly tmdb: TMDBConfig
   readonly trakt: TraktConfig
-  readonly stremio: StremioConfig
+  readonly stremio: StremioUserPreferences
   readonly providerPriorities: ProviderPriorities
   readonly ui: UIPreferences
   readonly playback: PlaybackPreferences
@@ -124,13 +120,6 @@ export const createDefaultTraktConfig = (): TraktConfig => ({
   },
 })
 
-export const createDefaultStremioConfig = (): StremioConfig => ({
-  enabledAddons: [],
-  addonTimeout: 10000, // 10 seconds
-  maxConcurrentRequests: 5,
-  fallbackEnabled: true,
-})
-
 export const createDefaultProviderPriorities = (): ProviderPriorities => ({
   metadata: ['tmdb', 'trakt', 'stremio'],
   streams: ['stremio', 'torrent', 'direct'],
@@ -158,7 +147,7 @@ export const createDefaultUserPreferences = (): UserPreferences => ({
   updatedAt: Date.now(),
   tmdb: createDefaultTMDBConfig(),
   trakt: createDefaultTraktConfig(),
-  stremio: createDefaultStremioConfig(),
+  stremio: getDefaultStremioPreferences(),
   providerPriorities: createDefaultProviderPriorities(),
   ui: createDefaultUIPreferences(),
   playback: createDefaultPlaybackPreferences(),
