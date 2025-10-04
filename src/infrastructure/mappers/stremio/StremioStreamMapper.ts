@@ -1,5 +1,5 @@
 import type { Stream } from '../../../domain/entities/Stream'
-import type { StremioStream } from '../providers/stremio/types/responses'
+import type { StremioStream } from '../../providers/stremio/types/responses'
 
 /**
  * Mapper for converting Stremio streams to domain Stream entities
@@ -9,44 +9,35 @@ export class StremioStreamMapper {
    * Convert Stremio stream to domain Stream entity
    */
   static fromStremioStream(stremioStream: StremioStream, addonId: string): Stream {
-    // Determine stream type and URL
-    let streamType: 'direct' | 'torrent' | 'external' = 'external'
+    // Determine stream source and URL
+    let streamSource = 'external'
     let streamUrl = ''
 
     if (stremioStream.url) {
-      streamType = 'direct'
+      streamSource = 'direct'
       streamUrl = stremioStream.url
     } else if (stremioStream.infoHash) {
-      streamType = 'torrent'
+      streamSource = 'torrent'
       streamUrl = `magnet:?xt=urn:btih:${stremioStream.infoHash}`
     } else if (stremioStream.externalUrl) {
-      streamType = 'external'
+      streamSource = 'external'
       streamUrl = stremioStream.externalUrl
     } else if (stremioStream.ytId) {
-      streamType = 'external'
+      streamSource = 'external'
       streamUrl = `https://www.youtube.com/watch?v=${stremioStream.ytId}`
     }
 
     return {
       id: stremioStream.infoHash || stremioStream.url || Math.random().toString(36),
       url: streamUrl,
-      type: streamType,
+      source: streamSource,
       quality: stremioStream.name || 'Unknown',
-      title: stremioStream.description || stremioStream.name || 'Stream',
-      source: addonId,
-      provider: 'stremio',
+      provider: addonId,
       size: stremioStream.behaviorHints?.videoSize,
       language: 'en', // Default, could be enhanced with detection
-      subtitles: (stremioStream.subtitles || []).map((sub) => ({
-        language: sub.lang,
-        url: sub.url,
-      })),
-      metadata: {
-        filename: stremioStream.behaviorHints?.filename,
-        videoHash: stremioStream.behaviorHints?.videoHash,
-        sources: stremioStream.sources,
-        notWebReady: stremioStream.behaviorHints?.notWebReady || false,
-      },
+      infoHash: stremioStream.infoHash,
+      fileIndex: stremioStream.fileIdx,
+      headers: stremioStream.behaviorHints?.proxyHeaders?.request,
     }
   }
 
@@ -54,7 +45,7 @@ export class StremioStreamMapper {
    * Convert array of Stremio streams to domain Stream entities
    */
   static fromStremioStreamArray(stremioStreams: StremioStream[], addonId: string): Stream[] {
-    return stremioStreams.map((stream) => this.fromStremioStream(stream, addonId))
+    return stremioStreams.map((stream: StremioStream) => this.fromStremioStream(stream, addonId))
   }
 
   /**

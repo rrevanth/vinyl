@@ -1,7 +1,4 @@
-import type {
-  EffectiveStremioConfig,
-  StremioConfigFactory,
-} from '../../factories/StremioConfigFactory'
+import type { StremioConfigFactory } from '../../factories/StremioConfigFactory'
 import type { IProviderRegistry } from '../../../domain/providers/IProviderRegistry'
 import type { ILoggingService } from '../../../domain/services/ILoggingService'
 import type { HttpClient } from '../../http/HttpClient'
@@ -56,7 +53,8 @@ export class StremioAddonRegistry {
       this.isInitialized = true
       this.logger.info('StremioAddonRegistry initialized', { userId })
     } catch (error) {
-      this.logger.error('Failed to initialize StremioAddonRegistry', error)
+      const err = error instanceof Error ? error : new Error(String(error))
+      this.logger.error('Failed to initialize StremioAddonRegistry', err)
       throw new InfrastructureError(
         'Failed to initialize Stremio addon registry',
         error instanceof Error ? error : new Error(String(error))
@@ -109,7 +107,8 @@ export class StremioAddonRegistry {
 
       this.logger.info('Stremio addon installed', { userId, addonId: manifest.id })
     } catch (error) {
-      this.logger.error('Failed to install Stremio addon', error)
+      const err = error instanceof Error ? error : new Error(String(error))
+      this.logger.error('Failed to install Stremio addon', err)
       throw new InfrastructureError(
         `Failed to install addon from ${manifestUrl}`,
         error instanceof Error ? error : new Error(String(error))
@@ -137,9 +136,32 @@ export class StremioAddonRegistry {
 
       this.logger.info('Stremio addon uninstalled', { userId, addonId })
     } catch (error) {
-      this.logger.error('Failed to uninstall Stremio addon', error)
+      const err = error instanceof Error ? error : new Error(String(error))
+      this.logger.error('Failed to uninstall Stremio addon', err)
+      throw new InfrastructureError(
+        `Failed to uninstall addon ${addonId}`,
+        error instanceof Error ? error : new Error(String(error))
+      )
+    }
+  }
+
+  /**
+   * Enable/disable addon for user
+   */
+  async toggleAddon(userId: string, addonId: string, isEnabled: boolean): Promise<void> {
+    try {
+      await this.addonStorage.toggleAddon(userId, addonId, isEnabled)
+
+      if (isEnabled) {
+        await this.registerProviderForAddon(userId, addonId)
+      } else {
+        await this.unregisterProvider(addonId)
+      }
+
+      this.logger.info('Stremio addon toggled', { userId, addonId, isEnabled })
     } catch (error) {
-      this.logger.error('Failed to toggle Stremio addon', error)
+      const err = error instanceof Error ? error : new Error(String(error))
+      this.logger.error('Failed to toggle Stremio addon', err)
       throw error
     }
   }
@@ -150,7 +172,7 @@ export class StremioAddonRegistry {
   getSummary(): string {
     const providerCount = this.activeProviders.size
     const providerIds = Array.from(this.activeProviders.keys()).slice(0, 5)
-    
+
     return [
       `Providers: ${providerCount}`,
       `Active: [${providerIds.join(', ')}${providerCount > 5 ? '...' : ''}]`,
@@ -168,7 +190,8 @@ export class StremioAddonRegistry {
         this.logger.debug('Stremio config changed, refreshing providers', { userId })
         await this.refreshEnabledProviders(userId)
       } catch (error) {
-        this.logger.error('Failed to refresh providers on config change', error)
+        const err = error instanceof Error ? error : new Error(String(error))
+        this.logger.error('Failed to refresh providers on config change', err)
       }
     })
   }
@@ -253,7 +276,8 @@ export class StremioAddonRegistry {
 
       this.logger.debug('Registered Stremio provider', { addonId })
     } catch (error) {
-      this.logger.error('Failed to register provider for addon', { error, addonId })
+      const err = error instanceof Error ? error : new Error(String(error))
+      this.logger.error(`Failed to register provider for addon ${addonId}`, err)
     }
   }
 
@@ -276,7 +300,8 @@ export class StremioAddonRegistry {
 
       this.logger.debug('Unregistered Stremio provider', { addonId })
     } catch (error) {
-      this.logger.error('Failed to unregister provider', { error, addonId })
+      const err = error instanceof Error ? error : new Error(String(error))
+      this.logger.error(`Failed to unregister provider ${addonId}`, err)
     }
   }
 
@@ -289,7 +314,8 @@ export class StremioAddonRegistry {
         try {
           await this.unregisterProvider(addonId)
         } catch (error) {
-          this.logger.error('Failed to shutdown provider', { error, addonId })
+          const err = error instanceof Error ? error : new Error(String(error))
+          this.logger.error(`Failed to shutdown provider ${addonId}`, err)
         }
       }
     )

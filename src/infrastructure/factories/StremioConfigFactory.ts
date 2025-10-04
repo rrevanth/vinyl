@@ -1,4 +1,5 @@
 import type { StremioUserPreferences } from '../../domain/preferences/StremioPreferences'
+import { getDefaultStremioPreferences } from '../../domain/preferences/StremioPreferences'
 
 /**
  * Effective Stremio configuration with resolved values
@@ -114,8 +115,6 @@ export class StremioConfigFactory {
    * Private helper for fallback configuration
    */
   private getDefaultConfig(): StremioUserPreferences {
-    // Import here to avoid circular dependencies
-    const { getDefaultStremioPreferences } = require('../../domain/preferences/StremioPreferences')
     return getDefaultStremioPreferences()
   }
 }

@@ -6,11 +6,7 @@ import type { TMDBMovieResponse, TMDBTVResponse, TMDBDateString } from '../../..
 /**
  * Validation error for mapping operations
  */
-export class MapperError extends InfrastructureError {
-  constructor(message: string, cause?: Error) {
-    super(message, cause)
-  }
-}
+export class MapperError extends InfrastructureError {}
 
 /**
  * Base mapper class providing common utilities for TMDB data transformation
