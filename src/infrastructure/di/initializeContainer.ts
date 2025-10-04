@@ -8,13 +8,14 @@ import { I18nService } from '../services/I18nService'
 import { UserService } from '../services/UserService'
 import { EnvironmentService } from '../services/EnvironmentService'
 import { HttpClient } from '../http/HttpClient'
+import { QueryClient } from '@tanstack/react-query'
 import { TMDBConfigFactory } from '../factories/TMDBConfigFactory'
 import { TMDBClient } from '../api/tmdb/TMDBClient'
+import { TMDBProvider } from '../providers/tmdb/TMDBProvider'
 import { TraktConfigFactory } from '../factories/TraktConfigFactory'
 import { TraktClient } from '../api/trakt/TraktClient'
 import { StremioConfigFactory } from '../factories/StremioConfigFactory'
 import { StremioAddonStorage } from '../providers/stremio/storage/StremioAddonStorage'
-import { StremioManifestCache } from '../providers/stremio/storage/StremioManifestCache'
 import type { IStorageService } from '../../domain/services/IStorageService'
 import type { ILoggingService } from '../../domain/services/ILoggingService'
 import type { IEnvironmentService } from '../../domain/services/IEnvironmentService'
@@ -45,13 +46,31 @@ export function initializeContainer(): void {
       )
   )
 
-  const httpClient = container.resolve<HttpClient>(TOKENS.HttpClient)
+  // Register QueryClient for TanStack Query
+  container.register(
+    TOKENS.QueryClient,
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            staleTime: 1000 * 60 * 5, // 5 minutes
+            retry: 2,
+          },
+        },
+      })
+  )
+
+  const queryClient = container.resolve<QueryClient>(TOKENS.QueryClient)
 
   // Register TMDB services
   container.register(TOKENS.TMDBConfigFactory, () => new TMDBConfigFactory(environment))
 
   const tmdbConfigFactory = container.resolve<TMDBConfigFactory>(TOKENS.TMDBConfigFactory)
   container.register(TOKENS.TMDBClient, () => new TMDBClient(tmdbConfigFactory, logger))
+
+  // Register TMDB Provider with all its dependencies
+  const tmdbClient = container.resolve<TMDBClient>(TOKENS.TMDBClient)
+  container.register(TOKENS.TMDBProvider, () => new TMDBProvider(tmdbClient, queryClient, logger))
 
   // Register Trakt services
   container.register(TOKENS.TraktConfigFactory, () => new TraktConfigFactory(environment))
@@ -62,13 +81,10 @@ export function initializeContainer(): void {
   // Register Stremio services
   container.register(TOKENS.StremioConfigFactory, () => new StremioConfigFactory())
   container.register(TOKENS.StremioAddonStorage, () => new StremioAddonStorage(storage))
-  container.register(
-    TOKENS.StremioManifestCache,
-    () => new StremioManifestCache(storage, httpClient)
-  )
 
   // Note: StremioAddonRegistry requires IProviderRegistry which may not be available yet
   // Will need to be registered later in the initialization sequence when provider registry is available
+  // The registry will create its own TanStack Query-based caches internally
 }
 
 // Auto-initialize on import (optional, can call manually in _layout.tsx)

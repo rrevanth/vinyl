@@ -2,40 +2,17 @@ import type { IProvider } from '../../../domain/providers/IProvider'
 import type { TMDBClient } from '../../api/tmdb/TMDBClient'
 import type { ILoggingService } from '../../../domain/services/ILoggingService'
 import { CapabilityType } from '../../../domain/capabilities/CapabilityType'
-import { ProviderMetadata } from '../../../domain/providers/ProviderMetadata'
+import type { ProviderMetadata } from '../../../domain/providers/ProviderMetadata'
+import { ProviderStatus } from '../../../domain/providers/ProviderStatus'
 import { TMDBDetailCache } from './cache/TMDBDetailCache'
 import { TMDBCapabilityRegistry } from './TMDBCapabilityRegistry'
 import type { QueryClient } from '@tanstack/react-query'
 
 /**
  * TMDB Provider implementation with multi-level TanStack Query caching
- *
- * Features:
- * - 11 supported capabilities for comprehensive movie/TV data
- * - Smart caching with extended API responses
- * - Multi-level cache coordination (provider + domain levels)
- * - Background data refresh and invalidation
- * - User-controlled cache management
  */
 export class TMDBProvider implements IProvider {
-  readonly id = 'tmdb'
-  readonly name = 'The Movie Database'
-  readonly version = '1.0.0'
   readonly metadata: ProviderMetadata
-
-  readonly capabilities = new Set([
-    CapabilityType.MEDIA_CATALOG,
-    CapabilityType.MEDIA_METADATA,
-    CapabilityType.MEDIA_SEARCH,
-    CapabilityType.MEDIA_RECOMMENDATIONS,
-    CapabilityType.MEDIA_VIDEOS,
-    CapabilityType.MEDIA_SEASONS,
-    CapabilityType.MEDIA_EXTERNAL_IDS,
-    CapabilityType.MEDIA_IMAGES,
-    CapabilityType.MEDIA_RATINGS,
-    CapabilityType.MEDIA_REVIEWS,
-    CapabilityType.MEDIA_PEOPLE,
-  ])
 
   private readonly cache: TMDBDetailCache
   private readonly capabilityRegistry: TMDBCapabilityRegistry
@@ -46,14 +23,27 @@ export class TMDBProvider implements IProvider {
     private readonly queryClient: QueryClient,
     private readonly logger: ILoggingService
   ) {
-    this.metadata = new ProviderMetadata({
-      id: this.id,
-      name: this.name,
-      version: this.version,
-      type: 'tmdb',
+    // Create proper metadata object
+    this.metadata = {
+      id: 'tmdb',
+      name: 'The Movie Database',
+      version: '1.0.0',
       description: 'Official TMDB provider for movies and TV shows with comprehensive metadata',
-      capabilities: Array.from(this.capabilities),
-    })
+      sourceInfo: {
+        type: 'tmdb',
+        baseUrl: 'https://api.themoviedb.org/3',
+        apiVersion: '3',
+      },
+      status: ProviderStatus.INITIALIZING,
+      health: {
+        status: ProviderStatus.INITIALIZING,
+        lastChecked: new Date(),
+        errorCount: 0,
+      },
+      configurable: true,
+      requiresAuth: true,
+      installedAt: new Date(),
+    }
 
     // Initialize cache and capability registry
     this.cache = new TMDBDetailCache(tmdbClient, queryClient, logger)
@@ -64,25 +54,34 @@ export class TMDBProvider implements IProvider {
     if (this.isInitialized) return
 
     try {
-      // Test TMDB connection and configuration
       const connectionTest = await this.tmdbClient.testConnection()
       if (!connectionTest.success) {
         throw new Error(`TMDB connection failed: ${connectionTest.error}`)
       }
 
-      // Initialize cache layer
       await this.cache.initialize()
-
-      // Initialize capability registry
       await this.capabilityRegistry.initialize()
 
+      this.metadata.status = ProviderStatus.ENABLED
+      this.metadata.health = {
+        status: ProviderStatus.ENABLED,
+        lastChecked: new Date(),
+        errorCount: 0,
+      }
+
       this.isInitialized = true
-      this.logger.info('TMDBProvider initialized successfully', {
-        capabilities: this.capabilities.size,
-        config: connectionTest.config,
-      })
+      this.logger.info('TMDBProvider initialized successfully')
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
+
+      this.metadata.status = ProviderStatus.ERROR
+      this.metadata.health = {
+        status: ProviderStatus.ERROR,
+        lastChecked: new Date(),
+        errorCount: this.metadata.health.errorCount + 1,
+        lastError: err.message,
+      }
+
       this.logger.error('Failed to initialize TMDBProvider', err)
       throw err
     }
@@ -96,6 +95,7 @@ export class TMDBProvider implements IProvider {
       await this.cache.shutdown()
       this.tmdbClient.destroy()
 
+      this.metadata.status = ProviderStatus.DISABLED
       this.isInitialized = false
       this.logger.info('TMDBProvider shutdown successfully')
     } catch (error) {
@@ -105,82 +105,43 @@ export class TMDBProvider implements IProvider {
     }
   }
 
-  hasCapability(capability: CapabilityType): boolean {
-    return this.capabilities.has(capability)
-  }
-
-  async executeCapability<T>(capability: CapabilityType, method: string, request: any): Promise<T> {
-    if (!this.isInitialized) {
-      throw new Error('TMDBProvider not initialized')
-    }
-
-    if (!this.hasCapability(capability)) {
-      throw new Error(`TMDBProvider does not support capability: ${capability}`)
-    }
-
-    return this.capabilityRegistry.execute<T>(capability, method, request)
-  }
-
-  async getHealthStatus(): Promise<{
-    status: 'healthy' | 'degraded' | 'unhealthy'
-    details: Record<string, any>
-  }> {
+  async healthCheck(): Promise<boolean> {
     try {
-      if (!this.isInitialized) {
-        return {
-          status: 'unhealthy',
-          details: { error: 'Provider not initialized' },
-        }
-      }
+      if (!this.isInitialized) return false
 
-      // Test TMDB connection
       const connectionTest = await this.tmdbClient.testConnection()
-      if (!connectionTest.success) {
-        return {
-          status: 'degraded',
-          details: {
-            error: connectionTest.error,
-            tmdbConfig: connectionTest.config,
-          },
-        }
+      const isHealthy = connectionTest.success
+
+      this.metadata.health = {
+        status: isHealthy ? ProviderStatus.ENABLED : ProviderStatus.ERROR,
+        lastChecked: new Date(),
+        errorCount: isHealthy ? 0 : this.metadata.health.errorCount + 1,
+        lastError: isHealthy ? undefined : connectionTest.error,
       }
 
-      // Get cache stats and capability health
-      const cacheStats = this.cache.getCacheStats()
-      const capabilityHealth = await this.capabilityRegistry.getHealthStatus()
-
-      return {
-        status: capabilityHealth.status,
-        details: {
-          tmdbConnection: 'healthy',
-          cache: cacheStats,
-          capabilities: capabilityHealth.details,
-          config: connectionTest.config,
-        },
-      }
+      return isHealthy
     } catch (error) {
-      return {
-        status: 'unhealthy',
-        details: {
-          error: error instanceof Error ? error.message : 'Unknown error',
-        },
+      this.metadata.health = {
+        status: ProviderStatus.ERROR,
+        lastChecked: new Date(),
+        errorCount: this.metadata.health.errorCount + 1,
+        lastError: error instanceof Error ? error.message : 'Unknown error',
       }
+      return false
     }
   }
 
-  // ===== CACHE MANAGEMENT FOR USER CONTROL =====
+  getCapability<T>(capability: CapabilityType): T | null {
+    return this.capabilityRegistry.getCapability<T>(capability)
+  }
 
-  /**
-   * Clear all TMDB cache (both provider and domain levels)
-   */
+  // ===== ADDITIONAL METHODS FOR USER CONTROL =====
+
   async clearCache(): Promise<void> {
     await this.cache.clearAllTMDBCache()
     this.logger.info('User cleared TMDB cache')
   }
 
-  /**
-   * Get cache statistics for user information
-   */
   getCacheStats(): {
     movies: number
     tv: number
@@ -188,38 +149,5 @@ export class TMDBProvider implements IProvider {
     totalSize: number
   } {
     return this.cache.getCacheStats()
-  }
-
-  /**
-   * Invalidate specific cache type
-   */
-  async invalidateCache(type?: 'movies' | 'tv' | 'people'): Promise<void> {
-    if (type === 'movies') {
-      await this.cache.invalidateMovieCache()
-    } else if (type === 'tv') {
-      await this.cache.invalidateTVCache()
-    } else if (type === 'people') {
-      await this.cache.invalidatePersonCache()
-    } else {
-      await this.cache.clearAllTMDBCache()
-    }
-  }
-
-  /**
-   * Prefetch popular content for better performance
-   */
-  async prefetchPopularContent(): Promise<void> {
-    try {
-      // Prefetch some popular movies and TV shows
-      // This runs in background and doesn't block user interactions
-      this.logger.debug('Starting background prefetch of popular content')
-
-      // TODO: Implement prefetching of popular content
-      // await this.cache.prefetchMovieDetails(popularMovieIds)
-      // await this.cache.prefetchTVDetails(popularTVIds)
-    } catch (error) {
-      // Don't throw - this is background prefetching
-      this.logger.error('Failed to prefetch popular content', error as Error)
-    }
   }
 }

@@ -1,5 +1,5 @@
 import { Media, MediaImages } from '../../../domain/entities/Media'
-import { ExternalIds, ExternalIdHelpers } from '../../../domain/entities/ExternalIds'
+import { ExternalIds, ExternalId } from '../../../domain/entities/ExternalIds'
 import type { EnrichedMedia } from '../../../domain/entities/EnrichedMedia'
 import type { TMDBMovieResponse, TMDBTVResponse } from '../../api/tmdb/types'
 import { BaseTMDBMapper } from './base/BaseTMDBMapper'
@@ -14,9 +14,9 @@ export class TMDBMediaMapper extends BaseTMDBMapper {
    */
   static fromMovieResponse(movie: TMDBMovieResponse): Media {
     const externalIds = new ExternalIds({
-      tmdb: ExternalIdHelpers.fromTmdb(movie.id, 'movie'),
+      tmdb: new ExternalId(movie.id.toString(), 'tmdb'),
       imdb: movie.external_ids?.imdb_id
-        ? ExternalIdHelpers.fromImdb(movie.external_ids.imdb_id)
+        ? new ExternalId(movie.external_ids.imdb_id, 'imdb')
         : undefined,
     })
 
@@ -47,10 +47,8 @@ export class TMDBMediaMapper extends BaseTMDBMapper {
    */
   static fromTVResponse(tv: TMDBTVResponse): Media {
     const externalIds = new ExternalIds({
-      tmdb: ExternalIdHelpers.fromTmdb(tv.id, 'tv'),
-      imdb: tv.external_ids?.imdb_id
-        ? ExternalIdHelpers.fromImdb(tv.external_ids.imdb_id)
-        : undefined,
+      tmdb: new ExternalId(tv.id.toString(), 'tmdb'),
+      imdb: tv.external_ids?.imdb_id ? new ExternalId(tv.external_ids.imdb_id, 'imdb') : undefined,
     })
 
     const year = tv.first_air_date ? new Date(tv.first_air_date).getFullYear() : undefined
@@ -118,7 +116,6 @@ export class TMDBMediaMapper extends BaseTMDBMapper {
    * Build full image URL with TMDB base URL and size
    */
   private static buildImageUrl(imagePath: string, size: string): string {
-    // TODO: Get base URL from TMDB configuration service
     const baseUrl = 'https://image.tmdb.org/t/p/'
     return `${baseUrl}${size}${imagePath}`
   }

@@ -4,8 +4,6 @@ import { ProviderStatus } from '../../../domain/providers/ProviderStatus'
 import { CapabilityType } from '../../../domain/capabilities/CapabilityType'
 import type { StremioAddon } from '../../../domain/entities/StremioAddon'
 import { StremioAddonClient } from './clients/StremioAddonClient'
-import { StremioManifestCache } from './storage/StremioManifestCache'
-import { StremioManifestParser } from './StremioManifestParser'
 import type { HttpClient } from '../../http/HttpClient'
 import type { IStorageService } from '../../../domain/services/IStorageService'
 import { InfrastructureError } from '../../errors/InfrastructureError'
@@ -14,21 +12,20 @@ import { InfrastructureError } from '../../errors/InfrastructureError'
  * Stremio provider implementation - one provider per addon
  *
  * Each Stremio addon becomes its own provider instance with user-specific
- * configuration and capabilities. Provides a clean interface for accessing
- * Stremio addon functionality through the standard provider pattern.
+ * configuration and capabilities. The addon processing (manifest parsing,
+ * capability detection) is handled by StremioAddonRegistry with TanStack Query caching.
  */
 export class StremioProvider implements IProvider {
   public readonly metadata: ProviderMetadata
 
   private readonly addonClient: StremioAddonClient
-  private readonly manifestCache: StremioManifestCache
   private capabilities: CapabilityType[] = []
   private isInitialized = false
 
   constructor(
     private readonly addon: StremioAddon,
     httpClient: HttpClient,
-    storageService: IStorageService
+    _storageService: IStorageService // Unused but required for interface compatibility
   ) {
     // Create provider metadata from addon
     this.metadata = {
@@ -51,66 +48,64 @@ export class StremioProvider implements IProvider {
       configurable: addon.isConfigurable,
       requiresAuth: addon.configurationRequired,
       installedAt: addon.installedAt || new Date(),
-      lastUsed: addon.lastUpdated,
     }
 
-    // Initialize clients
+    // Initialize addon client
     this.addonClient = new StremioAddonClient(addon.transportUrl, httpClient)
-    this.manifestCache = new StremioManifestCache(storageService, httpClient)
+
+    // Set capabilities from the processed addon data (already validated by registry)
     this.capabilities = addon.capabilities
   }
 
   /**
-   * Initialize the provider and validate addon
+   * Initialize provider - simplified since manifest processing is done by registry
    */
   async initialize(): Promise<void> {
     if (this.isInitialized) return
 
     try {
-      // Fetch and cache manifest to validate addon is accessible
-      const manifest = await this.manifestCache.getManifest(
-        this.addon.transportUrl,
-        this.addon.version
-      )
+      // Test connectivity to addon
+      await this.addonClient.getManifest()
 
-      // Validate and parse capabilities
-      const parseResult = StremioManifestParser.parseManifest(manifest)
-
-      if (!parseResult.isValid) {
-        throw new InfrastructureError(`Invalid addon manifest: ${parseResult.errors.join(', ')}`)
+      this.metadata.status = ProviderStatus.ENABLED
+      this.metadata.health = {
+        status: ProviderStatus.ENABLED,
+        lastChecked: new Date(),
+        errorCount: 0,
       }
 
-      if (
-        !parseResult.capabilities ||
-        !StremioManifestParser.isAddonCompatible(parseResult.capabilities)
-      ) {
-        throw new InfrastructureError(`Incompatible addon: ${this.addon.name}`)
-      }
-
-      // Store validated capabilities
-      this.capabilities = parseResult.capabilities.capabilities
       this.isInitialized = true
     } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error))
+
+      this.metadata.status = ProviderStatus.ERROR
+      this.metadata.health = {
+        status: ProviderStatus.ERROR,
+        lastChecked: new Date(),
+        errorCount: this.metadata.health.errorCount + 1,
+        lastError: err.message,
+      }
+
       throw new InfrastructureError(
-        `Failed to initialize Stremio provider for addon ${this.addon.id}`,
-        error instanceof Error ? error : new Error(String(error))
+        `Failed to initialize Stremio provider: ${this.addon.name}`,
+        err
       )
     }
   }
 
   /**
-   * Shutdown the provider
+   * Shutdown provider
    */
   async shutdown(): Promise<void> {
     this.isInitialized = false
   }
 
   /**
-   * Health check - verify addon is accessible
+   * Check provider health
    */
   async healthCheck(): Promise<boolean> {
     try {
-      await this.manifestCache.getManifest(this.addon.transportUrl)
+      await this.addonClient.getManifest()
       return true
     } catch {
       return false
@@ -119,29 +114,22 @@ export class StremioProvider implements IProvider {
 
   /**
    * Get capability implementation
-   *
-   * TODO: Implement actual capability objects
-   * For now, return null to focus on registry implementation
    */
   getCapability<T>(capability: CapabilityType): T | null {
-    if (!this.isInitialized || !this.capabilities.includes(capability)) {
-      return null
-    }
-
-    // TODO: Implement actual capability objects here
-    // For now, return placeholder to complete Phase 4 structure
-    return {} as T
+    // For now, Stremio providers don't implement capabilities directly
+    // This would be expanded to return actual capability implementations
+    return this.capabilities.includes(capability) ? ({} as T) : null
   }
 
   /**
-   * Get addon information
+   * Get the underlying addon
    */
   getAddon(): StremioAddon {
     return this.addon
   }
 
   /**
-   * Check if provider supports specific capability
+   * Check if provider supports a specific capability
    */
   supportsCapability(capability: CapabilityType): boolean {
     return this.capabilities.includes(capability)
@@ -155,15 +143,9 @@ export class StremioProvider implements IProvider {
   }
 
   /**
-   * Get provider summary for debugging
+   * Get provider summary
    */
   getSummary(): string {
-    return [
-      `ID: ${this.addon.id}`,
-      `Name: ${this.addon.getDisplayName()}`,
-      `Capabilities: ${this.capabilities.join(', ')}`,
-      `Types: ${this.addon.supportedTypes.join(', ')}`,
-      `Status: ${this.isInitialized ? 'ready' : 'not initialized'}`,
-    ].join(' | ')
+    return `Stremio addon: ${this.addon.name} (${this.capabilities.length} capabilities)`
   }
 }

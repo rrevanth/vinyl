@@ -1,23 +1,22 @@
-import type { CapabilityType } from '../../../domain/capabilities/CapabilityType'
+import { CapabilityType } from '../../../domain/capabilities/CapabilityType'
 import type { TMDBDetailCache } from './cache/TMDBDetailCache'
 import type { TMDBClient } from '../../api/tmdb/TMDBClient'
 import type { ILoggingService } from '../../../domain/services/ILoggingService'
 
-// Import capability implementations as we create them
+// Import all capability implementations
 import { TMDBMediaMetadataCapability } from './capabilities/TMDBMediaMetadataCapability'
-// TODO: Import other capabilities as they're created
-// import { TMDBMediaImagesCapability } from './capabilities/TMDBMediaImagesCapability'
-// import { TMDBMediaSearchCapability } from './capabilities/TMDBMediaSearchCapability'
-// import { TMDBMediaCatalogCapability } from './capabilities/TMDBMediaCatalogCapability'
+import { TMDBMediaSearchCapability } from './capabilities/TMDBMediaSearchCapability'
+import { TMDBMediaImagesCapability } from './capabilities/TMDBMediaImagesCapability'
+import { TMDBMediaVideosCapability } from './capabilities/TMDBMediaVideosCapability'
+import { TMDBCatalogCapability } from './capabilities/TMDBCatalogCapability'
+import { TMDBMediaSeasonsCapability } from './capabilities/TMDBMediaSeasonsCapability'
+import { TMDBPeopleMetadataCapability } from './capabilities/TMDBPeopleMetadataCapability'
+import { TMDBMediaRecommendationsCapability } from './capabilities/TMDBMediaRecommendationsCapability'
 
 /**
  * Central registry for TMDB capability implementations
  *
- * Features:
- * - Lazy initialization of capability instances
- * - Type-safe capability method execution
- * - Health monitoring across all capabilities
- * - Centralized error handling and logging
+ * Registers and manages all TMDB capabilities with proper dependencies
  */
 export class TMDBCapabilityRegistry {
   private readonly capabilities = new Map<CapabilityType, any>()
@@ -39,25 +38,53 @@ export class TMDBCapabilityRegistry {
         new TMDBMediaMetadataCapability(this.cache, this.logger)
       )
 
-      // TODO: Register additional capabilities as they're implemented
-      // this.capabilities.set(
-      //   CapabilityType.MEDIA_IMAGES,
-      //   new TMDBMediaImagesCapability(this.cache, this.logger)
-      // )
+      // Register search capability
+      this.capabilities.set(
+        CapabilityType.MEDIA_SEARCH,
+        new TMDBMediaSearchCapability(this.tmdbClient, this.logger)
+      )
 
-      // this.capabilities.set(
-      //   CapabilityType.MEDIA_SEARCH,
-      //   new TMDBMediaSearchCapability(this.tmdbClient, this.logger)
-      // )
+      // Register media content capabilities (use cached data)
+      this.capabilities.set(
+        CapabilityType.MEDIA_IMAGES,
+        new TMDBMediaImagesCapability(this.cache, this.logger)
+      )
 
-      // this.capabilities.set(
-      //   CapabilityType.MEDIA_CATALOG,
-      //   new TMDBMediaCatalogCapability(this.tmdbClient, this.logger)
-      // )
+      this.capabilities.set(
+        CapabilityType.MEDIA_VIDEOS,
+        new TMDBMediaVideosCapability(this.cache, this.logger)
+      )
+
+      // Register catalog capability (fresh data)
+      this.capabilities.set(
+        CapabilityType.MEDIA_CATALOG,
+        new TMDBCatalogCapability(this.tmdbClient, this.logger)
+      )
+
+      // Register season/episode capability (mixed cached + fresh data)
+      this.capabilities.set(
+        CapabilityType.MEDIA_SEASONS,
+        new TMDBMediaSeasonsCapability(this.cache, this.tmdbClient, this.logger)
+      )
+
+      // Register people capability (fresh data)
+      this.capabilities.set(
+        CapabilityType.PEOPLE_METADATA,
+        new TMDBPeopleMetadataCapability(this.tmdbClient, this.logger)
+      )
+
+      // Register recommendations capability (fresh data)
+      this.capabilities.set(
+        CapabilityType.MEDIA_RECOMMENDATIONS,
+        new TMDBMediaRecommendationsCapability(this.tmdbClient, this.logger)
+      )
 
       this.isInitialized = true
-      this.logger.debug(
-        `TMDBCapabilityRegistry initialized with ${this.capabilities.size} capabilities`
+      this.logger.info(
+        `TMDBCapabilityRegistry initialized with ${this.capabilities.size} capabilities`,
+        {
+          capabilities: Array.from(this.capabilities.keys()),
+        }
       )
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
@@ -72,9 +99,6 @@ export class TMDBCapabilityRegistry {
     this.logger.debug('TMDBCapabilityRegistry shutdown')
   }
 
-  /**
-   * Execute a capability method with type safety and error handling
-   */
   async execute<T>(capability: CapabilityType, method: string, request: any): Promise<T> {
     if (!this.isInitialized) {
       throw new Error('TMDBCapabilityRegistry not initialized')
@@ -90,9 +114,7 @@ export class TMDBCapabilityRegistry {
     }
 
     try {
-      this.logger.debug(`Executing TMDB capability ${capability}.${method}`)
       const result = await capabilityImpl[method](request)
-      this.logger.debug(`Successfully executed TMDB capability ${capability}.${method}`)
       return result
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
@@ -101,23 +123,10 @@ export class TMDBCapabilityRegistry {
     }
   }
 
-  /**
-   * Get capability implementation for direct access (if needed)
-   */
   getCapability<T>(capability: CapabilityType): T | null {
     return this.capabilities.get(capability) || null
   }
 
-  /**
-   * Check if a capability is supported and registered
-   */
-  hasCapability(capability: CapabilityType): boolean {
-    return this.capabilities.has(capability)
-  }
-
-  /**
-   * Get health status of all registered capabilities
-   */
   async getHealthStatus(): Promise<{
     status: 'healthy' | 'degraded' | 'unhealthy'
     details: Record<string, any>
@@ -130,24 +139,10 @@ export class TMDBCapabilityRegistry {
         }
       }
 
-      // Test a core capability (metadata) to verify health
-      const metadataCapability = this.capabilities.get(CapabilityType.MEDIA_METADATA)
-      if (!metadataCapability) {
-        return {
-          status: 'degraded',
-          details: {
-            error: 'Core metadata capability not available',
-            capabilities: this.capabilities.size,
-          },
-        }
-      }
-
-      // All checks passed
       return {
         status: 'healthy',
         details: {
           registeredCapabilities: this.capabilities.size,
-          availableCapabilities: Array.from(this.capabilities.keys()),
         },
       }
     } catch (error) {
@@ -158,12 +153,5 @@ export class TMDBCapabilityRegistry {
         },
       }
     }
-  }
-
-  /**
-   * Get list of all registered capabilities
-   */
-  getRegisteredCapabilities(): CapabilityType[] {
-    return Array.from(this.capabilities.keys())
   }
 }

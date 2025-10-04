@@ -3,7 +3,7 @@ import type { Media } from '../../../../domain/entities/Media'
 import type { EnrichedMedia } from '../../../../domain/entities/EnrichedMedia'
 import type { TMDBDetailCache } from '../cache/TMDBDetailCache'
 import type { ILoggingService } from '../../../../domain/services/ILoggingService'
-import { TMDBMediaMapper } from '../mappers/TMDBMediaMapper'
+import { TMDBMediaMapper } from '../../../mappers/tmdb/TMDBMediaMapper'
 
 /**
  * TMDB Media Metadata Capability - Primary cache source

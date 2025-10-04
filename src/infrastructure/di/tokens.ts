@@ -11,9 +11,13 @@ export const TOKENS = {
   // HTTP
   HttpClient: Symbol('HttpClient'),
 
+  // Query Client
+  QueryClient: Symbol('QueryClient'),
+
   // TMDB Services
   TMDBConfigFactory: Symbol('TMDBConfigFactory'),
   TMDBClient: Symbol('TMDBClient'),
+  TMDBProvider: Symbol('TMDBProvider'),
 
   // Trakt Services
   TraktConfigFactory: Symbol('TraktConfigFactory'),
@@ -22,7 +26,6 @@ export const TOKENS = {
   // Stremio Services
   StremioConfigFactory: Symbol('StremioConfigFactory'),
   StremioAddonStorage: Symbol('StremioAddonStorage'),
-  StremioManifestCache: Symbol('StremioManifestCache'),
   StremioAddonRegistry: Symbol('StremioAddonRegistry'),
 
   // Add more as needed

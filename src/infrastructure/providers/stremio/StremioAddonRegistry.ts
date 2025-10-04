@@ -3,25 +3,27 @@ import type { IProviderRegistry } from '../../../domain/providers/IProviderRegis
 import type { ILoggingService } from '../../../domain/services/ILoggingService'
 import type { HttpClient } from '../../http/HttpClient'
 import type { IStorageService } from '../../../domain/services/IStorageService'
+import type { QueryClient } from '@tanstack/react-query'
 import { StremioAddonStorage } from './storage/StremioAddonStorage'
-import { StremioManifestCache } from './storage/StremioManifestCache'
+import { StremioManifestQueryCache } from './cache/StremioManifestQueryCache'
+import { StremioProcessedAddonCache } from './cache/StremioProcessedAddonCache'
 import { StremioProvider } from './StremioProvider'
-import { StremioManifestParser } from './StremioManifestParser'
 import { StremioAddon } from '../../../domain/entities/StremioAddon'
 import type { UserInstalledAddon } from '../../../domain/preferences/StremioPreferences'
 import { stremioConfig$ } from '../../../presentation/shared/stores/user.store'
 import { InfrastructureError } from '../../errors/InfrastructureError'
 
 /**
- * Registry for managing Stremio addon providers with reactive updates
+ * Registry for managing Stremio addon providers with TanStack Query caching
  *
  * Manages user's installed Stremio addons and provides reactive updates
- * when user preferences change. Automatically registers/unregisters
- * providers based on user's addon configuration changes.
+ * when user preferences change. Uses efficient TanStack Query caching
+ * for both raw manifests and processed addon data.
  */
 export class StremioAddonRegistry {
   private readonly addonStorage: StremioAddonStorage
-  private readonly manifestCache: StremioManifestCache
+  private readonly manifestCache: StremioManifestQueryCache
+  private readonly processedAddonCache: StremioProcessedAddonCache
   private readonly activeProviders = new Map<string, StremioProvider>()
   private isInitialized = false
   private configSubscription?: () => void
@@ -31,10 +33,16 @@ export class StremioAddonRegistry {
     private readonly providerRegistry: IProviderRegistry,
     private readonly httpClient: HttpClient,
     private readonly storageService: IStorageService,
+    private readonly queryClient: QueryClient,
     private readonly logger: ILoggingService
   ) {
     this.addonStorage = new StremioAddonStorage(storageService)
-    this.manifestCache = new StremioManifestCache(storageService, httpClient)
+    this.manifestCache = new StremioManifestQueryCache(queryClient, httpClient, logger)
+    this.processedAddonCache = new StremioProcessedAddonCache(
+      queryClient,
+      this.manifestCache,
+      logger
+    )
   }
 
   /**
@@ -77,6 +85,10 @@ export class StremioAddonRegistry {
     // Shutdown all active providers
     await this.shutdownAllProviders()
 
+    // Shutdown caches
+    await this.manifestCache.shutdown()
+    await this.processedAddonCache.shutdown()
+
     this.isInitialized = false
     this.logger.info('StremioAddonRegistry shutdown')
   }
@@ -90,29 +102,38 @@ export class StremioAddonRegistry {
     userConfig?: Partial<UserInstalledAddon['userConfig']>
   ): Promise<void> {
     try {
-      // Fetch and validate manifest
-      const manifest = await this.manifestCache.fetchAndCacheManifest(manifestUrl)
+      // Get processed addon data (includes validation and capability detection)
+      const processedAddon = await this.processedAddonCache.getProcessedAddon(manifestUrl)
 
-      // Parse and validate capabilities
-      const parseResult = StremioManifestParser.parseManifest(manifest)
-      if (!parseResult.isValid || !parseResult.capabilities) {
-        throw new InfrastructureError(`Invalid addon manifest: ${parseResult.errors.join(', ')}`)
+      if (!processedAddon.isValid || !processedAddon.capabilities) {
+        throw new InfrastructureError(
+          `Invalid addon manifest: ${processedAddon.validationResult.errors.join(', ')}`
+        )
       }
 
-      // Install addon in storage
-      await this.addonStorage.installAddon(userId, manifest, manifestUrl, userConfig)
+      if (!processedAddon.isCompatible) {
+        throw new InfrastructureError(
+          `Addon is not compatible with this application: ${processedAddon.capabilitySummary}`
+        )
+      }
 
-      // Refresh providers to include new addon
-      await this.refreshEnabledProviders(userId)
+      // Install addon in storage (the storage will detect capabilities)
+      await this.addonStorage.installAddon(
+        userId,
+        processedAddon.rawManifest,
+        manifestUrl,
+        userConfig
+      )
 
-      this.logger.info('Stremio addon installed', { userId, addonId: manifest.id })
+      this.logger.info(`Installed addon for user ${userId}`, {
+        addonId: processedAddon.rawManifest.id,
+        addonName: processedAddon.rawManifest.name,
+        capabilities: processedAddon.capabilities.capabilities.length,
+      })
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
-      this.logger.error('Failed to install Stremio addon', err)
-      throw new InfrastructureError(
-        `Failed to install addon from ${manifestUrl}`,
-        error instanceof Error ? error : new Error(String(error))
-      )
+      this.logger.error(`Failed to install addon for user ${userId}`, err)
+      throw err
     }
   }
 
@@ -121,32 +142,21 @@ export class StremioAddonRegistry {
    */
   async uninstallAddon(userId: string, addonId: string): Promise<void> {
     try {
-      // Remove from storage
       await this.addonStorage.uninstallAddon(userId, addonId)
 
       // Unregister provider if active
       await this.unregisterProvider(addonId)
 
-      // Clear manifest cache
-      const preferences = await this.addonStorage.getUserPreferences(userId)
-      const addon = preferences.installedAddons[addonId]
-      if (addon) {
-        await this.manifestCache.clearManifest(addon.transportUrl)
-      }
-
-      this.logger.info('Stremio addon uninstalled', { userId, addonId })
+      this.logger.info(`Uninstalled addon for user ${userId}`, { addonId })
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
-      this.logger.error('Failed to uninstall Stremio addon', err)
-      throw new InfrastructureError(
-        `Failed to uninstall addon ${addonId}`,
-        error instanceof Error ? error : new Error(String(error))
-      )
+      this.logger.error(`Failed to uninstall addon for user ${userId}`, err)
+      throw err
     }
   }
 
   /**
-   * Enable/disable addon for user
+   * Toggle addon enabled/disabled state
    */
   async toggleAddon(userId: string, addonId: string, isEnabled: boolean): Promise<void> {
     try {
@@ -158,46 +168,46 @@ export class StremioAddonRegistry {
         await this.unregisterProvider(addonId)
       }
 
-      this.logger.info('Stremio addon toggled', { userId, addonId, isEnabled })
+      this.logger.info(`Toggled addon for user ${userId}`, { addonId, isEnabled })
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
-      this.logger.error('Failed to toggle Stremio addon', err)
-      throw error
+      this.logger.error(`Failed to toggle addon for user ${userId}`, err)
+      throw err
     }
   }
 
   /**
-   * Get registry summary for debugging
+   * Get cache statistics
    */
-  getSummary(): string {
-    const providerCount = this.activeProviders.size
-    const providerIds = Array.from(this.activeProviders.keys()).slice(0, 5)
+  getCacheStats() {
+    return {
+      manifests: this.manifestCache.getCacheStats(),
+      processedAddons: this.processedAddonCache.getCacheStats(),
+    }
+  }
 
-    return [
-      `Providers: ${providerCount}`,
-      `Active: [${providerIds.join(', ')}${providerCount > 5 ? '...' : ''}]`,
-      `Status: ${this.isInitialized ? 'initialized' : 'not initialized'}`,
-    ].join(' | ')
+  /**
+   * Clear all caches
+   */
+  async clearAllCaches(): Promise<void> {
+    await this.manifestCache.clearAllManifests()
+    await this.processedAddonCache.clearAllProcessedAddons()
+    this.logger.info('Cleared all Stremio caches')
   }
 
   /**
    * Start reactive subscription to user preferences
    */
   private startConfigSubscription(userId: string): void {
-    // Subscribe to stremio config changes from Legend State store
-    this.configSubscription = stremioConfig$.onChange(async (config) => {
-      try {
-        this.logger.debug('Stremio config changed, refreshing providers', { userId })
-        await this.refreshEnabledProviders(userId)
-      } catch (error) {
-        const err = error instanceof Error ? error : new Error(String(error))
-        this.logger.error('Failed to refresh providers on config change', err)
-      }
+    this.configSubscription = stremioConfig$.onChange(() => {
+      this.refreshEnabledProviders(userId).catch((error) => {
+        this.logger.error('Failed to refresh enabled providers', error as Error)
+      })
     })
   }
 
   /**
-   * Load user's addon configuration and register providers
+   * Load and register user's installed addons
    */
   private async loadUserAddons(userId: string): Promise<void> {
     const preferences = await this.addonStorage.getUserPreferences(userId)
@@ -205,41 +215,42 @@ export class StremioAddonRegistry {
       (addon) => addon.isEnabled
     )
 
-    this.logger.debug('Loading user addons', { userId, count: enabledAddons.length })
+    this.logger.debug(`Loading ${enabledAddons.length} enabled addons for user ${userId}`)
 
-    // Register providers for all enabled addons
-    await Promise.all(
+    // Register providers for enabled addons
+    await Promise.allSettled(
       enabledAddons.map((addon) => this.registerProviderForAddon(userId, addon.addonId))
     )
   }
 
   /**
-   * Refresh enabled providers based on current user configuration
+   * Refresh enabled providers based on current preferences
    */
   private async refreshEnabledProviders(userId: string): Promise<void> {
     const preferences = await this.addonStorage.getUserPreferences(userId)
-    const enabledAddonIds = Object.keys(preferences.installedAddons).filter(
-      (id) => preferences.installedAddons[id].isEnabled
-    )
+    const enabledAddonIds = Object.values(preferences.installedAddons)
+      .filter((addon) => addon.isEnabled)
+      .map((addon) => addon.addonId)
+
+    const currentProviderIds = new Set(this.activeProviders.keys())
 
     // Unregister providers that are no longer enabled
-    const currentProviderIds = Array.from(this.activeProviders.keys())
     for (const providerId of currentProviderIds) {
       if (!enabledAddonIds.includes(providerId)) {
         await this.unregisterProvider(providerId)
       }
     }
 
-    // Register providers for newly enabled addons
+    // Register new enabled providers
     for (const addonId of enabledAddonIds) {
-      if (!this.activeProviders.has(addonId)) {
+      if (!currentProviderIds.has(addonId)) {
         await this.registerProviderForAddon(userId, addonId)
       }
     }
   }
 
   /**
-   * Register provider for specific addon
+   * Register a provider for a specific addon
    */
   private async registerProviderForAddon(userId: string, addonId: string): Promise<void> {
     try {
@@ -247,61 +258,63 @@ export class StremioAddonRegistry {
         return // Already registered
       }
 
-      // Get addon from storage
+      // Get addon configuration
       const preferences = await this.addonStorage.getUserPreferences(userId)
       const installedAddon = preferences.installedAddons[addonId]
 
-      if (!installedAddon || !installedAddon.isEnabled) {
-        return // Addon not installed or disabled
+      if (!installedAddon) {
+        throw new Error(`Addon ${addonId} not found for user ${userId}`)
       }
 
-      // Get fresh manifest
-      const manifest = await this.manifestCache.getManifest(
-        installedAddon.transportUrl,
-        installedAddon.version
+      // Get processed addon data for manifest
+      const processedAddon = await this.processedAddonCache.getProcessedAddon(
+        installedAddon.transportUrl
       )
 
-      // Create StremioAddon domain object
-      const addon = StremioAddon.fromInstalledAddon(installedAddon, manifest)
+      // Create StremioAddon entity
+      const stremioAddon = new StremioAddon({
+        manifest: processedAddon.rawManifest,
+        transportUrl: installedAddon.transportUrl,
+        capabilities: installedAddon.capabilities,
+        isInstalled: true,
+        isEnabled: installedAddon.isEnabled,
+        installedAt: installedAddon.installedAt,
+        userPriority: installedAddon.userConfig.priority,
+        userCategories: installedAddon.userConfig.categories,
+        customName: installedAddon.userConfig.customName,
+      })
 
-      // Create and initialize provider
-      const provider = new StremioProvider(addon, this.httpClient, this.storageService)
+      // Create and register provider
+      const provider = new StremioProvider(stremioAddon, this.httpClient, this.storageService)
+
       await provider.initialize()
 
-      // Register with provider registry
-      await this.providerRegistry.registerProvider(provider)
-
-      // Track locally
       this.activeProviders.set(addonId, provider)
+      this.providerRegistry.registerProvider(provider)
 
-      this.logger.debug('Registered Stremio provider', { addonId })
+      this.logger.debug(`Registered provider for addon ${addonId}`)
     } catch (error) {
-      const err = error instanceof Error ? error : new Error(String(error))
-      this.logger.error(`Failed to register provider for addon ${addonId}`, err)
+      this.logger.error(`Failed to register provider for addon ${addonId}`, error as Error)
     }
   }
 
   /**
-   * Unregister provider
+   * Unregister a provider
    */
   private async unregisterProvider(addonId: string): Promise<void> {
     const provider = this.activeProviders.get(addonId)
-    if (!provider) return
+    if (!provider) {
+      return // Not registered
+    }
 
     try {
-      // Unregister from provider registry
-      await this.providerRegistry.unregisterProvider(provider.metadata.id)
-
-      // Shutdown provider
       await provider.shutdown()
-
-      // Remove from tracking
+      this.providerRegistry.unregisterProvider(provider.metadata.id)
       this.activeProviders.delete(addonId)
 
-      this.logger.debug('Unregistered Stremio provider', { addonId })
+      this.logger.debug(`Unregistered provider for addon ${addonId}`)
     } catch (error) {
-      const err = error instanceof Error ? error : new Error(String(error))
-      this.logger.error(`Failed to unregister provider ${addonId}`, err)
+      this.logger.error(`Failed to unregister provider for addon ${addonId}`, error as Error)
     }
   }
 
@@ -312,15 +325,14 @@ export class StremioAddonRegistry {
     const shutdownPromises = Array.from(this.activeProviders.entries()).map(
       async ([addonId, provider]) => {
         try {
-          await this.unregisterProvider(addonId)
+          await provider.shutdown()
         } catch (error) {
-          const err = error instanceof Error ? error : new Error(String(error))
-          this.logger.error(`Failed to shutdown provider ${addonId}`, err)
+          this.logger.error(`Failed to shutdown provider ${addonId}`, error as Error)
         }
       }
     )
 
-    await Promise.all(shutdownPromises)
+    await Promise.allSettled(shutdownPromises)
     this.activeProviders.clear()
   }
 }
