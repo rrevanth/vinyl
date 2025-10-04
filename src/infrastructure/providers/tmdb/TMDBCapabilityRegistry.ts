@@ -12,6 +12,13 @@ import { TMDBCatalogCapability } from './capabilities/TMDBCatalogCapability'
 import { TMDBMediaSeasonsCapability } from './capabilities/TMDBMediaSeasonsCapability'
 import { TMDBPeopleMetadataCapability } from './capabilities/TMDBPeopleMetadataCapability'
 import { TMDBMediaRecommendationsCapability } from './capabilities/TMDBMediaRecommendationsCapability'
+// Import new people capabilities
+import { TMDBPeopleSearchCapability } from './capabilities/TMDBPeopleSearchCapability'
+import { TMDBPeopleFilmographyCapability } from './capabilities/TMDBPeopleFilmographyCapability'
+import { TMDBPeopleImagesCapability } from './capabilities/TMDBPeopleImagesCapability'
+import { TMDBPeopleExternalIdsCapability } from './capabilities/TMDBPeopleExternalIdsCapability'
+import { TMDBPeopleCatalogsCapability } from './capabilities/TMDBPeopleCatalogsCapability'
+import { TMDBMediaPeopleCapability } from './capabilities/TMDBMediaPeopleCapability'
 
 /**
  * Central registry for TMDB capability implementations
@@ -71,6 +78,42 @@ export class TMDBCapabilityRegistry {
       this.capabilities.set(
         CapabilityType.PEOPLE_METADATA,
         new TMDBPeopleMetadataCapability(this.tmdbClient, this.logger)
+      )
+
+      // Register people search capability (fresh data)
+      this.capabilities.set(
+        CapabilityType.PEOPLE_SEARCH,
+        new TMDBPeopleSearchCapability(this.tmdbClient, this.logger)
+      )
+
+      // Register people filmography capability (uses cached data)
+      this.capabilities.set(
+        CapabilityType.PEOPLE_FILMOGRAPHY,
+        new TMDBPeopleFilmographyCapability(this.cache, this.logger)
+      )
+
+      // Register people images capability (uses cached data)
+      this.capabilities.set(
+        CapabilityType.PEOPLE_IMAGES,
+        new TMDBPeopleImagesCapability(this.cache, this.logger)
+      )
+
+      // Register people external IDs capability (uses cached + fresh data)
+      this.capabilities.set(
+        CapabilityType.PEOPLE_EXTERNAL_IDS,
+        new TMDBPeopleExternalIdsCapability(this.cache, this.tmdbClient, this.logger)
+      )
+
+      // Register people catalogs capability (fresh data)
+      this.capabilities.set(
+        CapabilityType.PEOPLE_CATALOGS,
+        new TMDBPeopleCatalogsCapability(this.tmdbClient, this.logger)
+      )
+
+      // Register media people capability (uses cached data)
+      this.capabilities.set(
+        CapabilityType.MEDIA_PEOPLE,
+        new TMDBMediaPeopleCapability(this.cache, this.logger)
       )
 
       // Register recommendations capability (fresh data)
