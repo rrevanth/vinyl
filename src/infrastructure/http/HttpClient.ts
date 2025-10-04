@@ -1,6 +1,6 @@
-import { NotFoundError, UnauthorizedError } from '@/src/domain/errors'
-import { ILoggingService } from '@/src/domain/services/ILoggingService'
-import { NetworkError } from '@/src/infrastructure/errors'
+import { NotFoundError, UnauthorizedError } from '../../domain/errors'
+import type { ILoggingService } from '../../domain/services/ILoggingService'
+import { NetworkError } from '../errors'
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from 'axios'
 import axiosRetry from 'axios-retry'
 
@@ -100,12 +100,15 @@ export class HttpClient {
     // Configure retry logic
     axiosRetry(this.client, {
       retries: 3,
+      // eslint-disable-next-line import/no-named-as-default-member
       retryDelay: axiosRetry.exponentialDelay, // Exponential backoff
       retryCondition: (error) => {
         // Retry on network errors and 5xx server errors
         // Don't retry 4xx client errors
         return (
+          // eslint-disable-next-line import/no-named-as-default-member
           axiosRetry.isNetworkError(error) ||
+          // eslint-disable-next-line import/no-named-as-default-member
           axiosRetry.isRetryableError(error) ||
           (error.response?.status !== undefined && error.response.status >= 500)
         )
@@ -140,11 +143,7 @@ export class HttpClient {
     }
 
     // Wrap all other errors as NetworkError
-    return new NetworkError(
-      error.message || 'Network request failed',
-      status,
-      url
-    )
+    return new NetworkError(error.message || 'Network request failed', status, url)
   }
 
   /**
@@ -158,11 +157,7 @@ export class HttpClient {
   /**
    * POST request
    */
-  async post<T>(
-    endpoint: string,
-    data?: any,
-    config?: AxiosRequestConfig
-  ): Promise<T> {
+  async post<T>(endpoint: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
     const response = await this.client.post<T>(endpoint, data, config)
     return response.data
   }
@@ -170,11 +165,7 @@ export class HttpClient {
   /**
    * PUT request
    */
-  async put<T>(
-    endpoint: string,
-    data?: any,
-    config?: AxiosRequestConfig
-  ): Promise<T> {
+  async put<T>(endpoint: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
     const response = await this.client.put<T>(endpoint, data, config)
     return response.data
   }
@@ -182,11 +173,7 @@ export class HttpClient {
   /**
    * PATCH request
    */
-  async patch<T>(
-    endpoint: string,
-    data?: any,
-    config?: AxiosRequestConfig
-  ): Promise<T> {
+  async patch<T>(endpoint: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
     const response = await this.client.patch<T>(endpoint, data, config)
     return response.data
   }

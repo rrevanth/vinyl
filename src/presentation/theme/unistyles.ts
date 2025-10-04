@@ -8,8 +8,8 @@
  * Architecture: Presentation Layer (consumes Domain Theme)
  */
 
-import { StyleSheet } from 'react-native-unistyles';
-import { lightTheme, darkTheme } from '@/src/domain/theme';
+import { StyleSheet } from 'react-native-unistyles'
+import { lightTheme, darkTheme } from '@/src/domain/theme'
 
 /**
  * Responsive breakpoints for adaptive layouts
@@ -21,7 +21,7 @@ const breakpoints = {
   md: 768, // Tablets (portrait) / Large phones (landscape)
   lg: 1024, // Tablets (landscape) / Small desktops
   xl: 1280, // Large desktops
-} as const;
+} as const
 
 /**
  * Theme configuration for Unistyles
@@ -30,17 +30,19 @@ const breakpoints = {
 const themes = {
   light: lightTheme,
   dark: darkTheme,
-} as const;
+} as const
 
 /**
  * TypeScript declarations for type-safe theme usage
  * Extends Unistyles types with our theme structure
  */
-type AppBreakpoints = typeof breakpoints;
-type AppThemes = typeof themes;
+type AppBreakpoints = typeof breakpoints
+type AppThemes = typeof themes
 
 declare module 'react-native-unistyles' {
+  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
   export interface UnistylesBreakpoints extends AppBreakpoints {}
+  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
   export interface UnistylesThemes extends AppThemes {}
 }
 
@@ -54,9 +56,9 @@ StyleSheet.configure({
   settings: {
     initialTheme: 'light',
   },
-});
+})
 
 /**
  * Export for app initialization
  */
-export { themes, breakpoints };
+export { themes, breakpoints }

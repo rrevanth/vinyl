@@ -6,9 +6,14 @@ export const TOKENS = {
   ThemeService: Symbol('ThemeService'),
   I18nService: Symbol('I18nService'),
   UserService: Symbol('UserService'),
+  EnvironmentService: Symbol('EnvironmentService'),
 
   // HTTP
   HttpClient: Symbol('HttpClient'),
+
+  // TMDB Services
+  TMDBConfigFactory: Symbol('TMDBConfigFactory'),
+  TMDBClient: Symbol('TMDBClient'),
 
   // Add more as needed
 } as const
