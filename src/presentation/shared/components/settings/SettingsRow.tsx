@@ -8,10 +8,10 @@ interface SettingsRowProps {
   description?: string
   onPress?: () => void
   rightElement?: ReactNode
-  status?: StatusType
   disabled?: boolean
+  status?: StatusType
   variant?: 'default' | 'destructive'
-  showArrow?: boolean
+  showChevron?: boolean
 }
 
 export function SettingsRow({
@@ -19,30 +19,36 @@ export function SettingsRow({
   description,
   onPress,
   rightElement,
-  status,
   disabled = false,
+  status,
   variant = 'default',
-  showArrow = true,
+  showChevron = true,
 }: SettingsRowProps) {
-  const isInteractive = Boolean(onPress) && !disabled
+  const isInteractive = Boolean(onPress && !disabled)
 
   const content = (
     <View style={[styles.container, disabled && styles.disabled]}>
-      <View style={styles.leftContent}>
+      <View style={styles.leftSection}>
         {status && (
           <View style={styles.statusContainer}>
-            <StatusDot status={status} size="small" />
+            <StatusDot status={status} size="medium" />
           </View>
         )}
-        <View style={styles.textContent}>
-          <Text style={[styles.title, styles[variant]]}>{title}</Text>
-          {description && <Text style={styles.description}>{description}</Text>}
+        <View style={styles.textContainer}>
+          <Text style={[styles.title, styles[variant], disabled && styles.disabledText]}>
+            {title}
+          </Text>
+          {description && (
+            <Text style={[styles.description, disabled && styles.disabledText]}>{description}</Text>
+          )}
         </View>
       </View>
 
-      <View style={styles.rightContent}>
+      <View style={styles.rightSection}>
         {rightElement}
-        {isInteractive && showArrow && <Text style={styles.arrow}>›</Text>}
+        {isInteractive && showChevron && (
+          <Text style={[styles.chevron, disabled && styles.disabledText]}>›</Text>
+        )}
       </View>
     </View>
   )
@@ -63,38 +69,39 @@ export function SettingsRow({
 
 const styles = StyleSheet.create((theme) => ({
   pressable: {
-    // No additional styles - let container handle layout
+    // No additional styling for pressable wrapper
   },
 
   pressed: {
-    opacity: 0.7,
+    opacity: 0.6,
   },
 
   container: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: theme.spacing[4],
     paddingHorizontal: theme.spacing[4],
-    paddingVertical: theme.spacing[3],
-    minHeight: 56, // Standard touch target
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.border,
+    backgroundColor: theme.colors.surface,
   },
 
   disabled: {
     opacity: 0.5,
   },
 
-  leftContent: {
-    flex: 1,
+  leftSection: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
   },
 
   statusContainer: {
     marginRight: theme.spacing[3],
   },
 
-  textContent: {
+  textContainer: {
     flex: 1,
   },
 
@@ -102,34 +109,37 @@ const styles = StyleSheet.create((theme) => ({
     fontSize: theme.fontSize.base,
     fontWeight: theme.fontWeight.medium,
     color: theme.colors.text,
-    lineHeight: theme.lineHeight.normal,
-  },
-
-  // Variants
-  default: {
-    color: theme.colors.text,
-  },
-
-  destructive: {
-    color: theme.colors.error,
+    marginBottom: theme.spacing[0.5],
   },
 
   description: {
     fontSize: theme.fontSize.sm,
     color: theme.colors.textSecondary,
     lineHeight: theme.lineHeight.relaxed,
-    marginTop: theme.spacing[1],
   },
 
-  rightContent: {
+  rightSection: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: theme.spacing[2],
   },
 
-  arrow: {
+  chevron: {
     fontSize: theme.fontSize.lg,
     color: theme.colors.textTertiary,
     fontWeight: theme.fontWeight.medium,
+  },
+
+  // Variants
+  default: {
+    // Default text color
+  },
+
+  destructive: {
+    color: theme.colors.error,
+  },
+
+  disabledText: {
+    color: theme.colors.textTertiary,
   },
 }))
