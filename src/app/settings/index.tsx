@@ -3,7 +3,7 @@ import { StyleSheet } from 'react-native-unistyles'
 import { observer } from '@legendapp/state/react'
 import { router } from 'expo-router'
 import { SettingsSection } from '@/src/features/settings/components/atoms/SettingsSection'
-import { SettingsRow } from '@/src/features/settings/components/atoms/SettingsRow'
+import { SettingsNavigationRow } from '@/src/features/settings/components/atoms/SettingsNavigationRow'
 import { t } from '@/src/presentation/shared/i18n'
 
 const SettingsScreen = observer(() => {
@@ -26,17 +26,20 @@ const SettingsScreen = observer(() => {
       showsVerticalScrollIndicator={false}
     >
       <SettingsSection title={t('settings.title')}>
-        <SettingsRow
+        <SettingsNavigationRow
+          iconName="color-palette-outline"
           title={t('settings.appearance.title')}
           description="Theme and visual preferences"
           onPress={navigateToAppearance}
         />
-        <SettingsRow
+        <SettingsNavigationRow
+          iconName="phone-portrait-outline"
           title={t('settings.display.title')}
           description="Language, content, and layout options"
           onPress={navigateToDisplay}
         />
-        <SettingsRow
+        <SettingsNavigationRow
+          iconName="information-circle-outline"
           title={t('settings.about.title')}
           description="App information and cache management"
           onPress={navigateToAbout}

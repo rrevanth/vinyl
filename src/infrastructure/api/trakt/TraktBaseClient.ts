@@ -31,6 +31,7 @@ export class TraktBaseClient {
   private configSubscription?: () => void
   private tokenRefreshPromise?: Promise<void>
   private currentAccessToken: string | null = null
+  private static configLoaded = false
 
   constructor(
     private readonly configFactory: TraktConfigFactory,
@@ -74,11 +75,15 @@ export class TraktBaseClient {
       })
     }
 
-    this.logger.info('Trakt configuration reloaded', {
-      source: this.currentConfig.configSource,
-      hasTokens: this.currentConfig.hasValidTokens,
-      needsAuth: this.currentConfig.needsAuthentication,
-    })
+    // Only log on first load to prevent duplicate logs from multiple instances
+    if (!TraktBaseClient.configLoaded) {
+      this.logger.info('Trakt configuration reloaded', {
+        source: this.currentConfig.configSource,
+        hasTokens: this.currentConfig.hasValidTokens,
+        needsAuth: this.currentConfig.needsAuthentication,
+      })
+      TraktBaseClient.configLoaded = true
+    }
   }
 
   /**

@@ -2,10 +2,11 @@
 export { SettingsRow } from './components/atoms/SettingsRow'
 export { SettingsSection } from './components/atoms/SettingsSection'
 export { ToggleSwitch } from './components/atoms/ToggleSwitch'
-
-// Molecule components
-export { ThemeSelector } from './components/molecules/ThemeSelector'
-export { LanguageSelector } from './components/molecules/LanguageSelector'
+export { BottomSheetPicker } from './components/atoms/BottomSheetPicker'
+export { SettingsPickerRow } from './components/atoms/SettingsPickerRow'
+export { SettingsToggleRow } from './components/atoms/SettingsToggleRow'
+export { SettingsNavigationRow } from './components/atoms/SettingsNavigationRow'
+export { SettingsInfoRow } from './components/atoms/SettingsInfoRow'
 
 // Organism components
 export { AppearanceSettings } from './components/organisms/AppearanceSettings'

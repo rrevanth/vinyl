@@ -3,7 +3,8 @@ import { StyleSheet } from 'react-native-unistyles'
 import { observer } from '@legendapp/state/react'
 import { useState, useEffect, useCallback } from 'react'
 import { SettingsSection } from '../atoms/SettingsSection'
-import { SettingsRow } from '../atoms/SettingsRow'
+import { SettingsInfoRow } from '../atoms/SettingsInfoRow'
+import { SettingsNavigationRow } from '../atoms/SettingsNavigationRow'
 import { useSettings } from '../../hooks/useSettings'
 import { t } from '@/src/presentation/shared/i18n'
 import type { AppInfo, CacheInfo } from '../../use-cases/SettingsUseCase'
@@ -12,7 +13,6 @@ export const AboutSettings = observer(() => {
   const { getAppInfo, getCacheInfo, clearCache } = useSettings()
   const [appInfo, setAppInfo] = useState<AppInfo | null>(null)
   const [cacheInfo, setCacheInfo] = useState<CacheInfo | null>(null)
-  const [isClearing, setIsClearing] = useState(false)
 
   const loadData = useCallback(async () => {
     try {
@@ -42,14 +42,11 @@ export const AboutSettings = observer(() => {
           style: 'destructive',
           onPress: async () => {
             try {
-              setIsClearing(true)
               await clearCache()
               await loadData() // Refresh cache info
               Alert.alert('Success', 'Cache cleared successfully')
             } catch {
               Alert.alert('Error', 'Failed to clear cache')
-            } finally {
-              setIsClearing(false)
             }
           },
         },
@@ -73,22 +70,19 @@ export const AboutSettings = observer(() => {
     >
       {/* App Information */}
       <SettingsSection title={t('settings.about.version')}>
-        <SettingsRow
+        <SettingsInfoRow
           title="Version"
-          description={appInfo ? `${appInfo.version} (${appInfo.buildNumber})` : 'Loading...'}
+          value={appInfo ? `${appInfo.version} (${appInfo.buildNumber})` : 'Loading...'}
           isLast
         />
       </SettingsSection>
 
       {/* Powered By */}
       <SettingsSection title={t('settings.about.powered_by')}>
-        <SettingsRow title="TMDB" description="Movie and TV show metadata" />
-        <SettingsRow title="Trakt" description="Social features and tracking" />
-        <SettingsRow title="Stremio" description="Streaming content discovery" />
-        <SettingsRow
+        <SettingsNavigationRow
           title={t('settings.about.attributions')}
+          description="View all data sources and attribution"
           onPress={openAttributions}
-          variant="accent"
           isLast
         />
       </SettingsSection>
@@ -98,16 +92,14 @@ export const AboutSettings = observer(() => {
         title="Storage"
         footer="Cache includes downloaded metadata, images, and temporary data. Your preferences and settings are preserved."
       >
-        <SettingsRow
+        <SettingsInfoRow
           title={t('settings.about.cache_size')}
-          description={cacheInfo ? cacheInfo.formattedSize : 'Calculating...'}
+          value={cacheInfo ? cacheInfo.formattedSize : 'Calculating...'}
         />
-        <SettingsRow
+        <SettingsNavigationRow
           title={t('settings.about.clear_cache')}
           description="Free up storage space"
           onPress={handleClearCache}
-          disabled={isClearing}
-          variant="danger"
           isLast
         />
       </SettingsSection>

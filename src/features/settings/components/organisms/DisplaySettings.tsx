@@ -1,10 +1,9 @@
-import { ScrollView, View } from 'react-native'
+import { ScrollView } from 'react-native'
 import { StyleSheet } from 'react-native-unistyles'
 import { observer } from '@legendapp/state/react'
 import { SettingsSection } from '../atoms/SettingsSection'
-import { SettingsRow } from '../atoms/SettingsRow'
-import { ToggleSwitch } from '../atoms/ToggleSwitch'
-import { LanguageSelector } from '../molecules/LanguageSelector'
+import { SettingsPickerRow } from '../atoms/SettingsPickerRow'
+import { SettingsToggleRow } from '../atoms/SettingsToggleRow'
 import { useSettings } from '../../hooks/useSettings'
 import { t } from '@/src/presentation/shared/i18n'
 
@@ -22,22 +21,34 @@ export const DisplaySettings = observer(() => {
   const currentLocale = getCurrentLocale()
   const uiPrefs = userPreferences$.ui.get()
 
-  const GRID_OPTIONS = [
-    { value: 'compact', labelKey: 'settings.display.grid_compact' },
-    { value: 'comfortable', labelKey: 'settings.display.grid_comfortable' },
-    { value: 'cozy', labelKey: 'settings.display.grid_cozy' },
-  ] as const
+  const LANGUAGE_OPTIONS = [
+    { label: 'English', value: 'en' },
+    { label: 'Español', value: 'es' },
+    { label: 'Français', value: 'fr' },
+    { label: 'Deutsch', value: 'de' },
+    { label: 'Italiano', value: 'it' },
+    { label: 'Português', value: 'pt' },
+    { label: '日本語', value: 'ja' },
+    { label: '中文', value: 'zh' },
+    { label: '한국어', value: 'ko' },
+  ]
 
-  const CONTENT_LANGUAGES = [
-    { value: 'en-US', label: 'English' },
-    { value: 'es-ES', label: 'Español' },
-    { value: 'fr-FR', label: 'Français' },
-    { value: 'de-DE', label: 'Deutsch' },
-    { value: 'it-IT', label: 'Italiano' },
-    { value: 'pt-PT', label: 'Português' },
-    { value: 'ja-JP', label: '日本語' },
-    { value: 'zh-CN', label: '中文' },
-    { value: 'ko-KR', label: '한국어' },
+  const CONTENT_LANGUAGE_OPTIONS = [
+    { label: 'English', value: 'en-US' },
+    { label: 'Español', value: 'es-ES' },
+    { label: 'Français', value: 'fr-FR' },
+    { label: 'Deutsch', value: 'de-DE' },
+    { label: 'Italiano', value: 'it-IT' },
+    { label: 'Português', value: 'pt-PT' },
+    { label: '日本語', value: 'ja-JP' },
+    { label: '中文', value: 'zh-CN' },
+    { label: '한국어', value: 'ko-KR' },
+  ]
+
+  const GRID_OPTIONS = [
+    { label: t('settings.display.grid_compact'), value: 'compact' },
+    { label: t('settings.display.grid_comfortable'), value: 'comfortable' },
+    { label: t('settings.display.grid_cozy'), value: 'cozy' },
   ]
 
   return (
@@ -46,86 +57,54 @@ export const DisplaySettings = observer(() => {
       contentContainerStyle={styles.content}
       showsVerticalScrollIndicator={false}
     >
-      {/* App Language */}
-      <SettingsSection
-        title={t('settings.display.app_language')}
-        footer="Changes the language of the app interface."
-      >
-        <LanguageSelector currentLanguage={currentLocale} onLanguageChange={setAppLanguage} />
+      {/* Language Section */}
+      <SettingsSection title="Language">
+        <SettingsPickerRow
+          title={t('settings.display.app_language')}
+          description="Changes the language of the app interface"
+          currentValue={currentLocale}
+          options={LANGUAGE_OPTIONS}
+          onValueChange={(value) => setAppLanguage(value as typeof currentLocale)}
+        />
+        <SettingsPickerRow
+          title={t('settings.display.content_language')}
+          description="Preferred language for movie and TV show metadata"
+          currentValue={uiPrefs.contentLanguage}
+          options={CONTENT_LANGUAGE_OPTIONS}
+          onValueChange={setContentLanguage}
+          isLast
+        />
       </SettingsSection>
 
-      {/* Content Language */}
-      <SettingsSection
-        title={t('settings.display.content_language')}
-        footer="Preferred language for movie and TV show metadata."
-      >
-        {CONTENT_LANGUAGES.map((lang, index) => (
-          <SettingsRow
-            key={lang.value}
-            title={lang.label}
-            onPress={() => setContentLanguage(lang.value)}
-            isLast={index === CONTENT_LANGUAGES.length - 1}
-          >
-            <View
-              style={[
-                styles.radioButton,
-                uiPrefs.contentLanguage === lang.value && styles.radioButtonSelected,
-              ]}
-            >
-              {uiPrefs.contentLanguage === lang.value && <View style={styles.radioButtonInner} />}
-            </View>
-          </SettingsRow>
-        ))}
-      </SettingsSection>
-
-      {/* Grid View Mode */}
+      {/* Display Section */}
       <SettingsSection
         title={t('settings.display.grid_view_mode')}
-        footer="Adjusts how many items are displayed per row."
+        footer="Adjusts how many items are displayed per row"
       >
-        {GRID_OPTIONS.map((option, index) => (
-          <SettingsRow
-            key={option.value}
-            title={t(option.labelKey)}
-            onPress={() => setGridViewMode(option.value)}
-            isLast={index === GRID_OPTIONS.length - 1}
-          >
-            <View
-              style={[
-                styles.radioButton,
-                uiPrefs.gridViewMode === option.value && styles.radioButtonSelected,
-              ]}
-            >
-              {uiPrefs.gridViewMode === option.value && <View style={styles.radioButtonInner} />}
-            </View>
-          </SettingsRow>
-        ))}
+        <SettingsPickerRow
+          title={t('settings.display.grid_view_mode')}
+          currentValue={uiPrefs.gridViewMode}
+          options={GRID_OPTIONS}
+          onValueChange={(value) => setGridViewMode(value as typeof uiPrefs.gridViewMode)}
+          isLast
+        />
       </SettingsSection>
 
       {/* Content Preferences */}
-      <SettingsSection title="Content" footer="Control what content is displayed in the app.">
-        <SettingsRow
+      <SettingsSection title="Content" footer="Control what content is displayed in the app">
+        <SettingsToggleRow
           title={t('settings.display.adult_content')}
           description="Show movies and TV shows with adult content ratings"
-        >
-          <ToggleSwitch
-            value={uiPrefs.showAdultContent}
-            onValueChange={setShowAdultContent}
-            accessibilityLabel="Toggle adult content"
-          />
-        </SettingsRow>
-
-        <SettingsRow
+          value={uiPrefs.showAdultContent}
+          onValueChange={setShowAdultContent}
+        />
+        <SettingsToggleRow
           title={t('settings.display.autoplay_trailers')}
           description="Automatically play trailers when browsing content"
+          value={uiPrefs.autoplayTrailers}
+          onValueChange={setAutoplayTrailers}
           isLast
-        >
-          <ToggleSwitch
-            value={uiPrefs.autoplayTrailers}
-            onValueChange={setAutoplayTrailers}
-            accessibilityLabel="Toggle autoplay trailers"
-          />
-        </SettingsRow>
+        />
       </SettingsSection>
     </ScrollView>
   )

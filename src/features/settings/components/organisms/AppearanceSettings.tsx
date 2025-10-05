@@ -2,7 +2,7 @@ import { ScrollView } from 'react-native'
 import { StyleSheet } from 'react-native-unistyles'
 import { observer } from '@legendapp/state/react'
 import { SettingsSection } from '../atoms/SettingsSection'
-import { ThemeSelector } from '../molecules/ThemeSelector'
+import { SettingsPickerRow } from '../atoms/SettingsPickerRow'
 import { useSettings } from '../../hooks/useSettings'
 import { t } from '@/src/presentation/shared/i18n'
 
@@ -10,6 +10,12 @@ export const AppearanceSettings = observer(() => {
   const { getCurrentTheme, setThemeMode } = useSettings()
 
   const currentTheme = getCurrentTheme()
+
+  const THEME_OPTIONS = [
+    { label: t('settings.appearance.theme_light'), value: 'light' },
+    { label: t('settings.appearance.theme_dark'), value: 'dark' },
+    { label: t('settings.appearance.theme_system'), value: 'system' },
+  ]
 
   return (
     <ScrollView
@@ -24,7 +30,13 @@ export const AppearanceSettings = observer(() => {
           ' automatically adjusts based on your device settings.'
         }
       >
-        <ThemeSelector currentTheme={currentTheme} onThemeChange={setThemeMode} />
+        <SettingsPickerRow
+          title={t('settings.appearance.title')}
+          currentValue={currentTheme}
+          options={THEME_OPTIONS}
+          onValueChange={(value) => setThemeMode(value as typeof currentTheme)}
+          isLast
+        />
       </SettingsSection>
     </ScrollView>
   )

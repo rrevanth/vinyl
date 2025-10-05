@@ -20,6 +20,7 @@ export class TMDBBaseClient {
   protected httpClient!: HttpClient
   protected currentConfig!: EffectiveTMDBConfig
   private configSubscription?: () => void
+  private static configLoaded = false
 
   constructor(
     private readonly configFactory: TMDBConfigFactory,
@@ -56,12 +57,16 @@ export class TMDBBaseClient {
     // Set up TMDB-specific request interceptor
     this.setupTMDBAuthentication()
 
-    this.logger.info('TMDB Configuration reloaded', {
-      source: this.currentConfig.configSource,
-      language: this.currentConfig.effectiveLanguage,
-      region: this.currentConfig.effectiveRegion,
-      hasApiKey: Boolean(this.currentConfig.effectiveApiKey),
-    })
+    // Only log on first load to prevent duplicate logs from multiple instances
+    if (!TMDBBaseClient.configLoaded) {
+      this.logger.info('TMDB Configuration reloaded', {
+        source: this.currentConfig.configSource,
+        language: this.currentConfig.effectiveLanguage,
+        region: this.currentConfig.effectiveRegion,
+        hasApiKey: Boolean(this.currentConfig.effectiveApiKey),
+      })
+      TMDBBaseClient.configLoaded = true
+    }
   }
 
   /**
