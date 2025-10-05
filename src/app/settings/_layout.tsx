@@ -1,31 +1,55 @@
+import { t } from '@/src/presentation/shared/i18n'
+import { observer } from '@legendapp/state/react'
 import { Stack } from 'expo-router'
-import { useUnistyles } from 'react-native-unistyles'
+import { withUnistyles } from 'react-native-unistyles'
 
-export default function SettingsLayout() {
-  const { theme } = useUnistyles()
+const ThemedStack = withUnistyles(Stack, (theme) => ({
+  screenOptions: {
+    headerShown: true,
+    headerLargeTitle: false,
+    headerTransparent: false,
+    headerBackButtonDisplayMode: 'minimal' as const,
+    headerTitleStyle: {
+      color: theme.colors.text,
+    },
+    headerStyle: {
+      backgroundColor: theme.colors.background,
+    },
+  },
+}))
 
+const SettingsLayout = observer(() => {
   return (
-    <Stack
-      screenOptions={{
-        headerStyle: {
-          backgroundColor: theme.colors.background,
-        },
-        headerTintColor: theme.colors.text,
-        headerTitleStyle: {
-          color: theme.colors.text,
-        },
-        contentStyle: {
-          backgroundColor: theme.colors.background,
-        },
-      }}
-    >
+    <ThemedStack>
       <Stack.Screen
         name="index"
         options={{
-          title: 'Settings',
-          headerLargeTitle: true,
+          title: t('navigation.settings'),
         }}
       />
-    </Stack>
+      <Stack.Screen
+        name="appearance"
+        options={() => ({
+          title: t('settings.appearance.title'),
+          headerLargeTitle: false,
+        })}
+      />
+      <Stack.Screen
+        name="display"
+        options={() => ({
+          title: t('settings.display.title'),
+          headerLargeTitle: false,
+        })}
+      />
+      <Stack.Screen
+        name="about"
+        options={() => ({
+          title: t('settings.about.title'),
+          headerLargeTitle: false,
+        })}
+      />
+    </ThemedStack>
   )
-}
+})
+
+export default SettingsLayout

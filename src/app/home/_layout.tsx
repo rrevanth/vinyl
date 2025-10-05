@@ -1,31 +1,34 @@
+import { t } from '@/src/presentation/shared/i18n'
+import { observer } from '@legendapp/state/react'
 import { Stack } from 'expo-router'
-import { useUnistyles } from 'react-native-unistyles'
+import { withUnistyles } from 'react-native-unistyles'
 
-export default function HomeLayout() {
-  const { theme } = useUnistyles()
+const ThemedStack = withUnistyles(Stack, (theme) => ({
+  screenOptions: {
+    headerShown: true,
+    headerLargeTitle: false,
+    headerTransparent: false,
+    headerBackButtonDisplayMode: 'minimal' as const,
+    headerTitleStyle: {
+      color: theme.colors.text,
+    },
+    headerStyle: {
+      backgroundColor: theme.colors.background,
+    },
+  },
+}))
 
+const HomeLayout = observer(() => {
   return (
-    <Stack
-      screenOptions={{
-        headerStyle: {
-          backgroundColor: theme.colors.background,
-        },
-        headerTintColor: theme.colors.text,
-        headerTitleStyle: {
-          color: theme.colors.text,
-        },
-        contentStyle: {
-          backgroundColor: theme.colors.background,
-        },
-      }}
-    >
+    <ThemedStack>
       <Stack.Screen
         name="index"
-        options={{
-          title: 'Home',
-          headerLargeTitle: true,
-        }}
+        options={() => ({
+          title: t('navigation.home'),
+        })}
       />
-    </Stack>
+    </ThemedStack>
   )
-}
+})
+
+export default HomeLayout

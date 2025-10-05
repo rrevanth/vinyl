@@ -1,7 +1,7 @@
+import { t } from '@/src/presentation/shared/i18n'
+import { observer } from '@legendapp/state/react'
 import { Text, View } from 'react-native'
 import { StyleSheet } from 'react-native-unistyles'
-import { observer } from '@legendapp/state/react'
-import { t } from '@/src/presentation/shared/i18n'
 
 const LibraryScreen = observer(() => {
   return (
@@ -18,9 +18,13 @@ const styles = StyleSheet.create((theme) => ({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    padding: theme.spacing.xl,
+    backgroundColor: theme.colors.background,
   },
   text: {
     fontSize: theme.fontSize['2xl'],
     fontWeight: theme.fontWeight.semibold,
+    color: theme.colors.text,
+    marginBottom: theme.spacing.md,
   },
 }))

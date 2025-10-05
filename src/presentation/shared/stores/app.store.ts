@@ -134,23 +134,37 @@ export const setTheme = (theme: ThemeMode) => {
 // === THEME MANAGEMENT ===
 
 const applyTheme = (theme: 'light' | 'dark') => {
-  UnistylesRuntime.setTheme(theme)
+  try {
+    // Attempt to set the theme - if themes aren't registered, this will throw
+    UnistylesRuntime.setTheme(theme)
+  } catch {
+    // Theme system not ready yet, schedule retry
+    console.warn(`Unistyles theme '${theme}' not ready yet, will retry after configuration`)
+    setTimeout(() => applyTheme(theme), 100)
+  }
 }
+
+let systemThemeSubscription: { remove: () => void } | null = null
 
 const initializeTheme = () => {
   const effective = effectiveTheme$.get()
   applyTheme(effective)
 
-  // Subscribe to theme changes
+  // Subscribe to theme preference changes
   userPreferences$.ui.theme.onChange(() => {
     const newEffective = effectiveTheme$.get()
     applyTheme(newEffective)
   })
 
-  // Subscribe to system theme changes
-  Appearance.addChangeListener(() => {
+  // Subscribe to system theme changes with proper cleanup
+  if (systemThemeSubscription) {
+    systemThemeSubscription.remove()
+  }
+
+  systemThemeSubscription = Appearance.addChangeListener(() => {
     if (userPreferences$.ui.theme.get() === 'system') {
-      const newEffective = effectiveTheme$.get()
+      // Force re-evaluation of computed value to trigger theme update
+      const newEffective = Appearance.getColorScheme() === 'dark' ? 'dark' : 'light'
       applyTheme(newEffective)
     }
   })
@@ -158,3 +172,11 @@ const initializeTheme = () => {
 
 // Initialize theme on module load
 initializeTheme()
+
+// Cleanup function for potential unmount scenarios
+export const cleanupThemeManagement = () => {
+  if (systemThemeSubscription) {
+    systemThemeSubscription.remove()
+    systemThemeSubscription = null
+  }
+}
