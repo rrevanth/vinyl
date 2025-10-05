@@ -394,3 +394,68 @@ import { Motion } from '@legendapp/motion'
 ---
 
 2025-10-03 16:25:17 - Core system patterns documented for consistent development.
+
+---
+
+### [2025-10-05 03:27:00] - Unistyles Navigation Integration Pattern
+
+**Pattern:** Use `useUnistyles()` hook exclusively for React Navigation components (Stack, Tabs)
+
+```typescript
+// Navigation Layout Pattern
+import { Stack } from 'expo-router'
+import { useUnistyles } from 'react-native-unistyles'
+
+export default function Layout() {
+  const { theme } = useUnistyles()
+
+  return (
+    <Stack
+      screenOptions={{
+        headerStyle: {
+          backgroundColor: theme.colors.background,
+        },
+        headerTintColor: theme.colors.text,
+        headerTitleStyle: {
+          color: theme.colors.text,
+        },
+        contentStyle: {
+          backgroundColor: theme.colors.background,
+        },
+      }}
+    >
+      {/* screens */}
+    </Stack>
+  )
+}
+```
+
+**Rationale:**
+- React Navigation components don't use `style` prop that Unistyles can auto-update via C++ ShadowTree
+- `useUnistyles()` creates subscription for theme changes, causing re-render only when theme changes
+- React Navigation is optimized and doesn't re-render screens when navigation props change
+- This is the recommended pattern from Unistyles 3.0 documentation for navigation components
+
+**Benefits:**
+- Automatic theme updates for headers and navigation
+- Minimal performance impact (only navigation layouts re-render, not screens)
+- Type-safe theme access with full autocomplete
+- Follows Unistyles best practices
+
+**When to Use:**
+- ✅ Stack headers and navigation layouts
+- ✅ Tab bar configurations
+- ❌ Regular screen components (use `StyleSheet.create((theme, rt) => ({...}))` instead)
+- ❌ React Native primitives (automatically updated via ShadowTree)
+
+**Adaptive Themes Configuration:**
+```typescript
+// src/presentation/theme/unistyles.ts
+StyleSheet.configure({
+  themes: { light: lightTheme, dark: darkTheme },
+  breakpoints,
+  settings: {
+    adaptiveThemes: true, // Automatically follows device color scheme
+  },
+})
+```

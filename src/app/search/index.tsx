@@ -1,14 +1,18 @@
 import { Text, View } from 'react-native'
 import { StyleSheet } from 'react-native-unistyles'
+import { observer } from '@legendapp/state/react'
+import { t } from '@/src/presentation/shared/i18n'
 
-export default function SearchScreen() {
+const SearchScreen = observer(() => {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Search</Text>
-      <Text style={styles.subtitle}>Discover movies, TV shows, and people</Text>
+      <Text style={styles.title}>{t('search.title')}</Text>
+      <Text style={styles.subtitle}>{t('search.subtitle')}</Text>
     </View>
   )
-}
+})
+
+export default SearchScreen
 
 const styles = StyleSheet.create((theme) => ({
   container: {

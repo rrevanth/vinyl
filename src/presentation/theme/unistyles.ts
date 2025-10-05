@@ -9,7 +9,7 @@
  */
 
 import { StyleSheet } from 'react-native-unistyles'
-import { lightTheme, darkTheme } from '../../domain/theme'
+import { darkTheme, lightTheme } from '../../domain/theme'
 
 /**
  * Responsive breakpoints for adaptive layouts
@@ -54,11 +54,13 @@ StyleSheet.configure({
   themes,
   breakpoints,
   settings: {
-    initialTheme: 'light',
+    // adaptiveThemes: true,
+    initialTheme: "light"
   },
 })
 
 /**
  * Export for app initialization
  */
-export { themes, breakpoints }
+export { breakpoints, themes }
+

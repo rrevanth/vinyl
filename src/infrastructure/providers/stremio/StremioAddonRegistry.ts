@@ -10,7 +10,7 @@ import { StremioProcessedAddonCache } from './cache/StremioProcessedAddonCache'
 import { StremioProvider } from './StremioProvider'
 import { StremioAddon } from '../../../domain/entities/StremioAddon'
 import type { UserInstalledAddon } from '../../../domain/preferences/StremioPreferences'
-import { stremioConfig$ } from '../../../presentation/shared/stores/user.store'
+import { stremioConfig$ } from '../../../presentation/shared/stores/app.store'
 import { InfrastructureError } from '../../errors/InfrastructureError'
 
 /**

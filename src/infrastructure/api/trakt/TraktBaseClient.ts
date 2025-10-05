@@ -1,7 +1,7 @@
 import { HttpClient } from '../../http/HttpClient'
 import type { ILoggingService } from '../../../domain/services/ILoggingService'
 import type { TraktConfigFactory, EffectiveTraktConfig } from '../../factories/TraktConfigFactory'
-import { traktConfig$, userPreferences$ } from '../../../presentation/shared/stores/user.store'
+import { traktConfig$, userPreferences$ } from '../../../presentation/shared/stores/app.store'
 import { NotFoundError, UnauthorizedError } from '../../../domain/errors'
 import { NetworkError } from '../../errors'
 import type {

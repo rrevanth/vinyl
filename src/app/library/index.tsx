@@ -1,15 +1,19 @@
 import { Text, View } from 'react-native'
 import { StyleSheet } from 'react-native-unistyles'
+import { observer } from '@legendapp/state/react'
+import { t } from '@/src/presentation/shared/i18n'
 
-export default function LibraryScreen() {
+const LibraryScreen = observer(() => {
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Library</Text>
+      <Text style={styles.text}>{t('library.title')}</Text>
     </View>
   )
-}
+})
 
-const styles = StyleSheet.create((theme, rt) => ({
+export default LibraryScreen
+
+const styles = StyleSheet.create((theme) => ({
   container: {
     flex: 1,
     justifyContent: 'center',

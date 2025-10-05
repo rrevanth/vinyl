@@ -11,7 +11,7 @@ import {
   userPreferences$,
   isAuthenticated$,
   hasTraktAuth$,
-} from '../../presentation/shared/stores/user.store'
+} from '../../presentation/shared/stores/app.store'
 
 export class UserService implements IUserService {
   async initializeUser(): Promise<void> {

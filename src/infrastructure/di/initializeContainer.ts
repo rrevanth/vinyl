@@ -3,8 +3,6 @@ import { container } from './Container'
 import { TOKENS } from './tokens'
 import { StorageService } from '../services/StorageService'
 import { LoggingService } from '../services/LoggingService'
-import { ThemeService } from '../services/ThemeService'
-import { I18nService } from '../services/I18nService'
 import { UserService } from '../services/UserService'
 import { EnvironmentService } from '../services/EnvironmentService'
 import { HttpClient } from '../http/HttpClient'
@@ -31,8 +29,6 @@ export function initializeContainer(): void {
   const logger = container.resolve<ILoggingService>(TOKENS.LoggingService)
   const environment = container.resolve<IEnvironmentService>(TOKENS.EnvironmentService)
 
-  container.register(TOKENS.ThemeService, () => new ThemeService(storage))
-  container.register(TOKENS.I18nService, () => new I18nService(storage))
   container.register(TOKENS.UserService, () => new UserService())
 
   // Register HTTP client (placeholder baseURL, update in your app)

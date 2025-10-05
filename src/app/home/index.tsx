@@ -1,18 +1,19 @@
 import { Text, View } from 'react-native'
 import { StyleSheet } from 'react-native-unistyles'
+import { observer } from '@legendapp/state/react'
+import { t } from '@/src/presentation/shared/i18n'
 
-export default function HomeScreen() {
+const HomeScreen = observer(() => {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Welcome to VNYL</Text>
-      <Text style={styles.subtitle}>Your complete media discovery platform</Text>
-      <Text style={styles.description}>
-        Powered by TMDB and Stremio - discover movies, TV shows, and streaming options all in one
-        place.
-      </Text>
+      <Text style={styles.title}>{t('home.title')}</Text>
+      <Text style={styles.subtitle}>{t('home.subtitle')}</Text>
+      <Text style={styles.description}>{t('home.description')}</Text>
     </View>
   )
-}
+})
+
+export default HomeScreen
 
 const styles = StyleSheet.create((theme) => ({
   container: {

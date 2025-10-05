@@ -1,7 +1,7 @@
 import { HttpClient } from '../../http/HttpClient'
 import type { ILoggingService } from '../../../domain/services/ILoggingService'
 import type { TMDBConfigFactory, EffectiveTMDBConfig } from '../../factories/TMDBConfigFactory'
-import { tmdbConfig$ } from '../../../presentation/shared/stores/user.store'
+import { tmdbConfig$ } from '../../../presentation/shared/stores/app.store'
 import { NotFoundError, UnauthorizedError } from '../../../domain/errors'
 import { NetworkError } from '../../errors'
 import type { TMDBImageSize } from './types'

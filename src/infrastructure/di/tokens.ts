@@ -3,8 +3,6 @@ export const TOKENS = {
   // Core services
   StorageService: Symbol('StorageService'),
   LoggingService: Symbol('LoggingService'),
-  ThemeService: Symbol('ThemeService'),
-  I18nService: Symbol('I18nService'),
   UserService: Symbol('UserService'),
   EnvironmentService: Symbol('EnvironmentService'),
 
