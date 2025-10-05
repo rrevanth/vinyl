@@ -18,46 +18,31 @@ const ThemedStack = withUnistyles(Stack, (theme) => ({
   },
 }))
 
-const SettingsLayout = observer(() => {
+const AccountsLayout = observer(() => {
   return (
     <ThemedStack>
       <Stack.Screen
         name="index"
         options={{
-          title: t('navigation.settings'),
+          title: t('settings.accounts.title'),
         }}
       />
       <Stack.Screen
-        name="appearance"
-        options={() => ({
-          title: t('settings.appearance.title'),
+        name="tmdb"
+        options={{
+          title: t('settings.accounts.tmdb.title'),
           headerLargeTitle: false,
-        })}
+        }}
       />
       <Stack.Screen
-        name="display"
-        options={() => ({
-          title: t('settings.display.title'),
+        name="trakt"
+        options={{
+          title: t('settings.accounts.trakt.title'),
           headerLargeTitle: false,
-        })}
-      />
-      <Stack.Screen
-        name="accounts"
-        options={() => ({
-          title: t('settings.accounts.title'),
-          headerLargeTitle: false,
-          headerShown: false,
-        })}
-      />
-      <Stack.Screen
-        name="about"
-        options={() => ({
-          title: t('settings.about.title'),
-          headerLargeTitle: false,
-        })}
+        }}
       />
     </ThemedStack>
   )
 })
 
-export default SettingsLayout
+export default AccountsLayout

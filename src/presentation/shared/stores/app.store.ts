@@ -11,6 +11,7 @@ import {
   addUserHelpers,
   createAnonymousUser,
 } from '../../../domain/entities'
+import type { SupportedLocale } from '../i18n/translations'
 
 // Configure global persistence settings
 configureObservablePersistence({
@@ -23,7 +24,7 @@ configureObservablePersistence({
 
 // Types
 export type ThemeMode = 'light' | 'dark' | 'system'
-export type SupportedLocale = 'en' | 'es' | 'fr' | 'de' | 'it' | 'pt' | 'ja' | 'zh' | 'ko'
+export type { SupportedLocale }
 
 // App-wide state interface
 interface AppState {
@@ -36,7 +37,7 @@ interface UserState {
 }
 
 // Constants
-const supportedLocales: SupportedLocale[] = ['en', 'es', 'fr', 'de', 'it', 'pt', 'ja', 'zh', 'ko']
+const supportedLocales: SupportedLocale[] = ['en', 'es']
 
 // Helpers
 const getDeviceLocale = (): SupportedLocale => {

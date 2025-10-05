@@ -1,0 +1,99 @@
+{
+  "navigation": {
+    "home": "Inicio",
+    "search": "Buscar",
+    "library": "Biblioteca",
+    "settings": "Configuración"
+  },
+  "home": {
+    "title": "Bienvenido a VNYL",
+    "subtitle": "Tu plataforma completa de descubrimiento de medios",
+    "description": "Impulsado por TMDB y Stremio: descubre películas, programas de TV y opciones de streaming en un solo lugar."
+  },
+  "search": {
+    "title": "Buscar",
+    "subtitle": "Descubre películas, programas de TV y personas"
+  },
+  "library": {
+    "title": "Biblioteca"
+  },
+  "settings": {
+    "title": "Configuración",
+    "appearance": {
+      "title": "Apariencia",
+      "theme": "Tema",
+      "theme_light": "Claro",
+      "theme_dark": "Oscuro",
+      "theme_system": "Sistema"
+    },
+    "display": {
+      "title": "Visualización",
+      "app_language": "Idioma de la App",
+      "grid_view_mode": "Modo de Vista en Cuadrícula",
+      "grid_compact": "Compacto",
+      "grid_comfortable": "Cómodo",
+      "grid_cozy": "Acogedor",
+      "autoplay_trailers": "Reproducir Tráilers Automáticamente"
+    },
+    "accounts": {
+      "title": "Cuentas",
+      "tmdb": {
+        "title": "TMDB",
+        "description": "Proveedor de base de datos de películas y TV",
+        "api_configuration": "Configuración de API",
+        "api_configuration_footer": "Configure su acceso a la API de TMDB y endpoints.",
+        "api_key": "Clave API",
+        "base_url": "URL Base",
+        "image_base_url": "URL Base de Imágenes",
+        "preferences": "Preferencias",
+        "preferences_footer": "Establezca su idioma y región preferidos para el contenido.",
+        "language": "Idioma",
+        "region": "Región",
+        "test_connection": "Probar Conexión",
+        "testing_connection": "Probando Conexión...",
+        "test_connection_description": "Verificar conectividad de API de TMDB",
+        "connection_success": "Conexión Exitosa",
+        "connection_success_message": "Conectado exitosamente a la API de TMDB.",
+        "connection_failed": "Conexión Fallida",
+        "connection_failed_message": "Falló la conexión a la API de TMDB. Por favor, verifique su configuración.",
+        "using_default_api_key": "Usando clave API predeterminada",
+        "using_custom_api_key": "Usando clave API personalizada",
+        "using_default": "Usando predeterminado: {value}",
+        "custom_api_key": "Clave API Personalizada",
+        "custom_base_url": "URL Base Personalizada",
+        "custom_image_base_url": "URL Base de Imágenes Personalizada",
+        "validate_and_save": "Validar y Guardar",
+        "validating": "Validando...",
+        "validation_success": "Configuración validada y guardada exitosamente",
+        "validation_error": "Validación fallida",
+        "unsaved_changes": "Tiene cambios sin guardar"
+      },
+      "trakt": {
+        "title": "Trakt",
+        "username": "Nombre de usuario",
+        "user_id": "ID de Usuario",
+        "account_info": "Cuenta",
+        "connect_title": "Conectar Trakt",
+        "connect_footer": "Inicie sesión con su cuenta de Trakt para sincronizar su historial de visualización y calificaciones",
+        "sign_in": "Iniciar sesión con Trakt",
+        "disconnect": "Desconectar",
+        "disconnect_description": "Cerrar sesión y eliminar cuenta de Trakt",
+        "disconnect_confirm_title": "¿Desconectar Trakt?",
+        "disconnect_confirm_message": "Esto eliminará su cuenta de Trakt de la aplicación. Puede reconectar en cualquier momento.",
+        "cancel": "Cancelar",
+        "disconnected": "Desconectado",
+        "disconnected_message": "Su cuenta de Trakt ha sido desconectada.",
+        "disconnect_failed": "Desconexión Fallida",
+        "connection_failed": "Conexión Fallida"
+      }
+    },
+    "about": {
+      "title": "Acerca de",
+      "version": "Versión",
+      "powered_by": "Impulsado por",
+      "clear_cache": "Limpiar Caché",
+      "cache_size": "Tamaño del Caché",
+      "attributions": "Atribuciones"
+    }
+  }
+}

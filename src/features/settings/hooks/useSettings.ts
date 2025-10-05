@@ -54,23 +54,9 @@ export const useSettings = () => {
     [setLocale]
   )
 
-  const setContentLanguage = useCallback(
-    (language: string) => {
-      userPreferences$.ui.contentLanguage.set(language)
-    },
-    [userPreferences$]
-  )
-
   const setGridViewMode = useCallback(
     (mode: 'compact' | 'comfortable' | 'cozy') => {
       userPreferences$.ui.gridViewMode.set(mode)
-    },
-    [userPreferences$]
-  )
-
-  const setShowAdultContent = useCallback(
-    (show: boolean) => {
-      userPreferences$.ui.showAdultContent.set(show)
     },
     [userPreferences$]
   )
@@ -112,9 +98,7 @@ export const useSettings = () => {
     // UI preferences
     userPreferences$,
     getUIPreferences,
-    setContentLanguage,
     setGridViewMode,
-    setShowAdultContent,
     setAutoplayTrailers,
 
     // Cache & app info

@@ -1,0 +1,99 @@
+{
+  "navigation": {
+    "home": "Home",
+    "search": "Search",
+    "library": "Library",
+    "settings": "Settings"
+  },
+  "home": {
+    "title": "Welcome to VNYL",
+    "subtitle": "Your complete media discovery platform",
+    "description": "Powered by TMDB and Stremio - discover movies, TV shows, and streaming options all in one place."
+  },
+  "search": {
+    "title": "Search",
+    "subtitle": "Discover movies, TV shows, and people"
+  },
+  "library": {
+    "title": "Library"
+  },
+  "settings": {
+    "title": "Settings",
+    "appearance": {
+      "title": "Appearance",
+      "theme": "Theme",
+      "theme_light": "Light",
+      "theme_dark": "Dark",
+      "theme_system": "System"
+    },
+    "display": {
+      "title": "Display",
+      "app_language": "App Language",
+      "grid_view_mode": "Grid View Mode",
+      "grid_compact": "Compact",
+      "grid_comfortable": "Comfortable",
+      "grid_cozy": "Cozy",
+      "autoplay_trailers": "Autoplay Trailers"
+    },
+    "accounts": {
+      "title": "Accounts",
+      "tmdb": {
+        "title": "TMDB",
+        "description": "Movie and TV database provider",
+        "api_configuration": "API Configuration",
+        "api_configuration_footer": "Configure your TMDB API access and endpoints.",
+        "api_key": "API Key",
+        "base_url": "Base URL",
+        "image_base_url": "Image Base URL",
+        "preferences": "Preferences",
+        "preferences_footer": "Set your preferred language and region for content.",
+        "language": "Language",
+        "region": "Region",
+        "test_connection": "Test Connection",
+        "testing_connection": "Testing Connection...",
+        "test_connection_description": "Verify TMDB API connectivity",
+        "connection_success": "Connection Successful",
+        "connection_success_message": "Successfully connected to TMDB API.",
+        "connection_failed": "Connection Failed",
+        "connection_failed_message": "Failed to connect to TMDB API. Please check your settings.",
+        "using_default_api_key": "Using default API key",
+        "using_custom_api_key": "Using custom API key",
+        "using_default": "Using default: {value}",
+        "custom_api_key": "Custom API Key",
+        "custom_base_url": "Custom Base URL",
+        "custom_image_base_url": "Custom Image Base URL",
+        "validate_and_save": "Validate & Save",
+        "validating": "Validating...",
+        "validation_success": "Settings validated and saved successfully",
+        "validation_error": "Validation failed",
+        "unsaved_changes": "You have unsaved changes"
+      },
+      "trakt": {
+        "title": "Trakt",
+        "username": "Username",
+        "user_id": "User ID",
+        "account_info": "Account",
+        "connect_title": "Connect Trakt",
+        "connect_footer": "Sign in with your Trakt account to sync your watch history and ratings",
+        "sign_in": "Sign in with Trakt",
+        "disconnect": "Disconnect",
+        "disconnect_description": "Sign out and remove Trakt account",
+        "disconnect_confirm_title": "Disconnect Trakt?",
+        "disconnect_confirm_message": "This will remove your Trakt account from the app. You can reconnect at any time.",
+        "cancel": "Cancel",
+        "disconnected": "Disconnected",
+        "disconnected_message": "Your Trakt account has been disconnected.",
+        "disconnect_failed": "Disconnect Failed",
+        "connection_failed": "Connection Failed"
+      }
+    },
+    "about": {
+      "title": "About",
+      "version": "Version",
+      "powered_by": "Powered by",
+      "clear_cache": "Clear Cache",
+      "cache_size": "Cache Size",
+      "attributions": "Attributions"
+    }
+  }
+}

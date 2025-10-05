@@ -8,8 +8,10 @@
  * Architecture: Presentation Layer (consumes Domain Theme)
  */
 
-import { StyleSheet } from 'react-native-unistyles'
+import { StyleSheet, UnistylesRuntime } from 'react-native-unistyles'
 import { darkTheme, lightTheme } from '../../domain/theme'
+import { userPreferences$ } from '../shared/stores/app.store'
+import type { GridLayoutConfig, GridViewMode } from '../../domain/theme'
 
 /**
  * Responsive breakpoints for adaptive layouts
@@ -63,4 +65,35 @@ StyleSheet.configure({
  * Export for app initialization
  */
 export { breakpoints, themes }
+
+/**
+ * Grid Layout Hook
+ * Provides reactive access to current grid layout configuration
+ * based on user preferences
+ *
+ * IMPORTANT: Components using this hook must be wrapped with `observer()`
+ * from '@legendapp/state/react' to make it reactive.
+ *
+ * @returns Current grid layout configuration
+ *
+ * @example
+ * ```tsx
+ * import { observer } from '@legendapp/state/react'
+ *
+ * export const MyComponent = observer(() => {
+ *   const gridLayout = useGridLayout()
+ *   console.log(gridLayout.columns) // 3 (for comfortable mode)
+ * })
+ * ```
+ */
+export const useGridLayout = (): GridLayoutConfig => {
+  // Get current grid mode from user preferences
+  // This is reactive when used within observer() wrapped components
+  const gridMode: GridViewMode = userPreferences$.ui.gridViewMode.get()
+
+  // Access the current theme from UnistylesRuntime
+  const currentTheme = UnistylesRuntime.themeName === 'dark' ? darkTheme : lightTheme
+  return currentTheme.gridLayout[gridMode]
+}
+
 

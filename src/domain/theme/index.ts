@@ -29,6 +29,12 @@ import {
   type LetterSpacing,
   type TypographyVariants,
 } from './typography';
+import {
+  gridLayout,
+  type GridViewMode,
+  type GridLayoutConfig,
+  type GridLayoutScale,
+} from './grid';
 
 /**
  * Complete theme structure
@@ -44,6 +50,7 @@ export type Theme = {
   lineHeight: LineHeight;
   letterSpacing: LetterSpacing;
   typography: TypographyVariants;
+  gridLayout: GridLayoutScale;
 };
 
 /**
@@ -61,6 +68,7 @@ export const lightTheme: Theme = {
   lineHeight,
   letterSpacing,
   typography,
+  gridLayout,
 };
 
 /**
@@ -78,6 +86,7 @@ export const darkTheme: Theme = {
   lineHeight,
   letterSpacing,
   typography,
+  gridLayout,
 };
 
 /**
@@ -110,6 +119,12 @@ export {
   type LineHeight,
   type LetterSpacing,
   type TypographyVariants,
+
+  // Grid Layout
+  gridLayout,
+  type GridViewMode,
+  type GridLayoutConfig,
+  type GridLayoutScale,
 };
 
 /**

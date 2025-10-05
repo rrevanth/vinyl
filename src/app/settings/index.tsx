@@ -15,6 +15,10 @@ const SettingsScreen = observer(() => {
     router.push('/settings/display')
   }
 
+  const navigateToAccounts = () => {
+    router.push('/settings/accounts')
+  }
+
   const navigateToAbout = () => {
     router.push('/settings/about')
   }
@@ -37,6 +41,12 @@ const SettingsScreen = observer(() => {
           title={t('settings.display.title')}
           description="Language, content, and layout options"
           onPress={navigateToDisplay}
+        />
+        <SettingsNavigationRow
+          iconName="person-circle-outline"
+          title={t('settings.accounts.title')}
+          description="Manage external service connections"
+          onPress={navigateToAccounts}
         />
         <SettingsNavigationRow
           iconName="information-circle-outline"
