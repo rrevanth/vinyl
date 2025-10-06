@@ -1,4 +1,7 @@
+export * from './AddonCard'
+export * from './AddonCatalogCard'
 export * from './BottomSheetPicker'
+export * from './CapabilityBadge'
 export * from './ConnectionStatus'
 export * from './ErrorBanner'
 export * from './SettingsConfigRow'

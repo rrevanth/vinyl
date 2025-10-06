@@ -102,6 +102,85 @@ interface Translations {
       cache_size: string
       attributions: string
     }
+    stremio: {
+      title: string
+      description: string
+      browse_addons: string
+      install_addon: string
+      addon_details: string
+      installed_addons: string
+      installed_addons_footer: string
+      no_addons_installed: string
+      actions: string
+      install_by_url: string
+      clear_cache: string
+      clear_cache_confirm_title: string
+      clear_cache_confirm_message: string
+      clear_cache_success: string
+      clear_cache_success_message: string
+      clear_cache_failed: string
+      clear_cache_failed_message: string
+      toggle_failed: string
+      toggle_failed_message: string
+      configure_unavailable: string
+      configure_unavailable_message: string
+      configure_info_title: string
+      configure_info_message: string
+      configure_and_install_message: string
+      configure_failed: string
+      configure_failed_message: string
+      uninstall_confirm_title: string
+      uninstall_confirm_message: string
+      uninstall_success: string
+      uninstall_success_message: string
+      uninstall_failed: string
+      uninstall_failed_message: string
+      cancel: string
+      uninstall: string
+      ok: string
+      search_addons: string
+      no_search_results: string
+      no_addons_found: string
+      browse_failed: string
+      browse_failed_message: string
+      filter_failed: string
+      filter_failed_message: string
+      install_success: string
+      install_success_message: string
+      install_failed: string
+      install_failed_message: string
+      manifest_url: string
+      manifest_url_footer: string
+      manifest_url_placeholder: string
+      manifest_url_required: string
+      validate_url: string
+      validation_error: string
+      validation_failed: string
+      validation_failed_message: string
+      invalid_manifest: string
+      addon_preview: string
+      capabilities: string
+      supported_types: string
+      id_prefixes: string
+      catalogs: string
+      configuration_required: string
+      configuration_required_footer: string
+      open_configuration: string
+      addon_not_found: string
+      go_back: string
+      enabled: string
+      disabled: string
+      information: string
+      description_label: string
+      configuration: string
+      configuration_footer: string
+      refresh_addon: string
+      uninstall_addon: string
+      refresh_success: string
+      refresh_success_message: string
+      refresh_failed: string
+      refresh_failed_message: string
+    }
   }
 }
 

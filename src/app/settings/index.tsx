@@ -19,6 +19,10 @@ const SettingsScreen = observer(() => {
     router.push('/settings/accounts')
   }
 
+  const navigateToStremio = () => {
+    router.push('/settings/stremio')
+  }
+
   const navigateToAbout = () => {
     router.push('/settings/about')
   }
@@ -47,6 +51,12 @@ const SettingsScreen = observer(() => {
           title={t('settings.accounts.title')}
           description="Manage external service connections"
           onPress={navigateToAccounts}
+        />
+        <SettingsNavigationRow
+          iconName="extension-puzzle-outline"
+          title={t('settings.stremio.title')}
+          description={t('settings.stremio.description')}
+          onPress={navigateToStremio}
         />
         <SettingsNavigationRow
           iconName="information-circle-outline"
