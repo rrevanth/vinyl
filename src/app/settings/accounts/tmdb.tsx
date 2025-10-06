@@ -96,32 +96,6 @@ const TMDBSettingsScreen = observer(() => {
     checkConnection()
   }, [config, validateConnection])
 
-  // Check if there are unsaved changes
-  const hasUnsavedChanges = (): boolean => {
-    const apiKeyChanged =
-      (pendingChanges$.apiKey.isCustom.get() &&
-        pendingChanges$.apiKey.value.get() !== config.apiKey) ||
-      (!pendingChanges$.apiKey.isCustom.get() && config.apiKey !== '')
-
-    const baseURLChanged =
-      (pendingChanges$.baseURL.isCustom.get() &&
-        pendingChanges$.baseURL.value.get() !== config.baseURL) ||
-      (!pendingChanges$.baseURL.isCustom.get() && config.baseURL !== DEFAULT_BASE_URL)
-
-    const imageBaseURLChanged =
-      (pendingChanges$.imageBaseURL.isCustom.get() &&
-        pendingChanges$.imageBaseURL.value.get() !== config.imageBaseURL) ||
-      (!pendingChanges$.imageBaseURL.isCustom.get() &&
-        config.imageBaseURL !== DEFAULT_IMAGE_BASE_URL)
-
-    const languageChanged = pendingChanges$.language.get() !== config.language
-    const regionChanged = pendingChanges$.region.get() !== config.region
-
-    return (
-      apiKeyChanged || baseURLChanged || imageBaseURLChanged || languageChanged || regionChanged
-    )
-  }
-
   const handleValidateAndSave = async () => {
     isValidating$.set(true)
 
@@ -163,7 +137,6 @@ const TMDBSettingsScreen = observer(() => {
 
   const connectionStatus = connectionStatus$.get()
   const connectionMessage = connectionMessage$.get()
-  const showSaveButton = hasUnsavedChanges()
   const isValidating = isValidating$.get()
 
   return (
@@ -252,28 +225,26 @@ const TMDBSettingsScreen = observer(() => {
         />
       </SettingsSection>
 
-      {showSaveButton && (
-        <SettingsSection>
-          <Pressable
-            style={({ pressed }) => [
-              styles.validateButton,
-              pressed && styles.validateButtonPressed,
-              isValidating && styles.validateButtonDisabled,
-            ]}
-            onPress={handleValidateAndSave}
-            disabled={isValidating}
-            accessibilityRole="button"
-            accessibilityLabel={t('settings.accounts.tmdb.validate_and_save')}
-            accessibilityState={{ disabled: isValidating }}
-          >
-            <Text style={styles.validateButtonText}>
-              {isValidating
-                ? t('settings.accounts.tmdb.validating')
-                : t('settings.accounts.tmdb.validate_and_save')}
-            </Text>
-          </Pressable>
-        </SettingsSection>
-      )}
+      <SettingsSection>
+        <Pressable
+          style={({ pressed }) => [
+            styles.validateButton,
+            pressed && styles.validateButtonPressed,
+            isValidating && styles.validateButtonDisabled,
+          ]}
+          onPress={handleValidateAndSave}
+          disabled={isValidating}
+          accessibilityRole="button"
+          accessibilityLabel={t('settings.accounts.tmdb.validate_and_save')}
+          accessibilityState={{ disabled: isValidating }}
+        >
+          <Text style={styles.validateButtonText}>
+            {isValidating
+              ? t('settings.accounts.tmdb.validating')
+              : t('settings.accounts.tmdb.validate_and_save')}
+          </Text>
+        </Pressable>
+      </SettingsSection>
     </ScrollView>
   )
 })

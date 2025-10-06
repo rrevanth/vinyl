@@ -5,6 +5,32 @@ import { userState$ } from '@/src/presentation/shared/stores/app.store'
 import { DomainError } from '@/src/domain/errors'
 
 /**
+ * Result type for authentication operations
+ */
+export interface AuthResult {
+  success: boolean
+  error?: string
+  account?: TraktAccount
+}
+
+/**
+ * Result type for disconnect operations
+ */
+export interface DisconnectResult {
+  success: boolean
+  error?: string
+}
+
+/**
+ * Result type for token refresh operations
+ */
+export interface TokenRefreshResult {
+  success: boolean
+  error?: string
+  account?: TraktAccount
+}
+
+/**
  * Simplified use case for Trakt account OAuth management
  */
 export class TraktAccountUseCase {
@@ -31,8 +57,9 @@ export class TraktAccountUseCase {
   /**
    * Handle OAuth callback by exchanging authorization code for access token
    * Updates userState$ with Trakt account information
+   * Returns AuthResult instead of throwing errors
    */
-  async handleCallback(code: string, state?: string): Promise<void> {
+  async handleCallback(code: string, state?: string): Promise<AuthResult> {
     try {
       this.logger.info('Handling Trakt OAuth callback', { hasState: Boolean(state) })
 
@@ -43,7 +70,9 @@ export class TraktAccountUseCase {
       const profile = await this.traktClient.validateAuthentication()
 
       if (!profile) {
-        throw new DomainError('Failed to retrieve user profile after authentication')
+        const errorMsg = 'Failed to retrieve user profile after authentication'
+        this.logger.error(errorMsg, new Error(errorMsg))
+        return { success: false, error: errorMsg }
       }
 
       // Create Trakt account from response
@@ -73,18 +102,20 @@ export class TraktAccountUseCase {
         username: traktAccount.username,
         userId: traktAccount.userId,
       })
+
+      return { success: true, account: traktAccount }
     } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error'
       this.logger.error('Failed to handle Trakt OAuth callback', error as Error, { code, state })
-      throw new DomainError(
-        `OAuth callback failed: ${error instanceof Error ? error.message : 'Unknown error'}`
-      )
+      return { success: false, error: `OAuth callback failed: ${errorMsg}` }
     }
   }
 
   /**
    * Disconnect Trakt account by revoking token and clearing account data
+   * Returns DisconnectResult instead of throwing errors
    */
-  async disconnectAccount(): Promise<void> {
+  async disconnectAccount(): Promise<DisconnectResult> {
     try {
       // Revoke token with Trakt API
       await this.traktClient.revokeToken()
@@ -106,11 +137,11 @@ export class TraktAccountUseCase {
       userState$.currentUser.set(updatedUser)
 
       this.logger.info('Trakt account disconnected successfully')
+      return { success: true }
     } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error'
       this.logger.error('Failed to disconnect Trakt account', error as Error)
-      throw new DomainError(
-        `Disconnect failed: ${error instanceof Error ? error.message : 'Unknown error'}`
-      )
+      return { success: false, error: `Disconnect failed: ${errorMsg}` }
     }
   }
 
@@ -137,9 +168,9 @@ export class TraktAccountUseCase {
 
   /**
    * Refresh Trakt access token using refresh token
-   * Returns updated account with new tokens
+   * Returns TokenRefreshResult instead of throwing errors
    */
-  async refreshAccessToken(account: TraktAccount): Promise<TraktAccount> {
+  async refreshAccessToken(account: TraktAccount): Promise<TokenRefreshResult> {
     try {
       this.logger.info('Refreshing Trakt access token', { userId: account.userId })
 
@@ -148,7 +179,9 @@ export class TraktAccountUseCase {
       const profile = await this.traktClient.validateAuthentication()
 
       if (!profile) {
-        throw new DomainError('Failed to validate authentication after token refresh')
+        const errorMsg = 'Failed to validate authentication after token refresh'
+        this.logger.error(errorMsg, new Error(errorMsg), { userId: account.userId })
+        return { success: false, error: errorMsg }
       }
 
       // Get the updated configuration with new tokens from userPreferences$
@@ -157,19 +190,20 @@ export class TraktAccountUseCase {
       const currentAccount = currentUser.account?.trakt
 
       if (!currentAccount) {
-        throw new DomainError('Trakt account not found after refresh')
+        const errorMsg = 'Trakt account not found after refresh'
+        this.logger.error(errorMsg, new Error(errorMsg), { userId: account.userId })
+        return { success: false, error: errorMsg }
       }
 
       this.logger.info('Trakt access token refreshed successfully')
 
-      return currentAccount
+      return { success: true, account: currentAccount }
     } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error'
       this.logger.error('Failed to refresh Trakt access token', error as Error, {
         userId: account.userId,
       })
-      throw new DomainError(
-        `Token refresh failed: ${error instanceof Error ? error.message : 'Unknown error'}`
-      )
+      return { success: false, error: `Token refresh failed: ${errorMsg}` }
     }
   }
 

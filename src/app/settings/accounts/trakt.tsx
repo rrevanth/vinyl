@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { ScrollView, Pressable, Text, View, Alert, ActivityIndicator } from 'react-native'
 import { StyleSheet, UnistylesRuntime } from 'react-native-unistyles'
 import { observer } from '@legendapp/state/react'
@@ -5,14 +6,22 @@ import { Ionicons } from '@expo/vector-icons'
 import { SettingsSection } from '@/src/features/settings/components/atoms/SettingsSection'
 import { SettingsInfoRow } from '@/src/features/settings/components/atoms/SettingsInfoRow'
 import { SettingsNavigationRow } from '@/src/features/settings/components/atoms/SettingsNavigationRow'
+import { ConnectionStatus } from '@/src/features/settings/components/atoms/ConnectionStatus'
+import { ErrorBanner } from '@/src/features/settings/components/atoms/ErrorBanner'
 import { useTraktAccount } from '@/src/features/settings/hooks/useTraktAccount'
 import { t } from '@/src/presentation/shared/i18n'
 
 const TraktAccountScreen = observer(() => {
   const { isConnected, account, isLoading, error, startOAuthFlow, disconnect } = useTraktAccount()
+  const [dismissedError, setDismissedError] = useState(false)
 
   const handleConnect = async () => {
+    setDismissedError(false)
     await startOAuthFlow()
+  }
+
+  const handleDismissError = () => {
+    setDismissedError(true)
   }
 
   const handleDisconnect = () => {
@@ -55,23 +64,27 @@ const TraktAccountScreen = observer(() => {
   }
 
   if (!isConnected) {
+    const shouldShowError = error && !dismissedError
+
     return (
       <ScrollView
         style={styles.container}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
+        {shouldShowError && (
+          <ErrorBanner
+            message={error}
+            onDismiss={handleDismissError}
+            onRetry={handleConnect}
+            retryLabel={t('settings.accounts.trakt.retry_oauth')}
+          />
+        )}
+
         <SettingsSection
           title={t('settings.accounts.trakt.connect_title')}
           footer={t('settings.accounts.trakt.connect_footer')}
         >
-          {/* Show error state if OAuth failed */}
-          {error && (
-            <View style={styles.errorContainer}>
-              <Text style={styles.errorText}>{error}</Text>
-            </View>
-          )}
-
           <Pressable
             style={({ pressed }) => [
               styles.connectButton,
@@ -110,6 +123,11 @@ const TraktAccountScreen = observer(() => {
       contentContainerStyle={styles.content}
       showsVerticalScrollIndicator={false}
     >
+      <ConnectionStatus
+        status="connected"
+        message={account?.username ? `@${account.username}` : undefined}
+      />
+
       <SettingsSection title={t('settings.accounts.trakt.account_info')}>
         <SettingsInfoRow
           title={t('settings.accounts.trakt.username')}
@@ -170,17 +188,5 @@ const styles = StyleSheet.create((theme) => ({
     fontSize: theme.fontSize.base,
     fontWeight: theme.fontWeight.medium,
     color: theme.colors.primary,
-  },
-  errorContainer: {
-    backgroundColor: theme.colors.error,
-    borderRadius: theme.borderRadius.md,
-    padding: theme.spacing.md,
-    marginBottom: theme.spacing.md,
-    marginHorizontal: theme.spacing.lg,
-  },
-  errorText: {
-    color: '#FFFFFF',
-    fontSize: theme.fontSize.sm,
-    lineHeight: 20,
   },
 }))

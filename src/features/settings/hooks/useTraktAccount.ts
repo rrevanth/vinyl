@@ -85,13 +85,13 @@ export const useTraktAccount = () => {
       })
 
       // Open browser for OAuth flow
-      const result = await WebBrowser.openAuthSessionAsync(authUrl, redirectUri)
+      const browserResult = await WebBrowser.openAuthSessionAsync(authUrl, redirectUri)
 
-      logger.info('WebBrowser result', { type: result.type })
+      logger.info('WebBrowser result', { type: browserResult.type })
 
-      if (result.type === 'success' && result.url) {
+      if (browserResult.type === 'success' && browserResult.url) {
         // Parse authorization code and state from redirect URL
-        const url = new URL(result.url)
+        const url = new URL(browserResult.url)
         const code = url.searchParams.get('code')
         const returnedState = url.searchParams.get('state')
 
@@ -107,11 +107,15 @@ export const useTraktAccount = () => {
         logger.info('OAuth authorization successful, exchanging code for token')
 
         // Handle callback and exchange code for token
-        await traktUseCase.handleCallback(code, returnedState)
+        const result = await traktUseCase.handleCallback(code, returnedState)
+
+        if (!result.success) {
+          throw new Error(result.error || 'Failed to connect Trakt account')
+        }
 
         logger.info('Trakt account connected successfully')
         clearOAuthState()
-      } else if (result.type === 'cancel') {
+      } else if (browserResult.type === 'cancel') {
         logger.info('OAuth flow cancelled by user')
         setError('Authentication cancelled')
         clearOAuthState()
@@ -148,7 +152,11 @@ export const useTraktAccount = () => {
         logger.info('OAuth authorization successful, exchanging code for token')
 
         // Handle callback and exchange code for token
-        await traktUseCase.handleCallback(code, state)
+        const result = await traktUseCase.handleCallback(code, state)
+
+        if (!result.success) {
+          throw new Error(result.error || 'Failed to connect Trakt account')
+        }
 
         logger.info('Trakt account connected successfully')
         clearOAuthState()
@@ -174,7 +182,11 @@ export const useTraktAccount = () => {
       setIsLoading(true)
       logger.info('Disconnecting Trakt account')
 
-      await traktUseCase.disconnectAccount()
+      const result = await traktUseCase.disconnectAccount()
+
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to disconnect Trakt account')
+      }
 
       logger.info('Trakt account disconnected successfully')
       clearOAuthState()
@@ -210,7 +222,13 @@ export const useTraktAccount = () => {
 
       if (traktUseCase.isTokenExpired(account)) {
         logger.info('Trakt token expired, refreshing')
-        return await traktUseCase.refreshAccessToken(account)
+        const result = await traktUseCase.refreshAccessToken(account)
+
+        if (!result.success) {
+          throw new Error(result.error || 'Failed to refresh token')
+        }
+
+        return result.account!
       }
 
       return account
