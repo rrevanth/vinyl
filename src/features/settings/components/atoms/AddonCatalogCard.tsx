@@ -1,8 +1,9 @@
-import { useState } from 'react'
-import { Pressable, Text, View, ScrollView, Image, ActivityIndicator } from 'react-native'
-import { StyleSheet } from 'react-native-unistyles'
-import { observer } from '@legendapp/state/react'
 import type { StremioAddon } from '@/src/domain/entities/StremioAddon'
+import { observer } from '@legendapp/state/react'
+import { Image } from 'expo-image'
+import { useState } from 'react'
+import { ActivityIndicator, Pressable, ScrollView, Switch, Text, View } from 'react-native'
+import { StyleSheet } from 'react-native-unistyles'
 import { CapabilityBadge } from './CapabilityBadge'
 
 interface AddonCatalogCardProps {
@@ -10,6 +11,9 @@ interface AddonCatalogCardProps {
   isInstalled: boolean
   onInstall: (manifestUrl: string) => Promise<void>
   onUninstall: (addonId: string) => Promise<void>
+  onConfigure: (configureUrl: string) => void
+  onToggle?: (addonId: string, enabled: boolean) => void
+  showToggle?: boolean
   onPress?: () => void
 }
 
@@ -17,7 +21,7 @@ interface AddonCatalogCardProps {
  * Card component for browsing/discovering Stremio addons in the catalog
  */
 export const AddonCatalogCard = observer<AddonCatalogCardProps>(
-  ({ addon, isInstalled, onInstall, onUninstall, onPress }) => {
+  ({ addon, isInstalled, onInstall, onUninstall, onConfigure, onToggle, showToggle, onPress }) => {
     const [isLoading, setIsLoading] = useState(false)
 
     const handleAction = async () => {
@@ -35,6 +39,24 @@ export const AddonCatalogCard = observer<AddonCatalogCardProps>(
       }
     }
 
+    const handleConfigure = () => {
+      // Build configure URL by replacing manifest.json with configure
+      let configureUrl = addon.transportUrl
+      if (configureUrl.endsWith('/manifest.json')) {
+        configureUrl = configureUrl.replace(/\/manifest\.json$/, '/configure')
+      } else if (configureUrl.endsWith('.json')) {
+        configureUrl = configureUrl.replace(/\.json$/, '/configure')
+      } else {
+        configureUrl = `${configureUrl}/configure`
+      }
+      onConfigure(configureUrl)
+    }
+
+    // Button visibility logic
+    const showConfigureButton = addon.isConfigurable
+    const showUninstallButton = isInstalled
+    const showInstallButton = !isInstalled && !addon.configurationRequired
+
     return (
       <Pressable
         style={({ pressed }) => [styles.container, pressed && onPress && styles.pressed]}
@@ -47,17 +69,24 @@ export const AddonCatalogCard = observer<AddonCatalogCardProps>(
         {/* Top Row: Logo + Name */}
         <View style={styles.topRow}>
           {addon.logo ? (
-            <Image source={{ uri: addon.logo }} style={styles.logo} resizeMode="contain" />
+            <Image
+              source={{ uri: addon.logo }}
+              style={styles.logo}
+              contentFit="contain"
+              transition={200}
+            />
           ) : (
             <View style={styles.logoPlaceholder}>
-              <Text style={styles.logoPlaceholderText}>{addon.name.charAt(0).toUpperCase()}</Text>
+              <Text style={styles.logoPlaceholderText}>
+                {addon.name?.charAt(0)?.toUpperCase() || '?'}
+              </Text>
             </View>
           )}
           <View style={styles.nameContainer}>
             <Text style={styles.name} numberOfLines={1}>
-              {addon.name}
+              {addon.name || 'Unknown Addon'}
             </Text>
-            <Text style={styles.version}>v{addon.version}</Text>
+            <Text style={styles.version}>v{addon.version || '1.0.0'}</Text>
           </View>
         </View>
 
@@ -82,32 +111,81 @@ export const AddonCatalogCard = observer<AddonCatalogCardProps>(
           </ScrollView>
         )}
 
-        {/* Install/Uninstall Button */}
-        <Pressable
-          style={({ pressed }) => [
-            styles.actionButton,
-            isInstalled ? styles.uninstallButton : styles.installButton,
-            pressed && styles.actionButtonPressed,
-            isLoading && styles.actionButtonDisabled,
-          ]}
-          onPress={handleAction}
-          disabled={isLoading}
-          accessibilityRole="button"
-          accessibilityLabel={`${isInstalled ? 'Uninstall' : 'Install'} ${addon.name}`}
-        >
-          {isLoading ? (
-            <ActivityIndicator size="small" color="#FFFFFF" />
-          ) : (
-            <Text style={isInstalled ? styles.uninstallButtonText : styles.installButtonText}>
-              {isInstalled ? 'Uninstall' : 'Install'}
-            </Text>
+        {/* Action Buttons */}
+        <View style={styles.buttonRow}>
+          {showConfigureButton && (
+            <Pressable
+              style={({ pressed }) => [
+                styles.actionButton,
+                styles.configureButton,
+                (showUninstallButton || showInstallButton) ? styles.halfButton : styles.fullButton,
+                pressed && styles.actionButtonPressed,
+              ]}
+              onPress={handleConfigure}
+              accessibilityRole="button"
+              accessibilityLabel={`Configure ${addon.name}`}
+            >
+              <Text style={styles.configureButtonText}>Configure</Text>
+            </Pressable>
           )}
-        </Pressable>
+          {showUninstallButton && (
+            <Pressable
+              style={({ pressed }) => [
+                styles.actionButton,
+                styles.uninstallButton,
+                showConfigureButton ? styles.halfButton : styles.fullButton,
+                pressed && styles.actionButtonPressed,
+                isLoading && styles.actionButtonDisabled,
+              ]}
+              onPress={handleAction}
+              disabled={isLoading}
+              accessibilityRole="button"
+              accessibilityLabel={`Uninstall ${addon.name}`}
+            >
+              {isLoading ? (
+                <ActivityIndicator size="small" color={styles.buttonTextColor.color} />
+              ) : (
+                <Text style={styles.uninstallButtonText}>Uninstall</Text>
+              )}
+            </Pressable>
+          )}
+          {showInstallButton && (
+            <Pressable
+              style={({ pressed }) => [
+                styles.actionButton,
+                styles.installButton,
+                showConfigureButton ? styles.halfButton : styles.fullButton,
+                pressed && styles.actionButtonPressed,
+                isLoading && styles.actionButtonDisabled,
+              ]}
+              onPress={handleAction}
+              disabled={isLoading}
+              accessibilityRole="button"
+              accessibilityLabel={`Install ${addon.name}`}
+            >
+              {isLoading ? (
+                <ActivityIndicator size="small" color={styles.buttonTextColor.color} />
+              ) : (
+                <Text style={styles.installButtonText}>Install</Text>
+              )}
+            </Pressable>
+          )}
+        </View>
 
-        {/* Optional indicators */}
-        {addon.isConfigurable && (
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>Configurable</Text>
+        {/* Toggle Switch Row (when installed and showToggle is true) */}
+        {isInstalled && showToggle && onToggle && (
+          <View style={styles.toggleRow}>
+            <Text style={styles.toggleLabel}>
+              {addon.isEnabled ? 'Enabled' : 'Disabled'}
+            </Text>
+            <Switch
+              value={addon.isEnabled}
+              onValueChange={(value) => onToggle(addon.id, value)}
+              trackColor={{ false: '#767577', true: '#81b0ff' }}
+              thumbColor={addon.isEnabled ? '#007AFF' : '#f4f3f4'}
+              accessibilityRole="switch"
+              accessibilityLabel={addon.isEnabled ? 'Disable addon' : 'Enable addon'}
+            />
           </View>
         )}
       </Pressable>
@@ -124,7 +202,7 @@ const styles = StyleSheet.create((theme) => ({
     marginBottom: theme.spacing.md,
     borderWidth: 1,
     borderColor: theme.colors.border,
-    shadowColor: '#000',
+    shadowColor: theme.colors.text,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
@@ -185,6 +263,17 @@ const styles = StyleSheet.create((theme) => ({
     gap: theme.spacing.xs,
     paddingRight: theme.spacing.md,
   },
+  buttonRow: {
+    flexDirection: 'row',
+    gap: theme.spacing.sm,
+    width: '100%',
+  },
+  halfButton: {
+    flex: 1,
+  },
+  fullButton: {
+    flex: 1,
+  },
   actionButton: {
     paddingVertical: theme.spacing.md,
     paddingHorizontal: theme.spacing.lg,
@@ -200,34 +289,43 @@ const styles = StyleSheet.create((theme) => ({
     opacity: 0.5,
   },
   installButton: {
-    backgroundColor: '#5B21B6', // Primary purple
+    backgroundColor: theme.colors.primary,
   },
   installButtonText: {
     fontSize: theme.fontSize.base,
     fontWeight: theme.fontWeight.semibold,
-    color: '#FFFFFF',
+    color: theme.colors.text,
   },
   uninstallButton: {
-    backgroundColor: '#DC2626', // Destructive red
+    backgroundColor: theme.colors.error,
   },
   uninstallButtonText: {
     fontSize: theme.fontSize.base,
     fontWeight: theme.fontWeight.semibold,
-    color: '#FFFFFF',
+    color: theme.colors.text,
   },
-  badge: {
-    position: 'absolute',
-    top: theme.spacing.md,
-    right: theme.spacing.md,
-    backgroundColor: theme.colors.surfaceElevated,
-    borderRadius: theme.borderRadius.sm,
-    paddingHorizontal: theme.spacing.xs,
-    paddingVertical: 2,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
+  configureButton: {
+    backgroundColor: theme.colors.warning,
   },
-  badgeText: {
-    fontSize: theme.fontSize.xs,
+  configureButtonText: {
+    fontSize: theme.fontSize.base,
+    fontWeight: theme.fontWeight.semibold,
+    color: theme.colors.text,
+  },
+  buttonTextColor: {
+    color: theme.colors.text,
+  },
+  toggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: theme.spacing.sm,
+    paddingTop: theme.spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.border,
+  },
+  toggleLabel: {
+    fontSize: theme.fontSize.sm,
     fontWeight: theme.fontWeight.medium,
     color: theme.colors.textSecondary,
   },

@@ -16,6 +16,9 @@ export interface StremioManifest {
   // Content catalogs
   catalogs: StremioCatalog[]
 
+  // Addon catalogs (for addon_catalog resource)
+  addonCatalogs?: StremioAddonCatalog[]
+
   // Optional metadata
   logo?: string
   background?: string
@@ -51,6 +54,16 @@ export interface StremioCatalog {
   name: string
   extra?: StremioExtra[]
   genres?: string[]
+}
+
+/**
+ * Addon catalog definition in manifest
+ * Defines available addon catalog endpoints for addon_catalog resource
+ */
+export interface StremioAddonCatalog {
+  type: string // 'all', 'movie', 'series', 'channel', 'tv', etc.
+  id: string // 'official', 'community', etc.
+  name: string // 'Official', 'Community', etc.
 }
 
 /**

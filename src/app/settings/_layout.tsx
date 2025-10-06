@@ -42,18 +42,58 @@ const SettingsLayout = observer(() => {
         })}
       />
       <Stack.Screen
-        name="accounts"
+        name="accounts/index"
         options={() => ({
           title: t('settings.accounts.title'),
           headerLargeTitle: false,
-          headerShown: false,
+        })}
+      />
+      <Stack.Screen
+        name="accounts/tmdb"
+        options={() => ({
+          title: t('settings.accounts.tmdb.title'),
+          headerLargeTitle: false,
+        })}
+      />
+      <Stack.Screen
+        name="accounts/trakt"
+        options={() => ({
+          title: t('settings.accounts.trakt.title'),
+          headerLargeTitle: false,
+        })}
+      />
+      <Stack.Screen
+        name="stremio/index"
+        options={() => ({
+          title: t('settings.stremio.title'),
+          headerLargeTitle: false,
+        })}
+      />
+      <Stack.Screen
+        name="stremio/browse"
+        options={() => ({
+          title: t('settings.stremio.browse_addons'),
+          headerLargeTitle: false,
+        })}
+      />
+      <Stack.Screen
+        name="stremio/install"
+        options={() => ({
+          title: t('settings.stremio.install_addon'),
+          headerLargeTitle: false,
+        })}
+      />
+      <Stack.Screen
+        name="stremio/addon/[addonId]"
+        options={() => ({
+          title: t('settings.stremio.addon_details'),
+          headerLargeTitle: false,
         })}
       />
       <Stack.Screen
         name="about"
         options={() => ({
-          title: t('settings.about.title'),
-          headerLargeTitle: false,
+          headerShown: false
         })}
       />
     </ThemedStack>

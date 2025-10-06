@@ -1,11 +1,11 @@
-import { ScrollView, Pressable, Text, View, Image, Alert, ActivityIndicator } from 'react-native'
+import { ScrollView, Pressable, Text, View, Image, Alert, ActivityIndicator, Switch } from 'react-native'
 import { StyleSheet } from 'react-native-unistyles'
 import { observer } from '@legendapp/state/react'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import * as WebBrowser from 'expo-web-browser'
+import { Ionicons } from '@expo/vector-icons'
 import { SettingsSection } from '@/src/features/settings/components/atoms/SettingsSection'
 import { CapabilityBadge } from '@/src/features/settings/components/atoms/CapabilityBadge'
-import { ToggleSwitch } from '@/src/features/settings/components/atoms/ToggleSwitch'
 import { useStremioAddons } from '@/src/features/settings/hooks/useStremioAddons'
 import { t } from '@/src/presentation/shared/i18n'
 
@@ -136,8 +136,8 @@ const AddonDetailsScreen = observer(() => {
       contentContainerStyle={styles.content}
       showsVerticalScrollIndicator={false}
     >
-      {/* Header Section */}
-      <View style={styles.header}>
+      {/* Hero Section */}
+      <View style={styles.hero}>
         {addon.logo ? (
           <Image source={{ uri: addon.logo }} style={styles.logo} resizeMode="contain" />
         ) : (
@@ -156,21 +156,71 @@ const AddonDetailsScreen = observer(() => {
           {isLoading ? (
             <ActivityIndicator size="small" />
           ) : (
-            <ToggleSwitch
+            <Switch
               value={addon.isEnabled}
               onValueChange={handleToggle}
-              accessibilityLabel={`${addon.isEnabled ? 'Disable' : 'Enable'} ${addon.name}`}
+              accessibilityLabel={`${addon.isEnabled ? t('settings.stremio.disable') : t('settings.stremio.enable')} ${addon.name}`}
             />
           )}
         </View>
       </View>
 
+      {/* Sticky Action Bar */}
+      <View style={styles.actionBar}>
+        <Pressable
+          style={({ pressed }) => [
+            styles.actionButton,
+            pressed && styles.buttonPressed,
+            isLoading && styles.buttonDisabled,
+          ]}
+          onPress={handleRefresh}
+          disabled={isLoading}
+          accessibilityRole="button"
+          accessibilityLabel={t('settings.stremio.refresh_manifest')}
+        >
+          <Ionicons name="refresh-outline" size={24} style={styles.actionIcon} />
+          <Text style={styles.actionButtonText}>{t('settings.stremio.refresh_manifest')}</Text>
+        </Pressable>
+
+        <Pressable
+          style={({ pressed }) => [
+            styles.actionButton,
+            styles.destructiveButton,
+            pressed && styles.buttonPressed,
+            isLoading && styles.buttonDisabled,
+          ]}
+          onPress={handleUninstall}
+          disabled={isLoading}
+          accessibilityRole="button"
+          accessibilityLabel={t('settings.stremio.uninstall')}
+        >
+          <Ionicons name="trash-outline" size={24} style={styles.destructiveIcon} />
+          <Text style={styles.destructiveButtonText}>{t('settings.stremio.uninstall')}</Text>
+        </Pressable>
+      </View>
+
+      {/* Show addon catalogs this addon provides */}
+      {addon.manifest.addonCatalogs && addon.manifest.addonCatalogs.length > 0 && (
+        <SettingsSection title={t('settings.stremio.provides_catalogs')}>
+          <View style={styles.catalogsList}>
+            {addon.manifest.addonCatalogs.map((cat) => (
+              <View key={`${cat.type}-${cat.id}`} style={styles.catalogItem}>
+                <Text style={styles.catalogName}>{cat.name}</Text>
+                <Text style={styles.catalogType}>({cat.type})</Text>
+              </View>
+            ))}
+          </View>
+        </SettingsSection>
+      )}
+
       {/* Capabilities Section */}
       {addon.capabilities.length > 0 && (
         <SettingsSection title={t('settings.stremio.capabilities')}>
-          <View style={styles.badgesContainer}>
+          <View style={styles.capabilitiesGrid}>
             {addon.capabilities.map((capability) => (
-              <CapabilityBadge key={capability} capability={capability} size="md" />
+              <View key={capability} style={styles.capabilityItem}>
+                <CapabilityBadge capability={capability} size="md" />
+              </View>
             ))}
           </View>
         </SettingsSection>
@@ -230,41 +280,6 @@ const AddonDetailsScreen = observer(() => {
           </Pressable>
         </SettingsSection>
       )}
-
-      {/* Actions Section */}
-      <SettingsSection title={t('settings.stremio.actions')}>
-        <Pressable
-          style={({ pressed }) => [
-            styles.actionButton,
-            pressed && styles.buttonPressed,
-            isLoading && styles.buttonDisabled,
-          ]}
-          onPress={handleRefresh}
-          disabled={isLoading}
-          accessibilityRole="button"
-          accessibilityLabel={t('settings.stremio.refresh_addon')}
-          accessibilityState={{ disabled: isLoading }}
-        >
-          <Text style={styles.actionButtonText}>{t('settings.stremio.refresh_addon')}</Text>
-        </Pressable>
-
-        <Pressable
-          style={({ pressed }) => [
-            styles.actionButton,
-            styles.destructiveButton,
-            styles.actionButtonBorder,
-            pressed && styles.buttonPressed,
-            isLoading && styles.buttonDisabled,
-          ]}
-          onPress={handleUninstall}
-          disabled={isLoading}
-          accessibilityRole="button"
-          accessibilityLabel={t('settings.stremio.uninstall_addon')}
-          accessibilityState={{ disabled: isLoading }}
-        >
-          <Text style={styles.destructiveButtonText}>{t('settings.stremio.uninstall_addon')}</Text>
-        </Pressable>
-      </SettingsSection>
     </ScrollView>
   )
 })
@@ -277,7 +292,6 @@ const styles = StyleSheet.create((theme) => ({
     backgroundColor: theme.colors.background,
   },
   content: {
-    paddingTop: theme.spacing.md,
     paddingBottom: theme.spacing.xl,
   },
   emptyContainer: {
@@ -305,20 +319,20 @@ const styles = StyleSheet.create((theme) => ({
     fontSize: theme.fontSize.base,
     fontWeight: theme.fontWeight.semibold,
   },
-  header: {
+  // Hero Section
+  hero: {
     alignItems: 'center',
-    paddingVertical: theme.spacing.xl,
+    paddingTop: theme.spacing.xl,
+    paddingBottom: theme.spacing.lg,
     paddingHorizontal: theme.spacing.lg,
-    backgroundColor: theme.colors.surface,
-    marginHorizontal: theme.spacing.md,
-    marginBottom: theme.spacing.md,
-    borderRadius: theme.borderRadius.lg,
+    backgroundColor: theme.colors.background,
+    gap: theme.spacing.xs,
   },
   logo: {
     width: 96,
     height: 96,
     borderRadius: theme.borderRadius.lg,
-    marginBottom: theme.spacing.md,
+    marginBottom: theme.spacing.sm,
   },
   logoPlaceholder: {
     width: 96,
@@ -327,7 +341,7 @@ const styles = StyleSheet.create((theme) => ({
     backgroundColor: theme.colors.surfaceElevated,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: theme.spacing.md,
+    marginBottom: theme.spacing.sm,
   },
   logoPlaceholderText: {
     fontSize: theme.fontSize['4xl'],
@@ -339,29 +353,85 @@ const styles = StyleSheet.create((theme) => ({
     fontWeight: theme.fontWeight.bold,
     color: theme.colors.text,
     textAlign: 'center',
-    marginBottom: theme.spacing.xs,
   },
   version: {
     fontSize: theme.fontSize.sm,
     color: theme.colors.textTertiary,
-    marginBottom: theme.spacing.lg,
+    marginBottom: theme.spacing.sm,
   },
   toggleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: theme.spacing.md,
+    marginTop: theme.spacing.xs,
   },
   toggleLabel: {
     fontSize: theme.fontSize.base,
     fontWeight: theme.fontWeight.medium,
     color: theme.colors.text,
   },
-  badgesContainer: {
+  // Sticky Action Bar
+  actionBar: {
+    flexDirection: 'row',
+    gap: theme.spacing.md,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.md,
+    backgroundColor: theme.colors.background,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border,
+  },
+  actionButton: {
+    flex: 1,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.borderRadius.md,
+    paddingVertical: theme.spacing.md,
+    paddingHorizontal: theme.spacing.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 80,
+    gap: theme.spacing.xs,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  actionIcon: {
+    color: theme.colors.text,
+  },
+  destructiveIcon: {
+    color: '#DC2626',
+  },
+  actionButtonText: {
+    color: theme.colors.text,
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.semibold,
+    textAlign: 'center',
+  },
+  destructiveButton: {
+    backgroundColor: theme.colors.surface,
+  },
+  destructiveButtonText: {
+    color: '#DC2626',
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.semibold,
+    textAlign: 'center',
+  },
+  buttonPressed: {
+    opacity: 0.7,
+    transform: [{ scale: 0.98 }],
+  },
+  buttonDisabled: {
+    opacity: 0.4,
+  },
+  // Capabilities Grid (2 columns)
+  capabilitiesGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: theme.spacing.sm,
     padding: theme.spacing.md,
+    gap: theme.spacing.sm,
   },
+  capabilityItem: {
+    width: '48%', // 2 columns with gap
+  },
+  // Information Section
   infoContainer: {
     padding: theme.spacing.md,
   },
@@ -379,35 +449,25 @@ const styles = StyleSheet.create((theme) => ({
     color: theme.colors.text,
     lineHeight: 22,
   },
-  actionButton: {
-    backgroundColor: theme.colors.surface,
-    paddingVertical: theme.spacing.md,
-    paddingHorizontal: theme.spacing.lg,
+  // Addon Catalogs
+  catalogsList: {
+    padding: theme.spacing.md,
+    gap: theme.spacing.sm,
+  },
+  catalogItem: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 44,
+    gap: theme.spacing.xs,
+    paddingVertical: theme.spacing.xs,
   },
-  actionButtonBorder: {
-    borderTopWidth: 1,
-    borderTopColor: theme.colors.border,
-  },
-  actionButtonText: {
+  catalogName: {
+    fontSize: theme.fontSize.base,
+    fontWeight: theme.fontWeight.semibold,
     color: theme.colors.text,
-    fontSize: theme.fontSize.base,
-    fontWeight: theme.fontWeight.medium,
   },
-  destructiveButton: {
-    backgroundColor: theme.colors.surface,
-  },
-  destructiveButtonText: {
-    color: '#DC2626',
-    fontSize: theme.fontSize.base,
-    fontWeight: theme.fontWeight.medium,
-  },
-  buttonPressed: {
-    opacity: 0.8,
-  },
-  buttonDisabled: {
-    opacity: 0.5,
+  catalogType: {
+    fontSize: theme.fontSize.sm,
+    color: theme.colors.textSecondary,
+    fontStyle: 'italic',
   },
 }))

@@ -1,10 +1,12 @@
 import { useCallback, useMemo } from 'react'
+import { useSelector } from '@legendapp/state/react'
 import { stremioAddons$ } from '@/src/presentation/shared/stores/stremioAddons.store'
 import { StremioAddonCatalogUseCase } from '../use-cases/StremioAddonCatalogUseCase'
 import { useService } from '@/src/infrastructure/di/useService'
 import { TOKENS } from '@/src/infrastructure/di/tokens'
 import { StremioManifestQueryCache } from '@/src/infrastructure/providers/stremio/cache/StremioManifestQueryCache'
 import { StremioProcessedAddonCache } from '@/src/infrastructure/providers/stremio/cache/StremioProcessedAddonCache'
+import { StremioAddon } from '@/src/domain/entities/StremioAddon'
 import type { ILoggingService } from '@/src/domain/services/ILoggingService'
 import type { CapabilityType } from '@/src/domain/capabilities/CapabilityType'
 import type { QueryClient } from '@tanstack/react-query'
@@ -60,14 +62,14 @@ export const useStremioAddonCatalog = () => {
 
   // Create use case instance
   const catalogUseCase = useMemo(
-    () => new StremioAddonCatalogUseCase(manifestCache, processedAddonCache, logger),
-    [manifestCache, processedAddonCache, logger]
+    () => new StremioAddonCatalogUseCase(manifestCache, processedAddonCache, httpClient, logger),
+    [manifestCache, processedAddonCache, httpClient, logger]
   )
 
-  // Reactive state from Legend State
-  const browsingAddons = stremioAddons$.browsing.get()
-  const isLoading = stremioAddons$.isLoading.get()
-  const error = stremioAddons$.error.get()
+  // Reactive state from Legend State using useSelector
+  const browsingAddons = useSelector(() => stremioAddons$.browsing.get())
+  const isLoading = useSelector(() => stremioAddons$.isLoading.get())
+  const error = useSelector(() => stremioAddons$.error.get())
 
   /**
    * Browse addons from catalog URL
@@ -238,6 +240,63 @@ export const useStremioAddonCatalog = () => {
     [catalogUseCase, logger]
   )
 
+  /**
+   * Get addon catalogs from installed addons
+   */
+  const getAddonCatalogsFromInstalledAddons = useCallback(
+    async (installedAddons: StremioAddon[]) => {
+      return await catalogUseCase.getAddonCatalogsFromInstalledAddons(installedAddons)
+    },
+    [catalogUseCase]
+  )
+
+  /**
+   * Browse specific addon catalog
+   */
+  const browseSpecificAddonCatalog = useCallback(
+    async (addonTransportUrl: string, type: string, id: string) => {
+      try {
+        stremioAddons$.isLoading.set(true)
+        stremioAddons$.error.set(null)
+
+        logger.info('Browsing specific addon catalog', { addonTransportUrl, type, id })
+
+        const result = await catalogUseCase.browseSpecificAddonCatalog(addonTransportUrl, type, id)
+
+        if (result.success && result.addons) {
+          stremioAddons$.browsing.set(result.addons)
+          logger.info('Addon catalog browsed successfully', {
+            addonTransportUrl,
+            type,
+            id,
+            count: result.addons.length,
+          })
+        } else {
+          const errorMsg = result.error || 'Failed to browse catalog'
+          stremioAddons$.error.set(errorMsg)
+          logger.error('Failed to browse addon catalog', new Error(errorMsg), {
+            addonTransportUrl,
+            type,
+            id,
+          })
+        }
+
+        return result
+      } catch (error) {
+        const errorMsg = error instanceof Error ? error.message : 'Unknown error'
+        logger.error('Failed to browse addon catalog', error as Error, { addonTransportUrl, type, id })
+        stremioAddons$.error.set(errorMsg)
+        return {
+          success: false,
+          error: errorMsg,
+        }
+      } finally {
+        stremioAddons$.isLoading.set(false)
+      }
+    },
+    [catalogUseCase, logger]
+  )
+
   return {
     // State
     browsingAddons,
@@ -252,5 +311,7 @@ export const useStremioAddonCatalog = () => {
     checkCompatibility,
     prefetchAddon,
     batchPrefetchAddons,
+    getAddonCatalogsFromInstalledAddons,
+    browseSpecificAddonCatalog,
   }
 }

@@ -1,9 +1,11 @@
 import type { StremioManifestQueryCache } from '@/src/infrastructure/providers/stremio/cache/StremioManifestQueryCache'
 import type { StremioProcessedAddonCache } from '@/src/infrastructure/providers/stremio/cache/StremioProcessedAddonCache'
 import type { ILoggingService } from '@/src/domain/services/ILoggingService'
-import type { StremioAddon } from '@/src/domain/entities/StremioAddon'
-import type { CapabilityType } from '@/src/domain/capabilities/CapabilityType'
+import { CapabilityType } from '@/src/domain/capabilities/CapabilityType'
 import type { AddonOperationResult } from './StremioAddonsUseCase'
+import { StremioAddon } from '@/src/domain/entities/StremioAddon'
+import { StremioAddonClient } from '@/src/infrastructure/providers/stremio/clients/StremioAddonClient'
+import type { HttpClient } from '@/src/infrastructure/http/HttpClient'
 
 /**
  * Use case for browsing and searching Stremio addon catalogs
@@ -13,6 +15,7 @@ export class StremioAddonCatalogUseCase {
   constructor(
     private readonly manifestCache: StremioManifestQueryCache,
     private readonly processedAddonCache: StremioProcessedAddonCache,
+    private readonly httpClient: HttpClient,
     private readonly logger: ILoggingService
   ) {}
 
@@ -153,7 +156,7 @@ export class StremioAddonCatalogUseCase {
       }
 
       // Create StremioAddon entity for preview
-      const addon = new (await import('@/src/domain/entities/StremioAddon')).StremioAddon({
+      const addon = new StremioAddon({
         manifest: processedAddon.rawManifest,
         transportUrl: manifestUrl,
         capabilities: processedAddon.capabilities?.capabilities || [],
@@ -258,5 +261,203 @@ export class StremioAddonCatalogUseCase {
       this.logger.warn('Failed to batch prefetch addons', { count: manifestUrls.length, error })
       // Don't throw - prefetch failures are non-critical
     }
+  }
+
+  /**
+   * Get addon catalogs from installed addons with STREMIO_ADDON_CATALOG capability
+   * Returns array of addons that provide addon catalog endpoints
+   */
+  async getAddonCatalogsFromInstalledAddons(
+    installedAddons: StremioAddon[]
+  ): Promise<
+    {
+      addonId: string
+      addonName: string
+      transportUrl: string
+      catalogs: { type: string; id: string; name: string }[]
+    }[]
+  > {
+    try {
+      // Filter addons with STREMIO_ADDON_CATALOG capability AND that are enabled
+      const addonsWithCatalog = installedAddons.filter(
+        (addon) =>
+          addon.isEnabled && addon.hasCapability('STREMIO_ADDON_CATALOG' as CapabilityType)
+      )
+
+      const results = []
+
+      // Only include addons that have defined addonCatalogs in manifest
+      for (const addon of addonsWithCatalog) {
+        if (addon.manifest.addonCatalogs && addon.manifest.addonCatalogs.length > 0) {
+          results.push({
+            addonId: addon.id,
+            addonName: addon.getDisplayName(), // Use display name (considers custom name)
+            transportUrl: addon.transportUrl,
+            catalogs: addon.manifest.addonCatalogs,
+          })
+        }
+      }
+
+      return results
+    } catch (error) {
+      this.logger.error('Failed to get addon catalogs from installed addons', error as Error)
+
+      // Return empty array instead of throwing - this is a non-critical failure
+      return []
+    }
+  }
+
+  /**
+   * Browse specific addon catalog by type and id
+   * Returns array of StremioAddon entities from the catalog response
+   *
+   * @param addonTransportUrl - Full transport URL of the addon providing the catalog
+   * @param type - Catalog type (e.g., 'all', 'movie', 'series')
+   * @param id - Catalog id (e.g., 'official', 'community')
+   * @returns Array of StremioAddon entities or error result
+   */
+  async browseSpecificAddonCatalog(
+    addonTransportUrl: string,
+    type: string,
+    id: string
+  ): Promise<{
+    success: boolean
+    addons?: StremioAddon[]
+    error?: string
+  }> {
+    try {
+      // Create client and fetch addon catalog
+      const client = new StremioAddonClient(addonTransportUrl, this.httpClient)
+      const response = await client.getAddonCatalog(type, id)
+
+      // Convert addon manifests to StremioAddon entities
+      const addons: StremioAddon[] = []
+      let skippedInvalid = 0
+
+      for (const addonManifest of response.addons) {
+        try {
+          // Skip localhost/invalid URLs (these shouldn't be in public catalogs)
+          if (
+            addonManifest.transportUrl.includes('127.0.0.1') ||
+            addonManifest.transportUrl.includes('localhost') ||
+            addonManifest.transportUrl.includes('0.0.0.0')
+          ) {
+            skippedInvalid++
+            continue
+          }
+
+          // Validate URL format
+          try {
+            new URL(addonManifest.transportUrl)
+          } catch {
+            skippedInvalid++
+            continue
+          }
+
+          // Use manifest directly from catalog response (no network call needed for browsing)
+          // Fresh manifest will be fetched during installation
+          const manifest = addonManifest.manifest
+
+          // Validate required fields
+          if (!manifest.id || !manifest.name) {
+            skippedInvalid++
+            continue
+          }
+
+          // Extract capabilities from manifest resources
+          const capabilities = this.extractCapabilitiesFromManifest(manifest)
+
+          // Create StremioAddon entity from catalog response (for browsing only)
+          // Note: Cast manifest to StremioManifest for browsing display
+          // Fresh manifest will be fetched and validated during installation
+          const addon = new StremioAddon({
+            manifest: {
+              ...manifest,
+              description: manifest.description || '',
+              catalogs: manifest.catalogs || [],
+            } as any,
+            transportUrl: addonManifest.transportUrl,
+            capabilities,
+            isInstalled: false,
+            isEnabled: false,
+          })
+
+          addons.push(addon)
+        } catch {
+          // Silently skip addons that fail to process - this is normal for broken/offline addons
+          skippedInvalid++
+          continue
+        }
+      }
+
+      if (skippedInvalid > 0) {
+        this.logger.warn('Some addons were skipped during catalog browse', {
+          totalInCatalog: response.addons.length,
+          successfullyProcessed: addons.length,
+          skippedInvalid,
+        })
+      }
+
+      return {
+        success: true,
+        addons,
+      }
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error'
+      this.logger.error('Failed to browse addon catalog', error as Error, {
+        addonTransportUrl,
+        type,
+        id,
+      })
+
+      return {
+        success: false,
+        error: `Failed to browse catalog: ${errorMsg}`,
+      }
+    }
+  }
+
+  /**
+   * Extract capabilities from manifest resources
+   * Basic capability detection from manifest structure
+   */
+  private extractCapabilitiesFromManifest(manifest: any): CapabilityType[] {
+    const capabilities: CapabilityType[] = []
+
+    if (!manifest.resources || !Array.isArray(manifest.resources)) {
+      return capabilities
+    }
+
+    // Check for resource types
+    const resourceNames = new Set<string>()
+
+    for (const resource of manifest.resources) {
+      if (typeof resource === 'string') {
+        resourceNames.add(resource.toLowerCase())
+      } else if (resource && typeof resource === 'object' && resource.name) {
+        resourceNames.add(resource.name.toLowerCase())
+      }
+    }
+
+    // Map resources to capabilities
+    if (resourceNames.has('stream')) {
+      capabilities.push(CapabilityType.MEDIA_STREAMS)
+    }
+    if (resourceNames.has('meta')) {
+      capabilities.push(CapabilityType.MEDIA_METADATA)
+    }
+    if (resourceNames.has('catalog')) {
+      capabilities.push(CapabilityType.MEDIA_CATALOG)
+    }
+    if (resourceNames.has('subtitles')) {
+      capabilities.push(CapabilityType.MEDIA_SUBTITLES)
+    }
+
+    // Check for addon_catalog (special capability)
+    if (manifest.addonCatalogs && Array.isArray(manifest.addonCatalogs)) {
+      capabilities.push(CapabilityType.STREMIO_ADDON_CATALOG)
+    }
+
+    return capabilities
   }
 }

@@ -8,6 +8,7 @@ export const TOKENS = {
 
   // HTTP
   HttpClient: Symbol('HttpClient'),
+  StremioHttpClient: Symbol('StremioHttpClient'),
 
   // Query Client
   QueryClient: Symbol('QueryClient'),
@@ -25,6 +26,9 @@ export const TOKENS = {
   StremioConfigFactory: Symbol('StremioConfigFactory'),
   StremioAddonStorage: Symbol('StremioAddonStorage'),
   StremioAddonRegistry: Symbol('StremioAddonRegistry'),
+
+  // Provider Registry
+  ProviderRegistry: Symbol('ProviderRegistry'),
 
   // Add more as needed
 } as const

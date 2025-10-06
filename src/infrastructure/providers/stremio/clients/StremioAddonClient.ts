@@ -11,22 +11,29 @@ import type {
 
 /**
  * HTTP client for Stremio addon API endpoints
- * Handles communication with individual Stremio addons
+ * Uses HttpClient with empty baseURL for absolute URL support
  */
 export class StremioAddonClient {
+  private readonly baseUrl: string
+
   constructor(
     private readonly transportUrl: StremioTransportUrl,
     private readonly httpClient: HttpClient
-  ) {}
+  ) {
+    // transportUrl is the full manifest URL (e.g., https://example.com/manifest.json)
+    // Derive base URL by removing /manifest.json
+    this.baseUrl = transportUrl.endsWith('/manifest.json')
+      ? transportUrl.replace('/manifest.json', '')
+      : transportUrl
+  }
 
   /**
    * Get addon manifest
    */
   async getManifest(): Promise<StremioManifest> {
     try {
-      const response = await this.httpClient.get<StremioManifest>(
-        `${this.transportUrl}/manifest.json`
-      )
+      // Use transportUrl directly - it's already the full manifest URL
+      const response = await this.httpClient.get<StremioManifest>(this.transportUrl)
       return response
     } catch (error) {
       throw new InfrastructureError(
@@ -98,15 +105,28 @@ export class StremioAddonClient {
 
   /**
    * Get addon catalog (list of other addons)
+   *
+   * @param type - Catalog type (e.g., 'all', 'movie', 'series', 'channel')
+   * @param id - Catalog id (e.g., 'official', 'community')
+   * @param extra - Optional extra parameters
+   *
+   * @example
+   * // Fetch Cinemeta official addons for all types
+   * await client.getAddonCatalog('all', 'official')
+   * // Results in: GET https://v3-cinemeta.strem.io/addon_catalog/all/official.json
    */
-  async getAddonCatalog(extra?: Record<string, string>): Promise<StremioAddonCatalogResponse> {
+  async getAddonCatalog(
+    type: string,
+    id: string,
+    extra?: Record<string, string>
+  ): Promise<StremioAddonCatalogResponse> {
     try {
-      const url = this.buildUrl('addon_catalog', undefined, undefined, extra)
+      const url = this.buildUrl('addon_catalog', type, id, extra)
       const response = await this.httpClient.get<StremioAddonCatalogResponse>(url)
       return response
     } catch (error) {
       throw new InfrastructureError(
-        `Failed to fetch Stremio addon catalog from ${this.transportUrl}`,
+        `Failed to fetch Stremio addon catalog ${type}/${id} from ${this.transportUrl}`,
         error instanceof Error ? error : new Error(String(error))
       )
     }
@@ -121,7 +141,8 @@ export class StremioAddonClient {
     id?: string,
     extra?: Record<string, string>
   ): string {
-    let url = `${this.transportUrl}/${resource}`
+    // Use baseUrl (without /manifest.json) for resource endpoints
+    let url = `${this.baseUrl}/${resource}`
 
     if (type && id) {
       url += `/${type}/${id}`

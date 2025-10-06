@@ -14,9 +14,12 @@ import { TraktConfigFactory } from '../factories/TraktConfigFactory'
 import { TraktClient } from '../api/trakt/TraktClient'
 import { StremioConfigFactory } from '../factories/StremioConfigFactory'
 import { StremioAddonStorage } from '../providers/stremio/storage/StremioAddonStorage'
+import { StremioAddonRegistry } from '../providers/stremio/StremioAddonRegistry'
+import { ProviderRegistry } from '../providers/ProviderRegistry'
 import type { IStorageService } from '../../domain/services/IStorageService'
 import type { ILoggingService } from '../../domain/services/ILoggingService'
 import type { IEnvironmentService } from '../../domain/services/IEnvironmentService'
+import type { IProviderRegistry } from '../../domain/providers/IProviderRegistry'
 
 export function initializeContainer(): void {
   // Register core services
@@ -38,6 +41,17 @@ export function initializeContainer(): void {
       new HttpClient(
         'https://api.example.com', // TODO: Update with actual API URL
         () => null, // TODO: Implement token retrieval
+        logger
+      )
+  )
+
+  // Register Stremio-specific HTTP Client (no baseURL for absolute URLs)
+  container.register(
+    TOKENS.StremioHttpClient,
+    () =>
+      new HttpClient(
+        '', // Empty baseURL - allows absolute URLs to work correctly
+        () => null, // Stremio addons don't use auth
         logger
       )
   )
@@ -74,13 +88,30 @@ export function initializeContainer(): void {
   const traktConfigFactory = container.resolve<TraktConfigFactory>(TOKENS.TraktConfigFactory)
   container.register(TOKENS.TraktClient, () => new TraktClient(traktConfigFactory, logger))
 
+  // Register Provider Registry
+  container.register(TOKENS.ProviderRegistry, () => new ProviderRegistry())
+
+  const providerRegistry = container.resolve<IProviderRegistry>(TOKENS.ProviderRegistry)
+
   // Register Stremio services
   container.register(TOKENS.StremioConfigFactory, () => new StremioConfigFactory())
   container.register(TOKENS.StremioAddonStorage, () => new StremioAddonStorage(storage))
 
-  // Note: StremioAddonRegistry requires IProviderRegistry which may not be available yet
-  // Will need to be registered later in the initialization sequence when provider registry is available
-  // The registry will create its own TanStack Query-based caches internally
+  const stremioConfigFactory = container.resolve<StremioConfigFactory>(TOKENS.StremioConfigFactory)
+  const stremioHttpClient = container.resolve<HttpClient>(TOKENS.StremioHttpClient)
+
+  container.register(
+    TOKENS.StremioAddonRegistry,
+    () =>
+      new StremioAddonRegistry(
+        stremioConfigFactory,
+        providerRegistry,
+        stremioHttpClient,
+        storage,
+        queryClient,
+        logger
+      )
+  )
 }
 
 // Auto-initialize on import (optional, can call manually in _layout.tsx)

@@ -1,24 +1,23 @@
-import { ScrollView, Pressable, Text, Alert, View } from 'react-native'
+import { View, Pressable, Text, Alert } from 'react-native'
 import { StyleSheet } from 'react-native-unistyles'
 import { observer } from '@legendapp/state/react'
 import { useRouter } from 'expo-router'
-import * as WebBrowser from 'expo-web-browser'
+import { Ionicons } from '@expo/vector-icons'
+import { LegendList } from '@legendapp/list'
 import { SettingsSection } from '@/src/features/settings/components/atoms/SettingsSection'
-import { AddonCard } from '@/src/features/settings/components/atoms/AddonCard'
+import { StremioSummaryCard } from '@/src/features/settings/components/atoms/StremioSummaryCard'
+import { AddonCatalogCard } from '@/src/features/settings/components/atoms/AddonCatalogCard'
 import { useStremioAddons } from '@/src/features/settings/hooks/useStremioAddons'
+import { useAddonStats } from '@/src/features/settings/hooks/useAddonStats'
 import { t } from '@/src/presentation/shared/i18n'
 import type { StremioAddon } from '@/src/domain/entities/StremioAddon'
 
 const StremioSettingsScreen = observer(() => {
   const router = useRouter()
-  const {
-    installedAddons,
-    isLoading,
-    toggleAddon,
-    uninstallAddon,
-    getConfigureUrl,
-    clearCache,
-  } = useStremioAddons()
+  const { installedAddons, toggleAddon, uninstallAddon } = useStremioAddons()
+
+  // Use reactive stats hook (fixes catalog count bug)
+  const { totalInstalled, activeAddons, totalCatalogs, workingAddons } = useAddonStats()
 
   const handleToggleAddon = async (addonId: string, isEnabled: boolean) => {
     try {
@@ -27,34 +26,6 @@ const StremioSettingsScreen = observer(() => {
       Alert.alert(
         t('settings.stremio.toggle_failed'),
         error instanceof Error ? error.message : t('settings.stremio.toggle_failed_message')
-      )
-    }
-  }
-
-  const handleConfigureAddon = async (addon: StremioAddon) => {
-    const configureUrl = getConfigureUrl(addon)
-    if (!configureUrl) {
-      Alert.alert(
-        t('settings.stremio.configure_unavailable'),
-        t('settings.stremio.configure_unavailable_message')
-      )
-      return
-    }
-
-    try {
-      // Open configuration in browser
-      await WebBrowser.openBrowserAsync(configureUrl)
-
-      // Show info about reconfiguration
-      Alert.alert(
-        t('settings.stremio.configure_info_title'),
-        t('settings.stremio.configure_info_message'),
-        [{ text: t('settings.stremio.ok'), style: 'default' }]
-      )
-    } catch (error) {
-      Alert.alert(
-        t('settings.stremio.configure_failed'),
-        error instanceof Error ? error.message : t('settings.stremio.configure_failed_message')
       )
     }
   }
@@ -74,10 +45,6 @@ const StremioSettingsScreen = observer(() => {
           onPress: async () => {
             try {
               await uninstallAddon(addonId)
-              Alert.alert(
-                t('settings.stremio.uninstall_success'),
-                t('settings.stremio.uninstall_success_message').replace('{name}', addon.getDisplayName())
-              )
             } catch (error) {
               Alert.alert(
                 t('settings.stremio.uninstall_failed'),
@@ -90,8 +57,8 @@ const StremioSettingsScreen = observer(() => {
     )
   }
 
-  const handleAddonPress = (addon: StremioAddon) => {
-    router.push(`/settings/stremio/addon/${addon.id}`)
+  const handleAddonPress = (addonId: string) => {
+    router.push(`/settings/stremio/addon/${addonId}`)
   }
 
   const handleBrowseAddons = () => {
@@ -102,115 +69,101 @@ const StremioSettingsScreen = observer(() => {
     router.push('/settings/stremio/install')
   }
 
-  const handleClearCache = () => {
-    Alert.alert(
-      t('settings.stremio.clear_cache_confirm_title'),
-      t('settings.stremio.clear_cache_confirm_message'),
-      [
-        { text: t('settings.stremio.cancel'), style: 'cancel' },
-        {
-          text: t('settings.stremio.clear_cache'),
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await clearCache()
-              Alert.alert(
-                t('settings.stremio.clear_cache_success'),
-                t('settings.stremio.clear_cache_success_message')
-              )
-            } catch (error) {
-              Alert.alert(
-                t('settings.stremio.clear_cache_failed'),
-                error instanceof Error ? error.message : t('settings.stremio.clear_cache_failed_message')
-              )
-            }
-          },
-        },
-      ]
-    )
+  const handleConfigureAddon = (configureUrl: string) => {
+    // Open configure URL in browser
+    import('expo-web-browser').then((WebBrowser) => {
+      WebBrowser.openBrowserAsync(configureUrl).catch((error) => {
+        console.error('Failed to open configure URL:', error)
+        Alert.alert(t('settings.stremio.configure_failed'), t('settings.stremio.configure_failed_message'))
+      })
+    })
   }
 
+  const renderAddonItem = ({ item }: { item: StremioAddon }) => (
+    <AddonCatalogCard
+      addon={item}
+      isInstalled={true}
+      onInstall={async () => {}} // Not used for installed addons
+      onUninstall={handleUninstallAddon}
+      onConfigure={handleConfigureAddon}
+      onToggle={handleToggleAddon}
+      showToggle={true}
+      onPress={() => handleAddonPress(item.id)}
+    />
+  )
+
+  const renderEmptyState = () => (
+    <View style={styles.emptyState}>
+      <Ionicons
+        name="extension-puzzle-outline"
+        size={48}
+        style={styles.emptyStateIcon}
+      />
+      <Text style={styles.emptyStateText}>{t('settings.stremio.no_addons_installed')}</Text>
+      <Text style={styles.emptyStateSubtext}>
+        {t('settings.stremio.no_addons_installed_subtext')}
+      </Text>
+    </View>
+  )
+
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.content}
-      showsVerticalScrollIndicator={false}
-    >
-      {/* Installed Addons Section */}
-      <SettingsSection
-        title={t('settings.stremio.installed_addons')}
-        footer={t('settings.stremio.installed_addons_footer')}
-      >
-        {installedAddons.length > 0 ? (
-          <View>
-            {installedAddons.map((addon) => (
-              <AddonCard
-                key={addon.id}
-                addon={addon}
-                onToggle={handleToggleAddon}
-                onConfigure={handleConfigureAddon}
-                onUninstall={handleUninstallAddon}
-                onPress={() => handleAddonPress(addon)}
-              />
-            ))}
+    <LegendList
+      data={installedAddons}
+      estimatedItemSize={200}
+      keyExtractor={(item) => item.id}
+      renderItem={renderAddonItem}
+      ListHeaderComponent={
+        <View>
+          {/* Summary Card */}
+          <View style={styles.summaryContainer}>
+            <StremioSummaryCard
+              totalInstalled={totalInstalled}
+              activeAddons={activeAddons}
+              totalCatalogs={totalCatalogs}
+              workingAddons={workingAddons}
+            />
           </View>
-        ) : (
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyStateText}>{t('settings.stremio.no_addons_installed')}</Text>
+
+          {/* Quick Actions */}
+          <View style={styles.quickActionsContainer}>
             <Pressable
-              style={({ pressed }) => [styles.emptyStateButton, pressed && styles.buttonPressed]}
+              style={({ pressed }) => [styles.quickActionButton, pressed && styles.buttonPressed]}
               onPress={handleBrowseAddons}
               accessibilityRole="button"
               accessibilityLabel={t('settings.stremio.browse_addons')}
             >
-              <Text style={styles.emptyStateButtonText}>{t('settings.stremio.browse_addons')}</Text>
+              <Ionicons name="search-outline" size={24} style={styles.quickActionIcon} />
+              <Text style={styles.quickActionText}>{t('settings.stremio.browse_addons')}</Text>
+            </Pressable>
+
+            <Pressable
+              style={({ pressed }) => [styles.quickActionButton, pressed && styles.buttonPressed]}
+              onPress={handleInstallByUrl}
+              accessibilityRole="button"
+              accessibilityLabel={t('settings.stremio.install_by_url')}
+            >
+              <Ionicons name="link-outline" size={24} style={styles.quickActionIcon} />
+              <Text style={styles.quickActionText}>{t('settings.stremio.install_by_url')}</Text>
             </Pressable>
           </View>
-        )}
-      </SettingsSection>
 
-      {/* Actions Section */}
-      <SettingsSection title={t('settings.stremio.actions')}>
-        <Pressable
-          style={({ pressed }) => [styles.actionButton, pressed && styles.buttonPressed]}
-          onPress={handleBrowseAddons}
-          accessibilityRole="button"
-          accessibilityLabel={t('settings.stremio.browse_addons')}
-        >
-          <Text style={styles.actionButtonText}>{t('settings.stremio.browse_addons')}</Text>
-        </Pressable>
-
-        <Pressable
-          style={({ pressed }) => [
-            styles.actionButton,
-            styles.actionButtonBorder,
-            pressed && styles.buttonPressed,
-          ]}
-          onPress={handleInstallByUrl}
-          accessibilityRole="button"
-          accessibilityLabel={t('settings.stremio.install_by_url')}
-        >
-          <Text style={styles.actionButtonText}>{t('settings.stremio.install_by_url')}</Text>
-        </Pressable>
-
-        <Pressable
-          style={({ pressed }) => [
-            styles.actionButton,
-            styles.destructiveButton,
-            styles.actionButtonBorder,
-            pressed && styles.buttonPressed,
-            isLoading && styles.buttonDisabled,
-          ]}
-          onPress={handleClearCache}
-          disabled={isLoading}
-          accessibilityRole="button"
-          accessibilityLabel={t('settings.stremio.clear_cache')}
-          accessibilityState={{ disabled: isLoading }}
-        >
-          <Text style={styles.destructiveButtonText}>{t('settings.stremio.clear_cache')}</Text>
-        </Pressable>
-      </SettingsSection>
-    </ScrollView>
+          {/* Installed Addons Header */}
+          <SettingsSection
+            title={t('settings.stremio.installed_addons')}
+            footer={
+              installedAddons.length > 0
+                ? t('settings.stremio.installed_addons_footer')
+                : undefined
+            }
+          >
+            {installedAddons.length === 0 && renderEmptyState()}
+          </SettingsSection>
+        </View>
+      }
+      contentContainerStyle={styles.contentContainer}
+      style={styles.container}
+      showsVerticalScrollIndicator={false}
+    />
   )
 })
 
@@ -221,62 +174,61 @@ const styles = StyleSheet.create((theme) => ({
     flex: 1,
     backgroundColor: theme.colors.background,
   },
-  content: {
+  contentContainer: {
     paddingTop: theme.spacing.md,
     paddingBottom: theme.spacing.xl,
+  },
+  summaryContainer: {
+    paddingHorizontal: theme.spacing.md,
+  },
+  quickActionsContainer: {
+    flexDirection: 'row',
+    gap: theme.spacing.md,
+    paddingHorizontal: theme.spacing.md,
+    marginBottom: theme.spacing.md,
+  },
+  quickActionButton: {
+    flex: 1,
+    backgroundColor: theme.colors.primary,
+    borderRadius: theme.borderRadius.lg,
+    padding: theme.spacing.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 80,
+    gap: theme.spacing.xs,
+  },
+  quickActionIcon: {
+    color: '#FFFFFF',
+  },
+  quickActionText: {
+    color: '#FFFFFF',
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.semibold,
+    textAlign: 'center',
+  },
+  buttonPressed: {
+    opacity: 0.8,
   },
   emptyState: {
     paddingVertical: theme.spacing.xl,
     paddingHorizontal: theme.spacing.lg,
     alignItems: 'center',
   },
+  emptyStateIcon: {
+    color: theme.colors.textSecondary,
+    marginBottom: theme.spacing.md,
+    opacity: 0.5,
+  },
   emptyStateText: {
-    fontSize: theme.fontSize.base,
+    fontSize: theme.fontSize.lg,
+    color: theme.colors.text,
+    textAlign: 'center',
+    fontWeight: theme.fontWeight.semibold,
+    marginBottom: theme.spacing.xs,
+  },
+  emptyStateSubtext: {
+    fontSize: theme.fontSize.sm,
     color: theme.colors.textSecondary,
     textAlign: 'center',
-    marginBottom: theme.spacing.lg,
-  },
-  emptyStateButton: {
-    backgroundColor: theme.colors.primary,
-    borderRadius: theme.borderRadius.md,
-    paddingVertical: theme.spacing.md,
-    paddingHorizontal: theme.spacing.lg,
-    minHeight: 44,
-  },
-  emptyStateButtonText: {
-    color: '#FFFFFF',
-    fontSize: theme.fontSize.base,
-    fontWeight: theme.fontWeight.semibold,
-  },
-  actionButton: {
-    backgroundColor: theme.colors.surface,
-    paddingVertical: theme.spacing.md,
-    paddingHorizontal: theme.spacing.lg,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 44,
-  },
-  actionButtonBorder: {
-    borderTopWidth: 1,
-    borderTopColor: theme.colors.border,
-  },
-  actionButtonText: {
-    color: theme.colors.text,
-    fontSize: theme.fontSize.base,
-    fontWeight: theme.fontWeight.medium,
-  },
-  destructiveButton: {
-    backgroundColor: theme.colors.surface,
-  },
-  destructiveButtonText: {
-    color: '#DC2626',
-    fontSize: theme.fontSize.base,
-    fontWeight: theme.fontWeight.medium,
-  },
-  buttonPressed: {
-    opacity: 0.8,
-  },
-  buttonDisabled: {
-    opacity: 0.5,
   },
 }))

@@ -5,6 +5,8 @@ import type { ManifestValidationResult, ParsedCapabilities } from '../StremioMan
 import type { StremioManifest, StremioTransportUrl } from '../types'
 import type { StremioManifestQueryCache } from './StremioManifestQueryCache'
 import { InfrastructureError } from '../../../errors/InfrastructureError'
+import { NetworkError } from '../../../errors/NetworkError'
+import { NotFoundError } from '../../../../domain/errors'
 
 /**
  * Processed addon data with comprehensive metadata
@@ -56,7 +58,24 @@ export class StremioProcessedAddonCache {
         queryFn: () => this.processAddon(transportUrl),
         staleTime: 12 * 60 * 60 * 1000, // 12 hours - processing rarely changes
         gcTime: 48 * 60 * 60 * 1000, // 48 hours - keep longer than raw manifest
-        retry: 2, // Fewer retries since this is computation, not network
+        retry: (failureCount, error) => {
+          // Don't retry on 4xx client errors (bad URL, not found, validation errors)
+          if (error instanceof NetworkError && error.statusCode) {
+            if (error.statusCode >= 400 && error.statusCode < 500) {
+              return false
+            }
+          }
+          // Don't retry on NotFoundError
+          if (error instanceof NotFoundError) {
+            return false
+          }
+          // Don't retry on InfrastructureError (validation/processing errors)
+          if (error instanceof InfrastructureError) {
+            return false
+          }
+          // Retry network errors up to 2 times
+          return failureCount < 2
+        },
         retryDelay: 1000,
       })
 

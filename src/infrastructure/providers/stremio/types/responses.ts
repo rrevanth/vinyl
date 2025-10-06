@@ -1,5 +1,3 @@
-import type { CapabilityType } from '../../../../domain/capabilities/CapabilityType'
-
 /**
  * Catalog endpoint response: /catalog/{type}/{id}/{extraArgs?}.json
  */
@@ -160,18 +158,50 @@ export interface StremioSubtitle {
 
 /**
  * Addon manifest for addon catalog responses
+ * Matches the actual API response structure from addon_catalog endpoint
  */
 export interface StremioAddonManifest {
-  id: string
-  name: string
-  description: string
-  version: string
-  logo?: string
-  background?: string
   transportUrl: string
-  capabilities: CapabilityType[]
-  types: string[]
-  categories: string[]
-  isOfficial?: boolean
-  isVerified?: boolean
+  transportName: string
+  manifest: {
+    id: string
+    name: string
+    description?: string
+    version: string
+    logo?: string
+    background?: string
+    types: string[]
+    resources: (
+      | string
+      | {
+          name: string
+          types: string[]
+          idPrefixes?: string[]
+        }
+    )[]
+    catalogs?: {
+      type: string
+      id: string
+      name: string
+    }[]
+    addonCatalogs?: {
+      type: string
+      id: string
+      name: string
+    }[]
+    idPrefixes?: string[]
+    behaviorHints?: {
+      configurable?: boolean
+      configurationRequired?: boolean
+      adult?: boolean
+      p2p?: boolean
+    }
+    config?: {
+      key: string
+      type: string
+      title?: string
+      description?: string
+      required?: boolean
+    }[]
+  }
 }

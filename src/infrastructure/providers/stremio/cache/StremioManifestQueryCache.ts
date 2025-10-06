@@ -4,6 +4,8 @@ import { StremioAddonClient } from '../clients/StremioAddonClient'
 import type { StremioManifest, StremioTransportUrl } from '../types'
 import type { HttpClient } from '../../../http/HttpClient'
 import { InfrastructureError } from '../../../errors/InfrastructureError'
+import { NetworkError } from '../../../errors/NetworkError'
+import { NotFoundError } from '../../../../domain/errors'
 
 /**
  * Raw manifest data with metadata
@@ -44,7 +46,25 @@ export class StremioManifestQueryCache {
         queryFn: () => this.fetchManifest(transportUrl),
         staleTime: 6 * 60 * 60 * 1000, // 6 hours - consider fresh
         gcTime: 24 * 60 * 60 * 1000, // 24 hours - keep in memory/storage
-        retry: 3,
+        retry: (failureCount, error) => {
+          // Don't retry on 4xx client errors (bad URL, not found, validation errors)
+          if (error instanceof NetworkError && error.statusCode) {
+            if (error.statusCode >= 400 && error.statusCode < 500) {
+              this.logger.debug(`Not retrying 4xx error for ${transportUrl}`, {
+                statusCode: error.statusCode,
+                error: error.message,
+              })
+              return false
+            }
+          }
+          // Don't retry on NotFoundError
+          if (error instanceof NotFoundError) {
+            this.logger.debug(`Not retrying NotFoundError for ${transportUrl}`)
+            return false
+          }
+          // Retry network errors and 5xx errors up to 2 times (reduced from 3)
+          return failureCount < 2
+        },
         retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
       })
 

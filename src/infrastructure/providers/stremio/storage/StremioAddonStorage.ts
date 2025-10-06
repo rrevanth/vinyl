@@ -4,7 +4,7 @@ import type {
   UserInstalledAddon,
   UserAddonConfig,
 } from '../../../../domain/preferences/StremioPreferences'
-import type { CapabilityType } from '../../../../domain/capabilities/CapabilityType'
+import { CapabilityType } from '../../../../domain/capabilities/CapabilityType'
 import type { StremioManifest, StremioTransportUrl } from '../types'
 
 /**
@@ -188,6 +188,61 @@ export class StremioAddonStorage {
   }
 
   /**
+   * Clean up invalid addons (localhost URLs, missing fields, etc.)
+   * Should be called on app initialization to remove stale/invalid data
+   */
+  async cleanupInvalidAddons(userId: string): Promise<number> {
+    try {
+      const preferences = await this.getUserPreferences(userId)
+      const validAddons: Record<string, UserInstalledAddon> = {}
+      let removedCount = 0
+
+      for (const [addonId, addon] of Object.entries(preferences.installedAddons)) {
+        // Skip localhost/invalid URLs (from development/testing)
+        if (
+          addon.transportUrl.includes('127.0.0.1') ||
+          addon.transportUrl.includes('localhost') ||
+          addon.transportUrl.includes('0.0.0.0')
+        ) {
+          console.warn('Removing invalid addon with localhost URL', { addonId, transportUrl: addon.transportUrl })
+          removedCount++
+          continue
+        }
+
+        // Validate has required fields
+        if (!addon.addonId || !addon.transportUrl || !addon.name) {
+          console.warn('Removing invalid addon with missing fields', { addonId, addon })
+          removedCount++
+          continue
+        }
+
+        // Validate URL format
+        try {
+          new URL(addon.transportUrl)
+        } catch {
+          console.warn('Removing addon with invalid URL format', { addonId, transportUrl: addon.transportUrl })
+          removedCount++
+          continue
+        }
+
+        validAddons[addonId] = addon
+      }
+
+      // Save cleaned preferences if we removed any
+      if (removedCount > 0) {
+        preferences.installedAddons = validAddons
+        await this.setUserPreferences(userId, preferences)
+        console.info(`Cleaned up ${removedCount} invalid addon(s) for user ${userId}`)
+      }
+
+      return removedCount
+    } catch (error) {
+      console.warn('Failed to cleanup invalid addons:', error)
+      return 0 // Non-critical, return 0 on error
+    }
+  }
+
+  /**
    * Detect capabilities from Stremio manifest
    * Uses smart detection with fallbacks for incomplete manifests
    */
@@ -199,19 +254,19 @@ export class StremioAddonStorage {
       manifest.resources.forEach((resource) => {
         switch (resource) {
           case 'catalog':
-            capabilities.push('MEDIA_CATALOG' as CapabilityType)
+            capabilities.push(CapabilityType.MEDIA_CATALOG)
             break
           case 'meta':
-            capabilities.push('MEDIA_METADATA' as CapabilityType)
+            capabilities.push(CapabilityType.MEDIA_METADATA)
             break
           case 'stream':
-            capabilities.push('MEDIA_STREAMS' as CapabilityType)
+            capabilities.push(CapabilityType.MEDIA_STREAMS)
             break
           case 'addon_catalog':
-            capabilities.push('STREMIO_ADDON_CATALOG' as CapabilityType)
+            capabilities.push(CapabilityType.STREMIO_ADDON_CATALOG)
             break
           case 'subtitles':
-            capabilities.push('MEDIA_SUBTITLES' as CapabilityType)
+            capabilities.push(CapabilityType.MEDIA_SUBTITLES)
             break
         }
       })
@@ -221,17 +276,17 @@ export class StremioAddonStorage {
     if (capabilities.length === 0) {
       // If has catalogs, assume it provides catalog capability
       if (manifest.catalogs?.length) {
-        capabilities.push('MEDIA_CATALOG' as CapabilityType)
+        capabilities.push(CapabilityType.MEDIA_CATALOG)
       }
 
       // If has types and idPrefixes, likely provides metadata
       if (manifest.types?.length && manifest.idPrefixes?.length) {
-        capabilities.push('MEDIA_METADATA' as CapabilityType)
+        capabilities.push(CapabilityType.MEDIA_METADATA)
       }
 
       // Default assumption for stream addons
       if (manifest.types?.length) {
-        capabilities.push('MEDIA_STREAMS' as CapabilityType)
+        capabilities.push(CapabilityType.MEDIA_STREAMS)
       }
     }
 

@@ -1,151 +1,105 @@
-import { useState } from 'react'
-import { Pressable, Text, View, ScrollView, Image, ActivityIndicator } from 'react-native'
-import { StyleSheet, UnistylesRuntime } from 'react-native-unistyles'
+import React from 'react'
+import { View, Text, Pressable } from 'react-native'
+import { Image } from 'expo-image'
+import { StyleSheet } from 'react-native-unistyles'
 import { observer } from '@legendapp/state/react'
+import Ionicons from '@expo/vector-icons/Ionicons'
 import type { StremioAddon } from '@/src/domain/entities/StremioAddon'
 import { CapabilityBadge } from './CapabilityBadge'
-import { ToggleSwitch } from './ToggleSwitch'
 
 interface AddonCardProps {
   addon: StremioAddon
-  onToggle: (addonId: string, isEnabled: boolean) => Promise<void>
-  onConfigure?: (addon: StremioAddon) => void
-  onUninstall: (addonId: string) => Promise<void>
-  onPress?: () => void
+  onInstall: (addonId: string) => void
+  onPress: () => void
+  isInstalled?: boolean
 }
 
 /**
- * Card component for displaying installed Stremio addon with all info and controls
+ * Card component for browsing and installing addons
+ * Displays logo, name, description, version, and install button
  */
 export const AddonCard = observer<AddonCardProps>(
-  ({ addon, onToggle, onConfigure, onUninstall, onPress }) => {
-    const [isToggling, setIsToggling] = useState(false)
-    const [isUninstalling, setIsUninstalling] = useState(false)
-
-    const handleToggle = async (value: boolean) => {
-      try {
-        setIsToggling(true)
-        await onToggle(addon.id, value)
-      } catch (error) {
-        console.error('Failed to toggle addon:', error)
-      } finally {
-        setIsToggling(false)
-      }
-    }
-
-    const handleConfigure = () => {
-      if (onConfigure && addon.isConfigurable) {
-        onConfigure(addon)
-      }
-    }
-
-    const handleUninstall = async () => {
-      try {
-        setIsUninstalling(true)
-        await onUninstall(addon.id)
-      } catch (error) {
-        console.error('Failed to uninstall addon:', error)
-        setIsUninstalling(false)
-      }
-    }
-
-    const iconColor = UnistylesRuntime.getTheme().colors.textSecondary
+  ({ addon, onInstall, onPress, isInstalled = false }) => {
+    const hasLogo = addon.manifest.logo && addon.manifest.logo.trim() !== ''
 
     return (
       <Pressable
-        style={({ pressed }) => [styles.container, pressed && onPress && styles.pressed]}
+        style={({ pressed }) => [styles.container, pressed && styles.pressed]}
         onPress={onPress}
-        disabled={!onPress}
         accessibilityRole="button"
-        accessibilityLabel={`${addon.name} addon`}
-        accessibilityHint={onPress ? 'Tap to view addon details' : undefined}
       >
-        {/* Top Row: Logo + Name/Version + Toggle */}
-        <View style={styles.topRow}>
-          <View style={styles.headerLeft}>
-            {addon.logo ? (
-              <Image source={{ uri: addon.logo }} style={styles.logo} resizeMode="contain" />
-            ) : (
-              <View style={styles.logoPlaceholder}>
-                <Text style={styles.logoPlaceholderText}>{addon.name.charAt(0).toUpperCase()}</Text>
-              </View>
-            )}
-            <View style={styles.nameContainer}>
-              <Text style={styles.name} numberOfLines={1}>
-                {addon.getDisplayName()}
-              </Text>
-              <Text style={styles.version}>v{addon.version}</Text>
+        {/* Logo */}
+        <View style={styles.logoContainer}>
+          {hasLogo ? (
+            <Image
+              source={{ uri: addon.manifest.logo }}
+              style={styles.logo}
+              contentFit="cover"
+              transition={200}
+              placeholder={require('@/assets/images/icon.png')}
+            />
+          ) : (
+            <View style={styles.logoPlaceholder}>
+              <Ionicons name="extension-puzzle-outline" size={32} color={styles.logoPlaceholderIcon.color} />
             </View>
-          </View>
-
-          <View style={styles.toggleContainer}>
-            {isToggling ? (
-              <ActivityIndicator size="small" color={iconColor} />
-            ) : (
-              <ToggleSwitch
-                value={addon.isEnabled}
-                onValueChange={handleToggle}
-                accessibilityLabel={`${addon.isEnabled ? 'Disable' : 'Enable'} ${addon.name}`}
-              />
-            )}
-          </View>
+          )}
         </View>
 
-        {/* Description (if available) */}
-        {addon.description && (
-          <Text style={styles.description} numberOfLines={2}>
-            {addon.description}
-          </Text>
-        )}
+        {/* Content */}
+        <View style={styles.content}>
+          {/* Header */}
+          <View style={styles.header}>
+            <Text style={styles.name} numberOfLines={1}>
+              {addon.manifest.name}
+            </Text>
+            <Text style={styles.version}>v{addon.manifest.version}</Text>
+          </View>
 
-        {/* Middle: Capability Badges */}
-        {addon.capabilities.length > 0 && (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.badgesScroll}
-            contentContainerStyle={styles.badgesContent}
-          >
-            {addon.capabilities.map((capability) => (
-              <CapabilityBadge key={capability} capability={capability} size="sm" />
-            ))}
-          </ScrollView>
-        )}
-
-        {/* Bottom: Action Buttons */}
-        <View style={styles.actionsRow}>
-          {addon.isConfigurable && (
-            <Pressable
-              style={({ pressed }) => [
-                styles.actionButton,
-                styles.configureButton,
-                pressed && styles.actionButtonPressed,
-              ]}
-              onPress={handleConfigure}
-              accessibilityRole="button"
-              accessibilityLabel={`Configure ${addon.name}`}
-            >
-              <Text style={styles.configureButtonText}>Configure</Text>
-            </Pressable>
+          {/* Description */}
+          {addon.manifest.description && (
+            <Text style={styles.description} numberOfLines={2}>
+              {addon.manifest.description}
+            </Text>
           )}
 
+          {/* Capabilities */}
+          <View style={styles.capabilities}>
+            {addon.capabilities.slice(0, 4).map((capability) => (
+              <CapabilityBadge key={capability} capability={capability} size="sm" />
+            ))}
+            {addon.capabilities.length > 4 && (
+              <View style={styles.moreBadge}>
+                <Text style={styles.moreText}>+{addon.capabilities.length - 4}</Text>
+              </View>
+            )}
+          </View>
+
+          {/* Install Button */}
           <Pressable
             style={({ pressed }) => [
-              styles.actionButton,
-              styles.uninstallButton,
-              pressed && styles.actionButtonPressed,
-              isUninstalling && styles.actionButtonDisabled,
+              styles.installButton,
+              isInstalled && styles.installButtonDisabled,
+              pressed && !isInstalled && styles.installButtonPressed,
             ]}
-            onPress={handleUninstall}
-            disabled={isUninstalling}
+            onPress={(e) => {
+              e.stopPropagation()
+              if (!isInstalled) {
+                onInstall(addon.manifest.id)
+              }
+            }}
+            disabled={isInstalled}
             accessibilityRole="button"
-            accessibilityLabel={`Uninstall ${addon.name}`}
+            accessibilityLabel={isInstalled ? 'Already installed' : 'Install addon'}
+            accessibilityState={{ disabled: isInstalled }}
           >
-            {isUninstalling ? (
-              <ActivityIndicator size="small" color="#FFFFFF" />
-            ) : (
-              <Text style={styles.uninstallButtonText}>Uninstall</Text>
-            )}
+            <Ionicons
+              name={isInstalled ? 'checkmark-circle' : 'download-outline'}
+              size={20}
+              color={isInstalled ? '#10B981' : '#FFFFFF'}
+            />
+            <Text style={[styles.installButtonText, isInstalled && styles.installButtonTextDisabled]}>
+              {isInstalled ? 'Installed' : 'Install'}
+            </Text>
           </Pressable>
         </View>
       </Pressable>
@@ -156,117 +110,106 @@ export const AddonCard = observer<AddonCardProps>(
 const styles = StyleSheet.create((theme) => ({
   container: {
     backgroundColor: theme.colors.surface,
-    borderRadius: theme.borderRadius.lg,
+    borderRadius: theme.borderRadius.md,
     padding: theme.spacing.md,
-    marginHorizontal: theme.spacing.md,
-    marginBottom: theme.spacing.md,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
+    marginBottom: theme.spacing.sm,
+    flexDirection: 'row',
+    gap: theme.spacing.md,
   },
   pressed: {
-    backgroundColor: theme.colors.surfaceElevated,
+    opacity: 0.7,
+    transform: [{ scale: 0.98 }],
   },
-  topRow: {
+  logoContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  logo: {
+    width: 80,
+    height: 80,
+    borderRadius: theme.borderRadius.md,
+  },
+  logoPlaceholder: {
+    width: 80,
+    height: 80,
+    borderRadius: theme.borderRadius.md,
+    backgroundColor: theme.colors.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  logoPlaceholderIcon: {
+    color: theme.colors.textSecondary,
+  },
+  content: {
+    flex: 1,
+    gap: theme.spacing.xs,
+  },
+  header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: theme.spacing.sm,
-  },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-    marginRight: theme.spacing.md,
-  },
-  logo: {
-    width: 48,
-    height: 48,
-    borderRadius: theme.borderRadius.md,
-    marginRight: theme.spacing.md,
-  },
-  logoPlaceholder: {
-    width: 48,
-    height: 48,
-    borderRadius: theme.borderRadius.md,
-    backgroundColor: theme.colors.surfaceElevated,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: theme.spacing.md,
-  },
-  logoPlaceholderText: {
-    fontSize: theme.fontSize.xl,
-    fontWeight: theme.fontWeight.bold,
-    color: theme.colors.textSecondary,
-  },
-  nameContainer: {
-    flex: 1,
+    gap: theme.spacing.xs,
   },
   name: {
-    fontSize: theme.fontSize.base,
-    fontWeight: theme.fontWeight.semibold,
+    fontSize: theme.fontSize.lg,
+    fontWeight: theme.fontWeight.bold,
     color: theme.colors.text,
-    marginBottom: 2,
+    flex: 1,
   },
   version: {
     fontSize: theme.fontSize.xs,
-    color: theme.colors.textTertiary,
-  },
-  toggleContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    minWidth: 52,
-    minHeight: 32,
+    color: theme.colors.textSecondary,
   },
   description: {
     fontSize: theme.fontSize.sm,
     color: theme.colors.textSecondary,
     lineHeight: 18,
-    marginBottom: theme.spacing.sm,
   },
-  badgesScroll: {
-    marginBottom: theme.spacing.sm,
-  },
-  badgesContent: {
-    gap: theme.spacing.xs,
-    paddingRight: theme.spacing.md,
-  },
-  actionsRow: {
+  capabilities: {
     flexDirection: 'row',
-    gap: theme.spacing.sm,
-    marginTop: theme.spacing.xs,
+    flexWrap: 'wrap',
+    gap: theme.spacing.xs,
   },
-  actionButton: {
-    flex: 1,
-    paddingVertical: theme.spacing.sm,
-    paddingHorizontal: theme.spacing.md,
-    borderRadius: theme.borderRadius.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 36,
-  },
-  actionButtonPressed: {
-    opacity: 0.8,
-  },
-  actionButtonDisabled: {
-    opacity: 0.5,
-  },
-  configureButton: {
-    backgroundColor: theme.colors.surfaceElevated,
+  moreBadge: {
+    backgroundColor: theme.colors.background,
+    paddingHorizontal: theme.spacing.xs,
+    paddingVertical: 2,
+    borderRadius: theme.borderRadius.sm,
     borderWidth: 1,
     borderColor: theme.colors.border,
   },
-  configureButtonText: {
-    fontSize: theme.fontSize.sm,
+  moreText: {
+    fontSize: theme.fontSize.xs,
+    color: theme.colors.textSecondary,
     fontWeight: theme.fontWeight.medium,
-    color: theme.colors.text,
   },
-  uninstallButton: {
-    backgroundColor: '#DC2626', // Destructive red
+  installButton: {
+    backgroundColor: theme.colors.primary,
+    borderRadius: theme.borderRadius.sm,
+    paddingVertical: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: theme.spacing.xs,
+    minHeight: 44,
+    marginTop: theme.spacing.xs,
   },
-  uninstallButtonText: {
+  installButtonPressed: {
+    opacity: 0.8,
+  },
+  installButtonDisabled: {
+    backgroundColor: theme.colors.surface,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  installButtonText: {
     fontSize: theme.fontSize.sm,
-    fontWeight: theme.fontWeight.medium,
+    fontWeight: theme.fontWeight.semibold,
     color: '#FFFFFF',
+  },
+  installButtonTextDisabled: {
+    color: '#10B981',
   },
 }))
 

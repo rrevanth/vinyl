@@ -108,9 +108,17 @@ interface Translations {
       browse_addons: string
       install_addon: string
       addon_details: string
+      summary: {
+        title: string
+        installed: string
+        active: string
+        catalogs: string
+        working: string
+      }
       installed_addons: string
       installed_addons_footer: string
       no_addons_installed: string
+      no_addons_installed_subtext: string
       actions: string
       install_by_url: string
       clear_cache: string
@@ -170,6 +178,8 @@ interface Translations {
       go_back: string
       enabled: string
       disabled: string
+      enable: string
+      disable: string
       information: string
       description_label: string
       configuration: string
@@ -180,6 +190,34 @@ interface Translations {
       refresh_success_message: string
       refresh_failed: string
       refresh_failed_message: string
+      refresh_manifest: string
+      provides_catalogs: string
+      uninstall_quick: string
+      catalog_source: string
+      community_catalog: string
+      content_type: string
+      all_types: string
+      movies: string
+      series: string
+      channels: string
+      capability_filter: string
+      available_addons: string
+      available_catalogs: string
+      select_catalog: string
+      browsing_catalog: string
+      no_catalog_sources: string
+      no_catalog_sources_message: string
+      pull_to_refresh: string
+      loading_catalog: string
+      streams_only: string
+      all_capabilities: string
+      filter_by_resource: string
+      all_resources: string
+      streams: string
+      metadata: string
+      subtitles: string
+      loading_addons: string
+      no_addons_match_filter: string
     }
   }
 }

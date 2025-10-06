@@ -275,7 +275,7 @@ export class StremioAddonRegistry {
       const stremioAddon = new StremioAddon({
         manifest: processedAddon.rawManifest,
         transportUrl: installedAddon.transportUrl,
-        capabilities: installedAddon.capabilities,
+        capabilities: processedAddon.capabilities?.capabilities || [],
         isInstalled: true,
         isEnabled: installedAddon.isEnabled,
         installedAt: installedAddon.installedAt,

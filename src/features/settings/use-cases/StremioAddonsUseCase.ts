@@ -1,7 +1,7 @@
 import type { StremioAddonRegistry } from '@/src/infrastructure/providers/stremio/StremioAddonRegistry'
 import type { StremioAddonStorage } from '@/src/infrastructure/providers/stremio/storage/StremioAddonStorage'
 import type { ILoggingService } from '@/src/domain/services/ILoggingService'
-import type { StremioAddon } from '@/src/domain/entities/StremioAddon'
+import { StremioAddon } from '@/src/domain/entities/StremioAddon'
 
 /**
  * Result type for addon operations
@@ -32,16 +32,61 @@ export class StremioAddonsUseCase {
       this.logger.debug('Getting installed addons', { userId })
 
       const preferences = await this.addonStorage.getUserPreferences(userId)
-      const installedAddons = Object.values(preferences.installedAddons)
+      const installedAddonsData = Object.values(preferences.installedAddons)
 
-      this.logger.info('Retrieved installed addons', {
+      this.logger.info('Retrieved installed addons from storage', {
         userId,
-        count: installedAddons.length,
+        count: installedAddonsData.length,
       })
 
-      // TODO: Convert UserInstalledAddon to StremioAddon entities
-      // For now, return empty array - this will be implemented when we integrate with the registry
-      return []
+      // Convert UserInstalledAddon to StremioAddon entities
+      // Use Promise.allSettled to handle individual addon fetch failures gracefully
+      const conversionPromises = installedAddonsData.map(async (installedAddon) => {
+        try {
+          // Get processed addon data for manifest (cached, so efficient)
+          const processedAddon =
+            await this.addonRegistry['processedAddonCache'].getProcessedAddon(
+              installedAddon.transportUrl
+            )
+
+          // Create StremioAddon entity using the factory method
+          return new StremioAddon({
+            manifest: processedAddon.rawManifest,
+            transportUrl: installedAddon.transportUrl,
+            capabilities: processedAddon.capabilities?.capabilities || [],
+            isInstalled: true,
+            isEnabled: installedAddon.isEnabled,
+            installedAt: installedAddon.installedAt,
+            lastUpdated: installedAddon.lastUpdated,
+            userPriority: installedAddon.userConfig.priority,
+            userCategories: installedAddon.userConfig.categories,
+            customName: installedAddon.userConfig.customName,
+          })
+        } catch (error) {
+          this.logger.warn(
+            `Failed to load manifest for installed addon ${installedAddon.addonId}`,
+            error as Error
+          )
+          // Return null for failed conversions - we'll filter them out
+          return null
+        }
+      })
+
+      const results = await Promise.allSettled(conversionPromises)
+
+      // Extract successful conversions and filter out nulls
+      const addons: StremioAddon[] = results
+        .filter((result) => result.status === 'fulfilled' && result.value !== null)
+        .map((result) => (result as PromiseFulfilledResult<StremioAddon>).value)
+
+      this.logger.info('Converted installed addons to entities', {
+        userId,
+        total: installedAddonsData.length,
+        successful: addons.length,
+        failed: installedAddonsData.length - addons.length,
+      })
+
+      return addons
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Unknown error'
       this.logger.error('Failed to get installed addons', error as Error, { userId })

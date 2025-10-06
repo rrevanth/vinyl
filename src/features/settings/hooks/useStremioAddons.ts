@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useEffect } from 'react'
+import { useSelector } from '@legendapp/state/react'
 import { userState$ } from '@/src/presentation/shared/stores/app.store'
 import { stremioAddons$ } from '@/src/presentation/shared/stores/stremioAddons.store'
 import { StremioAddonsUseCase } from '../use-cases/StremioAddonsUseCase'
@@ -51,12 +52,12 @@ export const useStremioAddons = () => {
   )
 
   // Get current user from state
-  const currentUser = userState$.currentUser.get()
+  const currentUser = useSelector(() => userState$.currentUser.get())
 
-  // Reactive state from Legend State
-  const installedAddons = stremioAddons$.installed.get()
-  const isLoading = stremioAddons$.isLoading.get()
-  const error = stremioAddons$.error.get()
+  // Reactive state from Legend State using useSelector
+  const installedAddons = useSelector(() => stremioAddons$.installed.get())
+  const isLoading = useSelector(() => stremioAddons$.isLoading.get())
+  const error = useSelector(() => stremioAddons$.error.get())
 
   /**
    * Load installed addons for current user
@@ -80,13 +81,32 @@ export const useStremioAddons = () => {
   }, [addonsUseCase, currentUser.id, logger])
 
   /**
-   * Load addons on mount
+   * Load addons on mount and initialize Stremio system
+   * IMPORTANT: Cleanup happens inside initializeStremio BEFORE loading
    */
   useEffect(() => {
-    loadInstalledAddons().catch((error) => {
-      logger.error('Failed to load addons on mount', error as Error)
+    const initialize = async () => {
+      try {
+        // Initialize Stremio system (includes cleanup as first step)
+        const { initializeStremio } = await import(
+          '@/src/infrastructure/providers/stremio/initializeStremio'
+        )
+
+        await initializeStremio(currentUser.id)
+        logger.info('Stremio system initialized', { userId: currentUser.id })
+      } catch (error) {
+        logger.warn('Stremio initialization warning', error as Error)
+        // Continue anyway - not critical
+      }
+
+      // Load installed addons into state (after cleanup and init)
+      await loadInstalledAddons()
+    }
+
+    initialize().catch((error) => {
+      logger.error('Failed to initialize Stremio on mount', error as Error)
     })
-  }, [loadInstalledAddons, logger])
+  }, [currentUser.id, loadInstalledAddons, logger])
 
   /**
    * Install addon from manifest URL

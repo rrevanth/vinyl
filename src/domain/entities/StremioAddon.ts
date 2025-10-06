@@ -221,6 +221,16 @@ export class StremioAddon {
   }
 
   /**
+   * Get total catalog count (content catalogs + addon catalogs)
+   * This includes both manifest.catalogs and manifest.addonCatalogs
+   */
+  getTotalCatalogCount(): number {
+    const contentCatalogsCount = this.manifest.catalogs?.length || 0
+    const addonCatalogsCount = this.manifest.addonCatalogs?.length || 0
+    return contentCatalogsCount + addonCatalogsCount
+  }
+
+  /**
    * Create a copy with updated installation state
    */
   withInstallationState(updates: {
@@ -246,6 +256,48 @@ export class StremioAddon {
       userCategories: updates.userCategories ?? this.userCategories,
       userNotes: updates.userNotes ?? this.userNotes,
       customName: updates.customName ?? this.customName,
+    })
+  }
+
+  /**
+   * Serialize to JSON (for storage/transmission)
+   * This ensures proper serialization if StremioAddon instances ever get persisted
+   */
+  toJSON() {
+    return {
+      manifest: this.manifest,
+      transportUrl: this.transportUrl,
+      transportName: this.transportName,
+      capabilities: this.capabilities,
+      isInstalled: this.isInstalled,
+      isEnabled: this.isEnabled,
+      installedAt: this.installedAt?.toISOString(),
+      lastUpdated: this.lastUpdated?.toISOString(),
+      userPriority: this.userPriority,
+      userCategories: this.userCategories,
+      userNotes: this.userNotes,
+      customName: this.customName,
+    }
+  }
+
+  /**
+   * Deserialize from JSON (restore class instance with methods)
+   * This ensures proper deserialization if StremioAddon instances were persisted as JSON
+   */
+  static fromJSON(data: any): StremioAddon {
+    return new StremioAddon({
+      manifest: data.manifest,
+      transportUrl: data.transportUrl,
+      transportName: data.transportName,
+      capabilities: data.capabilities || [],
+      isInstalled: data.isInstalled ?? false,
+      isEnabled: data.isEnabled ?? false,
+      installedAt: data.installedAt ? new Date(data.installedAt) : undefined,
+      lastUpdated: data.lastUpdated ? new Date(data.lastUpdated) : undefined,
+      userPriority: data.userPriority,
+      userCategories: data.userCategories,
+      userNotes: data.userNotes,
+      customName: data.customName,
     })
   }
 }
