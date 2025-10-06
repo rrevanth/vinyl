@@ -42,7 +42,7 @@ export class TraktConfigFactory {
     const effectiveClientSecret =
       userConfig?.clientSecret || this.envService.getTraktClientSecret() || ''
     const effectiveRedirectUri =
-      userConfig?.redirectUri || this.envService.get('TRAKT_REDIRECT_URI', 'vnyl://auth/trakt')
+      userConfig?.redirectUri || this.envService.get('TRAKT_REDIRECT_URI', 'vnyl://auth/trakt/callback')
     const effectiveBaseUrl =
       userConfig?.baseUrl || this.envService.get('TRAKT_BASE_URL', 'https://api.trakt.tv')
     const effectiveLanguage = userConfig?.language || 'en-US'
@@ -125,7 +125,8 @@ export class TraktConfigFactory {
    * Used to initiate the OAuth flow
    */
   getOAuthUrl(config: EffectiveTraktConfig, state?: string): string {
-    const baseUrl = config.effectiveBaseUrl.replace('/api.trakt.tv', '/trakt.tv')
+    // Trakt OAuth authorization is always at trakt.tv (not api.trakt.tv)
+    const authBaseUrl = 'https://trakt.tv'
     const params = new URLSearchParams({
       response_type: 'code',
       client_id: config.effectiveClientId,
@@ -136,7 +137,7 @@ export class TraktConfigFactory {
       params.append('state', state)
     }
 
-    return `${baseUrl}/oauth/authorize?${params.toString()}`
+    return `${authBaseUrl}/oauth/authorize?${params.toString()}`
   }
 
   /**

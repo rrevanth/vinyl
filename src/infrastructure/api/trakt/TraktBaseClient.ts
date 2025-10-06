@@ -61,11 +61,15 @@ export class TraktBaseClient {
     // Update current access token
     this.currentAccessToken = this.currentConfig.accessToken || null
 
-    // Create new HTTP client with current config
+    // Create new HTTP client with current config and Trakt-specific headers
     this.httpClient = new HttpClient(
       this.currentConfig.effectiveBaseUrl,
       () => this.currentAccessToken, // Synchronous token getter
-      this.logger
+      this.logger,
+      {
+        'trakt-api-key': this.currentConfig.effectiveClientId,
+        'trakt-api-version': '2',
+      }
     )
 
     // Check if token needs refresh and do it in background

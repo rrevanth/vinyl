@@ -5,8 +5,6 @@ import { userState$ } from '@/src/presentation/shared/stores/app.store'
 import {
   oauthState$,
   setPendingOAuthState,
-  setOAuthProcessing,
-  setOAuthError,
   clearOAuthState,
 } from '@/src/presentation/shared/stores/oauth.store'
 import { TraktAccountUseCase } from '../use-cases/TraktAccountUseCase'
@@ -17,10 +15,9 @@ import type { ILoggingService } from '@/src/domain/services/ILoggingService'
 import type { TraktAccount } from '@/src/domain/entities/User'
 
 /**
- * Hook for Trakt account OAuth management
+ * Simplified hook for Trakt account OAuth management
  *
- * Provides OAuth flow functionality and reactive access to Trakt account status.
- * Uses expo-web-browser for OAuth authentication flow.
+ * Provides simple OAuth flow functionality and reactive access to Trakt account status.
  *
  * Usage:
  * ```tsx
@@ -49,12 +46,12 @@ export const useTraktAccount = () => {
     [traktClient, logger]
   )
 
-  // Local loading state for UI feedback
+  // Local state for UI feedback
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   // Reactive state from Legend State
   const currentUser = userState$.currentUser.get()
-  const oauthState = oauthState$.get()
 
   // Computed values
   const isConnected = traktUseCase.isConnected(currentUser)
@@ -66,9 +63,10 @@ export const useTraktAccount = () => {
    */
   const startOAuthFlow = useCallback(async () => {
     try {
+      // Clear previous errors and state
+      setError(null)
+      clearOAuthState()
       setIsLoading(true)
-      setOAuthProcessing(true)
-      setOAuthError(null)
 
       // Generate CSRF protection state
       const state = randomUUID()
@@ -77,16 +75,19 @@ export const useTraktAccount = () => {
       // Get authorization URL from use case
       const authUrl = traktUseCase.getAuthorizationUrl(state)
 
-      // Get the correct redirect URI from Trakt client config
+      // Get the redirect URI from Trakt client config
       const redirectUri = traktClient.getCurrentConfig().effectiveRedirectUri
 
-      logger.info('Opening Trakt OAuth browser', { state, redirectUri })
+      logger.info('Opening Trakt OAuth browser', {
+        state,
+        redirectUri,
+        authUrl
+      })
 
-      // Open browser for OAuth flow with proper redirect URI
-      const result = await WebBrowser.openAuthSessionAsync(
-        authUrl,
-        redirectUri // Use the actual redirect URI from config
-      )
+      // Open browser for OAuth flow
+      const result = await WebBrowser.openAuthSessionAsync(authUrl, redirectUri)
+
+      logger.info('WebBrowser result', { type: result.type })
 
       if (result.type === 'success' && result.url) {
         // Parse authorization code and state from redirect URL
@@ -112,18 +113,20 @@ export const useTraktAccount = () => {
         clearOAuthState()
       } else if (result.type === 'cancel') {
         logger.info('OAuth flow cancelled by user')
-        setOAuthError('Authentication cancelled')
+        setError('Authentication cancelled')
+        clearOAuthState()
       } else {
         throw new Error('OAuth flow failed')
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error'
       logger.error('OAuth flow failed', error as Error)
-      setOAuthError(errorMessage)
-      throw error
+      setError(errorMessage)
+
+      // Clear OAuth state on failure to allow retry
+      clearOAuthState()
     } finally {
       setIsLoading(false)
-      setOAuthProcessing(false)
     }
   }, [traktUseCase, traktClient, logger])
 
@@ -151,6 +154,9 @@ export const useTraktAccount = () => {
         clearOAuthState()
       } catch (error) {
         logger.error('OAuth callback failed', error as Error)
+
+        // Clear OAuth state on failure to allow retry
+        clearOAuthState()
         throw error
       } finally {
         setIsLoading(false)
@@ -218,8 +224,8 @@ export const useTraktAccount = () => {
     // State
     isConnected,
     account,
-    isLoading: isLoading || oauthState.isProcessing,
-    error: oauthState.error,
+    isLoading,
+    error,
 
     // Actions
     startOAuthFlow,

@@ -9,17 +9,10 @@ import { useTraktAccount } from '@/src/features/settings/hooks/useTraktAccount'
 import { t } from '@/src/presentation/shared/i18n'
 
 const TraktAccountScreen = observer(() => {
-  const { isConnected, account, isLoading, startOAuthFlow, disconnect } = useTraktAccount()
+  const { isConnected, account, isLoading, error, startOAuthFlow, disconnect } = useTraktAccount()
 
   const handleConnect = async () => {
-    try {
-      await startOAuthFlow()
-    } catch (error) {
-      Alert.alert(
-        t('settings.accounts.trakt.connection_failed'),
-        error instanceof Error ? error.message : 'Unknown error'
-      )
-    }
+    await startOAuthFlow()
   }
 
   const handleDisconnect = () => {
@@ -72,18 +65,39 @@ const TraktAccountScreen = observer(() => {
           title={t('settings.accounts.trakt.connect_title')}
           footer={t('settings.accounts.trakt.connect_footer')}
         >
+          {/* Show error state if OAuth failed */}
+          {error && (
+            <View style={styles.errorContainer}>
+              <Text style={styles.errorText}>{error}</Text>
+            </View>
+          )}
+
           <Pressable
-            style={({ pressed }) => [styles.connectButton, pressed && styles.connectButtonPressed]}
+            style={({ pressed }) => [
+              styles.connectButton,
+              pressed && styles.connectButtonPressed,
+              isLoading && styles.connectButtonDisabled,
+            ]}
             onPress={handleConnect}
+            disabled={isLoading}
             accessibilityRole="button"
-            accessibilityLabel={t('settings.accounts.trakt.sign_in')}
+            accessibilityLabel={
+              error ? t('settings.accounts.trakt.retry_oauth') : t('settings.accounts.trakt.sign_in')
+            }
+            accessibilityState={{ disabled: isLoading }}
           >
             <Ionicons
               name="git-network-outline"
               size={24}
               color={UnistylesRuntime.getTheme().colors.primary}
             />
-            <Text style={styles.connectText}>{t('settings.accounts.trakt.sign_in')}</Text>
+            <Text style={styles.connectText}>
+              {isLoading
+                ? t('settings.accounts.trakt.oauth_in_progress')
+                : error
+                  ? t('settings.accounts.trakt.retry_oauth')
+                  : t('settings.accounts.trakt.sign_in')}
+            </Text>
           </Pressable>
         </SettingsSection>
       </ScrollView>
@@ -149,9 +163,24 @@ const styles = StyleSheet.create((theme) => ({
   connectButtonPressed: {
     backgroundColor: theme.colors.surfaceElevated,
   },
+  connectButtonDisabled: {
+    opacity: 0.5,
+  },
   connectText: {
     fontSize: theme.fontSize.base,
     fontWeight: theme.fontWeight.medium,
     color: theme.colors.primary,
+  },
+  errorContainer: {
+    backgroundColor: theme.colors.error,
+    borderRadius: theme.borderRadius.md,
+    padding: theme.spacing.md,
+    marginBottom: theme.spacing.md,
+    marginHorizontal: theme.spacing.lg,
+  },
+  errorText: {
+    color: '#FFFFFF',
+    fontSize: theme.fontSize.sm,
+    lineHeight: 20,
   },
 }))

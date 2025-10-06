@@ -3,7 +3,6 @@ import type { TMDBConfig } from '@/src/domain/entities/UserPreferences'
 import type { TMDBClient } from '@/src/infrastructure/api/tmdb/TMDBClient'
 import type { IEnvironmentService } from '@/src/domain/services/IEnvironmentService'
 import { userPreferences$ } from '@/src/presentation/shared/stores/app.store'
-import { DomainError } from '@/src/domain/errors'
 import { TMDBConfigFactory } from '@/src/infrastructure/factories/TMDBConfigFactory'
 import { TMDBClient as TMDBClientClass } from '@/src/infrastructure/api/tmdb/TMDBClient'
 
@@ -117,8 +116,8 @@ export class TMDBAccountUseCase {
   }
 
   /**
-   * Validate TMDB connection by testing API access
-   * Returns true if configuration is valid and API is accessible
+   * Validate TMDB connection by testing API access with effective config
+   * Uses priority: Custom values > Environment values > Defaults
    */
   async validateConnection(): Promise<{
     success: boolean
@@ -131,7 +130,7 @@ export class TMDBAccountUseCase {
     }
   }> {
     try {
-      this.logger.info('Validating TMDB connection')
+      this.logger.info('Validating TMDB connection with effective config')
       const result = await this.tmdbClient.testConnection()
 
       if (result.success) {
@@ -147,7 +146,10 @@ export class TMDBAccountUseCase {
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
       this.logger.error('Failed to validate TMDB connection', err)
-      throw new DomainError(`TMDB connection validation failed: ${err.message}`)
+      return {
+        success: false,
+        error: err.message,
+      }
     }
   }
 
@@ -180,78 +182,69 @@ export class TMDBAccountUseCase {
   }
 
   /**
-   * Validate and save custom TMDB configuration
-   *
-   * This method creates a temporary TMDB client with the provided configuration,
-   * validates it by testing the connection to TMDB API, and only saves the
-   * configuration to Legend State if validation succeeds.
+   * Validate and save TMDB configuration
+   * Only validates if user has provided custom values
+   * Otherwise, just saves the configuration (will use env/defaults)
    *
    * @param config Partial TMDB configuration to validate and save
-   * @returns ValidationResult with success status, error message if failed, or validated config if succeeded
+   * @returns ValidationResult with success status
    */
   async validateAndSave(config: Partial<TMDBConfig>): Promise<ValidationResult> {
     try {
-      this.logger.info('Validating custom TMDB configuration', {
-        hasApiKey: Boolean(config.apiKey),
-        hasBaseURL: Boolean(config.baseURL),
-        hasImageBaseURL: Boolean(config.imageBaseURL),
+      this.logger.info('Validating TMDB configuration', {
+        hasCustomApiKey: Boolean(config.apiKey),
+        hasCustomBaseURL: Boolean(config.baseURL),
+        hasCustomImageBaseURL: Boolean(config.imageBaseURL),
       })
 
-      // Get current configuration as fallback for missing values
+      // Get current configuration
       const currentConfig = userPreferences$.tmdb.get()
 
       // Merge provided config with current config
-      const tempConfig: TMDBConfig = {
-        apiKey: config.apiKey ?? currentConfig.apiKey,
+      const newConfig: TMDBConfig = {
+        apiKey: config.apiKey !== undefined ? config.apiKey : currentConfig.apiKey,
         baseURL: config.baseURL ?? currentConfig.baseURL,
         imageBaseURL: config.imageBaseURL ?? currentConfig.imageBaseURL,
         language: config.language ?? currentConfig.language,
         region: config.region ?? currentConfig.region,
       }
 
-      // Validate that required fields are present
-      if (!tempConfig.apiKey) {
+      // Check if user has entered any custom values
+      const hasCustomValues =
+        Boolean(config.apiKey) ||
+        (config.baseURL && config.baseURL !== 'https://api.themoviedb.org/3') ||
+        (config.imageBaseURL && config.imageBaseURL !== 'https://image.tmdb.org/t/p/')
+
+      // If no custom values, just save and return success (will use env/defaults)
+      if (!hasCustomValues) {
+        userPreferences$.tmdb.set(newConfig)
+        this.logger.info('TMDB configuration saved (using env/defaults)')
         return {
-          success: false,
-          error: 'API key is required',
+          success: true,
+          validatedConfig: newConfig,
         }
       }
 
-      if (!tempConfig.baseURL) {
-        return {
-          success: false,
-          error: 'Base URL is required',
-        }
-      }
-
-      if (!tempConfig.imageBaseURL) {
-        return {
-          success: false,
-          error: 'Image base URL is required',
-        }
-      }
-
-      // Create temporary factory and client for validation
-      const tempFactory = new TMDBConfigFactory(this.envService)
-      const tempClient = new TMDBClientClass(tempFactory, this.logger)
-
-      // Temporarily set the config in user preferences for factory to pick up
-      // We'll restore it if validation fails
+      // Validate custom configuration
       const originalConfig = { ...currentConfig }
-      userPreferences$.tmdb.set(tempConfig)
+      userPreferences$.tmdb.set(newConfig)
 
       try {
-        // Test connection with temporary configuration
+        // Create temporary client to test the custom configuration
+        const tempFactory = new TMDBConfigFactory(this.envService)
+        const tempClient = new TMDBClientClass(tempFactory, this.logger)
+
+        // Test connection
         const testResult = await tempClient.testConnection()
 
-        // Clean up temporary client
+        // Clean up
         tempClient.destroy()
 
         if (!testResult.success) {
-          // Restore original configuration on validation failure
+          // Restore original configuration on failure
           userPreferences$.tmdb.set(originalConfig)
 
-          this.logger.warn('TMDB configuration validation failed', {
+          this.logger.warn('TMDB custom configuration validation failed', {
             error: testResult.error,
           })
 
@@ -261,27 +254,16 @@ export class TMDBAccountUseCase {
           }
         }
 
-        // Validation succeeded - config is already saved in Legend State
-        this.logger.info('TMDB configuration validated and saved successfully', {
-          source: testResult.config.source,
-        })
+        // Validation succeeded
+        this.logger.info('TMDB custom configuration validated and saved successfully')
 
         return {
           success: true,
-          validatedConfig: {
-            apiKey: tempConfig.apiKey,
-            baseURL: tempConfig.baseURL,
-            imageBaseURL: tempConfig.imageBaseURL,
-            language: tempConfig.language,
-            region: tempConfig.region,
-          },
+          validatedConfig: newConfig,
         }
       } catch (testError) {
         // Restore original configuration on error
         userPreferences$.tmdb.set(originalConfig)
-
-        // Clean up temporary client
-        tempClient.destroy()
 
         const err = testError instanceof Error ? testError : new Error(String(testError))
         this.logger.error('Error testing TMDB configuration', err)

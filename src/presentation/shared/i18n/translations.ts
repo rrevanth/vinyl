@@ -81,6 +81,8 @@ interface Translations {
         connect_title: string
         connect_footer: string
         sign_in: string
+        oauth_in_progress: string
+        retry_oauth: string
         disconnect: string
         disconnect_description: string
         disconnect_confirm_title: string

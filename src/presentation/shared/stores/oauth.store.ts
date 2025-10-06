@@ -1,19 +1,15 @@
 import { observable } from '@legendapp/state'
 
 /**
- * OAuth state management store
- * Tracks OAuth flow state for CSRF protection and processing status
+ * Simplified OAuth state management
+ * Only tracks pending CSRF state for validation
  */
 export interface OAuthState {
   pendingState: string | null
-  isProcessing: boolean
-  error: string | null
 }
 
 export const oauthState$ = observable<OAuthState>({
   pendingState: null,
-  isProcessing: false,
-  error: null,
 })
 
 /**
@@ -24,26 +20,8 @@ export const setPendingOAuthState = (state: string | null) => {
 }
 
 /**
- * Set OAuth processing status
- */
-export const setOAuthProcessing = (isProcessing: boolean) => {
-  oauthState$.isProcessing.set(isProcessing)
-}
-
-/**
- * Set OAuth error
- */
-export const setOAuthError = (error: string | null) => {
-  oauthState$.error.set(error)
-}
-
-/**
  * Clear OAuth state
  */
 export const clearOAuthState = () => {
-  oauthState$.set({
-    pendingState: null,
-    isProcessing: false,
-    error: null,
-  })
+  oauthState$.pendingState.set(null)
 }

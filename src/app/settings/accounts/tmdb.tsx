@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { ScrollView, Alert, Pressable, Text } from 'react-native'
+import { ScrollView, Pressable, Text, Alert } from 'react-native'
 import { StyleSheet } from 'react-native-unistyles'
 import { observable } from '@legendapp/state'
 import { observer } from '@legendapp/state/react'
@@ -56,13 +56,14 @@ const pendingChanges$ = observable({
   region: '',
 })
 
-const validationStatus$ = observable<'idle' | 'validating' | 'connected' | 'error'>('idle')
-const validationMessage$ = observable<string>('')
+const connectionStatus$ = observable<'idle' | 'validating' | 'connected' | 'error'>('idle')
+const connectionMessage$ = observable<string>('')
+const isValidating$ = observable<boolean>(false)
 
 const TMDBSettingsScreen = observer(() => {
-  const { config, validateAndSave } = useTMDBAccount()
+  const { config, validateAndSave, validateConnection } = useTMDBAccount()
 
-  // Initialize pending changes from current config
+  // Initialize pending changes from current config and validate connection
   useEffect(() => {
     pendingChanges$.apiKey.isCustom.set(Boolean(config.apiKey))
     pendingChanges$.apiKey.value.set(config.apiKey)
@@ -73,13 +74,27 @@ const TMDBSettingsScreen = observer(() => {
     pendingChanges$.language.set(config.language)
     pendingChanges$.region.set(config.region)
 
-    // Set initial connection status based on config
-    if (config.apiKey) {
-      validationStatus$.set('connected')
-    } else {
-      validationStatus$.set('idle')
+    // Always check connection with effective config (custom > env > default)
+    const checkConnection = async () => {
+      try {
+        const result = await validateConnection()
+        if (result.success) {
+          connectionStatus$.set('connected')
+          connectionMessage$.set('')
+        } else {
+          connectionStatus$.set('error')
+          connectionMessage$.set(result.error || 'Connection failed')
+        }
+      } catch (error) {
+        // Silently handle connection check errors
+        connectionStatus$.set('error')
+        const errorMessage = error instanceof Error ? error.message : 'Connection check failed'
+        connectionMessage$.set(errorMessage)
+      }
     }
-  }, [config])
+
+    checkConnection()
+  }, [config, validateConnection])
 
   // Check if there are unsaved changes
   const hasUnsavedChanges = (): boolean => {
@@ -108,53 +123,48 @@ const TMDBSettingsScreen = observer(() => {
   }
 
   const handleValidateAndSave = async () => {
-    try {
-      validationStatus$.set('validating')
-      validationMessage$.set('')
+    isValidating$.set(true)
 
-      // Build config to validate
-      const configToValidate: Partial<TMDBConfig> = {
-        apiKey: pendingChanges$.apiKey.isCustom.get() ? pendingChanges$.apiKey.value.get() : '',
-        baseURL: pendingChanges$.baseURL.isCustom.get()
-          ? pendingChanges$.baseURL.value.get()
-          : DEFAULT_BASE_URL,
-        imageBaseURL: pendingChanges$.imageBaseURL.isCustom.get()
-          ? pendingChanges$.imageBaseURL.value.get()
-          : DEFAULT_IMAGE_BASE_URL,
-        language: pendingChanges$.language.get(),
-        region: pendingChanges$.region.get(),
+    // Build config to validate
+    const configToValidate: Partial<TMDBConfig> = {
+      apiKey: pendingChanges$.apiKey.isCustom.get() ? pendingChanges$.apiKey.value.get() : '',
+      baseURL: pendingChanges$.baseURL.isCustom.get()
+        ? pendingChanges$.baseURL.value.get()
+        : DEFAULT_BASE_URL,
+      imageBaseURL: pendingChanges$.imageBaseURL.isCustom.get()
+        ? pendingChanges$.imageBaseURL.value.get()
+        : DEFAULT_IMAGE_BASE_URL,
+      language: pendingChanges$.language.get(),
+      region: pendingChanges$.region.get(),
+    }
+
+    const result = await validateAndSave(configToValidate)
+
+    isValidating$.set(false)
+
+    if (result.success) {
+      // Update connection status with effective config
+      const connectionResult = await validateConnection()
+      if (connectionResult.success) {
+        connectionStatus$.set('connected')
+        connectionMessage$.set('')
       }
 
-      const result = await validateAndSave(configToValidate)
-
-      if (result.success) {
-        validationStatus$.set('connected')
-        validationMessage$.set('')
-        Alert.alert(
-          t('settings.accounts.tmdb.connection_success'),
-          t('settings.accounts.tmdb.validation_success')
-        )
-      } else {
-        validationStatus$.set('error')
-        validationMessage$.set(
-          result.error || t('settings.accounts.tmdb.connection_failed_message')
-        )
-        Alert.alert(
-          t('settings.accounts.tmdb.connection_failed'),
-          result.error || t('settings.accounts.tmdb.validation_error')
-        )
-      }
-    } catch (error) {
-      validationStatus$.set('error')
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-      validationMessage$.set(errorMessage)
+      Alert.alert(
+        t('settings.accounts.tmdb.connection_success'),
+        t('settings.accounts.tmdb.validation_success')
+      )
+    } else {
+      // Show error via Alert
+      const errorMessage = result.error || t('settings.accounts.tmdb.connection_failed_message')
       Alert.alert(t('settings.accounts.tmdb.connection_failed'), errorMessage)
     }
   }
 
-  const connectionStatus = validationStatus$.get()
-  const connectionMessage = validationMessage$.get()
+  const connectionStatus = connectionStatus$.get()
+  const connectionMessage = connectionMessage$.get()
   const showSaveButton = hasUnsavedChanges()
+  const isValidating = isValidating$.get()
 
   return (
     <ScrollView
@@ -179,7 +189,9 @@ const TMDBSettingsScreen = observer(() => {
           onToggleCustom={(useCustom) => {
             pendingChanges$.apiKey.isCustom.set(useCustom)
             if (!useCustom) {
-              pendingChanges$.apiKey.value.set('')
+              pendingChanges$.apiKey.value.set('') // Use default/env when toggling off
+            } else {
+              pendingChanges$.apiKey.value.set('') // Start empty for custom input
             }
           }}
           onCustomValueChange={(value) => pendingChanges$.apiKey.value.set(value)}
@@ -194,7 +206,9 @@ const TMDBSettingsScreen = observer(() => {
           onToggleCustom={(useCustom) => {
             pendingChanges$.baseURL.isCustom.set(useCustom)
             if (!useCustom) {
-              pendingChanges$.baseURL.value.set(DEFAULT_BASE_URL)
+              pendingChanges$.baseURL.value.set(DEFAULT_BASE_URL) // Reset to default
+            } else {
+              pendingChanges$.baseURL.value.set('') // Start EMPTY for custom
             }
           }}
           onCustomValueChange={(value) => pendingChanges$.baseURL.value.set(value)}
@@ -208,7 +222,9 @@ const TMDBSettingsScreen = observer(() => {
           onToggleCustom={(useCustom) => {
             pendingChanges$.imageBaseURL.isCustom.set(useCustom)
             if (!useCustom) {
-              pendingChanges$.imageBaseURL.value.set(DEFAULT_IMAGE_BASE_URL)
+              pendingChanges$.imageBaseURL.value.set(DEFAULT_IMAGE_BASE_URL) // Reset to default
+            } else {
+              pendingChanges$.imageBaseURL.value.set('') // Start EMPTY for custom
             }
           }}
           onCustomValueChange={(value) => pendingChanges$.imageBaseURL.value.set(value)}
@@ -242,16 +258,16 @@ const TMDBSettingsScreen = observer(() => {
             style={({ pressed }) => [
               styles.validateButton,
               pressed && styles.validateButtonPressed,
-              connectionStatus === 'validating' && styles.validateButtonDisabled,
+              isValidating && styles.validateButtonDisabled,
             ]}
             onPress={handleValidateAndSave}
-            disabled={connectionStatus === 'validating'}
+            disabled={isValidating}
             accessibilityRole="button"
             accessibilityLabel={t('settings.accounts.tmdb.validate_and_save')}
-            accessibilityState={{ disabled: connectionStatus === 'validating' }}
+            accessibilityState={{ disabled: isValidating }}
           >
             <Text style={styles.validateButtonText}>
-              {connectionStatus === 'validating'
+              {isValidating
                 ? t('settings.accounts.tmdb.validating')
                 : t('settings.accounts.tmdb.validate_and_save')}
             </Text>

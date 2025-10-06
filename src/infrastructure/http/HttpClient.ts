@@ -20,7 +20,8 @@ export class HttpClient {
   constructor(
     private baseURL: string,
     private getAuthToken: () => string | null,
-    private logger?: ILoggingService
+    private logger?: ILoggingService,
+    private additionalHeaders?: Record<string, string>
   ) {
     this.setupAxios()
   }
@@ -35,6 +36,7 @@ export class HttpClient {
       timeout: 10000, // 10 seconds
       headers: {
         'Content-Type': 'application/json',
+        ...this.additionalHeaders,
       },
     })
 

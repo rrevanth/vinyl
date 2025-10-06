@@ -76,6 +76,8 @@
         "connect_title": "Conectar Trakt",
         "connect_footer": "Inicie sesión con su cuenta de Trakt para sincronizar su historial de visualización y calificaciones",
         "sign_in": "Iniciar sesión con Trakt",
+        "oauth_in_progress": "Conectando...",
+        "retry_oauth": "Reintentar Conexión",
         "disconnect": "Desconectar",
         "disconnect_description": "Cerrar sesión y eliminar cuenta de Trakt",
         "disconnect_confirm_title": "¿Desconectar Trakt?",

@@ -5,7 +5,7 @@ import { userState$ } from '@/src/presentation/shared/stores/app.store'
 import { DomainError } from '@/src/domain/errors'
 
 /**
- * Use case for Trakt account OAuth management
+ * Simplified use case for Trakt account OAuth management
  */
 export class TraktAccountUseCase {
   constructor(
@@ -208,4 +208,5 @@ export class TraktAccountUseCase {
     const user = this.getCurrentUser()
     return this.getAccountInfo(user)
   }
+
 }
