@@ -1,10 +1,10 @@
 import { computed } from '@legendapp/state'
-import { appState$ } from '../stores/app.store'
+import { currentLocale$ } from '../stores/app.store'
 import { translations, Translations, type SupportedLocale } from './translations'
 
 // Computed current translations based on selected locale
 export const currentTranslations$ = computed(() => {
-  const locale = appState$.locale.get() as SupportedLocale
+  const locale = currentLocale$.get() as SupportedLocale
   return translations[locale]
 })
 

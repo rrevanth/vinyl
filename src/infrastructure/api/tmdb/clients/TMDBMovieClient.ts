@@ -1,4 +1,4 @@
-import { TMDBBaseClient } from '../TMDBBaseClient'
+import type { TMDBBaseClient } from '../TMDBBaseClient'
 import type {
   TMDBMovieResponse,
   TMDBCreditsResponse,
@@ -20,7 +20,9 @@ import type {
  * Provides comprehensive movie data access with full append_to_response support.
  * Maximizes data fetching efficiency by requesting all relevant information in single calls.
  */
-export class TMDBMovieClient extends TMDBBaseClient {
+export class TMDBMovieClient {
+  constructor(private readonly base: TMDBBaseClient) {}
+
   /**
    * Get movie details with selective append_to_response options
    */
@@ -34,7 +36,7 @@ export class TMDBMovieClient extends TMDBBaseClient {
       params.append_to_response = appendToResponse.join(',')
     }
 
-    return this.get<TMDBMovieResponse>(`/movie/${movieId}`, params)
+    return this.base.get<TMDBMovieResponse>(`/movie/${movieId}`, params)
   }
 
   /**
@@ -61,21 +63,21 @@ export class TMDBMovieClient extends TMDBBaseClient {
    * Get movie credits (cast and crew)
    */
   async getMovieCredits(movieId: number): Promise<TMDBCreditsResponse> {
-    return this.get<TMDBCreditsResponse>(`/movie/${movieId}/credits`)
+    return this.base.get<TMDBCreditsResponse>(`/movie/${movieId}/credits`)
   }
 
   /**
    * Get movie videos (trailers, teasers, clips, etc.)
    */
   async getMovieVideos(movieId: number): Promise<TMDBVideosResponse> {
-    return this.get<TMDBVideosResponse>(`/movie/${movieId}/videos`)
+    return this.base.get<TMDBVideosResponse>(`/movie/${movieId}/videos`)
   }
 
   /**
    * Get movie images (posters, backdrops, logos)
    */
   async getMovieImages(movieId: number): Promise<TMDBImagesResponse> {
-    return this.get<TMDBImagesResponse>(`/movie/${movieId}/images`)
+    return this.base.get<TMDBImagesResponse>(`/movie/${movieId}/images`)
   }
 
   /**
@@ -85,7 +87,7 @@ export class TMDBMovieClient extends TMDBBaseClient {
     movieId: number,
     page: number = 1
   ): Promise<TMDBPaginatedResponse<TMDBReviewResponse>> {
-    return this.get<TMDBPaginatedResponse<TMDBReviewResponse>>(`/movie/${movieId}/reviews`, {
+    return this.base.get<TMDBPaginatedResponse<TMDBReviewResponse>>(`/movie/${movieId}/reviews`, {
       page,
     })
   }
@@ -97,7 +99,7 @@ export class TMDBMovieClient extends TMDBBaseClient {
     movieId: number,
     page: number = 1
   ): Promise<TMDBPaginatedResponse<TMDBMovieResponse>> {
-    return this.get<TMDBPaginatedResponse<TMDBMovieResponse>>(`/movie/${movieId}/recommendations`, {
+    return this.base.get<TMDBPaginatedResponse<TMDBMovieResponse>>(`/movie/${movieId}/recommendations`, {
       page,
     })
   }
@@ -109,42 +111,42 @@ export class TMDBMovieClient extends TMDBBaseClient {
     movieId: number,
     page: number = 1
   ): Promise<TMDBPaginatedResponse<TMDBMovieResponse>> {
-    return this.get<TMDBPaginatedResponse<TMDBMovieResponse>>(`/movie/${movieId}/similar`, { page })
+    return this.base.get<TMDBPaginatedResponse<TMDBMovieResponse>>(`/movie/${movieId}/similar`, { page })
   }
 
   /**
    * Get movie keywords
    */
   async getMovieKeywords(movieId: number): Promise<TMDBKeywordsResponse> {
-    return this.get<TMDBKeywordsResponse>(`/movie/${movieId}/keywords`)
+    return this.base.get<TMDBKeywordsResponse>(`/movie/${movieId}/keywords`)
   }
 
   /**
    * Get movie external IDs (IMDB, Facebook, Twitter, etc.)
    */
   async getMovieExternalIds(movieId: number): Promise<TMDBExternalIdsResponse> {
-    return this.get<TMDBExternalIdsResponse>(`/movie/${movieId}/external_ids`)
+    return this.base.get<TMDBExternalIdsResponse>(`/movie/${movieId}/external_ids`)
   }
 
   /**
    * Get movie release dates by country
    */
   async getMovieReleaseDates(movieId: number): Promise<TMDBReleaseDatesResponse> {
-    return this.get<TMDBReleaseDatesResponse>(`/movie/${movieId}/release_dates`)
+    return this.base.get<TMDBReleaseDatesResponse>(`/movie/${movieId}/release_dates`)
   }
 
   /**
    * Get movie watch providers by region
    */
   async getMovieWatchProviders(movieId: number): Promise<TMDBWatchProvidersResponse> {
-    return this.get<TMDBWatchProvidersResponse>(`/movie/${movieId}/watch/providers`)
+    return this.base.get<TMDBWatchProvidersResponse>(`/movie/${movieId}/watch/providers`)
   }
 
   /**
    * Get movie translations
    */
   async getMovieTranslations(movieId: number): Promise<TMDBTranslationsResponse> {
-    return this.get<TMDBTranslationsResponse>(`/movie/${movieId}/translations`)
+    return this.base.get<TMDBTranslationsResponse>(`/movie/${movieId}/translations`)
   }
 
   // Movie lists
@@ -153,35 +155,35 @@ export class TMDBMovieClient extends TMDBBaseClient {
    * Get popular movies
    */
   async getPopularMovies(page: number = 1): Promise<TMDBPaginatedResponse<TMDBMovieResponse>> {
-    return this.get<TMDBPaginatedResponse<TMDBMovieResponse>>('/movie/popular', { page })
+    return this.base.get<TMDBPaginatedResponse<TMDBMovieResponse>>('/movie/popular', { page })
   }
 
   /**
    * Get top rated movies
    */
   async getTopRatedMovies(page: number = 1): Promise<TMDBPaginatedResponse<TMDBMovieResponse>> {
-    return this.get<TMDBPaginatedResponse<TMDBMovieResponse>>('/movie/top_rated', { page })
+    return this.base.get<TMDBPaginatedResponse<TMDBMovieResponse>>('/movie/top_rated', { page })
   }
 
   /**
    * Get upcoming movies
    */
   async getUpcomingMovies(page: number = 1): Promise<TMDBPaginatedResponse<TMDBMovieResponse>> {
-    return this.get<TMDBPaginatedResponse<TMDBMovieResponse>>('/movie/upcoming', { page })
+    return this.base.get<TMDBPaginatedResponse<TMDBMovieResponse>>('/movie/upcoming', { page })
   }
 
   /**
    * Get now playing movies
    */
   async getNowPlayingMovies(page: number = 1): Promise<TMDBPaginatedResponse<TMDBMovieResponse>> {
-    return this.get<TMDBPaginatedResponse<TMDBMovieResponse>>('/movie/now_playing', { page })
+    return this.base.get<TMDBPaginatedResponse<TMDBMovieResponse>>('/movie/now_playing', { page })
   }
 
   /**
    * Get latest movie (single movie, not paginated)
    */
   async getLatestMovie(): Promise<TMDBMovieResponse> {
-    return this.get<TMDBMovieResponse>('/movie/latest')
+    return this.base.get<TMDBMovieResponse>('/movie/latest')
   }
 
   // Alternative title methods
@@ -201,7 +203,7 @@ export class TMDBMovieClient extends TMDBBaseClient {
     }[]
   }> {
     const params = country ? { country } : {}
-    return this.get(`/movie/${movieId}/alternative_titles`, params)
+    return this.base.get(`/movie/${movieId}/alternative_titles`, params)
   }
 
   // Collection methods
@@ -217,6 +219,6 @@ export class TMDBMovieClient extends TMDBBaseClient {
     backdrop_path: string | null
     parts: TMDBMovieResponse[]
   }> {
-    return this.get(`/collection/${collectionId}`)
+    return this.base.get(`/collection/${collectionId}`)
   }
 }

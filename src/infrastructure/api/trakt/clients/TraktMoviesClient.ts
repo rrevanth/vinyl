@@ -1,6 +1,6 @@
-import { TraktBaseClient } from '../TraktBaseClient'
-import type { ILoggingService } from '../../../../domain/services/ILoggingService'
-import type { TraktConfigFactory } from '../../../factories/TraktConfigFactory'
+import type { TraktBaseClient } from '../TraktBaseClient'
+
+
 import type {
   TraktMovie,
   TraktComment,
@@ -19,12 +19,8 @@ import type {
  * - Movie recommendations and related movies
  * - Movie translations and aliases
  */
-export class TraktMoviesClient extends TraktBaseClient {
-   
-  // eslint-disable-next-line @typescript-eslint/no-useless-constructor
-  constructor(configFactory: TraktConfigFactory, logger: ILoggingService) {
-    super(configFactory, logger)
-  }
+export class TraktMoviesClient {
+  constructor(private readonly base: TraktBaseClient) {}
 
   /**
    * Get movie details by ID
@@ -33,14 +29,14 @@ export class TraktMoviesClient extends TraktBaseClient {
     movieId: string | number,
     options?: { extended?: TraktExtended | TraktExtended[] }
   ): Promise<TraktMovie> {
-    return this.get<TraktMovie>(`/movies/${movieId}`, undefined, options)
+    return this.base.get<TraktMovie>(`/movies/${movieId}`, undefined, options)
   }
 
   /**
    * Get movie aliases
    */
   async getAliases(movieId: string | number): Promise<{ title: string; country: string }[]> {
-    return this.get<{ title: string; country: string }[]>(`/movies/${movieId}/aliases`)
+    return this.base.get<{ title: string; country: string }[]>(`/movies/${movieId}/aliases`)
   }
 
   /**
@@ -50,7 +46,7 @@ export class TraktMoviesClient extends TraktBaseClient {
     const endpoint = country
       ? `/movies/${movieId}/releases/${country}`
       : `/movies/${movieId}/releases`
-    return this.get<any[]>(endpoint)
+    return this.base.get<any[]>(endpoint)
   }
 
   /**
@@ -60,7 +56,7 @@ export class TraktMoviesClient extends TraktBaseClient {
     const endpoint = language
       ? `/movies/${movieId}/translations/${language}`
       : `/movies/${movieId}/translations`
-    return this.get<any[]>(endpoint)
+    return this.base.get<any[]>(endpoint)
   }
 
   /**
@@ -70,7 +66,7 @@ export class TraktMoviesClient extends TraktBaseClient {
     movieId: string | number,
     params?: TraktPaginationParams & { sort?: 'newest' | 'oldest' | 'likes' | 'replies' }
   ): Promise<TraktComment[]> {
-    return this.get<TraktComment[]>(`/movies/${movieId}/comments`, params)
+    return this.base.get<TraktComment[]>(`/movies/${movieId}/comments`, params)
   }
 
   /**
@@ -83,7 +79,7 @@ export class TraktMoviesClient extends TraktBaseClient {
       sort?: 'popular' | 'likes' | 'comments' | 'items' | 'added' | 'updated'
     }
   ): Promise<any[]> {
-    return this.get<any[]>(`/movies/${movieId}/lists`, params)
+    return this.base.get<any[]>(`/movies/${movieId}/lists`, params)
   }
 
   /**
@@ -96,7 +92,7 @@ export class TraktMoviesClient extends TraktBaseClient {
     cast: { character: string; characters: string[]; person: any }[]
     crew: Record<string, { job: string; jobs: string[]; person: any }[]>
   }> {
-    return this.get(`/movies/${movieId}/people`, undefined, options)
+    return this.base.get(`/movies/${movieId}/people`, undefined, options)
   }
 
   /**
@@ -107,7 +103,7 @@ export class TraktMoviesClient extends TraktBaseClient {
     votes: number
     distribution: Record<string, number>
   }> {
-    return this.get(`/movies/${movieId}/ratings`)
+    return this.base.get(`/movies/${movieId}/ratings`)
   }
 
   /**
@@ -117,7 +113,7 @@ export class TraktMoviesClient extends TraktBaseClient {
     movieId: string | number,
     params?: { limit?: number; extended?: TraktExtended }
   ): Promise<TraktMovie[]> {
-    return this.get<TraktMovie[]>(`/movies/${movieId}/related`, params)
+    return this.base.get<TraktMovie[]>(`/movies/${movieId}/related`, params)
   }
 
   /**
@@ -133,14 +129,14 @@ export class TraktMoviesClient extends TraktBaseClient {
     votes: number
     favorited: number
   }> {
-    return this.get(`/movies/${movieId}/stats`)
+    return this.base.get(`/movies/${movieId}/stats`)
   }
 
   /**
    * Get movie watching activity
    */
   async getWatching(movieId: string | number): Promise<any[]> {
-    return this.get<any[]>(`/movies/${movieId}/watching`)
+    return this.base.get<any[]>(`/movies/${movieId}/watching`)
   }
 
   // Popular Lists and Trending
@@ -151,7 +147,7 @@ export class TraktMoviesClient extends TraktBaseClient {
   async getPopular(
     params?: TraktPaginationParams & TraktFilterParams & { extended?: TraktExtended }
   ): Promise<TraktMovie[]> {
-    return this.get<TraktMovie[]>('/movies/popular', params)
+    return this.base.get<TraktMovie[]>('/movies/popular', params)
   }
 
   /**
@@ -160,7 +156,7 @@ export class TraktMoviesClient extends TraktBaseClient {
   async getTrending(
     params?: TraktPaginationParams & TraktFilterParams & { extended?: TraktExtended }
   ): Promise<{ watchers: number; movie: TraktMovie }[]> {
-    return this.get('/movies/trending', params)
+    return this.base.get('/movies/trending', params)
   }
 
   /**
@@ -175,7 +171,7 @@ export class TraktMoviesClient extends TraktBaseClient {
   ): Promise<
     { watcher_count: number; play_count: number; collected_count: number; movie: TraktMovie }[]
   > {
-    return this.get('/movies/played', params)
+    return this.base.get('/movies/played', params)
   }
 
   /**
@@ -190,7 +186,7 @@ export class TraktMoviesClient extends TraktBaseClient {
   ): Promise<
     { watcher_count: number; play_count: number; collected_count: number; movie: TraktMovie }[]
   > {
-    return this.get('/movies/watched', params)
+    return this.base.get('/movies/watched', params)
   }
 
   /**
@@ -205,7 +201,7 @@ export class TraktMoviesClient extends TraktBaseClient {
   ): Promise<
     { watcher_count: number; play_count: number; collected_count: number; movie: TraktMovie }[]
   > {
-    return this.get('/movies/collected', params)
+    return this.base.get('/movies/collected', params)
   }
 
   /**
@@ -214,7 +210,7 @@ export class TraktMoviesClient extends TraktBaseClient {
   async getAnticipated(
     params?: TraktPaginationParams & TraktFilterParams & { extended?: TraktExtended }
   ): Promise<{ list_count: number; movie: TraktMovie }[]> {
-    return this.get('/movies/anticipated', params)
+    return this.base.get('/movies/anticipated', params)
   }
 
   /**
@@ -223,7 +219,7 @@ export class TraktMoviesClient extends TraktBaseClient {
   async getBoxOffice(params?: {
     extended?: TraktExtended
   }): Promise<{ revenue: number; movie: TraktMovie }[]> {
-    return this.get('/movies/boxoffice', params)
+    return this.base.get('/movies/boxoffice', params)
   }
 
   /**
@@ -235,7 +231,7 @@ export class TraktMoviesClient extends TraktBaseClient {
       extended?: TraktExtended
     }
   ): Promise<{ updated_at: string; movie: TraktMovie }[]> {
-    return this.get('/movies/updates', params)
+    return this.base.get('/movies/updates', params)
   }
 
   // User-specific methods (require authentication)
@@ -247,13 +243,13 @@ export class TraktMoviesClient extends TraktBaseClient {
     ignore_collected?: boolean
     extended?: TraktExtended
   }): Promise<TraktMovie[]> {
-    return this.get<TraktMovie[]>('/recommendations/movies', params)
+    return this.base.get<TraktMovie[]>('/recommendations/movies', params)
   }
 
   /**
    * Hide a movie from recommendations
    */
   async hideRecommendation(movieId: string | number): Promise<void> {
-    await this.delete(`/recommendations/movies/${movieId}`)
+    await this.base.delete(`/recommendations/movies/${movieId}`)
   }
 }

@@ -2,9 +2,6 @@ import type { ILoggingService } from '@/src/domain/services/ILoggingService'
 import type { TMDBConfig } from '@/src/domain/entities/UserPreferences'
 import type { TMDBClient } from '@/src/infrastructure/api/tmdb/TMDBClient'
 import type { IEnvironmentService } from '@/src/domain/services/IEnvironmentService'
-import { userPreferences$ } from '@/src/presentation/shared/stores/app.store'
-import { TMDBConfigFactory } from '@/src/infrastructure/factories/TMDBConfigFactory'
-import { TMDBClient as TMDBClientClass } from '@/src/infrastructure/api/tmdb/TMDBClient'
 
 /**
  * Result of TMDB configuration validation
@@ -12,25 +9,19 @@ import { TMDBClient as TMDBClientClass } from '@/src/infrastructure/api/tmdb/TMD
 export interface ValidationResult {
   success: boolean
   error?: string
-  validatedConfig?: {
-    apiKey: string
-    baseURL: string
-    imageBaseURL: string
-    language: string
-    region: string
-  }
+  updatedConfig?: TMDBConfig
 }
 
 /**
  * TMDB Account Management Use Case
  *
- * Handles TMDB settings configuration and validation following CLEAN architecture.
+ * Domain layer - No direct store mutations
+ * All methods that modify config return updated TMDBConfig objects
  *
  * Features:
  * - Update TMDB configuration settings (API key, URLs, language, region)
  * - Validate connection to TMDB API
  * - Get current TMDB configuration
- * - All updates use Legend State observables for reactivity
  */
 export class TMDBAccountUseCase {
   constructor(
@@ -41,13 +32,17 @@ export class TMDBAccountUseCase {
 
   /**
    * Update TMDB API key
-   * Immediately updates the observable, triggering reactive clients to reload
+   * Returns updated configuration (presentation layer updates store)
    */
-  updateApiKey(apiKey: string): void {
+  updateApiKey(apiKey: string, currentConfig: TMDBConfig): TMDBConfig {
     try {
       this.logger.info('Updating TMDB API key', { hasKey: Boolean(apiKey) })
-      userPreferences$.tmdb.apiKey.set(apiKey)
+      const updatedConfig: TMDBConfig = {
+        ...currentConfig,
+        apiKey,
+      }
       this.logger.info('TMDB API key updated successfully')
+      return updatedConfig
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
       this.logger.error('Failed to update TMDB API key', err)
@@ -57,12 +52,17 @@ export class TMDBAccountUseCase {
 
   /**
    * Update TMDB base URL
+   * Returns updated configuration (presentation layer updates store)
    */
-  updateBaseURL(baseURL: string): void {
+  updateBaseURL(baseURL: string, currentConfig: TMDBConfig): TMDBConfig {
     try {
       this.logger.info('Updating TMDB base URL', { baseURL })
-      userPreferences$.tmdb.baseURL.set(baseURL)
+      const updatedConfig: TMDBConfig = {
+        ...currentConfig,
+        baseURL,
+      }
       this.logger.info('TMDB base URL updated successfully')
+      return updatedConfig
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
       this.logger.error('Failed to update TMDB base URL', err)
@@ -72,12 +72,17 @@ export class TMDBAccountUseCase {
 
   /**
    * Update TMDB image base URL
+   * Returns updated configuration (presentation layer updates store)
    */
-  updateImageBaseURL(imageBaseURL: string): void {
+  updateImageBaseURL(imageBaseURL: string, currentConfig: TMDBConfig): TMDBConfig {
     try {
       this.logger.info('Updating TMDB image base URL', { imageBaseURL })
-      userPreferences$.tmdb.imageBaseURL.set(imageBaseURL)
+      const updatedConfig: TMDBConfig = {
+        ...currentConfig,
+        imageBaseURL,
+      }
       this.logger.info('TMDB image base URL updated successfully')
+      return updatedConfig
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
       this.logger.error('Failed to update TMDB image base URL', err)
@@ -87,12 +92,17 @@ export class TMDBAccountUseCase {
 
   /**
    * Update TMDB language preference
+   * Returns updated configuration (presentation layer updates store)
    */
-  updateLanguage(language: string): void {
+  updateLanguage(language: string, currentConfig: TMDBConfig): TMDBConfig {
     try {
       this.logger.info('Updating TMDB language', { language })
-      userPreferences$.tmdb.language.set(language)
+      const updatedConfig: TMDBConfig = {
+        ...currentConfig,
+        language,
+      }
       this.logger.info('TMDB language updated successfully')
+      return updatedConfig
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
       this.logger.error('Failed to update TMDB language', err)
@@ -102,12 +112,17 @@ export class TMDBAccountUseCase {
 
   /**
    * Update TMDB region preference
+   * Returns updated configuration (presentation layer updates store)
    */
-  updateRegion(region: string): void {
+  updateRegion(region: string, currentConfig: TMDBConfig): TMDBConfig {
     try {
       this.logger.info('Updating TMDB region', { region })
-      userPreferences$.tmdb.region.set(region)
+      const updatedConfig: TMDBConfig = {
+        ...currentConfig,
+        region,
+      }
       this.logger.info('TMDB region updated successfully')
+      return updatedConfig
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
       this.logger.error('Failed to update TMDB region', err)
@@ -175,30 +190,86 @@ export class TMDBAccountUseCase {
   }
 
   /**
-   * Get current TMDB configuration from user preferences
+   * Validate custom TMDB configuration by making a direct API request
+   * This bypasses the TMDBClient store dependency issue
+   *
+   * @param config TMDB configuration to validate
+   * @returns Validation result
    */
-  getTMDBConfig(): TMDBConfig {
-    return userPreferences$.tmdb.get()
+  private async validateCustomConfig(config: TMDBConfig): Promise<{
+    success: boolean
+    error?: string
+  }> {
+    try {
+      // Merge custom config with defaults for empty values
+      // This matches the runtime behavior where empty strings fall back to defaults
+      const testConfig = {
+        apiKey: config.apiKey || this.envService.getTMDBApiKey(),
+        baseURL: config.baseURL || this.envService.getTMDBBaseURL(),
+        imageBaseURL: config.imageBaseURL || this.envService.getTMDBImageBaseURL(),
+        language: config.language || this.envService.getTMDBLanguage(),
+        region: config.region || this.envService.getTMDBRegion(),
+      }
+
+      this.logger.info('Testing TMDB configuration with merged values', {
+        hasApiKey: Boolean(testConfig.apiKey),
+        baseURL: testConfig.baseURL,
+        language: testConfig.language,
+        region: testConfig.region,
+      })
+
+      // Create a minimal HttpClient for testing (not using TMDBClient to avoid store dependency)
+      const { HttpClient } = await import('@/src/infrastructure/http/HttpClient')
+      const httpClient = new HttpClient(
+        testConfig.baseURL,
+        () => null, // TMDB doesn't use Bearer auth
+        this.logger
+      )
+
+      // Make a test request to TMDB configuration endpoint with API key as query param
+      await httpClient.get('/configuration', {
+        params: {
+          api_key: testConfig.apiKey,
+        },
+      })
+
+      this.logger.info('TMDB configuration test successful')
+
+      return {
+        success: true,
+      }
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error))
+      this.logger.error('TMDB configuration test failed', err)
+
+      return {
+        success: false,
+        error: err.message,
+      }
+    }
   }
 
   /**
    * Validate and save TMDB configuration
    * Only validates if user has provided custom values
-   * Otherwise, just saves the configuration (will use env/defaults)
+   * Otherwise, just returns the configuration (will use env/defaults)
+   *
+   * Returns ValidationResult with updated config (presentation layer updates store)
    *
    * @param config Partial TMDB configuration to validate and save
-   * @returns ValidationResult with success status
+   * @param currentConfig Current TMDB configuration from preferences
+   * @returns ValidationResult with success status and updated config
    */
-  async validateAndSave(config: Partial<TMDBConfig>): Promise<ValidationResult> {
+  async validateAndSave(
+    config: Partial<TMDBConfig>,
+    currentConfig: TMDBConfig
+  ): Promise<ValidationResult> {
     try {
       this.logger.info('Validating TMDB configuration', {
         hasCustomApiKey: Boolean(config.apiKey),
         hasCustomBaseURL: Boolean(config.baseURL),
         hasCustomImageBaseURL: Boolean(config.imageBaseURL),
       })
-
-      // Get current configuration
-      const currentConfig = userPreferences$.tmdb.get()
 
       // Merge provided config with current config
       const newConfig: TMDBConfig = {
@@ -215,63 +286,35 @@ export class TMDBAccountUseCase {
         (config.baseURL && config.baseURL !== 'https://api.themoviedb.org/3') ||
         (config.imageBaseURL && config.imageBaseURL !== 'https://image.tmdb.org/t/p/')
 
-      // If no custom values, just save and return success (will use env/defaults)
+      // If no custom values, just return success (will use env/defaults)
       if (!hasCustomValues) {
-        userPreferences$.tmdb.set(newConfig)
-        this.logger.info('TMDB configuration saved (using env/defaults)')
+        this.logger.info('TMDB configuration validated (using env/defaults)')
         return {
           success: true,
-          validatedConfig: newConfig,
+          updatedConfig: newConfig,
         }
       }
 
-      // Validate custom configuration
-      const originalConfig = { ...currentConfig }
-      userPreferences$.tmdb.set(newConfig)
+      // Validate custom configuration using direct API request
+      const testResult = await this.validateCustomConfig(newConfig)
 
-      try {
-        // Create temporary client to test the custom configuration
-        const tempFactory = new TMDBConfigFactory(this.envService)
-        const tempClient = new TMDBClientClass(tempFactory, this.logger)
-
-        // Test connection
-        const testResult = await tempClient.testConnection()
-
-        // Clean up
-        tempClient.destroy()
-
-        if (!testResult.success) {
-          // Restore original configuration on failure
-          userPreferences$.tmdb.set(originalConfig)
-
-          this.logger.warn('TMDB custom configuration validation failed', {
-            error: testResult.error,
-          })
-
-          return {
-            success: false,
-            error: testResult.error ?? 'Connection test failed',
-          }
-        }
-
-        // Validation succeeded
-        this.logger.info('TMDB custom configuration validated and saved successfully')
-
-        return {
-          success: true,
-          validatedConfig: newConfig,
-        }
-      } catch (testError) {
-        // Restore original configuration on error
-        userPreferences$.tmdb.set(originalConfig)
-
-        const err = testError instanceof Error ? testError : new Error(String(testError))
-        this.logger.error('Error testing TMDB configuration', err)
+      if (!testResult.success) {
+        this.logger.warn('TMDB custom configuration validation failed', {
+          error: testResult.error,
+        })
 
         return {
           success: false,
-          error: err.message,
+          error: testResult.error ?? 'Connection test failed',
         }
+      }
+
+      // Validation succeeded
+      this.logger.info('TMDB custom configuration validated successfully')
+
+      return {
+        success: true,
+        updatedConfig: newConfig,
       }
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
@@ -286,20 +329,22 @@ export class TMDBAccountUseCase {
 
   /**
    * Reset TMDB configuration to defaults
+   * Returns default configuration (presentation layer updates store)
    */
-  resetToDefaults(): void {
+  resetToDefaults(): TMDBConfig {
     try {
       this.logger.info('Resetting TMDB configuration to defaults')
 
-      userPreferences$.tmdb.set({
+      const defaultConfig: TMDBConfig = {
         apiKey: '',
         baseURL: 'https://api.themoviedb.org/3',
         imageBaseURL: 'https://image.tmdb.org/t/p/',
         language: 'en-US',
         region: 'US',
-      })
+      }
 
       this.logger.info('TMDB configuration reset successfully')
+      return defaultConfig
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
       this.logger.error('Failed to reset TMDB configuration', err)

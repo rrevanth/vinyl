@@ -1,6 +1,6 @@
-import { TraktBaseClient } from '../TraktBaseClient'
-import type { ILoggingService } from '../../../../domain/services/ILoggingService'
-import type { TraktConfigFactory } from '../../../factories/TraktConfigFactory'
+import type { TraktBaseClient } from '../TraktBaseClient'
+
+
 import type {
   TraktShow,
   TraktSeason,
@@ -21,11 +21,8 @@ import type {
  * - Season and episode management
  * - Show translations and aliases
  */
-export class TraktShowsClient extends TraktBaseClient {
-  // eslint-disable-next-line @typescript-eslint/no-useless-constructor
-  constructor(configFactory: TraktConfigFactory, logger: ILoggingService) {
-    super(configFactory, logger)
-  }
+export class TraktShowsClient {
+  constructor(private readonly base: TraktBaseClient) {}
 
   // Show Methods
 
@@ -36,21 +33,21 @@ export class TraktShowsClient extends TraktBaseClient {
     showId: string | number,
     options?: { extended?: TraktExtended | TraktExtended[] }
   ): Promise<TraktShow> {
-    return this.get<TraktShow>(`/shows/${showId}`, undefined, options)
+    return this.base.get<TraktShow>(`/shows/${showId}`, undefined, options)
   }
 
   /**
    * Get show aliases
    */
   async getAliases(showId: string | number): Promise<{ title: string; country: string }[]> {
-    return this.get<{ title: string; country: string }[]>(`/shows/${showId}/aliases`)
+    return this.base.get<{ title: string; country: string }[]>(`/shows/${showId}/aliases`)
   }
 
   /**
    * Get show certifications
    */
   async getCertifications(showId: string | number): Promise<any[]> {
-    return this.get<any[]>(`/shows/${showId}/certifications`)
+    return this.base.get<any[]>(`/shows/${showId}/certifications`)
   }
 
   /**
@@ -60,7 +57,7 @@ export class TraktShowsClient extends TraktBaseClient {
     const endpoint = language
       ? `/shows/${showId}/translations/${language}`
       : `/shows/${showId}/translations`
-    return this.get<any[]>(endpoint)
+    return this.base.get<any[]>(endpoint)
   }
 
   /**
@@ -70,7 +67,7 @@ export class TraktShowsClient extends TraktBaseClient {
     showId: string | number,
     params?: TraktPaginationParams & { sort?: 'newest' | 'oldest' | 'likes' | 'replies' }
   ): Promise<TraktComment[]> {
-    return this.get<TraktComment[]>(`/shows/${showId}/comments`, params)
+    return this.base.get<TraktComment[]>(`/shows/${showId}/comments`, params)
   }
 
   /**
@@ -83,7 +80,7 @@ export class TraktShowsClient extends TraktBaseClient {
       sort?: 'popular' | 'likes' | 'comments' | 'items' | 'added' | 'updated'
     }
   ): Promise<any[]> {
-    return this.get<any[]>(`/shows/${showId}/lists`, params)
+    return this.base.get<any[]>(`/shows/${showId}/lists`, params)
   }
 
   /**
@@ -96,7 +93,7 @@ export class TraktShowsClient extends TraktBaseClient {
     cast: { character: string; characters: string[]; episode_count: number; person: any }[]
     crew: Record<string, { job: string; jobs: string[]; episode_count: number; person: any }[]>
   }> {
-    return this.get(`/shows/${showId}/people`, undefined, options)
+    return this.base.get(`/shows/${showId}/people`, undefined, options)
   }
 
   /**
@@ -107,7 +104,7 @@ export class TraktShowsClient extends TraktBaseClient {
     votes: number
     distribution: Record<string, number>
   }> {
-    return this.get(`/shows/${showId}/ratings`)
+    return this.base.get(`/shows/${showId}/ratings`)
   }
 
   /**
@@ -117,7 +114,7 @@ export class TraktShowsClient extends TraktBaseClient {
     showId: string | number,
     params?: { limit?: number; extended?: TraktExtended }
   ): Promise<TraktShow[]> {
-    return this.get<TraktShow[]>(`/shows/${showId}/related`, params)
+    return this.base.get<TraktShow[]>(`/shows/${showId}/related`, params)
   }
 
   /**
@@ -133,14 +130,14 @@ export class TraktShowsClient extends TraktBaseClient {
     votes: number
     favorited: number
   }> {
-    return this.get(`/shows/${showId}/stats`)
+    return this.base.get(`/shows/${showId}/stats`)
   }
 
   /**
    * Get people watching this show now
    */
   async getWatching(showId: string | number): Promise<any[]> {
-    return this.get<any[]>(`/shows/${showId}/watching`)
+    return this.base.get<any[]>(`/shows/${showId}/watching`)
   }
 
   /**
@@ -150,7 +147,7 @@ export class TraktShowsClient extends TraktBaseClient {
     showId: string | number,
     options?: { extended?: TraktExtended }
   ): Promise<TraktEpisode> {
-    return this.get<TraktEpisode>(`/shows/${showId}/next_episode`, undefined, options)
+    return this.base.get<TraktEpisode>(`/shows/${showId}/next_episode`, undefined, options)
   }
 
   /**
@@ -160,7 +157,7 @@ export class TraktShowsClient extends TraktBaseClient {
     showId: string | number,
     options?: { extended?: TraktExtended }
   ): Promise<TraktEpisode> {
-    return this.get<TraktEpisode>(`/shows/${showId}/last_episode`, undefined, options)
+    return this.base.get<TraktEpisode>(`/shows/${showId}/last_episode`, undefined, options)
   }
 
   // Season Methods
@@ -172,7 +169,7 @@ export class TraktShowsClient extends TraktBaseClient {
     showId: string | number,
     options?: { extended?: TraktExtended | TraktExtended[] }
   ): Promise<TraktSeason[]> {
-    return this.get<TraktSeason[]>(`/shows/${showId}/seasons`, undefined, options)
+    return this.base.get<TraktSeason[]>(`/shows/${showId}/seasons`, undefined, options)
   }
 
   /**
@@ -183,7 +180,7 @@ export class TraktShowsClient extends TraktBaseClient {
     season: number,
     options?: { extended?: TraktExtended | TraktExtended[] }
   ): Promise<TraktEpisode[]> {
-    return this.get<TraktEpisode[]>(`/shows/${showId}/seasons/${season}`, undefined, options)
+    return this.base.get<TraktEpisode[]>(`/shows/${showId}/seasons/${season}`, undefined, options)
   }
 
   /**
@@ -194,7 +191,7 @@ export class TraktShowsClient extends TraktBaseClient {
     season: number,
     params?: TraktPaginationParams & { sort?: 'newest' | 'oldest' | 'likes' | 'replies' }
   ): Promise<TraktComment[]> {
-    return this.get<TraktComment[]>(`/shows/${showId}/seasons/${season}/comments`, params)
+    return this.base.get<TraktComment[]>(`/shows/${showId}/seasons/${season}/comments`, params)
   }
 
   /**
@@ -208,7 +205,7 @@ export class TraktShowsClient extends TraktBaseClient {
       sort?: 'popular' | 'likes' | 'comments' | 'items' | 'added' | 'updated'
     }
   ): Promise<any[]> {
-    return this.get<any[]>(`/shows/${showId}/seasons/${season}/lists`, params)
+    return this.base.get<any[]>(`/shows/${showId}/seasons/${season}/lists`, params)
   }
 
   /**
@@ -222,7 +219,7 @@ export class TraktShowsClient extends TraktBaseClient {
     votes: number
     distribution: Record<string, number>
   }> {
-    return this.get(`/shows/${showId}/seasons/${season}/ratings`)
+    return this.base.get(`/shows/${showId}/seasons/${season}/ratings`)
   }
 
   /**
@@ -240,14 +237,14 @@ export class TraktShowsClient extends TraktBaseClient {
     lists: number
     votes: number
   }> {
-    return this.get(`/shows/${showId}/seasons/${season}/stats`)
+    return this.base.get(`/shows/${showId}/seasons/${season}/stats`)
   }
 
   /**
    * Get people watching this season now
    */
   async getSeasonWatching(showId: string | number, season: number): Promise<any[]> {
-    return this.get<any[]>(`/shows/${showId}/seasons/${season}/watching`)
+    return this.base.get<any[]>(`/shows/${showId}/seasons/${season}/watching`)
   }
 
   // Episode Methods
@@ -261,7 +258,7 @@ export class TraktShowsClient extends TraktBaseClient {
     episode: number,
     options?: { extended?: TraktExtended | TraktExtended[] }
   ): Promise<TraktEpisode> {
-    return this.get<TraktEpisode>(
+    return this.base.get<TraktEpisode>(
       `/shows/${showId}/seasons/${season}/episodes/${episode}`,
       undefined,
       options
@@ -277,7 +274,7 @@ export class TraktShowsClient extends TraktBaseClient {
     episode: number,
     params?: TraktPaginationParams & { sort?: 'newest' | 'oldest' | 'likes' | 'replies' }
   ): Promise<TraktComment[]> {
-    return this.get<TraktComment[]>(
+    return this.base.get<TraktComment[]>(
       `/shows/${showId}/seasons/${season}/episodes/${episode}/comments`,
       params
     )
@@ -295,7 +292,7 @@ export class TraktShowsClient extends TraktBaseClient {
       sort?: 'popular' | 'likes' | 'comments' | 'items' | 'added' | 'updated'
     }
   ): Promise<any[]> {
-    return this.get<any[]>(`/shows/${showId}/seasons/${season}/episodes/${episode}/lists`, params)
+    return this.base.get<any[]>(`/shows/${showId}/seasons/${season}/episodes/${episode}/lists`, params)
   }
 
   /**
@@ -310,7 +307,7 @@ export class TraktShowsClient extends TraktBaseClient {
     votes: number
     distribution: Record<string, number>
   }> {
-    return this.get(`/shows/${showId}/seasons/${season}/episodes/${episode}/ratings`)
+    return this.base.get(`/shows/${showId}/seasons/${season}/episodes/${episode}/ratings`)
   }
 
   /**
@@ -328,7 +325,7 @@ export class TraktShowsClient extends TraktBaseClient {
     comments: number
     lists: number
   }> {
-    return this.get(`/shows/${showId}/seasons/${season}/episodes/${episode}/stats`)
+    return this.base.get(`/shows/${showId}/seasons/${season}/episodes/${episode}/stats`)
   }
 
   /**
@@ -339,7 +336,7 @@ export class TraktShowsClient extends TraktBaseClient {
     season: number,
     episode: number
   ): Promise<any[]> {
-    return this.get<any[]>(`/shows/${showId}/seasons/${season}/episodes/${episode}/watching`)
+    return this.base.get<any[]>(`/shows/${showId}/seasons/${season}/episodes/${episode}/watching`)
   }
 
   // Popular Lists and Trending
@@ -350,7 +347,7 @@ export class TraktShowsClient extends TraktBaseClient {
   async getPopular(
     params?: TraktPaginationParams & TraktFilterParams & { extended?: TraktExtended }
   ): Promise<TraktShow[]> {
-    return this.get<TraktShow[]>('/shows/popular', params)
+    return this.base.get<TraktShow[]>('/shows/popular', params)
   }
 
   /**
@@ -359,7 +356,7 @@ export class TraktShowsClient extends TraktBaseClient {
   async getTrending(
     params?: TraktPaginationParams & TraktFilterParams & { extended?: TraktExtended }
   ): Promise<{ watchers: number; show: TraktShow }[]> {
-    return this.get('/shows/trending', params)
+    return this.base.get('/shows/trending', params)
   }
 
   /**
@@ -374,7 +371,7 @@ export class TraktShowsClient extends TraktBaseClient {
   ): Promise<
     { watcher_count: number; play_count: number; collected_count: number; show: TraktShow }[]
   > {
-    return this.get('/shows/played', params)
+    return this.base.get('/shows/played', params)
   }
 
   /**
@@ -389,7 +386,7 @@ export class TraktShowsClient extends TraktBaseClient {
   ): Promise<
     { watcher_count: number; play_count: number; collected_count: number; show: TraktShow }[]
   > {
-    return this.get('/shows/watched', params)
+    return this.base.get('/shows/watched', params)
   }
 
   /**
@@ -404,7 +401,7 @@ export class TraktShowsClient extends TraktBaseClient {
   ): Promise<
     { watcher_count: number; play_count: number; collected_count: number; show: TraktShow }[]
   > {
-    return this.get('/shows/collected', params)
+    return this.base.get('/shows/collected', params)
   }
 
   /**
@@ -413,7 +410,7 @@ export class TraktShowsClient extends TraktBaseClient {
   async getAnticipated(
     params?: TraktPaginationParams & TraktFilterParams & { extended?: TraktExtended }
   ): Promise<{ list_count: number; show: TraktShow }[]> {
-    return this.get('/shows/anticipated', params)
+    return this.base.get('/shows/anticipated', params)
   }
 
   /**
@@ -425,7 +422,7 @@ export class TraktShowsClient extends TraktBaseClient {
       extended?: TraktExtended
     }
   ): Promise<{ updated_at: string; show: TraktShow }[]> {
-    return this.get('/shows/updates', params)
+    return this.base.get('/shows/updates', params)
   }
 
   // User-specific methods (require authentication)
@@ -437,13 +434,13 @@ export class TraktShowsClient extends TraktBaseClient {
     ignore_collected?: boolean
     extended?: TraktExtended
   }): Promise<TraktShow[]> {
-    return this.get<TraktShow[]>('/recommendations/shows', params)
+    return this.base.get<TraktShow[]>('/recommendations/shows', params)
   }
 
   /**
    * Hide a show from recommendations
    */
   async hideRecommendation(showId: string | number): Promise<void> {
-    await this.delete(`/recommendations/shows/${showId}`)
+    await this.base.delete(`/recommendations/shows/${showId}`)
   }
 }

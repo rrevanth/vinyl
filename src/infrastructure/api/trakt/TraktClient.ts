@@ -34,17 +34,17 @@ export class TraktClient {
   readonly base: TraktBaseClient
 
   constructor(configFactory: TraktConfigFactory, logger: ILoggingService) {
-    // Initialize base client with shared configuration
+    // Initialize ONE shared base client with OAuth authentication
     this.base = new TraktBaseClient(configFactory, logger)
 
-    // Initialize all specialized clients
-    // Each client inherits the OAuth authentication from base client
-    this.movies = new TraktMoviesClient(configFactory, logger)
-    this.shows = new TraktShowsClient(configFactory, logger)
-    this.calendar = new TraktCalendarClient(configFactory, logger)
-    this.search = new TraktSearchClient(configFactory, logger)
-    this.users = new TraktUsersClient(configFactory, logger)
-    this.sync = new TraktSyncClient(configFactory, logger)
+    // Initialize all specialized clients with shared base
+    // All clients delegate to the same base instance, sharing OAuth state
+    this.movies = new TraktMoviesClient(this.base)
+    this.shows = new TraktShowsClient(this.base)
+    this.calendar = new TraktCalendarClient(this.base)
+    this.search = new TraktSearchClient(this.base)
+    this.users = new TraktUsersClient(this.base)
+    this.sync = new TraktSyncClient(this.base)
   }
 
   /**
@@ -101,10 +101,10 @@ export class TraktClient {
   }
 
   /**
-   * Clean up resources and subscriptions
+   * Clean up base client and remove configuration watchers
    *
    * This method should be called when the client is no longer needed to prevent memory leaks.
-   * It cleans up all reactive subscriptions and specialized client instances.
+   * It cleans up all reactive subscriptions from the shared base client.
    *
    * Usage:
    * ```typescript
@@ -115,12 +115,6 @@ export class TraktClient {
    */
   destroy(): void {
     this.base.destroy()
-    this.movies.destroy()
-    this.shows.destroy()
-    this.calendar.destroy()
-    this.search.destroy()
-    this.users.destroy()
-    this.sync.destroy()
   }
 
   // Convenience methods for common operations

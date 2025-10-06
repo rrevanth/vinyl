@@ -1,6 +1,6 @@
-import { TraktBaseClient } from '../TraktBaseClient'
-import type { ILoggingService } from '../../../../domain/services/ILoggingService'
-import type { TraktConfigFactory } from '../../../factories/TraktConfigFactory'
+import type { TraktBaseClient } from '../TraktBaseClient'
+
+
 import type {
   TraktSearchResult,
   TraktExtended,
@@ -18,11 +18,8 @@ import type {
  * - Advanced filtering and sorting options
  * - Text search with field targeting
  */
-export class TraktSearchClient extends TraktBaseClient {
-  // eslint-disable-next-line @typescript-eslint/no-useless-constructor
-  constructor(configFactory: TraktConfigFactory, logger: ILoggingService) {
-    super(configFactory, logger)
-  }
+export class TraktSearchClient {
+  constructor(private readonly base: TraktBaseClient) {}
 
   /**
    * Multi-search across all content types
@@ -32,7 +29,7 @@ export class TraktSearchClient extends TraktBaseClient {
     query: string,
     params?: Omit<TraktSearchParams, 'query' | 'type'> & TraktPaginationParams & TraktFilterParams
   ): Promise<TraktSearchResult[]> {
-    return this.get<TraktSearchResult[]>('/search', {
+    return this.base.get<TraktSearchResult[]>('/search', {
       query,
       ...params,
     })
@@ -45,7 +42,7 @@ export class TraktSearchClient extends TraktBaseClient {
     query: string,
     params?: Omit<TraktSearchParams, 'query' | 'type'> & TraktPaginationParams & TraktFilterParams
   ): Promise<TraktSearchResult[]> {
-    return this.get<TraktSearchResult[]>('/search', {
+    return this.base.get<TraktSearchResult[]>('/search', {
       query,
       type: 'movie',
       ...params,
@@ -59,7 +56,7 @@ export class TraktSearchClient extends TraktBaseClient {
     query: string,
     params?: Omit<TraktSearchParams, 'query' | 'type'> & TraktPaginationParams & TraktFilterParams
   ): Promise<TraktSearchResult[]> {
-    return this.get<TraktSearchResult[]>('/search', {
+    return this.base.get<TraktSearchResult[]>('/search', {
       query,
       type: 'show',
       ...params,
@@ -73,7 +70,7 @@ export class TraktSearchClient extends TraktBaseClient {
     query: string,
     params?: Omit<TraktSearchParams, 'query' | 'type'> & TraktPaginationParams & TraktFilterParams
   ): Promise<TraktSearchResult[]> {
-    return this.get<TraktSearchResult[]>('/search', {
+    return this.base.get<TraktSearchResult[]>('/search', {
       query,
       type: 'episode',
       ...params,
@@ -87,7 +84,7 @@ export class TraktSearchClient extends TraktBaseClient {
     query: string,
     params?: Omit<TraktSearchParams, 'query' | 'type'> & TraktPaginationParams & TraktFilterParams
   ): Promise<TraktSearchResult[]> {
-    return this.get<TraktSearchResult[]>('/search', {
+    return this.base.get<TraktSearchResult[]>('/search', {
       query,
       type: 'person',
       ...params,
@@ -101,7 +98,7 @@ export class TraktSearchClient extends TraktBaseClient {
     query: string,
     params?: Omit<TraktSearchParams, 'query' | 'type'> & TraktPaginationParams & TraktFilterParams
   ): Promise<TraktSearchResult[]> {
-    return this.get<TraktSearchResult[]>('/search', {
+    return this.base.get<TraktSearchResult[]>('/search', {
       query,
       type: 'list',
       ...params,
@@ -120,7 +117,7 @@ export class TraktSearchClient extends TraktBaseClient {
     } & TraktPaginationParams &
       TraktFilterParams & { extended?: TraktExtended }
   ): Promise<TraktSearchResult[]> {
-    return this.get<TraktSearchResult[]>('/search', params)
+    return this.base.get<TraktSearchResult[]>('/search', params)
   }
 
   /**
@@ -135,7 +132,7 @@ export class TraktSearchClient extends TraktBaseClient {
       extended?: TraktExtended
     }
   ): Promise<TraktSearchResult[]> {
-    return this.get<TraktSearchResult[]>(`/search/${idType}/${id}`, params)
+    return this.base.get<TraktSearchResult[]>(`/search/${idType}/${id}`, params)
   }
 
   /**
@@ -149,7 +146,7 @@ export class TraktSearchClient extends TraktBaseClient {
       extended?: TraktExtended
     }
   ): Promise<TraktSearchResult[]> {
-    return this.get<TraktSearchResult[]>(`/search/trakt/${id}`, params)
+    return this.base.get<TraktSearchResult[]>(`/search/trakt/${id}`, params)
   }
 
   /**
@@ -157,7 +154,7 @@ export class TraktSearchClient extends TraktBaseClient {
    * Returns currently popular search terms
    */
   async getPopularSearches(): Promise<{ query: string; count: number }[]> {
-    return this.get<{ query: string; count: number }[]>('/search/popular')
+    return this.base.get<{ query: string; count: number }[]>('/search/popular')
   }
 
   /**
@@ -171,7 +168,7 @@ export class TraktSearchClient extends TraktBaseClient {
       limit?: number
     }
   ): Promise<TraktSearchResult[]> {
-    return this.get<TraktSearchResult[]>('/search/suggestions', {
+    return this.base.get<TraktSearchResult[]>('/search/suggestions', {
       query,
       ...params,
     })

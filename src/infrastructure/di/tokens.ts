@@ -30,5 +30,12 @@ export const TOKENS = {
   // Provider Registry
   ProviderRegistry: Symbol('ProviderRegistry'),
 
+  // Use Cases
+  TraktAccountUseCase: Symbol('TraktAccountUseCase'),
+  TMDBAccountUseCase: Symbol('TMDBAccountUseCase'),
+  StremioAddonsUseCase: Symbol('StremioAddonsUseCase'),
+  StremioAddonCatalogUseCase: Symbol('StremioAddonCatalogUseCase'),
+  SettingsUseCase: Symbol('SettingsUseCase'),
+
   // Add more as needed
 } as const

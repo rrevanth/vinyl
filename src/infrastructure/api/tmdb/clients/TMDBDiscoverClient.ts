@@ -1,4 +1,4 @@
-import { TMDBBaseClient } from '../TMDBBaseClient'
+import type { TMDBBaseClient } from '../TMDBBaseClient'
 import type {
   TMDBMovieResponse,
   TMDBTVResponse,
@@ -16,7 +16,9 @@ import type {
  * sorting, and pagination capabilities. Supports all TMDB discover
  * parameters for maximum flexibility.
  */
-export class TMDBDiscoverClient extends TMDBBaseClient {
+export class TMDBDiscoverClient {
+  constructor(private readonly base: TMDBBaseClient) {}
+
   /**
    * Discover movies with comprehensive filtering
    */
@@ -24,7 +26,7 @@ export class TMDBDiscoverClient extends TMDBBaseClient {
     filters: TMDBDiscoverMovieFilters = {}
   ): Promise<TMDBPaginatedResponse<TMDBMovieResponse>> {
     const params = this.buildMovieDiscoverParams(filters)
-    return this.get<TMDBPaginatedResponse<TMDBMovieResponse>>('/discover/movie', params)
+    return this.base.get<TMDBPaginatedResponse<TMDBMovieResponse>>('/discover/movie', params)
   }
 
   /**
@@ -34,7 +36,7 @@ export class TMDBDiscoverClient extends TMDBBaseClient {
     filters: TMDBDiscoverTVFilters = {}
   ): Promise<TMDBPaginatedResponse<TMDBTVResponse>> {
     const params = this.buildTVDiscoverParams(filters)
-    return this.get<TMDBPaginatedResponse<TMDBTVResponse>>('/discover/tv', params)
+    return this.base.get<TMDBPaginatedResponse<TMDBTVResponse>>('/discover/tv', params)
   }
 
   /**
@@ -174,7 +176,7 @@ export class TMDBDiscoverClient extends TMDBBaseClient {
     timeWindow: 'day' | 'week' = 'week',
     page: number = 1
   ): Promise<TMDBPaginatedResponse<TMDBMovieResponse>> {
-    return this.get<TMDBPaginatedResponse<TMDBMovieResponse>>(`/trending/movie/${timeWindow}`, {
+    return this.base.get<TMDBPaginatedResponse<TMDBMovieResponse>>(`/trending/movie/${timeWindow}`, {
       page,
     })
   }
@@ -186,7 +188,7 @@ export class TMDBDiscoverClient extends TMDBBaseClient {
     timeWindow: 'day' | 'week' = 'week',
     page: number = 1
   ): Promise<TMDBPaginatedResponse<TMDBTVResponse>> {
-    return this.get<TMDBPaginatedResponse<TMDBTVResponse>>(`/trending/tv/${timeWindow}`, { page })
+    return this.base.get<TMDBPaginatedResponse<TMDBTVResponse>>(`/trending/tv/${timeWindow}`, { page })
   }
 
   /**
@@ -196,7 +198,7 @@ export class TMDBDiscoverClient extends TMDBBaseClient {
     timeWindow: 'day' | 'week' = 'week',
     page: number = 1
   ): Promise<TMDBPaginatedResponse<any>> {
-    return this.get<TMDBPaginatedResponse<any>>(`/trending/person/${timeWindow}`, { page })
+    return this.base.get<TMDBPaginatedResponse<any>>(`/trending/person/${timeWindow}`, { page })
   }
 
   /**
@@ -206,7 +208,7 @@ export class TMDBDiscoverClient extends TMDBBaseClient {
     timeWindow: 'day' | 'week' = 'week',
     page: number = 1
   ): Promise<TMDBPaginatedResponse<any>> {
-    return this.get<TMDBPaginatedResponse<any>>(`/trending/all/${timeWindow}`, { page })
+    return this.base.get<TMDBPaginatedResponse<any>>(`/trending/all/${timeWindow}`, { page })
   }
 
   // Convenience methods for common discover use cases

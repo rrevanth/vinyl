@@ -1,6 +1,6 @@
-import { TraktBaseClient } from '../TraktBaseClient'
-import type { ILoggingService } from '../../../../domain/services/ILoggingService'
-import type { TraktConfigFactory } from '../../../factories/TraktConfigFactory'
+import type { TraktBaseClient } from '../TraktBaseClient'
+
+
 import type {
   TraktCheckinResponse,
   TraktSyncResponse,
@@ -23,11 +23,8 @@ import type {
  * - Watch history synchronization
  * - Bulk operations for syncing libraries
  */
-export class TraktSyncClient extends TraktBaseClient {
-  // eslint-disable-next-line @typescript-eslint/no-useless-constructor
-  constructor(configFactory: TraktConfigFactory, logger: ILoggingService) {
-    super(configFactory, logger)
-  }
+export class TraktSyncClient {
+  constructor(private readonly base: TraktBaseClient) {}
 
   // Check-in Methods
 
@@ -50,7 +47,7 @@ export class TraktSyncClient extends TraktBaseClient {
       movie,
       ...options,
     }
-    return this.post<TraktCheckinResponse>('/checkin', params)
+    return this.base.post<TraktCheckinResponse>('/checkin', params)
   }
 
   /**
@@ -74,7 +71,7 @@ export class TraktSyncClient extends TraktBaseClient {
       show,
       ...options,
     }
-    return this.post<TraktCheckinResponse>('/checkin', params)
+    return this.base.post<TraktCheckinResponse>('/checkin', params)
   }
 
   /**
@@ -82,7 +79,7 @@ export class TraktSyncClient extends TraktBaseClient {
    * Removes current check-in status
    */
   async cancelCheckin(): Promise<void> {
-    await this.delete('/checkin')
+    await this.base.delete('/checkin')
   }
 
   // Scrobble Methods (for automatic tracking)
@@ -92,7 +89,7 @@ export class TraktSyncClient extends TraktBaseClient {
    * Indicates playback has started
    */
   async startScrobbleMovie(movie: TraktMovie, progress: number): Promise<void> {
-    await this.post('/scrobble/start', {
+    await this.base.post('/scrobble/start', {
       movie,
       progress,
     })
@@ -107,7 +104,7 @@ export class TraktSyncClient extends TraktBaseClient {
     progress: number,
     show?: TraktShow
   ): Promise<void> {
-    await this.post('/scrobble/start', {
+    await this.base.post('/scrobble/start', {
       episode,
       show,
       progress,
@@ -122,7 +119,7 @@ export class TraktSyncClient extends TraktBaseClient {
     media: { movie?: TraktMovie; episode?: TraktEpisode; show?: TraktShow },
     progress: number
   ): Promise<void> {
-    await this.post('/scrobble/pause', {
+    await this.base.post('/scrobble/pause', {
       ...media,
       progress,
     })
@@ -136,7 +133,7 @@ export class TraktSyncClient extends TraktBaseClient {
     media: { movie?: TraktMovie; episode?: TraktEpisode; show?: TraktShow },
     progress: number
   ): Promise<void> {
-    await this.post('/scrobble/stop', {
+    await this.base.post('/scrobble/stop', {
       ...media,
       progress,
     })
@@ -149,14 +146,14 @@ export class TraktSyncClient extends TraktBaseClient {
    * Adds movies, shows, seasons, or episodes to user's collection
    */
   async addToCollection(items: TraktSyncParams): Promise<TraktSyncResponse> {
-    return this.post<TraktSyncResponse>('/sync/collection', items)
+    return this.base.post<TraktSyncResponse>('/sync/collection', items)
   }
 
   /**
    * Remove items from collection
    */
   async removeFromCollection(items: TraktSyncParams): Promise<TraktSyncResponse> {
-    return this.post<TraktSyncResponse>('/sync/collection/remove', items)
+    return this.base.post<TraktSyncResponse>('/sync/collection/remove', items)
   }
 
   /**
@@ -196,14 +193,14 @@ export class TraktSyncClient extends TraktBaseClient {
    * Add items to watchlist
    */
   async addToWatchlist(items: TraktSyncParams): Promise<TraktSyncResponse> {
-    return this.post<TraktSyncResponse>('/sync/watchlist', items)
+    return this.base.post<TraktSyncResponse>('/sync/watchlist', items)
   }
 
   /**
    * Remove items from watchlist
    */
   async removeFromWatchlist(items: TraktSyncParams): Promise<TraktSyncResponse> {
-    return this.post<TraktSyncResponse>('/sync/watchlist/remove', items)
+    return this.base.post<TraktSyncResponse>('/sync/watchlist/remove', items)
   }
 
   /**
@@ -237,14 +234,14 @@ export class TraktSyncClient extends TraktBaseClient {
       })[]
     episodes?: (TraktEpisode & { watched_at?: string })[]
   }): Promise<TraktSyncResponse> {
-    return this.post<TraktSyncResponse>('/sync/history', items)
+    return this.base.post<TraktSyncResponse>('/sync/history', items)
   }
 
   /**
    * Remove items from watch history
    */
   async removeFromHistory(items: TraktSyncParams): Promise<TraktSyncResponse> {
-    return this.post<TraktSyncResponse>('/sync/history/remove', items)
+    return this.base.post<TraktSyncResponse>('/sync/history/remove', items)
   }
 
   /**
@@ -276,14 +273,14 @@ export class TraktSyncClient extends TraktBaseClient {
     seasons?: (TraktSeason & { rating: number; rated_at?: string })[]
     episodes?: (TraktEpisode & { rating: number; rated_at?: string })[]
   }): Promise<TraktSyncResponse> {
-    return this.post<TraktSyncResponse>('/sync/ratings', items)
+    return this.base.post<TraktSyncResponse>('/sync/ratings', items)
   }
 
   /**
    * Remove ratings for items
    */
   async removeRatings(items: TraktSyncParams): Promise<TraktSyncResponse> {
-    return this.post<TraktSyncResponse>('/sync/ratings/remove', items)
+    return this.base.post<TraktSyncResponse>('/sync/ratings/remove', items)
   }
 
   /**
@@ -349,7 +346,7 @@ export class TraktSyncClient extends TraktBaseClient {
       commented_at: string
     }
   }> {
-    return this.get('/sync/last_activities')
+    return this.base.get('/sync/last_activities')
   }
 
   /**

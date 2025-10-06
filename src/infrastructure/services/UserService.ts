@@ -1,58 +1,75 @@
 import type { IUserService } from '../../domain/services/IUserService'
-import type { User, UserPreferences, TraktAccount } from '../../domain/entities'
+import type { User, UserPreferences } from '../../domain/entities'
+import type { TraktConfig } from '../../domain/entities/UserPreferences'
+import { updateUserPreferences } from '../../domain/entities'
 import {
-  createAnonymousUser,
-  upgradeToAuthenticatedUser,
-  updateLastActive,
-  updateUserPreferences,
-} from '../../domain/entities'
-import {
-  userState$,
+  currentUser$,
   userPreferences$,
+  appState$,
   isAuthenticated$,
   hasTraktAuth$,
+  updateCurrentUserLastActive,
+  upgradeCurrentUserToAuthenticated,
 } from '../../presentation/shared/stores/app.store'
 
 export class UserService implements IUserService {
   async initializeUser(): Promise<void> {
-    const existingUserState = userState$.get()
+    // Multi-user initialization is handled by app.store.ts automatically
+    // Just update the current user's last active timestamp
+    updateCurrentUserLastActive()
+  }
 
-    if (!existingUserState.currentUser) {
-      const anonymousUser = createAnonymousUser()
-      userState$.currentUser.set(anonymousUser)
-    } else {
-      userState$.currentUser.set(updateLastActive(existingUserState.currentUser))
+  async loginWithTrakt(traktConfig: TraktConfig): Promise<void> {
+    // Upgrade current user to authenticated
+    upgradeCurrentUserToAuthenticated()
+
+    // Update trakt config in current user's preferences
+    const activeId = appState$.activeUserId.get()
+    const currentPrefs = userPreferences$[activeId].peek()
+    if (currentPrefs) {
+      userPreferences$[activeId].set({
+        ...currentPrefs,
+        trakt: { ...currentPrefs.trakt, ...traktConfig },
+        updatedAt: Date.now(),
+      })
     }
   }
 
-  async loginWithTrakt(traktAccount: TraktAccount): Promise<void> {
-    const currentUser = userState$.currentUser.get()
-    const authenticatedUser = upgradeToAuthenticatedUser(currentUser, {
-      trakt: traktAccount,
-    })
-
-    userState$.currentUser.set(authenticatedUser)
-  }
-
   async logout(): Promise<void> {
-    const anonymousUser = createAnonymousUser()
-    userState$.currentUser.set(anonymousUser)
+    // Clear Trakt auth from current user's preferences
+    const activeId = appState$.activeUserId.get()
+    const currentPrefs = userPreferences$[activeId].peek()
+    if (currentPrefs) {
+      userPreferences$[activeId].set({
+        ...currentPrefs,
+        trakt: {
+          ...currentPrefs.trakt,
+          username: undefined,
+          userId: undefined,
+          accessToken: undefined,
+          refreshToken: undefined,
+          tokenExpiresAt: undefined,
+        },
+        updatedAt: Date.now(),
+      })
+    }
   }
 
   async updatePreferences(preferences: Partial<UserPreferences>): Promise<void> {
-    const currentPreferences = userPreferences$.get()
-    const updatedPreferences = updateUserPreferences(currentPreferences, preferences)
-    userPreferences$.set(updatedPreferences)
+    const activeId = appState$.activeUserId.get()
+    const currentPrefs = userPreferences$[activeId].peek()
+    if (currentPrefs) {
+      const updatedPreferences = updateUserPreferences(currentPrefs, preferences)
+      userPreferences$[activeId].set(updatedPreferences)
+    }
   }
 
   async updateLastActive(): Promise<void> {
-    const currentUser = userState$.currentUser.get()
-    const updatedUser = updateLastActive(currentUser)
-    userState$.currentUser.set(updatedUser)
+    updateCurrentUserLastActive()
   }
 
   getCurrentUser(): User {
-    return userState$.currentUser.get()
+    return currentUser$.get()!
   }
 
   isAuthenticated(): boolean {

@@ -20,9 +20,10 @@ import {
   tmdbConfig$,
   traktConfig$,
   // User state
-  user$,
+  currentUser$,
+  currentUserPreferences$,
+  currentLocale$,
   userPreferences$,
-  userState$,
 } from '../stores/app.store'
 
 /**
@@ -35,13 +36,13 @@ export const useAppState = () => {
   return {
     // === APP STATE ===
     appState$,
-    locale: () => appState$.locale.get(),
+    locale: () => currentLocale$.get(),
     setLocale,
     getSupportedLocales,
 
     // === USER STATE ===
-    user$,
-    userState$,
+    currentUser$,
+    currentUserPreferences$,
     userPreferences$,
     isAuthenticated$,
     hasTraktAuth$,

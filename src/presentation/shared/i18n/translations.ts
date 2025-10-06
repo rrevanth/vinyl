@@ -78,6 +78,19 @@ interface Translations {
         username: string
         user_id: string
         account_info: string
+        api_configuration: string
+        api_configuration_footer: string
+        base_url: string
+        client_id: string
+        client_secret: string
+        using_env_client_id: string
+        using_env_client_secret: string
+        custom_client_id: string
+        custom_client_secret: string
+        save_config: string
+        saving: string
+        config_saved: string
+        config_saved_message: string
         connect_title: string
         connect_footer: string
         sign_in: string

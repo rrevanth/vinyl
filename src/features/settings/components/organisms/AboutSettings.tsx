@@ -7,7 +7,7 @@ import { SettingsInfoRow } from '../atoms/SettingsInfoRow'
 import { SettingsNavigationRow } from '../atoms/SettingsNavigationRow'
 import { useSettings } from '../../hooks/useSettings'
 import { t } from '@/src/presentation/shared/i18n'
-import type { AppInfo, CacheInfo } from '../../use-cases/SettingsUseCase'
+import type { AppInfo, CacheInfo } from '@/src/domain/use-cases/SettingsUseCase'
 
 export const AboutSettings = observer(() => {
   const { getAppInfo, getCacheInfo, clearCache } = useSettings()

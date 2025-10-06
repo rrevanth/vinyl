@@ -1,12 +1,11 @@
-import { useCallback, useMemo, useEffect } from 'react'
+import { useCallback, useEffect } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useSelector } from '@legendapp/state/react'
-import { userState$ } from '@/src/presentation/shared/stores/app.store'
+import { currentUser$ } from '@/src/presentation/shared/stores/app.store'
 import { stremioAddons$ } from '@/src/presentation/shared/stores/stremioAddons.store'
-import { StremioAddonsUseCase } from '../use-cases/StremioAddonsUseCase'
 import { useService } from '@/src/infrastructure/di/useService'
 import { TOKENS } from '@/src/infrastructure/di/tokens'
-import type { StremioAddonRegistry } from '@/src/infrastructure/providers/stremio/StremioAddonRegistry'
-import type { StremioAddonStorage } from '@/src/infrastructure/providers/stremio/storage/StremioAddonStorage'
+import type { StremioAddonsUseCase } from '@/src/domain/use-cases/StremioAddonsUseCase'
 import type { ILoggingService } from '@/src/domain/services/ILoggingService'
 import type { StremioAddon } from '@/src/domain/entities/StremioAddon'
 
@@ -41,104 +40,100 @@ import type { StremioAddon } from '@/src/domain/entities/StremioAddon'
  */
 export const useStremioAddons = () => {
   // Get services from DI container
-  const addonRegistry = useService<StremioAddonRegistry>(TOKENS.StremioAddonRegistry)
-  const addonStorage = useService<StremioAddonStorage>(TOKENS.StremioAddonStorage)
+  const addonsUseCase = useService<StremioAddonsUseCase>(TOKENS.StremioAddonsUseCase)
   const logger = useService<ILoggingService>(TOKENS.LoggingService)
-
-  // Create use case instance
-  const addonsUseCase = useMemo(
-    () => new StremioAddonsUseCase(addonRegistry, addonStorage, logger),
-    [addonRegistry, addonStorage, logger]
-  )
+  const queryClient = useQueryClient()
 
   // Get current user from state
-  const currentUser = useSelector(() => userState$.currentUser.get())
+  const currentUser = useSelector(() => currentUser$.get())
 
-  // Reactive state from Legend State using useSelector
-  const installedAddons = useSelector(() => stremioAddons$.installed.get())
-  const isLoading = useSelector(() => stremioAddons$.isLoading.get())
-  const error = useSelector(() => stremioAddons$.error.get())
-
-  /**
-   * Load installed addons for current user
-   */
-  const loadInstalledAddons = useCallback(async () => {
-    try {
-      stremioAddons$.isLoading.set(true)
-      stremioAddons$.error.set(null)
-
-      const addons = await addonsUseCase.getInstalledAddons(currentUser.id)
-      stremioAddons$.installed.set(addons)
-
-      logger.info('Loaded installed addons', { userId: currentUser.id, count: addons.length })
-    } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : 'Unknown error'
-      logger.error('Failed to load installed addons', error as Error, { userId: currentUser.id })
-      stremioAddons$.error.set(errorMsg)
-    } finally {
-      stremioAddons$.isLoading.set(false)
-    }
-  }, [addonsUseCase, currentUser.id, logger])
-
-  /**
-   * Load addons on mount and initialize Stremio system
-   * IMPORTANT: Cleanup happens inside initializeStremio BEFORE loading
-   */
-  useEffect(() => {
-    const initialize = async () => {
-      try {
-        // Initialize Stremio system (includes cleanup as first step)
-        const { initializeStremio } = await import(
-          '@/src/infrastructure/providers/stremio/initializeStremio'
-        )
-
-        await initializeStremio(currentUser.id)
-        logger.info('Stremio system initialized', { userId: currentUser.id })
-      } catch (error) {
-        logger.warn('Stremio initialization warning', error as Error)
-        // Continue anyway - not critical
+  // Query for installed addons
+  const {
+    data: installedAddons = [],
+    isLoading,
+    error: queryError,
+  } = useQuery({
+    queryKey: ['stremio', 'addons', 'installed', currentUser?.id],
+    queryFn: async () => {
+      if (!currentUser) {
+        throw new Error('No user logged in')
       }
+      // Initialize Stremio first
+      const { initializeStremio } = await import('@/src/infrastructure/providers/stremio/initializeStremio')
+      await initializeStremio(currentUser.id)
+      return addonsUseCase.getInstalledAddons(currentUser.id)
+    },
+    enabled: !!currentUser,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  })
 
-      // Load installed addons into state (after cleanup and init)
-      await loadInstalledAddons()
-    }
+  // Sync to Legend State for UI reactivity
+  useEffect(() => {
+    stremioAddons$.installed.set(installedAddons)
+    stremioAddons$.isLoading.set(isLoading)
+    const errorMsg = queryError instanceof Error ? queryError.message : null
+    stremioAddons$.error.set(errorMsg)
+  }, [installedAddons, isLoading, queryError])
 
-    initialize().catch((error) => {
-      logger.error('Failed to initialize Stremio on mount', error as Error)
-    })
-  }, [currentUser.id, loadInstalledAddons, logger])
+  // Mutation for installing addon
+  const installMutation = useMutation({
+    mutationFn: (manifestUrl: string) => addonsUseCase.installAddon(currentUser.id, manifestUrl),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['stremio', 'addons', 'installed'] })
+      logger.info('Addon installed successfully', { userId: currentUser.id })
+    },
+  })
+
+  // Mutation for uninstalling addon
+  const uninstallMutation = useMutation({
+    mutationFn: (addonId: string) => addonsUseCase.uninstallAddon(currentUser.id, addonId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['stremio', 'addons', 'installed'] })
+      logger.info('Addon uninstalled successfully', { userId: currentUser.id })
+    },
+  })
+
+  // Mutation for toggling addon
+  const toggleMutation = useMutation({
+    mutationFn: ({ addonId, isEnabled }: { addonId: string; isEnabled: boolean }) =>
+      addonsUseCase.toggleAddon(currentUser.id, addonId, isEnabled),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['stremio', 'addons', 'installed'] })
+      logger.info('Addon toggled successfully', { userId: currentUser.id })
+    },
+  })
+
+  // Mutation for refreshing addon
+  const refreshMutation = useMutation({
+    mutationFn: (addonId: string) => addonsUseCase.refreshAddonManifest(currentUser.id, addonId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['stremio', 'addons', 'installed'] })
+      logger.info('Addon refreshed successfully', { userId: currentUser.id })
+    },
+  })
+
+  // Mutation for clearing cache
+  const clearCacheMutation = useMutation({
+    mutationFn: () => addonsUseCase.clearAddonCache(),
+    onSuccess: () => {
+      logger.info('Addon cache cleared successfully', { userId: currentUser.id })
+    },
+  })
 
   /**
    * Install addon from manifest URL
    */
   const installAddon = useCallback(
     async (manifestUrl: string) => {
-      try {
-        stremioAddons$.isLoading.set(true)
-        stremioAddons$.error.set(null)
+      logger.info('Installing addon', { userId: currentUser.id, manifestUrl })
 
-        logger.info('Installing addon', { userId: currentUser.id, manifestUrl })
+      const result = await installMutation.mutateAsync(manifestUrl)
 
-        const result = await addonsUseCase.installAddon(currentUser.id, manifestUrl)
-
-        if (!result.success) {
-          throw new Error(result.error || 'Failed to install addon')
-        }
-
-        // Reload installed addons
-        await loadInstalledAddons()
-
-        logger.info('Addon installed successfully', { userId: currentUser.id, manifestUrl })
-      } catch (error) {
-        const errorMsg = error instanceof Error ? error.message : 'Unknown error'
-        logger.error('Failed to install addon', error as Error, { userId: currentUser.id, manifestUrl })
-        stremioAddons$.error.set(errorMsg)
-        throw error
-      } finally {
-        stremioAddons$.isLoading.set(false)
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to install addon')
       }
     },
-    [addonsUseCase, currentUser.id, logger, loadInstalledAddons]
+    [installMutation, currentUser.id, logger]
   )
 
   /**
@@ -146,32 +141,15 @@ export const useStremioAddons = () => {
    */
   const uninstallAddon = useCallback(
     async (addonId: string) => {
-      try {
-        stremioAddons$.isLoading.set(true)
-        stremioAddons$.error.set(null)
+      logger.info('Uninstalling addon', { userId: currentUser.id, addonId })
 
-        logger.info('Uninstalling addon', { userId: currentUser.id, addonId })
+      const result = await uninstallMutation.mutateAsync(addonId)
 
-        const result = await addonsUseCase.uninstallAddon(currentUser.id, addonId)
-
-        if (!result.success) {
-          throw new Error(result.error || 'Failed to uninstall addon')
-        }
-
-        // Reload installed addons
-        await loadInstalledAddons()
-
-        logger.info('Addon uninstalled successfully', { userId: currentUser.id, addonId })
-      } catch (error) {
-        const errorMsg = error instanceof Error ? error.message : 'Unknown error'
-        logger.error('Failed to uninstall addon', error as Error, { userId: currentUser.id, addonId })
-        stremioAddons$.error.set(errorMsg)
-        throw error
-      } finally {
-        stremioAddons$.isLoading.set(false)
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to uninstall addon')
       }
     },
-    [addonsUseCase, currentUser.id, logger, loadInstalledAddons]
+    [uninstallMutation, currentUser.id, logger]
   )
 
   /**
@@ -179,32 +157,15 @@ export const useStremioAddons = () => {
    */
   const toggleAddon = useCallback(
     async (addonId: string, isEnabled: boolean) => {
-      try {
-        stremioAddons$.isLoading.set(true)
-        stremioAddons$.error.set(null)
+      logger.info('Toggling addon', { userId: currentUser.id, addonId, isEnabled })
 
-        logger.info('Toggling addon', { userId: currentUser.id, addonId, isEnabled })
+      const result = await toggleMutation.mutateAsync({ addonId, isEnabled })
 
-        const result = await addonsUseCase.toggleAddon(currentUser.id, addonId, isEnabled)
-
-        if (!result.success) {
-          throw new Error(result.error || 'Failed to toggle addon')
-        }
-
-        // Reload installed addons
-        await loadInstalledAddons()
-
-        logger.info('Addon toggled successfully', { userId: currentUser.id, addonId, isEnabled })
-      } catch (error) {
-        const errorMsg = error instanceof Error ? error.message : 'Unknown error'
-        logger.error('Failed to toggle addon', error as Error, { userId: currentUser.id, addonId, isEnabled })
-        stremioAddons$.error.set(errorMsg)
-        throw error
-      } finally {
-        stremioAddons$.isLoading.set(false)
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to toggle addon')
       }
     },
-    [addonsUseCase, currentUser.id, logger, loadInstalledAddons]
+    [toggleMutation, currentUser.id, logger]
   )
 
   /**
@@ -212,60 +173,29 @@ export const useStremioAddons = () => {
    */
   const refreshAddon = useCallback(
     async (addonId: string) => {
-      try {
-        stremioAddons$.isLoading.set(true)
-        stremioAddons$.error.set(null)
+      logger.info('Refreshing addon', { userId: currentUser.id, addonId })
 
-        logger.info('Refreshing addon', { userId: currentUser.id, addonId })
+      const result = await refreshMutation.mutateAsync(addonId)
 
-        const result = await addonsUseCase.refreshAddonManifest(currentUser.id, addonId)
-
-        if (!result.success) {
-          throw new Error(result.error || 'Failed to refresh addon')
-        }
-
-        // Reload installed addons
-        await loadInstalledAddons()
-
-        logger.info('Addon refreshed successfully', { userId: currentUser.id, addonId })
-      } catch (error) {
-        const errorMsg = error instanceof Error ? error.message : 'Unknown error'
-        logger.error('Failed to refresh addon', error as Error, { userId: currentUser.id, addonId })
-        stremioAddons$.error.set(errorMsg)
-        throw error
-      } finally {
-        stremioAddons$.isLoading.set(false)
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to refresh addon')
       }
     },
-    [addonsUseCase, currentUser.id, logger, loadInstalledAddons]
+    [refreshMutation, currentUser.id, logger]
   )
 
   /**
    * Clear addon cache
    */
   const clearCache = useCallback(async () => {
-    try {
-      stremioAddons$.isLoading.set(true)
-      stremioAddons$.error.set(null)
+    logger.info('Clearing addon cache', { userId: currentUser.id })
 
-      logger.info('Clearing addon cache', { userId: currentUser.id })
+    const result = await clearCacheMutation.mutateAsync()
 
-      const result = await addonsUseCase.clearAddonCache()
-
-      if (!result.success) {
-        throw new Error(result.error || 'Failed to clear cache')
-      }
-
-      logger.info('Addon cache cleared successfully', { userId: currentUser.id })
-    } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : 'Unknown error'
-      logger.error('Failed to clear addon cache', error as Error, { userId: currentUser.id })
-      stremioAddons$.error.set(errorMsg)
-      throw error
-    } finally {
-      stremioAddons$.isLoading.set(false)
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to clear cache')
     }
-  }, [addonsUseCase, currentUser.id, logger])
+  }, [clearCacheMutation, currentUser.id, logger])
 
   /**
    * Validate manifest URL
@@ -296,8 +226,14 @@ export const useStremioAddons = () => {
   return {
     // State
     installedAddons,
-    isLoading,
-    error,
+    isLoading:
+      isLoading ||
+      installMutation.isPending ||
+      uninstallMutation.isPending ||
+      toggleMutation.isPending ||
+      refreshMutation.isPending ||
+      clearCacheMutation.isPending,
+    error: queryError instanceof Error ? queryError.message : null,
 
     // Actions
     installAddon,
@@ -307,6 +243,6 @@ export const useStremioAddons = () => {
     clearCache,
     validateManifestUrl,
     getConfigureUrl,
-    reload: loadInstalledAddons,
+    reload: () => queryClient.invalidateQueries({ queryKey: ['stremio', 'addons', 'installed'] }),
   }
 }

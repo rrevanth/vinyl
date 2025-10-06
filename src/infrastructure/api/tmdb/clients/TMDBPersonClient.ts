@@ -1,4 +1,4 @@
-import { TMDBBaseClient } from '../TMDBBaseClient'
+import type { TMDBBaseClient } from '../TMDBBaseClient'
 import type {
   TMDBPersonResponse,
   TMDBPersonMovieCreditsResponse,
@@ -18,7 +18,9 @@ import type {
  * Provides comprehensive person/celebrity data access including
  * complete filmography, images, and biographical information.
  */
-export class TMDBPersonClient extends TMDBBaseClient {
+export class TMDBPersonClient {
+  constructor(private readonly base: TMDBBaseClient) {}
+
   /**
    * Get person details with selective append_to_response options
    */
@@ -32,7 +34,7 @@ export class TMDBPersonClient extends TMDBBaseClient {
       params.append_to_response = appendToResponse.join(',')
     }
 
-    return this.get<TMDBPersonResponse>(`/person/${personId}`, params)
+    return this.base.get<TMDBPersonResponse>(`/person/${personId}`, params)
   }
 
   /**
@@ -54,35 +56,35 @@ export class TMDBPersonClient extends TMDBBaseClient {
    * Get person movie credits (filmography)
    */
   async getPersonMovieCredits(personId: number): Promise<TMDBPersonMovieCreditsResponse> {
-    return this.get<TMDBPersonMovieCreditsResponse>(`/person/${personId}/movie_credits`)
+    return this.base.get<TMDBPersonMovieCreditsResponse>(`/person/${personId}/movie_credits`)
   }
 
   /**
    * Get person TV show credits
    */
   async getPersonTVCredits(personId: number): Promise<TMDBPersonTVCreditsResponse> {
-    return this.get<TMDBPersonTVCreditsResponse>(`/person/${personId}/tv_credits`)
+    return this.base.get<TMDBPersonTVCreditsResponse>(`/person/${personId}/tv_credits`)
   }
 
   /**
    * Get person combined credits (movies and TV shows together)
    */
   async getPersonCombinedCredits(personId: number): Promise<TMDBPersonCombinedCreditsResponse> {
-    return this.get<TMDBPersonCombinedCreditsResponse>(`/person/${personId}/combined_credits`)
+    return this.base.get<TMDBPersonCombinedCreditsResponse>(`/person/${personId}/combined_credits`)
   }
 
   /**
    * Get person external IDs (social media, databases)
    */
   async getPersonExternalIds(personId: number): Promise<TMDBExternalIdsResponse> {
-    return this.get<TMDBExternalIdsResponse>(`/person/${personId}/external_ids`)
+    return this.base.get<TMDBExternalIdsResponse>(`/person/${personId}/external_ids`)
   }
 
   /**
    * Get person images (profile photos)
    */
   async getPersonImages(personId: number): Promise<TMDBPersonImagesResponse> {
-    return this.get<TMDBPersonImagesResponse>(`/person/${personId}/images`)
+    return this.base.get<TMDBPersonImagesResponse>(`/person/${personId}/images`)
   }
 
   /**
@@ -92,7 +94,7 @@ export class TMDBPersonClient extends TMDBBaseClient {
     personId: number,
     page: number = 1
   ): Promise<TMDBPaginatedResponse<TMDBTaggedImage>> {
-    return this.get<TMDBPaginatedResponse<TMDBTaggedImage>>(`/person/${personId}/tagged_images`, {
+    return this.base.get<TMDBPaginatedResponse<TMDBTaggedImage>>(`/person/${personId}/tagged_images`, {
       page,
     })
   }
@@ -101,7 +103,7 @@ export class TMDBPersonClient extends TMDBBaseClient {
    * Get person translations
    */
   async getPersonTranslations(personId: number): Promise<TMDBTranslationsResponse> {
-    return this.get<TMDBTranslationsResponse>(`/person/${personId}/translations`)
+    return this.base.get<TMDBTranslationsResponse>(`/person/${personId}/translations`)
   }
 
   // Person lists
@@ -110,14 +112,14 @@ export class TMDBPersonClient extends TMDBBaseClient {
    * Get popular people
    */
   async getPopularPeople(page: number = 1): Promise<TMDBPaginatedResponse<TMDBPersonResponse>> {
-    return this.get<TMDBPaginatedResponse<TMDBPersonResponse>>('/person/popular', { page })
+    return this.base.get<TMDBPaginatedResponse<TMDBPersonResponse>>('/person/popular', { page })
   }
 
   /**
    * Get latest person (single person, not paginated)
    */
   async getLatestPerson(): Promise<TMDBPersonResponse> {
-    return this.get<TMDBPersonResponse>('/person/latest')
+    return this.base.get<TMDBPersonResponse>('/person/latest')
   }
 
   // Utility methods for analyzing filmography

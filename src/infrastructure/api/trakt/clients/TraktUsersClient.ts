@@ -1,6 +1,4 @@
-import { TraktBaseClient } from '../TraktBaseClient'
-import type { ILoggingService } from '../../../../domain/services/ILoggingService'
-import type { TraktConfigFactory } from '../../../factories/TraktConfigFactory'
+import type { TraktBaseClient } from '../TraktBaseClient'
 import type {
   TraktUser,
   TraktUserStats,
@@ -24,11 +22,8 @@ import type {
  * - User followers and following
  * - User ratings and comments
  */
-export class TraktUsersClient extends TraktBaseClient {
-  // eslint-disable-next-line @typescript-eslint/no-useless-constructor
-  constructor(configFactory: TraktConfigFactory, logger: ILoggingService) {
-    super(configFactory, logger)
-  }
+export class TraktUsersClient {
+  constructor(private readonly base: TraktBaseClient) {}
 
   // User Profile Methods
 
@@ -37,7 +32,7 @@ export class TraktUsersClient extends TraktBaseClient {
    * Use 'me' for authenticated user's profile
    */
   async getProfile(username: string, options?: { extended?: TraktExtended }): Promise<TraktUser> {
-    return this.get<TraktUser>(`/users/${username}`, undefined, options)
+    return this.base.get<TraktUser>(`/users/${username}`, undefined, options)
   }
 
   /**
@@ -69,7 +64,7 @@ export class TraktUsersClient extends TraktBaseClient {
       watched: string
     }
   }> {
-    return this.get('/users/settings')
+    return this.base.get('/users/settings')
   }
 
   // User Statistics
@@ -78,7 +73,7 @@ export class TraktUsersClient extends TraktBaseClient {
    * Get user statistics
    */
   async getStats(username: string): Promise<TraktUserStats> {
-    return this.get<TraktUserStats>(`/users/${username}/stats`)
+    return this.base.get<TraktUserStats>(`/users/${username}/stats`)
   }
 
   /**
@@ -94,7 +89,7 @@ export class TraktUsersClient extends TraktBaseClient {
    * Get user's watch history
    */
   async getHistory(username: string, params?: TraktHistoryParams): Promise<TraktHistoryItem[]> {
-    return this.get<TraktHistoryItem[]>(`/users/${username}/history`, params)
+    return this.base.get<TraktHistoryItem[]>(`/users/${username}/history`, params)
   }
 
   /**
@@ -111,7 +106,7 @@ export class TraktUsersClient extends TraktBaseClient {
     username: string,
     params?: Omit<TraktHistoryParams, 'type'> & { item_id?: number }
   ): Promise<TraktHistoryItem[]> {
-    return this.get<TraktHistoryItem[]>(`/users/${username}/history/movies`, params)
+    return this.base.get<TraktHistoryItem[]>(`/users/${username}/history/movies`, params)
   }
 
   /**
@@ -121,7 +116,7 @@ export class TraktUsersClient extends TraktBaseClient {
     username: string,
     params?: Omit<TraktHistoryParams, 'type'> & { item_id?: number }
   ): Promise<TraktHistoryItem[]> {
-    return this.get<TraktHistoryItem[]>(`/users/${username}/history/shows`, params)
+    return this.base.get<TraktHistoryItem[]>(`/users/${username}/history/shows`, params)
   }
 
   // Watchlist
@@ -133,7 +128,7 @@ export class TraktUsersClient extends TraktBaseClient {
     username: string,
     params?: TraktWatchlistParams
   ): Promise<TraktWatchlistItem[]> {
-    return this.get<TraktWatchlistItem[]>(`/users/${username}/watchlist`, params)
+    return this.base.get<TraktWatchlistItem[]>(`/users/${username}/watchlist`, params)
   }
 
   /**
@@ -150,7 +145,7 @@ export class TraktUsersClient extends TraktBaseClient {
     username: string,
     params?: Omit<TraktWatchlistParams, 'type'>
   ): Promise<TraktWatchlistItem[]> {
-    return this.get<TraktWatchlistItem[]>(`/users/${username}/watchlist/movies`, params)
+    return this.base.get<TraktWatchlistItem[]>(`/users/${username}/watchlist/movies`, params)
   }
 
   /**
@@ -160,7 +155,7 @@ export class TraktUsersClient extends TraktBaseClient {
     username: string,
     params?: Omit<TraktWatchlistParams, 'type'>
   ): Promise<TraktWatchlistItem[]> {
-    return this.get<TraktWatchlistItem[]>(`/users/${username}/watchlist/shows`, params)
+    return this.base.get<TraktWatchlistItem[]>(`/users/${username}/watchlist/shows`, params)
   }
 
   // Collection
@@ -172,7 +167,7 @@ export class TraktUsersClient extends TraktBaseClient {
     username: string,
     params?: TraktCollectionParams
   ): Promise<TraktCollectionItem[]> {
-    return this.get<TraktCollectionItem[]>(`/users/${username}/collection`, params)
+    return this.base.get<TraktCollectionItem[]>(`/users/${username}/collection`, params)
   }
 
   /**
@@ -189,7 +184,7 @@ export class TraktUsersClient extends TraktBaseClient {
     username: string,
     params?: Omit<TraktCollectionParams, 'type'>
   ): Promise<TraktCollectionItem[]> {
-    return this.get<TraktCollectionItem[]>(`/users/${username}/collection/movies`, params)
+    return this.base.get<TraktCollectionItem[]>(`/users/${username}/collection/movies`, params)
   }
 
   /**
@@ -199,7 +194,7 @@ export class TraktUsersClient extends TraktBaseClient {
     username: string,
     params?: Omit<TraktCollectionParams, 'type'>
   ): Promise<TraktCollectionItem[]> {
-    return this.get<TraktCollectionItem[]>(`/users/${username}/collection/shows`, params)
+    return this.base.get<TraktCollectionItem[]>(`/users/${username}/collection/shows`, params)
   }
 
   // Lists
@@ -208,7 +203,7 @@ export class TraktUsersClient extends TraktBaseClient {
    * Get user's custom lists
    */
   async getLists(username: string): Promise<any[]> {
-    return this.get<any[]>(`/users/${username}/lists`)
+    return this.base.get<any[]>(`/users/${username}/lists`)
   }
 
   /**
@@ -226,7 +221,7 @@ export class TraktUsersClient extends TraktBaseClient {
     listId: string | number,
     params?: { extended?: TraktExtended }
   ): Promise<any> {
-    return this.get(`/users/${username}/lists/${listId}`, undefined, params)
+    return this.base.get(`/users/${username}/lists/${listId}`, undefined, params)
   }
 
   /**
@@ -240,7 +235,7 @@ export class TraktUsersClient extends TraktBaseClient {
       extended?: TraktExtended
     }
   ): Promise<any[]> {
-    return this.get<any[]>(`/users/${username}/lists/${listId}/items`, params)
+    return this.base.get<any[]>(`/users/${username}/lists/${listId}/items`, params)
   }
 
   // Social Features
@@ -252,7 +247,7 @@ export class TraktUsersClient extends TraktBaseClient {
     username: string,
     params?: TraktPaginationParams & { extended?: TraktExtended }
   ): Promise<{ followed_at: string; user: TraktUser }[]> {
-    return this.get(`/users/${username}/followers`, params)
+    return this.base.get(`/users/${username}/followers`, params)
   }
 
   /**
@@ -262,7 +257,7 @@ export class TraktUsersClient extends TraktBaseClient {
     username: string,
     params?: TraktPaginationParams & { extended?: TraktExtended }
   ): Promise<{ followed_at: string; user: TraktUser }[]> {
-    return this.get(`/users/${username}/following`, params)
+    return this.base.get(`/users/${username}/following`, params)
   }
 
   /**
@@ -272,7 +267,7 @@ export class TraktUsersClient extends TraktBaseClient {
     username: string,
     params?: TraktPaginationParams & { extended?: TraktExtended }
   ): Promise<{ friends_at: string; user: TraktUser }[]> {
-    return this.get(`/users/${username}/friends`, params)
+    return this.base.get(`/users/${username}/friends`, params)
   }
 
   // User-specific authenticated actions
@@ -281,14 +276,14 @@ export class TraktUsersClient extends TraktBaseClient {
    * Follow a user (requires authentication)
    */
   async followUser(username: string): Promise<void> {
-    await this.post(`/users/${username}/follow`)
+    await this.base.post(`/users/${username}/follow`)
   }
 
   /**
    * Unfollow a user (requires authentication)
    */
   async unfollowUser(username: string): Promise<void> {
-    await this.delete(`/users/${username}/follow`)
+    await this.base.delete(`/users/${username}/follow`)
   }
 
   // Ratings and Comments
@@ -304,7 +299,7 @@ export class TraktUsersClient extends TraktBaseClient {
       extended?: TraktExtended
     }
   ): Promise<any[]> {
-    return this.get<any[]>(`/users/${username}/ratings`, params)
+    return this.base.get<any[]>(`/users/${username}/ratings`, params)
   }
 
   /**
@@ -319,7 +314,7 @@ export class TraktUsersClient extends TraktBaseClient {
       extended?: TraktExtended
     }
   ): Promise<any[]> {
-    return this.get<any[]>(`/users/${username}/comments`, params)
+    return this.base.get<any[]>(`/users/${username}/comments`, params)
   }
 
   // Utility Methods

@@ -1,4 +1,4 @@
-import { TMDBBaseClient } from '../TMDBBaseClient'
+import type { TMDBBaseClient } from '../TMDBBaseClient'
 import type { TMDBImageSize } from '../types'
 
 /**
@@ -7,7 +7,9 @@ import type { TMDBImageSize } from '../types'
  * Provides comprehensive image URL generation and management
  * with support for all TMDB image types and sizes.
  */
-export class TMDBImageClient extends TMDBBaseClient {
+export class TMDBImageClient {
+  constructor(private readonly base: TMDBBaseClient) {}
+
   // Available image sizes for different image types
   private static readonly POSTER_SIZES: TMDBImageSize[] = [
     'w92',
@@ -79,7 +81,7 @@ export class TMDBImageClient extends TMDBBaseClient {
    * Build complete image URL
    */
   private buildImageURL(imagePath: string, size: TMDBImageSize): string {
-    const config = this.getCurrentConfig()
+    const config = this.base.getCurrentConfig()
     const cleanPath = imagePath.startsWith('/') ? imagePath.slice(1) : imagePath
     return `${config.effectiveImageBaseURL}${size}/${cleanPath}`
   }

@@ -49,11 +49,13 @@ export class TraktConfigFactory {
     const effectiveCountry = userConfig?.country || 'US'
 
     // Determine configuration source
-    const configSource: 'user' | 'env' | 'default' = userConfig?.clientId
-      ? 'user'
-      : this.envService.getTraktClientId()
-        ? 'env'
-        : 'default'
+    // User source if they have tokens OR custom clientId
+    const configSource: 'user' | 'env' | 'default' =
+      userConfig?.accessToken || userConfig?.clientId
+        ? 'user'
+        : this.envService.getTraktClientId()
+          ? 'env'
+          : 'default'
 
     // Check token validity
     const hasValidTokens = this.hasValidTokens(userConfig)

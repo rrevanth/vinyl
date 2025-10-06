@@ -1,7 +1,7 @@
 import { HttpClient } from '../../http/HttpClient'
 import type { ILoggingService } from '../../../domain/services/ILoggingService'
 import type { TraktConfigFactory, EffectiveTraktConfig } from '../../factories/TraktConfigFactory'
-import { traktConfig$, userPreferences$ } from '../../../presentation/shared/stores/app.store'
+import { traktConfig$ } from '../../../presentation/shared/stores/app.store'
 import { NotFoundError, UnauthorizedError } from '../../../domain/errors'
 import { NetworkError } from '../../errors'
 import type {
@@ -29,7 +29,6 @@ export class TraktBaseClient {
   protected httpClient!: HttpClient
   protected currentConfig!: EffectiveTraktConfig
   private configSubscription?: () => void
-  private tokenRefreshPromise?: Promise<void>
   private currentAccessToken: string | null = null
   private static configLoaded = false
 
@@ -49,8 +48,19 @@ export class TraktBaseClient {
    * Called on initialization and when preferences change
    */
   private reloadConfiguration(): void {
+    this.logger.debug('→ reloadConfiguration() called', {
+      currentAccessToken: this.currentAccessToken ? `${this.currentAccessToken.substring(0, 10)}...` : 'null',
+    })
+
     // Get current user preferences for Trakt
     const userConfig = traktConfig$.get()
+    this.logger.info('[TraktBaseClient] Reading config from store', {
+      hasAccessToken: Boolean(userConfig?.accessToken),
+      hasRefreshToken: Boolean(userConfig?.refreshToken),
+      hasUsername: Boolean(userConfig?.username),
+      accessToken: userConfig?.accessToken ? `${userConfig.accessToken.substring(0, 10)}...` : 'null',
+      username: userConfig?.username || 'null',
+    })
 
     // Create effective configuration with fallbacks
     this.currentConfig = this.configFactory.createEffectiveConfig(userConfig)
@@ -58,8 +68,26 @@ export class TraktBaseClient {
     // Validate configuration
     this.configFactory.validateConfig(this.currentConfig)
 
-    // Update current access token
-    this.currentAccessToken = this.currentConfig.accessToken || null
+    // Smart token update: preserve in-memory token from recent OAuth
+    // Only update token from config if we don't have a fresher one in memory
+    const configToken = this.currentConfig.accessToken || null
+    this.logger.debug('Effective config created', {
+      configToken: configToken ? `${configToken.substring(0, 10)}...` : 'null',
+      currentAccessToken: this.currentAccessToken ? `${this.currentAccessToken.substring(0, 10)}...` : 'null',
+    })
+
+    // If we have an in-memory token that's different from config, it means
+    // we just got it from OAuth and haven't persisted yet - keep it!
+    if (this.currentAccessToken && this.currentAccessToken !== configToken) {
+      this.logger.debug('✓ Preserving in-memory access token from recent OAuth flow')
+    } else {
+      // Normal case: update from config
+      this.logger.debug('Updating currentAccessToken from config', {
+        from: this.currentAccessToken ? `${this.currentAccessToken.substring(0, 10)}...` : 'null',
+        to: configToken ? `${configToken.substring(0, 10)}...` : 'null',
+      })
+      this.currentAccessToken = configToken
+    }
 
     // Create new HTTP client with current config and Trakt-specific headers
     this.httpClient = new HttpClient(
@@ -72,12 +100,12 @@ export class TraktBaseClient {
       }
     )
 
-    // Check if token needs refresh and do it in background
-    if (this.configFactory.needsTokenRefresh(this.currentConfig)) {
-      this.refreshTokenIfNeeded().catch((error) => {
-        this.logger.error('Background token refresh failed', error)
-      })
-    }
+    this.logger.debug('← reloadConfiguration() completed', {
+      finalAccessToken: this.currentAccessToken ? `${this.currentAccessToken.substring(0, 10)}...` : 'null',
+    })
+
+    // Note: Token refresh is now handled explicitly by use case/hook layer
+    // Client no longer automatically refreshes tokens in background
 
     // Only log on first load to prevent duplicate logs from multiple instances
     if (!TraktBaseClient.configLoaded) {
@@ -95,8 +123,9 @@ export class TraktBaseClient {
    * Automatically reloads when user preferences change
    */
   private setupConfigurationWatcher(): void {
+    this.logger.info('[TraktBaseClient] Setting up configuration watcher')
     this.configSubscription = traktConfig$.onChange(() => {
-      this.logger.debug('Trakt user preferences changed, reloading configuration')
+      this.logger.info('🔴 [TraktBaseClient] Trakt user preferences changed, reloading configuration')
       this.reloadConfiguration()
     })
   }
@@ -111,28 +140,12 @@ export class TraktBaseClient {
     }
   }
 
-  /**
-   * Refresh access token if needed
-   * Prevents multiple simultaneous refresh attempts
-   */
-  private async refreshTokenIfNeeded(): Promise<void> {
-    if (this.tokenRefreshPromise) {
-      return this.tokenRefreshPromise
-    }
-
-    this.tokenRefreshPromise = this.performTokenRefresh()
-
-    try {
-      await this.tokenRefreshPromise
-    } finally {
-      this.tokenRefreshPromise = undefined
-    }
-  }
 
   /**
-   * Perform actual token refresh
+   * Refresh access token
+   * Returns new token response for caller to persist
    */
-  private async performTokenRefresh(): Promise<void> {
+  async refreshToken(): Promise<TraktTokenResponse> {
     if (!this.currentConfig.refreshToken) {
       throw new UnauthorizedError('No refresh token available')
     }
@@ -151,21 +164,14 @@ export class TraktBaseClient {
         refreshRequest
       )
 
-      // Update configuration with new tokens
-      const updatedConfig = this.configFactory.updateConfigWithTokens(
-        this.currentConfig,
-        tokenResponse.access_token,
-        tokenResponse.refresh_token,
-        tokenResponse.expires_in
-      )
-
-      // Update user preferences store
-      userPreferences$.trakt.set(updatedConfig)
-
-      // Update current access token for immediate use
-      this.currentAccessToken = updatedConfig.accessToken || null
+      // Update current access token for immediate use in subsequent calls
+      // Note: Caller (use case/hook) is responsible for persisting tokens to store
+      this.currentAccessToken = tokenResponse.access_token
 
       this.logger.info('Trakt access token refreshed successfully')
+
+      // Return token response for caller to handle persistence
+      return tokenResponse
     } catch (err) {
       const error = err instanceof Error ? err : new Error(String(err))
       this.logger.error('Failed to refresh Trakt access token', error)
@@ -184,6 +190,8 @@ export class TraktBaseClient {
    * Exchange authorization code for access token
    */
   async exchangeCodeForToken(code: string, state?: string): Promise<TraktTokenResponse> {
+    this.logger.debug('→ exchangeCodeForToken() called')
+
     const tokenRequest: TraktTokenRequest = {
       code,
       client_id: this.currentConfig.effectiveClientId,
@@ -198,21 +206,18 @@ export class TraktBaseClient {
         tokenRequest
       )
 
-      // Update configuration with new tokens
-      const updatedConfig = this.configFactory.updateConfigWithTokens(
-        this.currentConfig,
-        tokenResponse.access_token,
-        tokenResponse.refresh_token,
-        tokenResponse.expires_in
-      )
-
-      // Update user preferences store
-      userPreferences$.trakt.set(updatedConfig)
-
-      // Update current access token for immediate use
-      this.currentAccessToken = updatedConfig.accessToken || null
+      // Update current access token for immediate use in subsequent calls
+      // Note: Caller (use case/hook) is responsible for persisting tokens to store
+      this.logger.debug('Setting currentAccessToken', {
+        accessToken: `${tokenResponse.access_token.substring(0, 10)}...`,
+      })
+      this.currentAccessToken = tokenResponse.access_token
 
       this.logger.info('Trakt OAuth flow completed successfully')
+      this.logger.debug('← exchangeCodeForToken() completed', {
+        currentAccessToken: this.currentAccessToken ? `${this.currentAccessToken.substring(0, 10)}...` : 'null',
+      })
+
       return tokenResponse
     } catch (err) {
       const error = err instanceof Error ? err : new Error(String(err))
@@ -254,19 +259,9 @@ export class TraktBaseClient {
         request
       )
 
-      // Update configuration with new tokens
-      const updatedConfig = this.configFactory.updateConfigWithTokens(
-        this.currentConfig,
-        tokenResponse.access_token,
-        tokenResponse.refresh_token,
-        tokenResponse.expires_in
-      )
-
-      // Update user preferences store
-      userPreferences$.trakt.set(updatedConfig)
-
-      // Update current access token for immediate use
-      this.currentAccessToken = updatedConfig.accessToken || null
+      // Update current access token for immediate use in subsequent calls
+      // Note: Caller (use case/hook) is responsible for persisting tokens to store
+      this.currentAccessToken = tokenResponse.access_token
 
       this.logger.info('Trakt device authentication completed successfully')
       return tokenResponse
@@ -291,18 +286,8 @@ export class TraktBaseClient {
         client_secret: this.currentConfig.effectiveClientSecret,
       })
 
-      // Clear tokens from configuration
-      const clearedConfig = {
-        ...this.currentConfig,
-        accessToken: undefined,
-        refreshToken: undefined,
-        tokenExpiresAt: undefined,
-      }
-
-      // Update user preferences store
-      userPreferences$.trakt.set(clearedConfig)
-
-      // Clear current access token
+      // Clear current access token from memory
+      // Note: Caller (use case/hook) is responsible for clearing tokens from store
       this.currentAccessToken = null
 
       this.logger.info('Trakt access token revoked successfully')
@@ -321,6 +306,11 @@ export class TraktBaseClient {
     params?: Record<string, any>,
     options?: { extended?: TraktExtended | TraktExtended[] }
   ): Promise<T> {
+    this.logger.debug('→ TraktBaseClient.get() called', {
+      endpoint,
+      currentAccessToken: this.currentAccessToken ? `${this.currentAccessToken.substring(0, 10)}...` : 'null',
+    })
+
     const queryParams = new URLSearchParams()
 
     // Add standard parameters

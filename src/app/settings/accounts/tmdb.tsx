@@ -65,6 +65,8 @@ const TMDBSettingsScreen = observer(() => {
 
   // Initialize pending changes from current config and validate connection
   useEffect(() => {
+    if (!config) return
+
     pendingChanges$.apiKey.isCustom.set(Boolean(config.apiKey))
     pendingChanges$.apiKey.value.set(config.apiKey)
     pendingChanges$.baseURL.isCustom.set(config.baseURL !== DEFAULT_BASE_URL)
@@ -129,9 +131,11 @@ const TMDBSettingsScreen = observer(() => {
         t('settings.accounts.tmdb.validation_success')
       )
     } else {
-      // Show error via Alert
-      const errorMessage = result.error || t('settings.accounts.tmdb.connection_failed_message')
-      Alert.alert(t('settings.accounts.tmdb.connection_failed'), errorMessage)
+      // Show error via Alert with user-friendly message
+      Alert.alert(
+        'Invalid Configuration',
+        'Please check your settings and try again.'
+      )
     }
   }
 
@@ -268,7 +272,6 @@ const styles = StyleSheet.create((theme) => ({
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 44, // Accessibility minimum
-    marginHorizontal: theme.spacing.lg,
   },
   validateButtonPressed: {
     opacity: 0.8,

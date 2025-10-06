@@ -1,4 +1,5 @@
-import type { User, UserPreferences, TraktAccount } from '../entities'
+import type { User, UserPreferences } from '../entities'
+import type { TraktConfig } from '../entities/UserPreferences'
 
 export interface IUserService {
   /**
@@ -11,7 +12,7 @@ export interface IUserService {
    * Authenticate user with Trakt account
    * Upgrades anonymous user to authenticated state
    */
-  loginWithTrakt(traktAccount: TraktAccount): Promise<void>
+  loginWithTrakt(traktConfig: TraktConfig): Promise<void>
 
   /**
    * Log out user and return to anonymous state

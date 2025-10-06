@@ -1,16 +1,12 @@
-import { useCallback, useMemo } from 'react'
+import { useCallback } from 'react'
 import { useSelector } from '@legendapp/state/react'
 import { stremioAddons$ } from '@/src/presentation/shared/stores/stremioAddons.store'
-import { StremioAddonCatalogUseCase } from '../use-cases/StremioAddonCatalogUseCase'
 import { useService } from '@/src/infrastructure/di/useService'
 import { TOKENS } from '@/src/infrastructure/di/tokens'
-import { StremioManifestQueryCache } from '@/src/infrastructure/providers/stremio/cache/StremioManifestQueryCache'
-import { StremioProcessedAddonCache } from '@/src/infrastructure/providers/stremio/cache/StremioProcessedAddonCache'
 import { StremioAddon } from '@/src/domain/entities/StremioAddon'
+import type { StremioAddonCatalogUseCase } from '@/src/domain/use-cases/StremioAddonCatalogUseCase'
 import type { ILoggingService } from '@/src/domain/services/ILoggingService'
 import type { CapabilityType } from '@/src/domain/capabilities/CapabilityType'
-import type { QueryClient } from '@tanstack/react-query'
-import type { HttpClient } from '@/src/infrastructure/http/HttpClient'
 
 /**
  * Hook for browsing and searching Stremio addon catalogs
@@ -45,26 +41,8 @@ import type { HttpClient } from '@/src/infrastructure/http/HttpClient'
  */
 export const useStremioAddonCatalog = () => {
   // Get services from DI container
-  const queryClient = useService<QueryClient>(TOKENS.QueryClient)
-  const httpClient = useService<HttpClient>(TOKENS.HttpClient)
+  const catalogUseCase = useService<StremioAddonCatalogUseCase>(TOKENS.StremioAddonCatalogUseCase)
   const logger = useService<ILoggingService>(TOKENS.LoggingService)
-
-  // Create cache instances
-  const manifestCache = useMemo(
-    () => new StremioManifestQueryCache(queryClient, httpClient, logger),
-    [queryClient, httpClient, logger]
-  )
-
-  const processedAddonCache = useMemo(
-    () => new StremioProcessedAddonCache(queryClient, manifestCache, logger),
-    [queryClient, manifestCache, logger]
-  )
-
-  // Create use case instance
-  const catalogUseCase = useMemo(
-    () => new StremioAddonCatalogUseCase(manifestCache, processedAddonCache, httpClient, logger),
-    [manifestCache, processedAddonCache, httpClient, logger]
-  )
 
   // Reactive state from Legend State using useSelector
   const browsingAddons = useSelector(() => stremioAddons$.browsing.get())

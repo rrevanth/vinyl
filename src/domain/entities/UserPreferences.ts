@@ -29,22 +29,26 @@ export interface TraktAdvancedSettings {
 }
 
 export interface TraktConfig {
-  // API Configuration
+  // === Identity ===
+  readonly username?: string
+  readonly userId?: string
+
+  // === API Configuration ===
   readonly clientId?: string
   readonly clientSecret?: string
   readonly redirectUri?: string
   readonly baseUrl?: string
 
-  // Authentication (managed automatically)
+  // === Authentication (managed automatically) ===
   readonly accessToken?: string
   readonly refreshToken?: string
   readonly tokenExpiresAt?: string
 
-  // Core Settings
+  // === Core Settings ===
   readonly language?: string
   readonly country?: string
 
-  // Feature Settings
+  // === Feature Settings ===
   readonly calendarSettings?: TraktCalendarSettings
   readonly contentSettings?: TraktContentSettings
   readonly advancedSettings?: TraktAdvancedSettings
@@ -75,6 +79,7 @@ export interface PlaybackPreferences {
 export interface UserPreferences {
   readonly version: number
   readonly updatedAt: number
+  readonly locale: string
   readonly tmdb: TMDBConfig
   readonly trakt: TraktConfig
   readonly stremio: StremioUserPreferences
@@ -92,10 +97,8 @@ export const createDefaultTMDBConfig = (): TMDBConfig => ({
 })
 
 export const createDefaultTraktConfig = (): TraktConfig => ({
-  // API Configuration - will be filled from environment
-  clientId: '',
-  clientSecret: '',
-  redirectUri: '',
+  // API Configuration - undefined allows fallback to environment variables
+  // Don't set empty strings as they prevent env var fallback
   baseUrl: 'https://api.trakt.tv',
 
   // Core Settings
@@ -142,9 +145,10 @@ export const createDefaultPlaybackPreferences = (): PlaybackPreferences => ({
   skipIntroEnabled: true,
 })
 
-export const createDefaultUserPreferences = (): UserPreferences => ({
+export const createDefaultUserPreferences = (locale: string = 'en'): UserPreferences => ({
   version: 1,
   updatedAt: Date.now(),
+  locale,
   tmdb: createDefaultTMDBConfig(),
   trakt: createDefaultTraktConfig(),
   stremio: getDefaultStremioPreferences(),

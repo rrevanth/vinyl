@@ -1,18 +1,27 @@
-import { useCallback, useState, useMemo } from 'react'
+import { useCallback, useState } from 'react'
+import { useMutation } from '@tanstack/react-query'
+import { useSelector } from '@legendapp/state/react'
 import * as WebBrowser from 'expo-web-browser'
 import { randomUUID } from 'expo-crypto'
-import { userState$ } from '@/src/presentation/shared/stores/app.store'
+import {
+  currentUser$,
+  currentUserPreferences$,
+  userPreferences$,
+  appState$,
+  upgradeCurrentUserToAuthenticated,
+  updateCurrentUserLastActive,
+} from '@/src/presentation/shared/stores/app.store'
+import type { TraktConfig } from '@/src/domain/entities/UserPreferences'
 import {
   oauthState$,
   setPendingOAuthState,
   clearOAuthState,
 } from '@/src/presentation/shared/stores/oauth.store'
-import { TraktAccountUseCase } from '../use-cases/TraktAccountUseCase'
 import { useService } from '@/src/infrastructure/di/useService'
 import { TOKENS } from '@/src/infrastructure/di/tokens'
+import type { TraktAccountUseCase } from '@/src/domain/use-cases/TraktAccountUseCase'
 import type { TraktClient } from '@/src/infrastructure/api/trakt/TraktClient'
 import type { ILoggingService } from '@/src/domain/services/ILoggingService'
-import type { TraktAccount } from '@/src/domain/entities/User'
 
 /**
  * Simplified hook for Trakt account OAuth management
@@ -37,25 +46,159 @@ import type { TraktAccount } from '@/src/domain/entities/User'
  */
 export const useTraktAccount = () => {
   // Get services from DI container
+  const traktUseCase = useService<TraktAccountUseCase>(TOKENS.TraktAccountUseCase)
   const traktClient = useService<TraktClient>(TOKENS.TraktClient)
   const logger = useService<ILoggingService>(TOKENS.LoggingService)
 
-  // Create use case instance
-  const traktUseCase = useMemo(
-    () => new TraktAccountUseCase(traktClient, logger),
-    [traktClient, logger]
-  )
+  // Reactive state from Legend State
+  const currentUser = useSelector(() => currentUser$.get())
+  const currentPrefs = useSelector(() => currentUserPreferences$.get())
+  const traktConfig = useSelector(() => currentPrefs?.trakt)
 
-  // Local state for UI feedback
-  const [isLoading, setIsLoading] = useState(false)
+  // Local state for OAuth-specific error messages
   const [error, setError] = useState<string | null>(null)
 
-  // Reactive state from Legend State
-  const currentUser = userState$.currentUser.get()
-
   // Computed values
-  const isConnected = traktUseCase.isConnected(currentUser)
-  const account = traktUseCase.getAccountInfo(currentUser)
+  const isConnected = Boolean(currentPrefs?.trakt?.accessToken && currentPrefs?.trakt?.username)
+  const account = currentPrefs?.trakt
+    ? {
+        username: currentPrefs.trakt.username!,
+        userId: currentPrefs.trakt.userId!,
+      }
+    : undefined
+
+  // Mutation for handling OAuth callback (exchanging code for token)
+  const connectMutation = useMutation({
+    mutationFn: async ({ code, state }: { code: string; state: string }) => {
+      return traktUseCase.handleCallback(code, state)
+    },
+    onSuccess: (result) => {
+      if (result.success && result.tokens && currentUser) {
+        // Update User entity auth state
+        upgradeCurrentUserToAuthenticated()
+        updateCurrentUserLastActive()
+
+        // Update preferences with all Trakt data (identity + tokens)
+        const activeId = appState$.activeUserId.get()
+        const prefs = userPreferences$[activeId].peek()
+
+        if (prefs) {
+          // Safely get existing Trakt config or use empty object
+          const existingTraktConfig = prefs.trakt || {}
+
+          // Clean API config fields (convert empty strings to undefined for env var fallback)
+          const cleanedPrefs = {
+            ...existingTraktConfig,
+            clientId: existingTraktConfig.clientId || undefined,
+            clientSecret: existingTraktConfig.clientSecret || undefined,
+            redirectUri: existingTraktConfig.redirectUri || undefined,
+          }
+
+          // Update entire preferences object to ensure persistence
+          userPreferences$[activeId].set({
+            ...prefs,
+            trakt: {
+              ...cleanedPrefs,
+              username: result.tokens.username,
+              userId: result.tokens.userId,
+              accessToken: result.tokens.accessToken,
+              refreshToken: result.tokens.refreshToken,
+              tokenExpiresAt: new Date(result.tokens.expiresAt).toISOString(),
+            },
+            updatedAt: Date.now(),
+          })
+
+          logger.info('Trakt tokens saved to preferences', {
+            hasAccessToken: Boolean(result.tokens.accessToken),
+            hasRefreshToken: Boolean(result.tokens.refreshToken),
+            username: result.tokens.username,
+            expiresAt: new Date(result.tokens.expiresAt).toISOString(),
+          })
+        }
+      }
+    },
+  })
+
+  // Mutation for disconnecting account
+  const disconnectMutation = useMutation({
+    mutationFn: async () => {
+      return traktUseCase.disconnectAccount()
+    },
+    onSuccess: (result) => {
+      if (result.success) {
+        // Clear Trakt data from preferences
+        const activeId = appState$.activeUserId.get()
+        const prefs = userPreferences$[activeId].peek()
+
+        if (prefs) {
+          // Update entire preferences object to ensure persistence
+          userPreferences$[activeId].set({
+            ...prefs,
+            trakt: {
+              ...prefs.trakt,
+              username: undefined,
+              userId: undefined,
+              accessToken: undefined,
+              refreshToken: undefined,
+              tokenExpiresAt: undefined,
+            },
+            updatedAt: Date.now(),
+          })
+        }
+
+        // Update user last active
+        updateCurrentUserLastActive()
+      }
+      clearOAuthState()
+    },
+  })
+
+  // Mutation for refreshing token
+  const refreshTokenMutation = useMutation({
+    mutationFn: async () => {
+      if (!account) {
+        throw new Error('No Trakt account connected')
+      }
+
+      // Get token expiration from preferences
+      const tokenExpiresAt = currentPrefs?.trakt?.tokenExpiresAt
+        ? new Date(currentPrefs.trakt.tokenExpiresAt).getTime()
+        : 0
+
+      if (traktUseCase.isTokenExpired(tokenExpiresAt)) {
+        logger.info('Trakt token expired, refreshing')
+        return traktUseCase.refreshAccessToken()
+      }
+      return { success: true }
+    },
+  })
+
+  // Mutation for saving configuration
+  const saveConfigMutation = useMutation({
+    mutationFn: async (config: Partial<TraktConfig>) => {
+      const activeId = appState$.activeUserId.get()
+      const prefs = userPreferences$[activeId].peek()
+
+      if (!prefs) {
+        throw new Error('No user preferences found')
+      }
+
+      // Update entire preferences object to ensure persistence
+      userPreferences$[activeId].set({
+        ...prefs,
+        trakt: {
+          ...prefs.trakt,
+          baseUrl: config.baseUrl ?? prefs.trakt.baseUrl,
+          clientId: config.clientId ?? prefs.trakt.clientId,
+          clientSecret: config.clientSecret ?? prefs.trakt.clientSecret,
+          redirectUri: config.redirectUri ?? prefs.trakt.redirectUri,
+        },
+        updatedAt: Date.now(),
+      })
+
+      return { success: true }
+    },
+  })
 
   /**
    * Start OAuth authentication flow
@@ -66,7 +209,6 @@ export const useTraktAccount = () => {
       // Clear previous errors and state
       setError(null)
       clearOAuthState()
-      setIsLoading(true)
 
       // Generate CSRF protection state
       const state = randomUUID()
@@ -106,8 +248,8 @@ export const useTraktAccount = () => {
 
         logger.info('OAuth authorization successful, exchanging code for token')
 
-        // Handle callback and exchange code for token
-        const result = await traktUseCase.handleCallback(code, returnedState)
+        // Use mutation to handle callback
+        const result = await connectMutation.mutateAsync({ code, state: returnedState })
 
         if (!result.success) {
           throw new Error(result.error || 'Failed to connect Trakt account')
@@ -129,10 +271,8 @@ export const useTraktAccount = () => {
 
       // Clear OAuth state on failure to allow retry
       clearOAuthState()
-    } finally {
-      setIsLoading(false)
     }
-  }, [traktUseCase, traktClient, logger])
+  }, [traktUseCase, traktClient, logger, connectMutation])
 
   /**
    * Handle OAuth callback from deep link
@@ -141,8 +281,6 @@ export const useTraktAccount = () => {
   const handleOAuthCallback = useCallback(
     async (code: string, state: string) => {
       try {
-        setIsLoading(true)
-
         // Validate state matches pending state
         const pendingState = oauthState$.pendingState.get()
         if (state !== pendingState) {
@@ -151,8 +289,8 @@ export const useTraktAccount = () => {
 
         logger.info('OAuth authorization successful, exchanging code for token')
 
-        // Handle callback and exchange code for token
-        const result = await traktUseCase.handleCallback(code, state)
+        // Use mutation to handle callback
+        const result = await connectMutation.mutateAsync({ code, state })
 
         if (!result.success) {
           throw new Error(result.error || 'Failed to connect Trakt account')
@@ -166,11 +304,9 @@ export const useTraktAccount = () => {
         // Clear OAuth state on failure to allow retry
         clearOAuthState()
         throw error
-      } finally {
-        setIsLoading(false)
       }
     },
-    [traktUseCase, logger]
+    [connectMutation, logger]
   )
 
   /**
@@ -179,24 +315,20 @@ export const useTraktAccount = () => {
    */
   const disconnect = useCallback(async () => {
     try {
-      setIsLoading(true)
       logger.info('Disconnecting Trakt account')
 
-      const result = await traktUseCase.disconnectAccount()
+      const result = await disconnectMutation.mutateAsync()
 
       if (!result.success) {
         throw new Error(result.error || 'Failed to disconnect Trakt account')
       }
 
       logger.info('Trakt account disconnected successfully')
-      clearOAuthState()
     } catch (error) {
       logger.error('Failed to disconnect Trakt account', error as Error)
       throw error
-    } finally {
-      setIsLoading(false)
     }
-  }, [traktUseCase, logger])
+  }, [disconnectMutation, logger])
 
   /**
    * Validate current authentication
@@ -216,34 +348,61 @@ export const useTraktAccount = () => {
    */
   const refreshToken = useCallback(async () => {
     try {
-      if (!account) {
-        throw new Error('No Trakt account connected')
+      const result = await refreshTokenMutation.mutateAsync()
+
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to refresh token')
       }
 
-      if (traktUseCase.isTokenExpired(account)) {
-        logger.info('Trakt token expired, refreshing')
-        const result = await traktUseCase.refreshAccessToken(account)
-
-        if (!result.success) {
-          throw new Error(result.error || 'Failed to refresh token')
-        }
-
-        return result.account!
-      }
-
-      return account
+      // Return the updated account info from currentUserPreferences$
+      return currentUserPreferences$.get()?.trakt
     } catch (error) {
       logger.error('Failed to refresh Trakt token', error as Error)
       throw error
     }
-  }, [account, traktUseCase, logger])
+  }, [refreshTokenMutation, logger])
+
+  /**
+   * Save Trakt configuration
+   * Updates user preferences with new configuration values
+   */
+  const saveConfig = useCallback(
+    async (config: Partial<TraktConfig>) => {
+      try {
+        logger.info('Saving Trakt configuration', {
+          hasBaseUrl: Boolean(config.baseUrl),
+          hasClientId: Boolean(config.clientId),
+          hasClientSecret: Boolean(config.clientSecret),
+        })
+
+        const result = await saveConfigMutation.mutateAsync(config)
+
+        if (!result.success) {
+          throw new Error('Failed to save configuration')
+        }
+
+        logger.info('Trakt configuration saved successfully')
+        return { success: true }
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+        logger.error('Failed to save Trakt configuration', error as Error)
+        return { success: false, error: errorMessage }
+      }
+    },
+    [saveConfigMutation, logger]
+  )
 
   return {
     // State
     isConnected,
     account,
-    isLoading,
+    isLoading:
+      connectMutation.isPending ||
+      disconnectMutation.isPending ||
+      refreshTokenMutation.isPending ||
+      saveConfigMutation.isPending,
     error,
+    config: traktConfig,
 
     // Actions
     startOAuthFlow,
@@ -251,6 +410,7 @@ export const useTraktAccount = () => {
     disconnect,
     validateAuthentication,
     refreshToken,
+    saveConfig,
   }
 }
 
@@ -258,7 +418,12 @@ export const useTraktAccount = () => {
  * Hook for getting Trakt account info only (read-only)
  * Use this when you only need to read the account without mutation functions
  */
-export const useTraktAccountInfo = (): TraktAccount | undefined => {
-  const currentUser = userState$.currentUser.get()
-  return currentUser.account?.trakt
+export const useTraktAccountInfo = (): { username: string; userId: string } | undefined => {
+  const prefs = currentUserPreferences$.get()
+  return prefs?.trakt?.username && prefs?.trakt?.userId
+    ? {
+        username: prefs.trakt.username,
+        userId: prefs.trakt.userId,
+      }
+    : undefined
 }

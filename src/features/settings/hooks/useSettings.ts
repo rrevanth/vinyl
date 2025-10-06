@@ -1,6 +1,6 @@
 import { useCallback } from 'react'
 import { useAppState } from '@/src/presentation/shared/hooks/useAppState'
-import { SettingsUseCase, CacheInfo, AppInfo } from '../use-cases/SettingsUseCase'
+import { SettingsUseCase, CacheInfo, AppInfo } from '@/src/domain/use-cases/SettingsUseCase'
 import type { ThemeMode, SupportedLocale } from '@/src/presentation/shared/stores/app.store'
 import type { UIPreferences } from '@/src/domain/entities'
 
@@ -19,6 +19,8 @@ export const useSettings = () => {
     getSupportedLocales,
 
     // User preferences
+    currentUserPreferences$,
+    appState$,
     userPreferences$,
   } = useAppState()
 
@@ -36,9 +38,9 @@ export const useSettings = () => {
     return locale()
   }, [locale])
 
-  const getUIPreferences = useCallback((): UIPreferences => {
-    return userPreferences$.ui.get()
-  }, [userPreferences$])
+  const getUIPreferences = useCallback((): UIPreferences | undefined => {
+    return currentUserPreferences$.get()?.ui
+  }, [currentUserPreferences$])
 
   const setThemeMode = useCallback(
     (theme: ThemeMode) => {
@@ -56,16 +58,32 @@ export const useSettings = () => {
 
   const setGridViewMode = useCallback(
     (mode: 'compact' | 'comfortable' | 'cozy') => {
-      userPreferences$.ui.gridViewMode.set(mode)
+      const activeId = appState$.activeUserId.peek()
+      const currentPrefs = userPreferences$[activeId].peek()
+      if (currentPrefs) {
+        userPreferences$[activeId].set({
+          ...currentPrefs,
+          ui: { ...currentPrefs.ui, gridViewMode: mode },
+          updatedAt: Date.now(),
+        })
+      }
     },
-    [userPreferences$]
+    [appState$, userPreferences$]
   )
 
   const setAutoplayTrailers = useCallback(
     (autoplay: boolean) => {
-      userPreferences$.ui.autoplayTrailers.set(autoplay)
+      const activeId = appState$.activeUserId.peek()
+      const currentPrefs = userPreferences$[activeId].peek()
+      if (currentPrefs) {
+        userPreferences$[activeId].set({
+          ...currentPrefs,
+          ui: { ...currentPrefs.ui, autoplayTrailers: autoplay },
+          updatedAt: Date.now(),
+        })
+      }
     },
-    [userPreferences$]
+    [appState$, userPreferences$]
   )
 
   // Cache management
@@ -96,7 +114,7 @@ export const useSettings = () => {
     getSupportedLocales,
 
     // UI preferences
-    userPreferences$,
+    currentUserPreferences$,
     getUIPreferences,
     setGridViewMode,
     setAutoplayTrailers,

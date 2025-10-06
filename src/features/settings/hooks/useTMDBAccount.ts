@@ -1,11 +1,10 @@
-import { useCallback, useMemo } from 'react'
-import { userPreferences$ } from '@/src/presentation/shared/stores/app.store'
-import { TMDBAccountUseCase } from '../use-cases/TMDBAccountUseCase'
+import { useCallback } from 'react'
+import { useMutation } from '@tanstack/react-query'
+import { useSelector } from '@legendapp/state/react'
+import { currentUserPreferences$, userPreferences$, appState$ } from '@/src/presentation/shared/stores/app.store'
 import { useService } from '@/src/infrastructure/di/useService'
 import { TOKENS } from '@/src/infrastructure/di/tokens'
-import type { TMDBClient } from '@/src/infrastructure/api/tmdb/TMDBClient'
-import type { ILoggingService } from '@/src/domain/services/ILoggingService'
-import type { IEnvironmentService } from '@/src/domain/services/IEnvironmentService'
+import type { TMDBAccountUseCase } from '@/src/domain/use-cases/TMDBAccountUseCase'
 import type { TMDBConfig } from '@/src/domain/entities/UserPreferences'
 
 /**
@@ -30,62 +29,122 @@ import type { TMDBConfig } from '@/src/domain/entities/UserPreferences'
  */
 export const useTMDBAccount = () => {
   // Get services from DI container
-  const tmdbClient = useService<TMDBClient>(TOKENS.TMDBClient)
-  const logger = useService<ILoggingService>(TOKENS.LoggingService)
-  const environment = useService<IEnvironmentService>(TOKENS.EnvironmentService)
+  const tmdbUseCase = useService<TMDBAccountUseCase>(TOKENS.TMDBAccountUseCase)
 
-  // Create use case instance
-  const tmdbUseCase = useMemo(
-    () => new TMDBAccountUseCase(tmdbClient, logger, environment),
-    [tmdbClient, logger, environment]
-  )
+  // Reactive TMDB config from Legend State (read from current user's preferences)
+  const config = useSelector(() => currentUserPreferences$.get()?.tmdb)
 
-  // Reactive TMDB config from Legend State
-  const config = userPreferences$.tmdb.get()
+  // Mutation for validateAndSave (async operation)
+  const validateAndSaveMutation = useMutation({
+    mutationFn: async (partialConfig: Partial<TMDBConfig>) => {
+      return tmdbUseCase.validateAndSave(partialConfig, config!)
+    },
+    onSuccess: (result) => {
+      if (result.success && result.updatedConfig) {
+        const activeId = appState$.activeUserId.peek()
+        const currentPrefs = userPreferences$[activeId].peek()
+        if (currentPrefs) {
+          userPreferences$[activeId].set({
+            ...currentPrefs,
+            tmdb: result.updatedConfig,
+            updatedAt: Date.now(),
+          })
+        }
+      }
+    },
+  })
 
-  // Setter functions
+  // Setter functions - now update store with returned config
   const setApiKey = useCallback(
     (apiKey: string) => {
-      tmdbUseCase.updateApiKey(apiKey)
+      const updatedConfig = tmdbUseCase.updateApiKey(apiKey, config!)
+      const activeId = appState$.activeUserId.peek()
+      const currentPrefs = userPreferences$[activeId].peek()
+      if (currentPrefs) {
+        userPreferences$[activeId].set({
+          ...currentPrefs,
+          tmdb: updatedConfig,
+          updatedAt: Date.now(),
+        })
+      }
     },
-    [tmdbUseCase]
+    [tmdbUseCase, config]
   )
 
   const setBaseURL = useCallback(
     (baseURL: string) => {
-      tmdbUseCase.updateBaseURL(baseURL)
+      const updatedConfig = tmdbUseCase.updateBaseURL(baseURL, config!)
+      const activeId = appState$.activeUserId.peek()
+      const currentPrefs = userPreferences$[activeId].peek()
+      if (currentPrefs) {
+        userPreferences$[activeId].set({
+          ...currentPrefs,
+          tmdb: updatedConfig,
+          updatedAt: Date.now(),
+        })
+      }
     },
-    [tmdbUseCase]
+    [tmdbUseCase, config]
   )
 
   const setImageBaseURL = useCallback(
     (imageBaseURL: string) => {
-      tmdbUseCase.updateImageBaseURL(imageBaseURL)
+      const updatedConfig = tmdbUseCase.updateImageBaseURL(imageBaseURL, config!)
+      const activeId = appState$.activeUserId.peek()
+      const currentPrefs = userPreferences$[activeId].peek()
+      if (currentPrefs) {
+        userPreferences$[activeId].set({
+          ...currentPrefs,
+          tmdb: updatedConfig,
+          updatedAt: Date.now(),
+        })
+      }
     },
-    [tmdbUseCase]
+    [tmdbUseCase, config]
   )
 
   const setLanguage = useCallback(
     (language: string) => {
-      tmdbUseCase.updateLanguage(language)
+      const updatedConfig = tmdbUseCase.updateLanguage(language, config!)
+      const activeId = appState$.activeUserId.peek()
+      const currentPrefs = userPreferences$[activeId].peek()
+      if (currentPrefs) {
+        userPreferences$[activeId].set({
+          ...currentPrefs,
+          tmdb: updatedConfig,
+          updatedAt: Date.now(),
+        })
+      }
     },
-    [tmdbUseCase]
+    [tmdbUseCase, config]
   )
 
   const setRegion = useCallback(
     (region: string) => {
-      tmdbUseCase.updateRegion(region)
+      const updatedConfig = tmdbUseCase.updateRegion(region, config!)
+      const activeId = appState$.activeUserId.peek()
+      const currentPrefs = userPreferences$[activeId].peek()
+      if (currentPrefs) {
+        userPreferences$[activeId].set({
+          ...currentPrefs,
+          tmdb: updatedConfig,
+          updatedAt: Date.now(),
+        })
+      }
     },
-    [tmdbUseCase]
+    [tmdbUseCase, config]
   )
 
   const validateConnection = useCallback(async () => {
     return tmdbUseCase.validateConnection()
   }, [tmdbUseCase])
 
-  const validateAndSave = useCallback(async (config: Partial<TMDBConfig>) => {
-    return tmdbUseCase.validateAndSave(config)
-  }, [tmdbUseCase])
+  const validateAndSave = useCallback(
+    async (partialConfig: Partial<TMDBConfig>) => {
+      return validateAndSaveMutation.mutateAsync(partialConfig)
+    },
+    [validateAndSaveMutation]
+  )
 
   const isConfigured = useCallback(() => {
     return tmdbUseCase.isConfigured()
@@ -96,7 +155,16 @@ export const useTMDBAccount = () => {
   }, [tmdbUseCase])
 
   const resetToDefaults = useCallback(() => {
-    tmdbUseCase.resetToDefaults()
+    const defaultConfig = tmdbUseCase.resetToDefaults()
+    const activeId = appState$.activeUserId.peek()
+    const currentPrefs = userPreferences$[activeId].peek()
+    if (currentPrefs) {
+      userPreferences$[activeId].set({
+        ...currentPrefs,
+        tmdb: defaultConfig,
+        updatedAt: Date.now(),
+      })
+    }
   }, [tmdbUseCase])
 
   return {
@@ -118,6 +186,6 @@ export const useTMDBAccount = () => {
  * Hook for getting TMDB config only (read-only)
  * Use this when you only need to read the config without mutation functions
  */
-export const useTMDBConfig = (): TMDBConfig => {
-  return userPreferences$.tmdb.get()
+export const useTMDBConfig = (): TMDBConfig | undefined => {
+  return currentUserPreferences$.get()?.tmdb
 }

@@ -1,4 +1,4 @@
-import { TMDBBaseClient } from '../TMDBBaseClient'
+import type { TMDBBaseClient } from '../TMDBBaseClient'
 import type {
   TMDBTVResponse,
   TMDBCreditsResponse,
@@ -23,7 +23,9 @@ import type {
  * Provides comprehensive TV show data access including seasons and episodes
  * with full append_to_response support for maximum efficiency.
  */
-export class TMDBTVClient extends TMDBBaseClient {
+export class TMDBTVClient {
+  constructor(private readonly base: TMDBBaseClient) {}
+
   /**
    * Get TV show details with selective append_to_response options
    */
@@ -37,7 +39,7 @@ export class TMDBTVClient extends TMDBBaseClient {
       params.append_to_response = appendToResponse.join(',')
     }
 
-    return this.get<TMDBTVResponse>(`/tv/${tvId}`, params)
+    return this.base.get<TMDBTVResponse>(`/tv/${tvId}`, params)
   }
 
   /**
@@ -64,28 +66,28 @@ export class TMDBTVClient extends TMDBBaseClient {
    * Get TV show credits (cast and crew)
    */
   async getTVCredits(tvId: number): Promise<TMDBCreditsResponse> {
-    return this.get<TMDBCreditsResponse>(`/tv/${tvId}/credits`)
+    return this.base.get<TMDBCreditsResponse>(`/tv/${tvId}/credits`)
   }
 
   /**
    * Get TV show aggregate credits (for entire series)
    */
   async getTVAggregateCredits(tvId: number): Promise<TMDBAggregateCreditsResponse> {
-    return this.get<TMDBAggregateCreditsResponse>(`/tv/${tvId}/aggregate_credits`)
+    return this.base.get<TMDBAggregateCreditsResponse>(`/tv/${tvId}/aggregate_credits`)
   }
 
   /**
    * Get TV show videos (trailers, teasers, clips, etc.)
    */
   async getTVVideos(tvId: number): Promise<TMDBVideosResponse> {
-    return this.get<TMDBVideosResponse>(`/tv/${tvId}/videos`)
+    return this.base.get<TMDBVideosResponse>(`/tv/${tvId}/videos`)
   }
 
   /**
    * Get TV show images (posters, backdrops, logos)
    */
   async getTVImages(tvId: number): Promise<TMDBImagesResponse> {
-    return this.get<TMDBImagesResponse>(`/tv/${tvId}/images`)
+    return this.base.get<TMDBImagesResponse>(`/tv/${tvId}/images`)
   }
 
   /**
@@ -95,7 +97,7 @@ export class TMDBTVClient extends TMDBBaseClient {
     tvId: number,
     page: number = 1
   ): Promise<TMDBPaginatedResponse<TMDBReviewResponse>> {
-    return this.get<TMDBPaginatedResponse<TMDBReviewResponse>>(`/tv/${tvId}/reviews`, { page })
+    return this.base.get<TMDBPaginatedResponse<TMDBReviewResponse>>(`/tv/${tvId}/reviews`, { page })
   }
 
   /**
@@ -105,7 +107,7 @@ export class TMDBTVClient extends TMDBBaseClient {
     tvId: number,
     page: number = 1
   ): Promise<TMDBPaginatedResponse<TMDBTVResponse>> {
-    return this.get<TMDBPaginatedResponse<TMDBTVResponse>>(`/tv/${tvId}/recommendations`, { page })
+    return this.base.get<TMDBPaginatedResponse<TMDBTVResponse>>(`/tv/${tvId}/recommendations`, { page })
   }
 
   /**
@@ -115,42 +117,42 @@ export class TMDBTVClient extends TMDBBaseClient {
     tvId: number,
     page: number = 1
   ): Promise<TMDBPaginatedResponse<TMDBTVResponse>> {
-    return this.get<TMDBPaginatedResponse<TMDBTVResponse>>(`/tv/${tvId}/similar`, { page })
+    return this.base.get<TMDBPaginatedResponse<TMDBTVResponse>>(`/tv/${tvId}/similar`, { page })
   }
 
   /**
    * Get TV show keywords
    */
   async getTVKeywords(tvId: number): Promise<TMDBKeywordsResponse> {
-    return this.get<TMDBKeywordsResponse>(`/tv/${tvId}/keywords`)
+    return this.base.get<TMDBKeywordsResponse>(`/tv/${tvId}/keywords`)
   }
 
   /**
    * Get TV show external IDs
    */
   async getTVExternalIds(tvId: number): Promise<TMDBExternalIdsResponse> {
-    return this.get<TMDBExternalIdsResponse>(`/tv/${tvId}/external_ids`)
+    return this.base.get<TMDBExternalIdsResponse>(`/tv/${tvId}/external_ids`)
   }
 
   /**
    * Get TV show content ratings by country
    */
   async getTVContentRatings(tvId: number): Promise<TMDBContentRatingsResponse> {
-    return this.get<TMDBContentRatingsResponse>(`/tv/${tvId}/content_ratings`)
+    return this.base.get<TMDBContentRatingsResponse>(`/tv/${tvId}/content_ratings`)
   }
 
   /**
    * Get TV show watch providers by region
    */
   async getTVWatchProviders(tvId: number): Promise<TMDBWatchProvidersResponse> {
-    return this.get<TMDBWatchProvidersResponse>(`/tv/${tvId}/watch/providers`)
+    return this.base.get<TMDBWatchProvidersResponse>(`/tv/${tvId}/watch/providers`)
   }
 
   /**
    * Get TV show translations
    */
   async getTVTranslations(tvId: number): Promise<TMDBTranslationsResponse> {
-    return this.get<TMDBTranslationsResponse>(`/tv/${tvId}/translations`)
+    return this.base.get<TMDBTranslationsResponse>(`/tv/${tvId}/translations`)
   }
 
   // Season methods
@@ -177,7 +179,7 @@ export class TMDBTVClient extends TMDBBaseClient {
       params.append_to_response = appendToResponse.join(',')
     }
 
-    return this.get(`/tv/${tvId}/season/${seasonNumber}`, params)
+    return this.base.get(`/tv/${tvId}/season/${seasonNumber}`, params)
   }
 
   /**
@@ -196,21 +198,21 @@ export class TMDBTVClient extends TMDBBaseClient {
    * Get season credits
    */
   async getSeasonCredits(tvId: number, seasonNumber: number): Promise<TMDBCreditsResponse> {
-    return this.get<TMDBCreditsResponse>(`/tv/${tvId}/season/${seasonNumber}/credits`)
+    return this.base.get<TMDBCreditsResponse>(`/tv/${tvId}/season/${seasonNumber}/credits`)
   }
 
   /**
    * Get season videos
    */
   async getSeasonVideos(tvId: number, seasonNumber: number): Promise<TMDBVideosResponse> {
-    return this.get<TMDBVideosResponse>(`/tv/${tvId}/season/${seasonNumber}/videos`)
+    return this.base.get<TMDBVideosResponse>(`/tv/${tvId}/season/${seasonNumber}/videos`)
   }
 
   /**
    * Get season images
    */
   async getSeasonImages(tvId: number, seasonNumber: number): Promise<TMDBImagesResponse> {
-    return this.get<TMDBImagesResponse>(`/tv/${tvId}/season/${seasonNumber}/images`)
+    return this.base.get<TMDBImagesResponse>(`/tv/${tvId}/season/${seasonNumber}/images`)
   }
 
   // Episode methods
@@ -238,7 +240,7 @@ export class TMDBTVClient extends TMDBBaseClient {
       params.append_to_response = appendToResponse.join(',')
     }
 
-    return this.get(`/tv/${tvId}/season/${seasonNumber}/episode/${episodeNumber}`, params)
+    return this.base.get(`/tv/${tvId}/season/${seasonNumber}/episode/${episodeNumber}`, params)
   }
 
   /**
@@ -262,7 +264,7 @@ export class TMDBTVClient extends TMDBBaseClient {
     seasonNumber: number,
     episodeNumber: number
   ): Promise<TMDBCreditsResponse> {
-    return this.get<TMDBCreditsResponse>(
+    return this.base.get<TMDBCreditsResponse>(
       `/tv/${tvId}/season/${seasonNumber}/episode/${episodeNumber}/credits`
     )
   }
@@ -275,7 +277,7 @@ export class TMDBTVClient extends TMDBBaseClient {
     seasonNumber: number,
     episodeNumber: number
   ): Promise<TMDBVideosResponse> {
-    return this.get<TMDBVideosResponse>(
+    return this.base.get<TMDBVideosResponse>(
       `/tv/${tvId}/season/${seasonNumber}/episode/${episodeNumber}/videos`
     )
   }
@@ -288,7 +290,7 @@ export class TMDBTVClient extends TMDBBaseClient {
     seasonNumber: number,
     episodeNumber: number
   ): Promise<TMDBImagesResponse> {
-    return this.get<TMDBImagesResponse>(
+    return this.base.get<TMDBImagesResponse>(
       `/tv/${tvId}/season/${seasonNumber}/episode/${episodeNumber}/images`
     )
   }
@@ -299,35 +301,35 @@ export class TMDBTVClient extends TMDBBaseClient {
    * Get popular TV shows
    */
   async getPopularTVShows(page: number = 1): Promise<TMDBPaginatedResponse<TMDBTVResponse>> {
-    return this.get<TMDBPaginatedResponse<TMDBTVResponse>>('/tv/popular', { page })
+    return this.base.get<TMDBPaginatedResponse<TMDBTVResponse>>('/tv/popular', { page })
   }
 
   /**
    * Get top rated TV shows
    */
   async getTopRatedTVShows(page: number = 1): Promise<TMDBPaginatedResponse<TMDBTVResponse>> {
-    return this.get<TMDBPaginatedResponse<TMDBTVResponse>>('/tv/top_rated', { page })
+    return this.base.get<TMDBPaginatedResponse<TMDBTVResponse>>('/tv/top_rated', { page })
   }
 
   /**
    * Get TV shows airing today
    */
   async getTVAiringToday(page: number = 1): Promise<TMDBPaginatedResponse<TMDBTVResponse>> {
-    return this.get<TMDBPaginatedResponse<TMDBTVResponse>>('/tv/airing_today', { page })
+    return this.base.get<TMDBPaginatedResponse<TMDBTVResponse>>('/tv/airing_today', { page })
   }
 
   /**
    * Get TV shows on the air (currently airing)
    */
   async getTVOnTheAir(page: number = 1): Promise<TMDBPaginatedResponse<TMDBTVResponse>> {
-    return this.get<TMDBPaginatedResponse<TMDBTVResponse>>('/tv/on_the_air', { page })
+    return this.base.get<TMDBPaginatedResponse<TMDBTVResponse>>('/tv/on_the_air', { page })
   }
 
   /**
    * Get latest TV show (single show, not paginated)
    */
   async getLatestTVShow(): Promise<TMDBTVResponse> {
-    return this.get<TMDBTVResponse>('/tv/latest')
+    return this.base.get<TMDBTVResponse>('/tv/latest')
   }
 
   // Alternative title methods
@@ -347,7 +349,7 @@ export class TMDBTVClient extends TMDBBaseClient {
     }[]
   }> {
     const params = country ? { country } : {}
-    return this.get(`/tv/${tvId}/alternative_titles`, params)
+    return this.base.get(`/tv/${tvId}/alternative_titles`, params)
   }
 
   // Network methods
@@ -363,6 +365,6 @@ export class TMDBTVClient extends TMDBBaseClient {
     name: string
     origin_country: string
   }> {
-    return this.get(`/network/${networkId}`)
+    return this.base.get(`/network/${networkId}`)
   }
 }

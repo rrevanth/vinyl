@@ -36,18 +36,18 @@ export class TMDBClient {
   readonly base: TMDBBaseClient
 
   constructor(configFactory: TMDBConfigFactory, logger: ILoggingService) {
-    // Initialize base client with shared configuration
+    // Initialize ONE shared base client with configuration
     this.base = new TMDBBaseClient(configFactory, logger)
 
-    // Initialize all specialized clients
-    // Each client inherits the reactive configuration from base client
-    this.movies = new TMDBMovieClient(configFactory, logger)
-    this.tv = new TMDBTVClient(configFactory, logger)
-    this.search = new TMDBSearchClient(configFactory, logger)
-    this.people = new TMDBPersonClient(configFactory, logger)
-    this.discover = new TMDBDiscoverClient(configFactory, logger)
-    this.configuration = new TMDBConfigurationClient(configFactory, logger)
-    this.images = new TMDBImageClient(configFactory, logger)
+    // Initialize all specialized clients with shared base
+    // All clients delegate to the same base instance, sharing configuration
+    this.movies = new TMDBMovieClient(this.base)
+    this.tv = new TMDBTVClient(this.base)
+    this.search = new TMDBSearchClient(this.base)
+    this.people = new TMDBPersonClient(this.base)
+    this.discover = new TMDBDiscoverClient(this.base)
+    this.configuration = new TMDBConfigurationClient(this.base)
+    this.images = new TMDBImageClient(this.base)
   }
 
   /**
@@ -59,10 +59,10 @@ export class TMDBClient {
   }
 
   /**
-   * Clean up all clients and remove configuration watchers
+   * Clean up base client and remove configuration watchers
    *
    * This method should be called when the client is no longer needed to prevent memory leaks.
-   * It cleans up all reactive subscriptions and specialized client instances.
+   * It cleans up all reactive subscriptions from the shared base client.
    *
    * Usage:
    * ```typescript
@@ -73,13 +73,6 @@ export class TMDBClient {
    */
   destroy(): void {
     this.base.destroy()
-    this.movies.destroy()
-    this.tv.destroy()
-    this.search.destroy()
-    this.people.destroy()
-    this.discover.destroy()
-    this.configuration.destroy()
-    this.images.destroy()
   }
 
   /**

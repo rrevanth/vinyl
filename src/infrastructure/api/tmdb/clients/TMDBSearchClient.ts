@@ -1,4 +1,4 @@
-import { TMDBBaseClient } from '../TMDBBaseClient'
+import type { TMDBBaseClient } from '../TMDBBaseClient'
 import type {
   TMDBMovieResponse,
   TMDBTVResponse,
@@ -20,7 +20,9 @@ import type {
  * Provides comprehensive search functionality across all TMDB content types
  * with advanced filtering and multi-search capabilities.
  */
-export class TMDBSearchClient extends TMDBBaseClient {
+export class TMDBSearchClient {
+  constructor(private readonly base: TMDBBaseClient) {}
+
   /**
    * Multi-search across all content types (movies, TV shows, people)
    */
@@ -33,7 +35,7 @@ export class TMDBSearchClient extends TMDBBaseClient {
       include_adult: params.include_adult || false,
     }
 
-    return this.get<TMDBPaginatedResponse<TMDBMultiSearchResult>>('/search/multi', queryParams)
+    return this.base.get<TMDBPaginatedResponse<TMDBMultiSearchResult>>('/search/multi', queryParams)
   }
 
   /**
@@ -51,7 +53,7 @@ export class TMDBSearchClient extends TMDBBaseClient {
       ...(params.region && { region: params.region }),
     }
 
-    return this.get<TMDBPaginatedResponse<TMDBMovieResponse>>('/search/movie', queryParams)
+    return this.base.get<TMDBPaginatedResponse<TMDBMovieResponse>>('/search/movie', queryParams)
   }
 
   /**
@@ -65,7 +67,7 @@ export class TMDBSearchClient extends TMDBBaseClient {
       ...(params.first_air_date_year && { first_air_date_year: params.first_air_date_year }),
     }
 
-    return this.get<TMDBPaginatedResponse<TMDBTVResponse>>('/search/tv', queryParams)
+    return this.base.get<TMDBPaginatedResponse<TMDBTVResponse>>('/search/tv', queryParams)
   }
 
   /**
@@ -80,7 +82,7 @@ export class TMDBSearchClient extends TMDBBaseClient {
       include_adult: params.include_adult || false,
     }
 
-    return this.get<TMDBPaginatedResponse<TMDBPersonResponse>>('/search/person', queryParams)
+    return this.base.get<TMDBPaginatedResponse<TMDBPersonResponse>>('/search/person', queryParams)
   }
 
   /**
@@ -94,7 +96,7 @@ export class TMDBSearchClient extends TMDBBaseClient {
       page: params.page || 1,
     }
 
-    return this.get<TMDBPaginatedResponse<TMDBCollectionResponse>>(
+    return this.base.get<TMDBPaginatedResponse<TMDBCollectionResponse>>(
       '/search/collection',
       queryParams
     )
@@ -116,7 +118,7 @@ export class TMDBSearchClient extends TMDBBaseClient {
       page: params.page || 1,
     }
 
-    return this.get('/search/company', queryParams)
+    return this.base.get('/search/company', queryParams)
   }
 
   /**
@@ -133,7 +135,7 @@ export class TMDBSearchClient extends TMDBBaseClient {
       page: params.page || 1,
     }
 
-    return this.get('/search/keyword', queryParams)
+    return this.base.get('/search/keyword', queryParams)
   }
 
   // Convenience methods with simplified parameters

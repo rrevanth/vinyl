@@ -11,13 +11,13 @@ export const DisplaySettings = observer(() => {
   const {
     getCurrentLocale,
     setAppLanguage,
-    userPreferences$,
+    currentUserPreferences$,
     setGridViewMode,
     setAutoplayTrailers,
   } = useSettings()
 
   const currentLocale = getCurrentLocale()
-  const uiPrefs = userPreferences$.ui.get()
+  const uiPrefs = currentUserPreferences$.get()?.ui
 
   // Dynamically generate language options from supported locales
   const LANGUAGE_OPTIONS = supportedLocales.map((locale) => ({
@@ -56,9 +56,9 @@ export const DisplaySettings = observer(() => {
       >
         <SettingsPickerRow
           title={t('settings.display.grid_view_mode')}
-          currentValue={uiPrefs.gridViewMode}
+          currentValue={uiPrefs?.gridViewMode ?? 'comfortable'}
           options={GRID_OPTIONS}
-          onValueChange={(value) => setGridViewMode(value as typeof uiPrefs.gridViewMode)}
+          onValueChange={(value) => setGridViewMode(value as 'compact' | 'comfortable' | 'cozy')}
           isLast
         />
       </SettingsSection>
@@ -68,7 +68,7 @@ export const DisplaySettings = observer(() => {
         <SettingsToggleRow
           title={t('settings.display.autoplay_trailers')}
           description="Automatically play trailers when browsing content"
-          value={uiPrefs.autoplayTrailers}
+          value={uiPrefs?.autoplayTrailers ?? true}
           onValueChange={setAutoplayTrailers}
           isLast
         />

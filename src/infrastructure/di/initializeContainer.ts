@@ -20,8 +20,20 @@ import type { IStorageService } from '../../domain/services/IStorageService'
 import type { ILoggingService } from '../../domain/services/ILoggingService'
 import type { IEnvironmentService } from '../../domain/services/IEnvironmentService'
 import type { IProviderRegistry } from '../../domain/providers/IProviderRegistry'
+import { TraktAccountUseCase } from '../../domain/use-cases/TraktAccountUseCase'
+import { TMDBAccountUseCase } from '../../domain/use-cases/TMDBAccountUseCase'
+import { StremioAddonsUseCase } from '../../domain/use-cases/StremioAddonsUseCase'
+import { StremioAddonCatalogUseCase } from '../../domain/use-cases/StremioAddonCatalogUseCase'
+import { SettingsUseCase } from '../../domain/use-cases/SettingsUseCase'
+import { waitForPersistenceReady } from '../../presentation/shared/stores/app.store'
 
-export function initializeContainer(): void {
+export async function initializeContainer(): Promise<void> {
+  console.log('[DI] Starting container initialization...')
+
+  // CRITICAL: Wait for AsyncStorage to finish loading persisted data
+  // This ensures TraktClient reads correct tokens on first initialization
+  await waitForPersistenceReady()
+  console.log('[DI] Persistence ready, continuing with service registration...')
   // Register core services
   container.register(TOKENS.StorageService, () => new StorageService())
   container.register(TOKENS.LoggingService, () => new LoggingService())
@@ -112,7 +124,42 @@ export function initializeContainer(): void {
         logger
       )
   )
+
+  // Register use cases
+  const traktClient = container.resolve<TraktClient>(TOKENS.TraktClient)
+  const addonRegistry = container.resolve<StremioAddonRegistry>(TOKENS.StremioAddonRegistry)
+  const addonStorage = container.resolve<StremioAddonStorage>(TOKENS.StremioAddonStorage)
+
+  container.register(
+    TOKENS.TraktAccountUseCase,
+    () => new TraktAccountUseCase(traktClient, logger)
+  )
+
+  container.register(
+    TOKENS.TMDBAccountUseCase,
+    () => new TMDBAccountUseCase(tmdbClient, logger, environment)
+  )
+
+  container.register(
+    TOKENS.StremioAddonsUseCase,
+    () => new StremioAddonsUseCase(addonRegistry, addonStorage, logger)
+  )
+
+  container.register(
+    TOKENS.StremioAddonCatalogUseCase,
+    () =>
+      new StremioAddonCatalogUseCase(
+        addonRegistry['manifestCache'],
+        addonRegistry['processedAddonCache'],
+        stremioHttpClient,
+        logger
+      )
+  )
+
+  container.register(TOKENS.SettingsUseCase, () => new SettingsUseCase())
+
+  console.log('[DI] Container initialization complete')
 }
 
-// Auto-initialize on import (optional, can call manually in _layout.tsx)
-initializeContainer()
+// DO NOT auto-initialize on import - must be awaited in _layout.tsx
+// This allows AsyncStorage to load before TraktClient reads config

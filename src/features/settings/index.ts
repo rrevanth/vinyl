@@ -16,6 +16,6 @@ export { AboutSettings } from './components/organisms/AboutSettings'
 // Hooks
 export { useSettings } from './hooks/useSettings'
 
-// Use cases
-export { SettingsUseCase } from './use-cases/SettingsUseCase'
-export type { AppInfo, CacheInfo } from './use-cases/SettingsUseCase'
+// Use cases (re-exported from domain layer for convenience)
+export { SettingsUseCase } from '@/src/domain/use-cases/SettingsUseCase'
+export type { AppInfo, CacheInfo } from '@/src/domain/use-cases/SettingsUseCase'

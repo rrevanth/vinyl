@@ -1,4 +1,4 @@
-import { TMDBBaseClient } from '../TMDBBaseClient'
+import type { TMDBBaseClient } from '../TMDBBaseClient'
 import type {
   TMDBConfigurationResponse,
   TMDBGenre,
@@ -12,19 +12,21 @@ import type {
  * Provides access to TMDB system configuration data including
  * genres, countries, languages, and API configuration settings.
  */
-export class TMDBConfigurationClient extends TMDBBaseClient {
+export class TMDBConfigurationClient {
+  constructor(private readonly base: TMDBBaseClient) {}
+
   /**
    * Get API configuration (image sizes, base URLs, etc.)
    */
   async getAPIConfiguration(): Promise<TMDBConfigurationResponse> {
-    return this.get<TMDBConfigurationResponse>('/configuration')
+    return this.base.get<TMDBConfigurationResponse>('/configuration')
   }
 
   /**
    * Get list of countries used throughout TMDB
    */
   async getCountries(): Promise<TMDBCountryResponse[]> {
-    return this.get<TMDBCountryResponse[]>('/configuration/countries')
+    return this.base.get<TMDBCountryResponse[]>('/configuration/countries')
   }
 
   /**
@@ -36,21 +38,21 @@ export class TMDBConfigurationClient extends TMDBBaseClient {
       jobs: string[]
     }[]
   > {
-    return this.get('/configuration/jobs')
+    return this.base.get('/configuration/jobs')
   }
 
   /**
    * Get list of languages used throughout TMDB
    */
   async getLanguages(): Promise<TMDBLanguageResponse[]> {
-    return this.get<TMDBLanguageResponse[]>('/configuration/languages')
+    return this.base.get<TMDBLanguageResponse[]>('/configuration/languages')
   }
 
   /**
    * Get list of primary translations used on TMDB
    */
   async getPrimaryTranslations(): Promise<string[]> {
-    return this.get<string[]>('/configuration/primary_translations')
+    return this.base.get<string[]>('/configuration/primary_translations')
   }
 
   /**
@@ -62,7 +64,7 @@ export class TMDBConfigurationClient extends TMDBBaseClient {
       zones: string[]
     }[]
   > {
-    return this.get('/configuration/timezones')
+    return this.base.get('/configuration/timezones')
   }
 
   // Genre methods
@@ -71,14 +73,14 @@ export class TMDBConfigurationClient extends TMDBBaseClient {
    * Get list of official movie genres
    */
   async getMovieGenres(): Promise<{ genres: TMDBGenre[] }> {
-    return this.get<{ genres: TMDBGenre[] }>('/genre/movie/list')
+    return this.base.get<{ genres: TMDBGenre[] }>('/genre/movie/list')
   }
 
   /**
    * Get list of official TV show genres
    */
   async getTVGenres(): Promise<{ genres: TMDBGenre[] }> {
-    return this.get<{ genres: TMDBGenre[] }>('/genre/tv/list')
+    return this.base.get<{ genres: TMDBGenre[] }>('/genre/tv/list')
   }
 
   /**
@@ -126,7 +128,7 @@ export class TMDBConfigurationClient extends TMDBBaseClient {
       native_name: string
     }[]
   > {
-    return this.get('/watch/providers/regions')
+    return this.base.get('/watch/providers/regions')
   }
 
   /**
@@ -141,7 +143,7 @@ export class TMDBConfigurationClient extends TMDBBaseClient {
     }[]
   }> {
     const params = region ? { watch_region: region } : {}
-    return this.get('/watch/providers/movie', params)
+    return this.base.get('/watch/providers/movie', params)
   }
 
   /**
@@ -156,7 +158,7 @@ export class TMDBConfigurationClient extends TMDBBaseClient {
     }[]
   }> {
     const params = region ? { watch_region: region } : {}
-    return this.get('/watch/providers/tv', params)
+    return this.base.get('/watch/providers/tv', params)
   }
 
   // Certification methods
@@ -174,7 +176,7 @@ export class TMDBConfigurationClient extends TMDBBaseClient {
       }[]
     >
   }> {
-    return this.get('/certification/movie/list')
+    return this.base.get('/certification/movie/list')
   }
 
   /**
@@ -190,7 +192,7 @@ export class TMDBConfigurationClient extends TMDBBaseClient {
       }[]
     >
   }> {
-    return this.get('/certification/tv/list')
+    return this.base.get('/certification/tv/list')
   }
 
   // Utility methods for working with configuration data

@@ -1,6 +1,6 @@
-import { TraktBaseClient } from '../TraktBaseClient'
-import type { ILoggingService } from '../../../../domain/services/ILoggingService'
-import type { TraktConfigFactory } from '../../../factories/TraktConfigFactory'
+import type { TraktBaseClient } from '../TraktBaseClient'
+
+
 import type {
   TraktCalendarShow,
   TraktCalendarMovie,
@@ -18,11 +18,8 @@ import type {
  * - Calendar filtering and date range support
  * - DVD and streaming release calendars
  */
-export class TraktCalendarClient extends TraktBaseClient {
-  // eslint-disable-next-line @typescript-eslint/no-useless-constructor
-  constructor(configFactory: TraktConfigFactory, logger: ILoggingService) {
-    super(configFactory, logger)
-  }
+export class TraktCalendarClient {
+  constructor(private readonly base: TraktBaseClient) {}
 
   // Personal Calendar Methods (require authentication)
 
@@ -42,7 +39,7 @@ export class TraktCalendarClient extends TraktBaseClient {
       days = 7,
       ...otherParams
     } = params || {}
-    return this.get<TraktCalendarShow[]>(`/calendars/my/shows/${start_date}/${days}`, otherParams)
+    return this.base.get<TraktCalendarShow[]>(`/calendars/my/shows/${start_date}/${days}`, otherParams)
   }
 
   /**
@@ -61,7 +58,7 @@ export class TraktCalendarClient extends TraktBaseClient {
       days = 7,
       ...otherParams
     } = params || {}
-    return this.get<TraktCalendarShow[]>(
+    return this.base.get<TraktCalendarShow[]>(
       `/calendars/my/shows/new/${start_date}/${days}`,
       otherParams
     )
@@ -83,7 +80,7 @@ export class TraktCalendarClient extends TraktBaseClient {
       days = 7,
       ...otherParams
     } = params || {}
-    return this.get<TraktCalendarShow[]>(
+    return this.base.get<TraktCalendarShow[]>(
       `/calendars/my/shows/premieres/${start_date}/${days}`,
       otherParams
     )
@@ -105,7 +102,7 @@ export class TraktCalendarClient extends TraktBaseClient {
       days = 7,
       ...otherParams
     } = params || {}
-    return this.get<TraktCalendarShow[]>(
+    return this.base.get<TraktCalendarShow[]>(
       `/calendars/my/shows/finales/${start_date}/${days}`,
       otherParams
     )
@@ -127,7 +124,7 @@ export class TraktCalendarClient extends TraktBaseClient {
       days = 7,
       ...otherParams
     } = params || {}
-    return this.get<TraktCalendarMovie[]>(`/calendars/my/movies/${start_date}/${days}`, otherParams)
+    return this.base.get<TraktCalendarMovie[]>(`/calendars/my/movies/${start_date}/${days}`, otherParams)
   }
 
   /**
@@ -146,7 +143,7 @@ export class TraktCalendarClient extends TraktBaseClient {
       days = 7,
       ...otherParams
     } = params || {}
-    return this.get<TraktCalendarMovie[]>(
+    return this.base.get<TraktCalendarMovie[]>(
       `/calendars/my/streaming/${start_date}/${days}`,
       otherParams
     )
@@ -168,7 +165,7 @@ export class TraktCalendarClient extends TraktBaseClient {
       days = 7,
       ...otherParams
     } = params || {}
-    return this.get<TraktCalendarMovie[]>(`/calendars/my/dvd/${start_date}/${days}`, otherParams)
+    return this.base.get<TraktCalendarMovie[]>(`/calendars/my/dvd/${start_date}/${days}`, otherParams)
   }
 
   // Global Calendar Methods (public, no authentication required)
@@ -189,7 +186,7 @@ export class TraktCalendarClient extends TraktBaseClient {
       days = 7,
       ...otherParams
     } = params || {}
-    return this.get<TraktCalendarShow[]>(`/calendars/all/shows/${start_date}/${days}`, otherParams)
+    return this.base.get<TraktCalendarShow[]>(`/calendars/all/shows/${start_date}/${days}`, otherParams)
   }
 
   /**
@@ -208,7 +205,7 @@ export class TraktCalendarClient extends TraktBaseClient {
       days = 7,
       ...otherParams
     } = params || {}
-    return this.get<TraktCalendarShow[]>(
+    return this.base.get<TraktCalendarShow[]>(
       `/calendars/all/shows/new/${start_date}/${days}`,
       otherParams
     )
@@ -230,7 +227,7 @@ export class TraktCalendarClient extends TraktBaseClient {
       days = 7,
       ...otherParams
     } = params || {}
-    return this.get<TraktCalendarShow[]>(
+    return this.base.get<TraktCalendarShow[]>(
       `/calendars/all/shows/premieres/${start_date}/${days}`,
       otherParams
     )
@@ -252,7 +249,7 @@ export class TraktCalendarClient extends TraktBaseClient {
       days = 7,
       ...otherParams
     } = params || {}
-    return this.get<TraktCalendarShow[]>(
+    return this.base.get<TraktCalendarShow[]>(
       `/calendars/all/shows/finales/${start_date}/${days}`,
       otherParams
     )
@@ -274,7 +271,7 @@ export class TraktCalendarClient extends TraktBaseClient {
       days = 7,
       ...otherParams
     } = params || {}
-    return this.get<TraktCalendarMovie[]>(
+    return this.base.get<TraktCalendarMovie[]>(
       `/calendars/all/movies/${start_date}/${days}`,
       otherParams
     )
@@ -296,7 +293,7 @@ export class TraktCalendarClient extends TraktBaseClient {
       days = 7,
       ...otherParams
     } = params || {}
-    return this.get<TraktCalendarMovie[]>(
+    return this.base.get<TraktCalendarMovie[]>(
       `/calendars/all/streaming/${start_date}/${days}`,
       otherParams
     )
@@ -318,7 +315,7 @@ export class TraktCalendarClient extends TraktBaseClient {
       days = 7,
       ...otherParams
     } = params || {}
-    return this.get<TraktCalendarMovie[]>(`/calendars/all/dvd/${start_date}/${days}`, otherParams)
+    return this.base.get<TraktCalendarMovie[]>(`/calendars/all/dvd/${start_date}/${days}`, otherParams)
   }
 
   // Utility Methods

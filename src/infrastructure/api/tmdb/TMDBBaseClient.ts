@@ -132,7 +132,7 @@ export class TMDBBaseClient {
   /**
    * Make HTTP GET request with TMDB error handling
    */
-  protected async get<T>(endpoint: string, params?: Record<string, any>): Promise<T> {
+  public async get<T>(endpoint: string, params?: Record<string, any>): Promise<T> {
     try {
       return await this.httpClient.get<T>(endpoint, { params })
     } catch (error) {
@@ -143,7 +143,7 @@ export class TMDBBaseClient {
   /**
    * Make HTTP POST request with TMDB error handling
    */
-  protected async post<T>(endpoint: string, data?: any, params?: Record<string, any>): Promise<T> {
+  public async post<T>(endpoint: string, data?: any, params?: Record<string, any>): Promise<T> {
     try {
       return await this.httpClient.post<T>(endpoint, data, { params })
     } catch (error) {
