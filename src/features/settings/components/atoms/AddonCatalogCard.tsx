@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { ActivityIndicator, Pressable, ScrollView, Switch, Text, View } from 'react-native'
 import { StyleSheet } from 'react-native-unistyles'
 import { CapabilityBadge } from './CapabilityBadge'
+import { StatusDot } from './StatusDot'
 
 interface AddonCatalogCardProps {
   addon: StremioAddon
@@ -57,6 +58,14 @@ export const AddonCatalogCard = observer<AddonCatalogCardProps>(
     const showUninstallButton = isInstalled
     const showInstallButton = !isInstalled && !addon.configurationRequired
 
+    // Status logic for installed addons
+    const getStatus = (): 'connected' | 'warning' | 'error' | 'disabled' => {
+      if (!isInstalled) return 'disabled'
+      if (!addon.isEnabled) return 'disabled'
+      if (addon.isReadyToUse()) return 'connected'
+      return 'warning'
+    }
+
     return (
       <Pressable
         style={({ pressed }) => [styles.container, pressed && onPress && styles.pressed]}
@@ -86,7 +95,10 @@ export const AddonCatalogCard = observer<AddonCatalogCardProps>(
             <Text style={styles.name} numberOfLines={1}>
               {addon.name || 'Unknown Addon'}
             </Text>
-            <Text style={styles.version}>v{addon.version || '1.0.0'}</Text>
+            <View style={styles.versionRow}>
+              {isInstalled && <StatusDot status={getStatus()} size="sm" />}
+              <Text style={styles.version}>v{addon.version || '1.0.0'}</Text>
+            </View>
           </View>
         </View>
 
@@ -245,6 +257,11 @@ const styles = StyleSheet.create((theme) => ({
     fontWeight: theme.fontWeight.semibold,
     color: theme.colors.text,
     marginBottom: 2,
+  },
+  versionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs,
   },
   version: {
     fontSize: theme.fontSize.xs,
