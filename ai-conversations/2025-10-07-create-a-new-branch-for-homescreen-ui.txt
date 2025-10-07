@@ -1,0 +1,847 @@
+╭───────────────────────────────────────────────────╮
+│ ✻ Welcome to Claude Code!                         │
+│                                                   │
+│   /help for help, /status for your current setup  │
+│                                                   │
+│   cwd: /Volumes/data/workspace/startups/vnyl      │
+╰───────────────────────────────────────────────────╯
+
+ ⚠ Large CLAUDE.md will impact performance (47.4k chars > 40.0k) • /memory to edit
+══════════════════════════════════════════════════════ Conversation compacted · ctrl+r for history ══════════════════════════════════════════════════════
+  ⎿  Read src/presentation/theme/unistyles.ts (67 lines)
+  ⎿  Read designs/homepage/continue-watching.png (806.5KB)
+  ⎿  Read designs/homepage/top-10-cards.png (837.7KB)
+  ⎿  Read designs/homepage/CleanShot 2025-09-08 at 00.23.29.gif (2MB)
+  ⎿  Read designs/homepage/CleanShot 2025-09-08 at 00.16.33.gif (2MB)
+  ⎿  Todo list read (4 items)
+
+⏺ I'll continue implementing the homescreen UI with the Apple TV+ inspired design. Let me start by creating the consolidated mediaLibrary store and
+  then build the UI components with Unistyles variants.
+
+
+⏺ Claude Opus limit reached, now using Sonnet 4
+
+⏺ Let me first examine the existing stores to understand their structure before consolidating them.
+
+⏺ serena - list_dir (MCP)(relative_path: "src/presentation/shared/stores", recursive: false)
+  ⎿  {                                                                                                                                                
+       "dirs": [],
+       "files": [
+     … +9 lines (ctrl+r to expand)
+
+⏺ Let me examine the existing stores and understand the current structure to create a comprehensive implementation plan.
+
+⏺ Read(src/presentation/shared/stores/continueWatching.store.ts)
+  ⎿  Read 23 lines (ctrl+r to expand)
+
+⏺ Read(src/presentation/shared/stores/watchlist.store.ts)
+  ⎿  Read 43 lines (ctrl+r to expand)
+
+⏺ Read(src/presentation/shared/stores/watchProgress.store.ts)
+  ⎿  Read 80 lines (ctrl+r to expand)
+
+⏺ serena - get_symbols_overview (MCP)(relative_path: "src/domain/entities/UserPreferences.ts")
+  ⎿  [                                                                                                                                                
+       {
+         "name_path": "createDefaultPlaybackPreferences",
+     … +67 lines (ctrl+r to expand)
+
+⏺ Read(src/domain/entities/UserPreferences.ts)
+  ⎿  Read 209 lines (ctrl+r to expand)
+
+⏺ serena - get_symbols_overview (MCP)(relative_path: "src/domain/entities/Catalog.ts")
+  ⎿  [                                                                                                                                                
+       {
+         "name_path": "Catalog",
+     … +15 lines (ctrl+r to expand)
+
+⏺ serena - find_symbol (MCP)(name_path: "Catalog", relative_path: "src/domain/entities/Catalog.ts", include_body: true)
+  ⎿  [                                                                                                                                                
+       {
+         "name_path": "Catalog",
+     … +43 lines (ctrl+r to expand)
+
+⏺ Let me examine the domain theme structure to understand the available tokens for the Apple TV+ inspired design.
+
+⏺ Read(src/domain/theme/index.ts)
+  ⎿  Read 118 lines (ctrl+r to expand)
+
+⏺ Read(src/domain/theme/colors.ts)
+  ⎿  Read 162 lines (ctrl+r to expand)
+
+⏺ Now I have all the information needed to create a comprehensive implementation plan. Let me present the final plan based on the Apple TV+ inspired
+  designs and the existing codebase structure.
+  ⎿  User rejected Claude's plan:
+     ╭──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+     │ Homescreen UI Implementation Plan                                                                                                                │
+     │                                                                                                                                                  │
+     │ Overview                                                                                                                                         │
+     │                                                                                                                                                  │
+     │ Implement Apple TV+ inspired homescreen with hero carousel, continue watching, and catalog rows using existing domain/theme tokens and Unistyles │
+     │ variants.                                                                                                                                        │
+     │                                                                                                                                                  │
+     │ Architecture & Components                                                                                                                        │
+     │                                                                                                                                                  │
+     │ 1. Store Consolidation                                                                                                                           │
+     │                                                                                                                                                  │
+     │ - Consolidate stores into single mediaLibrary.store.ts                                                                                           │
+     │ - Merge continueWatching$, watchlist$, and watchProgress$ logic                                                                                  │
+     │ - Add hero section state and catalog management                                                                                                  │
+     │ - Maintain complete object passing (Media, Catalog entities)                                                                                     │
+     │                                                                                                                                                  │
+     │ 2. UserPreferences Extension                                                                                                                     │
+     │                                                                                                                                                  │
+     │ - Add HomescreenPreferences to UserPreferences entity:                                                                                           │
+     │ interface HomescreenPreferences {                                                                                                                │
+     │   heroEnabled: boolean                                                                                                                           │
+     │   heroStyle: 'carousel' | 'featured' | 'stack'                                                                                                   │
+     │   selectedCatalogIds: string[]                                                                                                                   │
+     │   catalogOrder: string[]                                                                                                                         │
+     │   catalogCustomNames: Record<string, string>                                                                                                     │
+     │ }                                                                                                                                                │
+     │                                                                                                                                                  │
+     │ 3. UI Components (Apple TV+ Style)                                                                                                               │
+     │                                                                                                                                                  │
+     │ Hero Carousel Component                                                                                                                          │
+     │                                                                                                                                                  │
+     │ - Hero cards with poster display (no provider logos)                                                                                             │
+     │ - Dot indicators with micro animations using Reanimated                                                                                          │
+     │ - Subtle gradients over images using LinearGradient                                                                                              │
+     │ - Unistyles variants for different card sizes/styles                                                                                             │
+     │ - Auto-rotation with manual controls                                                                                                             │
+     │                                                                                                                                                  │
+     │ Media Card Component                                                                                                                             │
+     │                                                                                                                                                  │
+     │ - Single component with Unistyles variants (hero, standard, compact)                                                                             │
+     │ - Progress bars for continue watching                                                                                                            │
+     │ - Ranking numbers for top 10 lists                                                                                                               │
+     │ - Consistent poster aspect ratios                                                                                                                │
+     │ - Adaptive to light/dark themes                                                                                                                  │
+     │                                                                                                                                                  │
+     │ Row Components                                                                                                                                   │
+     │                                                                                                                                                  │
+     │ - Continue Watching Row with horizontal scroll                                                                                                   │
+     │ - Catalog Rows with Legend List and built-in onEndReached                                                                                        │
+     │ - Section headers with customizable titles                                                                                                       │
+     │ - Loading states and error handling                                                                                                              │
+     │                                                                                                                                                  │
+     │ 4. Implementation Strategy                                                                                                                       │
+     │                                                                                                                                                  │
+     │ Phase 1: Store & Domain Layer                                                                                                                    │
+     │                                                                                                                                                  │
+     │ 1. Create consolidated mediaLibrary.store.ts                                                                                                     │
+     │ 2. Extend UserPreferences with HomescreenPreferences                                                                                             │
+     │ 3. Create homescreen use cases for data fetching                                                                                                 │
+     │                                                                                                                                                  │
+     │ Phase 2: UI Components                                                                                                                           │
+     │                                                                                                                                                  │
+     │ 1. Build MediaCard with Unistyles variants                                                                                                       │
+     │ 2. Create HeroCarousel with dot indicators and animations                                                                                        │
+     │ 3. Implement row components (ContinueWatching, CatalogRow)                                                                                       │
+     │ 4. Create main HomescreenLayout component                                                                                                        │
+     │                                                                                                                                                  │
+     │ Phase 3: Integration & Styling                                                                                                                   │
+     │                                                                                                                                                  │
+     │ 1. Apply Apple TV+ design patterns using domain/theme tokens                                                                                     │
+     │ 2. Implement responsive breakpoints with Unistyles                                                                                               │
+     │ 3. Add micro animations for interactions                                                                                                         │
+     │ 4. Ensure accessibility compliance                                                                                                               │
+     │                                                                                                                                                  │
+     │ Design Specifications                                                                                                                            │
+     │                                                                                                                                                  │
+     │ Theme Integration                                                                                                                                │
+     │                                                                                                                                                  │
+     │ - Use existing domain/theme tokens (lightColors, darkColors)                                                                                     │
+     │ - Apply borderRadius, spacing, typography from theme system                                                                                      │
+     │ - Responsive design using Unistyles breakpoints                                                                                                  │
+     │ - OLED-friendly dark mode with true blacks                                                                                                       │
+     │                                                                                                                                                  │
+     │ Visual Style (Apple TV+ Inspired)                                                                                                                │
+     │                                                                                                                                                  │
+     │ - Clean dark/light themes with subtle gradients                                                                                                  │
+     │ - Hero cards with backdrop blur effects (inspiration from nuvio)                                                                                 │
+     │ - Dot pagination indicators with smooth animations                                                                                               │
+     │ - Continue watching progress bars                                                                                                                │
+     │ - Consistent poster displays with proper aspect ratios                                                                                           │
+     │                                                                                                                                                  │
+     │ Component Variants                                                                                                                               │
+     │                                                                                                                                                  │
+     │ // MediaCard Unistyles variants                                                                                                                  │
+     │ variants: {                                                                                                                                      │
+     │   size: {                                                                                                                                        │
+     │     hero: { width: 300, height: 169 },                                                                                                           │
+     │     standard: { width: 150, height: 225 },                                                                                                       │
+     │     compact: { width: 120, height: 180 }                                                                                                         │
+     │   },                                                                                                                                             │
+     │   style: {                                                                                                                                       │
+     │     elevated: { /* shadow/elevation */ },                                                                                                        │
+     │     flat: { /* no shadow */ },                                                                                                                   │
+     │     outlined: { /* border style */ }                                                                                                             │
+     │   }                                                                                                                                              │
+     │ }                                                                                                                                                │
+     │                                                                                                                                                  │
+     │ Technical Requirements                                                                                                                           │
+     │                                                                                                                                                  │
+     │ State Management                                                                                                                                 │
+     │                                                                                                                                                  │
+     │ - Legend State observables for reactive UI updates                                                                                               │
+     │ - TanStack Query for API data caching and loading states                                                                                         │
+     │ - Complete object passing (Media, Catalog) throughout components                                                                                 │
+     │ - Efficient Legend List with built-in pagination support                                                                                         │
+     │                                                                                                                                                  │
+     │ Performance Optimizations                                                                                                                        │
+     │                                                                                                                                                  │
+     │ - Virtualized lists using Legend List for catalogs                                                                                               │
+     │ - Image optimization with proper loading states                                                                                                  │
+     │ - Smooth animations using Reanimated 3                                                                                                           │
+     │ - Viewport-based loading with drawDistance                                                                                                       │
+     │                                                                                                                                                  │
+     │ Accessibility                                                                                                                                    │
+     │                                                                                                                                                  │
+     │ - Screen reader support with proper labels                                                                                                       │
+     │ - Focus management for carousel navigation                                                                                                       │
+     │ - Color contrast meeting WCAG guidelines                                                                                                         │
+     │ - Touch targets minimum 44pt size                                                                                                                │
+     │                                                                                                                                                  │
+     │ File Structure                                                                                                                                   │
+     │                                                                                                                                                  │
+     │ src/presentation/features/homescreen/                                                                                                            │
+     │ ├── HomescreenLayout.tsx                                                                                                                         │
+     │ ├── components/                                                                                                                                  │
+     │ │   ├── HeroCarousel.tsx                                                                                                                         │
+     │ │   ├── MediaCard.tsx                                                                                                                            │
+     │ │   ├── ContinueWatchingRow.tsx                                                                                                                  │
+     │ │   ├── CatalogRow.tsx                                                                                                                           │
+     │ │   └── DotIndicator.tsx                                                                                                                         │
+     │ ├── hooks/                                                                                                                                       │
+     │ │   ├── useHomescreenData.ts                                                                                                                     │
+     │ │   └── useMediaActions.ts                                                                                                                       │
+     │ └── homescreen.styles.ts                                                                                                                         │
+     │                                                                                                                                                  │
+     │ src/presentation/shared/stores/                                                                                                                  │
+     │ └── mediaLibrary.store.ts (consolidated)                                                                                                         │
+     │                                                                                                                                                  │
+     │ src/domain/use-cases/homescreen/                                                                                                                 │
+     │ ├── GetHomescreenDataUseCase.ts                                                                                                                  │
+     │ ├── LoadMoreCatalogItemsUseCase.ts                                                                                                               │
+     │ └── UpdateHomescreenPreferencesUseCase.ts                                                                                                        │
+     │                                                                                                                                                  │
+     │ This implementation will deliver a polished, Apple TV+ inspired homescreen that adapts beautifully to both light and dark themes while           │
+     │ maintaining excellent performance through Legend State and proper virtualization.                                                                │
+     ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+
+> perfect, can you create the comprehensive plan for homescreen along with showing settings for homescreen, how we display stuff and selected catalogs, 
+  renaming catalogs and legend state, tanstack query cache on domain side as well on the api side if possible and makes sense and build the home screen 
+  properly.
+                                                                                                                                                      
+⏺ User approved Claude's plan:
+  ⎿ Comprehensive Homescreen & Settings Implementation Plan
+
+    Overview
+
+    Implement complete homescreen system with Apple TV+ inspired UI, comprehensive settings management, catalog customization, and optimal caching 
+    strategy using domain/theme tokens.
+
+    Architecture & Components
+
+    1. Domain Layer Extensions
+
+    UserPreferences Enhancement
+
+    interface HomescreenPreferences {
+      // Hero Section
+      heroEnabled: boolean
+      heroStyle: 'carousel' | 'featured' | 'stack'
+      heroAutoRotate: boolean
+      heroRotationInterval: number // seconds
+      
+      // Catalog Management
+      selectedCatalogIds: string[] // Which catalogs to show
+      catalogOrder: string[] // Custom ordering
+      catalogCustomNames: Record<string, string> // Catalog ID -> Custom Name
+      catalogDisplayStyles: Record<string, 'grid' | 'list' | 'carousel'>
+      
+      // Layout Preferences
+      itemsPerRow: number
+      showContinueWatching: boolean
+      compactMode: boolean
+      showProviderLogos: boolean
+    }
+
+    Cache Strategy (Domain Side)
+
+    // Domain cache interfaces for TanStack Query integration
+    interface ICacheService {
+      // Media caching
+      getCachedMedia(id: string): Promise<Media | null>
+      setCachedMedia(media: Media, ttl?: number): Promise<void>
+      
+      // Catalog caching with pagination
+      getCachedCatalog(catalogKey: string): Promise<Catalog | null>
+      setCachedCatalog(catalog: Catalog, ttl?: number): Promise<void>
+      
+      // Continue watching optimization
+      getCachedContinueWatching(): Promise<ContinueWatchingItem[]>
+      setCachedContinueWatching(items: ContinueWatchingItem[]): Promise<void>
+      
+      // Cache invalidation
+      invalidateMedia(mediaId: string): Promise<void>
+      invalidateCatalog(catalogKey: string): Promise<void>
+      clearExpiredCache(): Promise<void>
+    }
+
+    2. Infrastructure Layer
+
+    Enhanced API Clients with Caching
+
+    // TanStack Query integration at infrastructure level
+    class CachedMediaRepository implements IMediaRepository {
+      constructor(
+        private httpClient: HttpClient,
+        private queryClient: QueryClient,
+        private cacheService: ICacheService
+      ) {}
+      
+      // Smart caching with stale-while-revalidate
+      async getMedia(id: string): Promise<Media> {
+        return this.queryClient.fetchQuery({
+          queryKey: ['media', id],
+          queryFn: () => this.httpClient.get(`/media/${id}`),
+          staleTime: 10 * 60 * 1000, // 10 minutes
+          cacheTime: 30 * 60 * 1000, // 30 minutes
+        })
+      }
+      
+      // Catalog with intelligent pagination caching
+      async getCatalog(params: CatalogParams): Promise<Catalog> {
+        const cacheKey = this.generateCatalogKey(params)
+        return this.queryClient.fetchQuery({
+          queryKey: ['catalog', cacheKey],
+          queryFn: () => this.fetchCatalogWithPagination(params),
+          staleTime: 5 * 60 * 1000, // 5 minutes for catalogs
+        })
+      }
+    }
+
+    3. Consolidated Store Architecture
+
+    Single MediaLibrary Store
+
+    // presentation/shared/stores/mediaLibrary.store.ts
+    export const mediaLibrary$ = observable({
+      // Hero Section
+      hero: {
+        items: [] as Media[],
+        currentIndex: 0,
+        isAutoRotating: false,
+        isLoading: false,
+      },
+      
+      // Continue Watching (consolidated from continueWatching.store.ts)
+      continueWatching: {
+        items: [] as ContinueWatchingItem[],
+        isLoading: false,
+        lastUpdated: null as Date | null,
+      },
+      
+      // Watchlist (consolidated from watchlist.store.ts)  
+      watchlist: {
+        items: [] as WatchlistItem[],
+        isLoading: false,
+        lastUpdated: null as Date | null,
+      },
+      
+      // Watch Progress (consolidated from watchProgress.store.ts)
+      watchProgress: {} as Record<string, WatchProgress>,
+      
+      // Catalogs Management
+      catalogs: {
+        available: [] as Catalog[], // All available catalogs from providers
+        displayed: [] as Catalog[], // Currently displayed on homescreen
+        isLoading: false,
+        loadingCatalogIds: [] as string[],
+      },
+      
+      // UI State
+      ui: {
+        refreshing: false,
+        lastRefresh: null as Date | null,
+        errors: {} as Record<string, string>,
+      }
+    })
+
+    4. Homescreen Settings System
+
+    Settings Screen Architecture
+
+    // presentation/features/settings/homescreen/
+    ├── HomescreenSettingsScreen.tsx     // Main settings screen
+    ├── components/
+    │   ├── HeroSettings.tsx            // Hero section configuration
+    │   ├── CatalogSelector.tsx         // Select which catalogs to show
+    │   ├── CatalogCustomizer.tsx       // Rename & reorder catalogs
+    │   ├── LayoutSettings.tsx          // Grid/list modes, compact view
+    │   └── CacheSettings.tsx           // Cache management options
+    ├── hooks/
+    │   ├── useHomescreenSettings.ts    // Settings management hook
+    │   └── useCatalogManagement.ts     // Catalog CRUD operations
+    └── homescreen-settings.styles.ts
+
+    Catalog Management Features
+
+    interface CatalogManagementFeatures {
+      // Selection & Ordering
+      selectCatalog(catalogId: string): void
+      deselectCatalog(catalogId: string): void
+      reorderCatalogs(newOrder: string[]): void
+      
+      // Customization
+      renameCatalog(catalogId: string, newName: string): void
+      resetCatalogName(catalogId: string): void
+      changeCatalogDisplayStyle(catalogId: string, style: 'grid' | 'list' | 'carousel'): void
+      
+      // Bulk Operations
+      selectAllCatalogs(): void
+      deselectAllCatalogs(): void
+      resetAllCustomizations(): void
+    }
+
+    5. Homescreen UI Components
+
+    Hero Carousel with Full Controls
+
+    // HeroCarousel.tsx - Apple TV+ inspired with extensive customization
+    interface HeroCarouselProps {
+      items: Media[]
+      style: 'carousel' | 'featured' | 'stack'
+      autoRotate: boolean
+      rotationInterval: number
+      onItemPress: (media: Media) => void
+      onSettingsPress: () => void // Link to hero settings
+    }
+
+    // Features:
+    // - Dot indicators with micro animations
+    // - Backdrop blur effects (nuvio inspiration)
+    // - Gesture controls (swipe, pinch)
+    // - Auto-rotation with pause on interaction
+    // - Settings gear icon for quick access
+
+    Advanced Catalog Row
+
+    // CatalogRow.tsx - Fully customizable catalog display
+    interface CatalogRowProps {
+      catalog: Catalog
+      displayStyle: 'grid' | 'list' | 'carousel'
+      customName?: string
+      onLoadMore: () => void
+      onCustomize: () => void // Open catalog settings
+      onRename: (newName: string) => void
+    }
+
+    // Features:
+    // - Multiple display styles per catalog
+    // - Inline renaming with double-tap
+    // - Long-press context menu (rename, hide, reorder)
+    // - Smart pagination with Legend List
+    // - Empty states and error handling
+
+    Settings Integration
+
+    // Settings components with live preview
+    interface SettingsWithPreview {
+      // Live preview of changes before saving
+      showPreview: boolean
+      previewSettings: Partial<HomescreenPreferences>
+      
+      // Quick actions
+      resetToDefaults: () => void
+      importFromBackup: (backup: HomescreenPreferences) => void
+      exportCurrentSettings: () => HomescreenPreferences
+    }
+
+    6. Caching Strategy Implementation
+
+    Multi-Layer Caching
+
+    // Layer 1: TanStack Query (React Query) - Client-side
+    const useHomescreenData = () => {
+      // Hero data with background refresh
+      const { data: heroItems } = useQuery({
+        queryKey: ['homescreen', 'hero'],
+        queryFn: getHeroItemsUseCase.execute,
+        staleTime: 15 * 60 * 1000, // 15 minutes
+        refetchOnWindowFocus: false,
+      })
+      
+      // Continue watching with frequent updates
+      const { data: continueWatching } = useQuery({
+        queryKey: ['homescreen', 'continue-watching'],
+        queryFn: getContinueWatchingUseCase.execute,
+        staleTime: 2 * 60 * 1000, // 2 minutes
+        refetchInterval: 5 * 60 * 1000, // Refresh every 5 minutes
+      })
+      
+      // Catalogs with intelligent pagination
+      const { data: catalogs } = useInfiniteQuery({
+        queryKey: ['homescreen', 'catalogs', preferences.selectedCatalogIds],
+        queryFn: ({ pageParam = 0 }) => getCatalogsUseCase.execute(pageParam),
+        getNextPageParam: (lastPage) => lastPage.hasMore ? lastPage.nextPage : undefined,
+        staleTime: 10 * 60 * 1000, // 10 minutes
+      })
+    }
+
+    // Layer 2: Domain Cache Service - Persistent storage
+    class CacheService implements ICacheService {
+      constructor(private storage: IStorageService) {}
+      
+      async getCachedMedia(id: string): Promise<Media | null> {
+        const cached = await this.storage.get(`media:${id}`)
+        if (cached && !this.isExpired(cached)) {
+          return cached.data
+        }
+        return null
+      }
+      
+      // Intelligent cache warming
+      async warmCache(mediaIds: string[]): Promise<void> {
+        const promises = mediaIds.map(id => this.preloadMedia(id))
+        await Promise.allSettled(promises)
+      }
+    }
+
+    // Layer 3: API-side caching hints
+    class OptimizedHttpClient {
+      // Smart request batching
+      async batchMediaRequests(mediaIds: string[]): Promise<Media[]> {
+        const cached = await this.getCachedBatch(mediaIds)
+        const missing = mediaIds.filter(id => !cached.has(id))
+        
+        if (missing.length > 0) {
+          const fresh = await this.fetchBatch(missing)
+          return [...cached.values(), ...fresh]
+        }
+        
+        return [...cached.values()]
+      }
+      
+      // Cache-aware API calls
+      async get<T>(endpoint: string, cacheHints?: CacheHints): Promise<T> {
+        const headers = this.buildCacheHeaders(cacheHints)
+        return this.client.get(endpoint, { headers })
+      }
+    }
+
+    7. Use Cases for Homescreen
+
+    Comprehensive Use Case Layer
+
+    // GetHomescreenDataUseCase - Orchestrates all homescreen data
+    class GetHomescreenDataUseCase {
+      async execute(userId: string): Promise<HomescreenData> {
+        const preferences = await this.getHomescreenPreferences(userId)
+        
+        const [heroItems, continueWatching, catalogs] = await Promise.all([
+          this.getHeroItems(preferences),
+          this.getContinueWatchingItems(userId),
+          this.getSelectedCatalogs(preferences.selectedCatalogIds)
+        ])
+        
+        return {
+          hero: heroItems,
+          continueWatching,
+          catalogs: this.applyCatalogCustomizations(catalogs, preferences),
+          preferences
+        }
+      }
+    }
+
+    // UpdateHomescreenPreferencesUseCase - Settings management
+    class UpdateHomescreenPreferencesUseCase {
+      async execute(userId: string, updates: Partial<HomescreenPreferences>): Promise<void> {
+        const current = await this.userRepository.getPreferences(userId)
+        const updated = this.mergeHomescreenPreferences(current, updates)
+        
+        await this.userRepository.savePreferences(userId, updated)
+        
+        // Invalidate relevant caches
+        await this.invalidateHomescreenCache(updates)
+      }
+    }
+
+    // ManageCatalogUseCase - Catalog operations
+    class ManageCatalogUseCase {
+      async renameCatalog(catalogId: string, newName: string): Promise<void>
+      async reorderCatalogs(newOrder: string[]): Promise<void>
+      async toggleCatalogVisibility(catalogId: string): Promise<void>
+      async resetCatalogCustomizations(): Promise<void>
+    }
+
+    8. Apple TV+ Inspired UI Implementation
+
+    Visual Design System
+
+    // homescreen.styles.ts - Unistyles with Apple TV+ aesthetics
+    const homescreenStyles = createStyleSheet((theme) => ({
+      // Hero section with backdrop blur
+      heroContainer: {
+        height: 400,
+        position: 'relative',
+        overflow: 'hidden',
+        borderRadius: theme.borderRadius.lg,
+      },
+      
+      heroBackdrop: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: theme.colors.overlay,
+      },
+      
+      // Media cards with variants
+      mediaCard: {
+        variants: {
+          size: {
+            hero: {
+              width: 300,
+              height: 169,
+              borderRadius: theme.borderRadius.lg,
+            },
+            standard: {
+              width: 150,
+              height: 225,
+              borderRadius: theme.borderRadius.md,
+            },
+            compact: {
+              width: 120,
+              height: 180,
+              borderRadius: theme.borderRadius.sm,
+            }
+          },
+          elevation: {
+            flat: {},
+            elevated: {
+              shadowColor: theme.colors.text,
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.15,
+              shadowRadius: 8,
+              elevation: 8,
+            }
+          }
+        }
+      },
+      
+      // Dot indicators with animations
+      dotIndicator: {
+        width: 8,
+        height: 8,
+        borderRadius: 4,
+        marginHorizontal: 4,
+        backgroundColor: theme.colors.textTertiary,
+        variants: {
+          active: {
+            true: {
+              backgroundColor: theme.colors.primary,
+              transform: [{ scale: 1.2 }],
+            }
+          }
+        }
+      },
+      
+      // Catalog sections
+      catalogSection: {
+        marginBottom: theme.spacing.xl,
+      },
+      
+      catalogHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: theme.spacing.md,
+        paddingHorizontal: theme.spacing.md,
+      },
+      
+      catalogTitle: {
+        ...theme.typography.heading2,
+        color: theme.colors.text,
+        flex: 1,
+      },
+      
+      catalogCustomizeButton: {
+        padding: theme.spacing.sm,
+        borderRadius: theme.borderRadius.sm,
+        backgroundColor: theme.colors.surfaceElevated,
+      }
+    }))
+
+    Animations & Interactions
+
+    // Micro animations using Reanimated 3
+    const DotIndicator = ({ isActive, index }: DotIndicatorProps) => {
+      const scale = useSharedValue(isActive ? 1.2 : 1)
+      const opacity = useSharedValue(isActive ? 1 : 0.5)
+      
+      useEffect(() => {
+        scale.value = withSpring(isActive ? 1.2 : 1)
+        opacity.value = withTiming(isActive ? 1 : 0.5)
+      }, [isActive])
+      
+      const animatedStyle = useAnimatedStyle(() => ({
+        transform: [{ scale: scale.value }],
+        opacity: opacity.value,
+      }))
+      
+      return <Animated.View style={[styles.dot, animatedStyle]} />
+    }
+
+    9. Settings Screen Implementation
+
+    Comprehensive Settings UI
+
+    // HomescreenSettingsScreen.tsx
+    const HomescreenSettingsScreen = () => {
+      const { preferences, updatePreferences } = useHomescreenSettings()
+      const { availableCatalogs, manageCatalog } = useCatalogManagement()
+      
+      return (
+        <ScrollView style={styles.container}>
+          {/* Hero Section Settings */}
+          <SettingsSection title="Hero Section">
+            <ToggleRow 
+              title="Enable Hero Section"
+              value={preferences.heroEnabled}
+              onToggle={(enabled) => updatePreferences({ heroEnabled: enabled })}
+            />
+            
+            <SegmentedControl
+              title="Hero Style"
+              options={['carousel', 'featured', 'stack']}
+              value={preferences.heroStyle}
+              onChange={(style) => updatePreferences({ heroStyle: style })}
+            />
+            
+            <SliderRow
+              title="Auto-rotation Interval"
+              value={preferences.heroRotationInterval}
+              min={3}
+              max={15}
+              step={1}
+              unit="seconds"
+              onChange={(interval) => updatePreferences({ heroRotationInterval: interval })}
+            />
+          </SettingsSection>
+          
+          {/* Catalog Management */}
+          <SettingsSection title="Catalogs">
+            <CatalogSelector
+              availableCatalogs={availableCatalogs}
+              selectedIds={preferences.selectedCatalogIds}
+              onSelectionChange={(ids) => updatePreferences({ selectedCatalogIds: ids })}
+            />
+            
+            <CatalogCustomizer
+              catalogs={availableCatalogs.filter(c => preferences.selectedCatalogIds.includes(c.id))}
+              customNames={preferences.catalogCustomNames}
+              order={preferences.catalogOrder}
+              onReorder={(newOrder) => updatePreferences({ catalogOrder: newOrder })}
+              onRename={(id, name) => manageCatalog.rename(id, name)}
+            />
+          </SettingsSection>
+          
+          {/* Layout Settings */}
+          <SettingsSection title="Layout">
+            <SegmentedControl
+              title="Items per Row"
+              options={['2', '3', '4', 'Auto']}
+              value={preferences.itemsPerRow.toString()}
+              onChange={(value) => updatePreferences({ itemsPerRow: parseInt(value) || 0 })}
+            />
+            
+            <ToggleRow
+              title="Compact Mode"
+              value={preferences.compactMode}
+              onToggle={(compact) => updatePreferences({ compactMode: compact })}
+            />
+          </SettingsSection>
+          
+          {/* Cache Settings */}
+          <SettingsSection title="Performance">
+            <ActionRow
+              title="Clear Cache"
+              subtitle="Free up storage space"
+              onPress={clearAllCache}
+            />
+            
+            <InfoRow
+              title="Cache Size"
+              value={cacheSize}
+            />
+          </SettingsSection>
+        </ScrollView>
+      )
+    }
+
+    10. Implementation Timeline
+
+    Phase 1: Foundation (Week 1)
+
+    1. Extend UserPreferences with HomescreenPreferences
+    2. Create consolidated mediaLibrary.store.ts
+    3. Implement domain cache interfaces
+    4. Set up use cases for homescreen data
+
+    Phase 2: Core UI (Week 2)
+
+    1. Build MediaCard component with Unistyles variants
+    2. Create HeroCarousel with animations
+    3. Implement ContinueWatchingRow
+    4. Build basic CatalogRow with pagination
+
+    Phase 3: Settings System (Week 3)
+
+    1. Create HomescreenSettingsScreen
+    2. Implement catalog management features
+    3. Add live preview functionality
+    4. Build customization components
+
+    Phase 4: Polish & Optimization (Week 4)
+
+    1. Implement comprehensive caching strategy
+    2. Add micro animations and transitions
+    3. Optimize performance with Legend List
+    4. Accessibility improvements and testing
+
+    This comprehensive plan delivers a feature-rich, highly customizable homescreen with Apple TV+ aesthetics, complete settings management, 
+    intelligent caching, and excellent performance through proper state management and virtualization.
+  ⎿  Interrupted by user
+
+> use agents to finish the plan and finish the complete plan. make sure the app is not running into any errors in the end. create atomic components if 
+  needed.
+
+⏺ I'll implement the complete homescreen plan using specialized agents. Let me start by updating the todo list and then use agents to execute each
+  phase systematically.
+
+⏺ Let me start by using the backend-architect agent to extend the UserPreferences and domain layer, then use frontend-developer and other specialized
+  agents for the UI components.
+
+⏺ backend-architect(Extend UserPreferences domain)
+  ⎿  Done (18 tool uses · 47.9k tokens · 2m 20.3s)                                                                                                    
+
+⏺ Now let me use the typescript-pro agent to create the consolidated mediaLibrary store.
+
+⏺ typescript-pro(Create consolidated mediaLibrary store)
+  ⎿  Done (19 tool uses · 46.5k tokens · 10m 43.4s)                                                                                                   
+
+⏺ Now let me use the backend-architect agent to create the homescreen use cases.
+
+⏺ backend-architect(Create homescreen use cases)
+  ⎿  Done (37 tool uses · 0 tokens · 6m 59.3s)                                                                                                        
+
+⏺ Your account does not have access to Claude Code. Please run /login.
+
+> /login
+
+⏺ Your account does not have access to Claude Code. Please run /login.
+

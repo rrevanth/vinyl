@@ -98,6 +98,25 @@ export interface PlaybackPreferences {
   readonly skipIntroEnabled: boolean
 }
 
+export interface HomescreenPreferences {
+  // Hero Section
+  readonly heroEnabled: boolean
+  readonly heroStyle: 'carousel' | 'featured' | 'stack'
+  readonly heroAutoRotate: boolean
+  readonly heroRotationInterval: number
+
+  // Catalog Management
+  readonly selectedCatalogIds: readonly string[]
+  readonly catalogOrder: readonly string[]
+  readonly catalogCustomNames: Readonly<Record<string, string>>
+  readonly catalogDisplayStyles: Readonly<Record<string, 'grid' | 'list' | 'carousel'>>
+
+  // Layout
+  readonly itemsPerRow: number
+  readonly showContinueWatching: boolean
+  readonly compactMode: boolean
+}
+
 export interface UserPreferences {
   readonly version: number
   readonly updatedAt: number
@@ -109,6 +128,7 @@ export interface UserPreferences {
   readonly providerPriorities: ProviderPriorities
   readonly ui: UIPreferences
   readonly playback: PlaybackPreferences
+  readonly homescreen: HomescreenPreferences
 }
 
 // ============================================================================
@@ -185,6 +205,25 @@ export const createDefaultPlaybackPreferences = (): PlaybackPreferences => ({
   skipIntroEnabled: true,
 })
 
+export const createDefaultHomescreenPreferences = (): HomescreenPreferences => ({
+  // Hero Section
+  heroEnabled: true,
+  heroStyle: 'carousel',
+  heroAutoRotate: true,
+  heroRotationInterval: 5000, // 5 seconds
+
+  // Catalog Management
+  selectedCatalogIds: [],
+  catalogOrder: [],
+  catalogCustomNames: {},
+  catalogDisplayStyles: {},
+
+  // Layout
+  itemsPerRow: 3,
+  showContinueWatching: true,
+  compactMode: false,
+})
+
 export const createDefaultUserPreferences = (): UserPreferences => ({
   version: 1,
   updatedAt: Date.now(),
@@ -196,6 +235,7 @@ export const createDefaultUserPreferences = (): UserPreferences => ({
   providerPriorities: createDefaultProviderPriorities(),
   ui: createDefaultUIPreferences(),
   playback: createDefaultPlaybackPreferences(),
+  homescreen: createDefaultHomescreenPreferences(),
 })
 
 export const updateUserPreferences = (
