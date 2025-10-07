@@ -158,18 +158,21 @@ export class StremioManifestParser {
 
   /**
    * Validate basic manifest structure
+   * Just checks if it's a valid object - no field requirements
    */
   private static isValidManifestStructure(manifest: unknown): boolean {
     if (!manifest || typeof manifest !== 'object') {
       return false
     }
 
-    const obj = manifest as Record<string, unknown>
-    return Boolean(obj.id && obj.name)
+    // Accept any object as potentially valid manifest
+    // Field validation happens in validateRequiredFields
+    return true
   }
 
   /**
    * Validate required manifest fields
+   * Strict validation for Stremio addon compliance
    */
   private static validateRequiredFields(manifest: StremioManifest): {
     errors: string[]
@@ -187,21 +190,22 @@ export class StremioManifestParser {
       errors.push('Manifest missing required field: name')
     }
 
+    if (!manifest.version) {
+      errors.push('Manifest missing required field: version')
+    }
+
     // Validate ID format
     if (manifest.id && !/^[a-zA-Z0-9._-]+$/.test(manifest.id)) {
-      errors.push(
-        'Invalid addon ID format: must contain only alphanumeric characters, dots, underscores, and hyphens'
+      warnings.push(
+        'Invalid addon ID format: should contain only alphanumeric characters, dots, underscores, and hyphens'
       )
     }
 
-    // Version validation
-    if (!manifest.version) {
-      warnings.push('Manifest missing version field, defaulting to 1.0.0')
-    }
-
-    // Resource validation
+    // Resource validation - at least resources or catalogs required
     if (!manifest.resources?.length && !manifest.catalogs?.length) {
-      errors.push('Manifest must specify resources or catalogs')
+      errors.push(
+        'Manifest must specify resources or catalogs to provide functionality'
+      )
     }
 
     // Types validation for content addons
@@ -210,8 +214,13 @@ export class StremioManifestParser {
       return ['catalog', 'meta', 'stream', 'subtitles'].includes(resourceName)
     })
 
-    if (hasContentResources && (!manifest.types?.length || !manifest.idPrefixes?.length)) {
-      warnings.push('Content addons should specify supported types and idPrefixes')
+    if (hasContentResources && !manifest.types?.length) {
+      errors.push('Content addons must specify supported types')
+    }
+
+    // idPrefixes is optional but recommended
+    if (hasContentResources && !manifest.idPrefixes?.length) {
+      warnings.push('Content addons should specify idPrefixes for better compatibility')
     }
 
     return { errors, warnings }

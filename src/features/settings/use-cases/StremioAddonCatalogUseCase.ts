@@ -1,11 +1,11 @@
+import { CapabilityType } from '@/src/domain/capabilities/CapabilityType'
+import { StremioAddon } from '@/src/domain/entities/StremioAddon'
+import type { ILoggingService } from '@/src/domain/services/ILoggingService'
+import type { HttpClient } from '@/src/infrastructure/http/HttpClient'
 import type { StremioManifestQueryCache } from '@/src/infrastructure/providers/stremio/cache/StremioManifestQueryCache'
 import type { StremioProcessedAddonCache } from '@/src/infrastructure/providers/stremio/cache/StremioProcessedAddonCache'
-import type { ILoggingService } from '@/src/domain/services/ILoggingService'
-import { CapabilityType } from '@/src/domain/capabilities/CapabilityType'
-import type { AddonOperationResult } from './StremioAddonsUseCase'
-import { StremioAddon } from '@/src/domain/entities/StremioAddon'
 import { StremioAddonClient } from '@/src/infrastructure/providers/stremio/clients/StremioAddonClient'
-import type { HttpClient } from '@/src/infrastructure/http/HttpClient'
+import type { AddonOperationResult } from './StremioAddonsUseCase'
 
 /**
  * Use case for browsing and searching Stremio addon catalogs
@@ -281,22 +281,28 @@ export class StremioAddonCatalogUseCase {
       // Filter addons with STREMIO_ADDON_CATALOG capability AND that are enabled
       const addonsWithCatalog = installedAddons.filter(
         (addon) =>
-          addon.isEnabled && addon.hasCapability('STREMIO_ADDON_CATALOG' as CapabilityType)
+          addon.isEnabled && addon.hasCapability(CapabilityType.STREMIO_ADDON_CATALOG as CapabilityType)
       )
 
       const results = []
 
-      // Only include addons that have defined addonCatalogs in manifest
+      // Only include addons that have addonCatalogs array with entries
       for (const addon of addonsWithCatalog) {
         if (addon.manifest.addonCatalogs && addon.manifest.addonCatalogs.length > 0) {
           results.push({
             addonId: addon.id,
-            addonName: addon.getDisplayName(), // Use display name (considers custom name)
+            addonName: addon.getDisplayName(),
             transportUrl: addon.transportUrl,
             catalogs: addon.manifest.addonCatalogs,
           })
         }
       }
+
+      this.logger.debug('Found addon catalog sources', {
+        totalInstalled: installedAddons.length,
+        withCapability: addonsWithCatalog.length,
+        withCatalogs: results.length,
+      })
 
       return results
     } catch (error) {
@@ -354,12 +360,11 @@ export class StremioAddonCatalogUseCase {
             continue
           }
 
-          // Use manifest directly from catalog response (no network call needed for browsing)
-          // Fresh manifest will be fetched during installation
-          const manifest = addonManifest.manifest
+          // Safely parse manifest with defaults
+          const manifest = this.safelyParseManifest(addonManifest.manifest)
 
-          // Validate required fields
-          if (!manifest.id || !manifest.name) {
+          // Skip if manifest is invalid
+          if (!manifest) {
             skippedInvalid++
             continue
           }
@@ -368,14 +373,9 @@ export class StremioAddonCatalogUseCase {
           const capabilities = this.extractCapabilitiesFromManifest(manifest)
 
           // Create StremioAddon entity from catalog response (for browsing only)
-          // Note: Cast manifest to StremioManifest for browsing display
           // Fresh manifest will be fetched and validated during installation
           const addon = new StremioAddon({
-            manifest: {
-              ...manifest,
-              description: manifest.description || '',
-              catalogs: manifest.catalogs || [],
-            } as any,
+            manifest: manifest as any,
             transportUrl: addonManifest.transportUrl,
             capabilities,
             isInstalled: false,
@@ -418,13 +418,100 @@ export class StremioAddonCatalogUseCase {
   }
 
   /**
+   * Make catalog IDs unique by combining id, type, and index
+   * Prevents Legend State duplicate ID warnings
+   */
+  private makeUniqueCatalogId(catalog: any, index: number): string {
+    const id = catalog.id || 'unknown'
+    const type = catalog.type || 'all'
+    return `${id}-${type}-${index}`
+  }
+
+  /**
+   * Safely filter array to remove undefined/null values
+   */
+  private filterValidArrayElements<T>(arr: any): T[] {
+    if (!Array.isArray(arr)) {
+      return []
+    }
+    return arr.filter((item) => item !== null && item !== undefined)
+  }
+
+  /**
+   * Safely parse manifest from catalog response
+   * Handles missing or malformed fields gracefully
+   */
+  private safelyParseManifest(rawManifest: any): any {
+    if (!rawManifest || typeof rawManifest !== 'object') {
+      return null
+    }
+
+    // Required fields
+    if (!rawManifest.id || !rawManifest.name) {
+      return null
+    }
+
+    // Parse and sanitize catalogs with unique IDs
+    const rawCatalogs = this.filterValidArrayElements(rawManifest.catalogs)
+    const catalogs = rawCatalogs.map((catalog, index) => {
+      if (!catalog || typeof catalog !== 'object') {
+        return null
+      }
+      return {
+        ...catalog,
+        id: this.makeUniqueCatalogId(catalog, index),
+      }
+    }).filter((c) => c !== null)
+
+    // Parse and sanitize addon catalogs with unique IDs
+    const rawAddonCatalogs = this.filterValidArrayElements(rawManifest.addonCatalogs)
+    const addonCatalogs = rawAddonCatalogs.length > 0
+      ? rawAddonCatalogs.map((catalog, index) => {
+          if (!catalog || typeof catalog !== 'object') {
+            return null
+          }
+          return {
+            ...catalog,
+            id: this.makeUniqueCatalogId(catalog, index),
+          }
+        }).filter((c) => c !== null)
+      : undefined
+
+    // Parse and sanitize resources
+    const resources = this.filterValidArrayElements(rawManifest.resources)
+
+    // Parse and sanitize types and idPrefixes
+    const types = this.filterValidArrayElements(rawManifest.types)
+    const idPrefixes = this.filterValidArrayElements(rawManifest.idPrefixes)
+
+    // Build safe manifest with defaults
+    return {
+      id: String(rawManifest.id),
+      name: String(rawManifest.name),
+      version: rawManifest.version ? String(rawManifest.version) : '1.0.0',
+      description: rawManifest.description ? String(rawManifest.description) : '',
+      catalogs,
+      resources,
+      types,
+      idPrefixes,
+      background: rawManifest.background ? String(rawManifest.background) : undefined,
+      logo: rawManifest.logo ? String(rawManifest.logo) : undefined,
+      contactEmail: rawManifest.contactEmail ? String(rawManifest.contactEmail) : undefined,
+      behaviorHints: rawManifest.behaviorHints && typeof rawManifest.behaviorHints === 'object'
+        ? rawManifest.behaviorHints
+        : {},
+      addonCatalogs,
+    }
+  }
+
+  /**
    * Extract capabilities from manifest resources
    * Basic capability detection from manifest structure
    */
   private extractCapabilitiesFromManifest(manifest: any): CapabilityType[] {
     const capabilities: CapabilityType[] = []
 
-    if (!manifest.resources || !Array.isArray(manifest.resources)) {
+    if (!manifest || !manifest.resources || !Array.isArray(manifest.resources)) {
       return capabilities
     }
 
