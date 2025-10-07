@@ -115,11 +115,11 @@ export class StremioMediaCatalogCapability implements IMediaCatalogCapability {
     }
 
     const lower = type.toLowerCase()
-    if (['movie', 'movies', 'film'].includes(lower)) {
+    if (['movie', 'movies', 'film', 'cinema'].includes(lower)) {
       return 'movie'
     }
 
-    if (['series', 'show', 'shows', 'tv'].includes(lower)) {
+    if (['series', 'show', 'shows', 'tv', 'channel', 'channels'].includes(lower)) {
       return 'series'
     }
 

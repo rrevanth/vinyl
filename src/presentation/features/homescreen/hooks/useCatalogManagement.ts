@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useSelector } from '@legendapp/state/react'
 import { useService } from '@/src/infrastructure/di/useService'
 import { TOKENS } from '@/src/infrastructure/di/tokens'
-import { userPreferences$ } from '@/src/presentation/shared/stores/app.store'
+import { userPreferences$, userState$ } from '@/src/presentation/shared/stores/app.store'
 import { mediaLibrary$ } from '@/src/presentation/shared/stores/mediaLibrary.store'
 import type { Catalog } from '@/src/domain/entities/Catalog'
 import type { GetAvailableCatalogsUseCase } from '@/src/domain/use-cases/homescreen/GetAvailableCatalogsUseCase'
@@ -32,6 +32,7 @@ export const useCatalogManagement = (): UseCatalogManagementResult => {
   )
 
   const selectedIds = useSelector(() => userPreferences$.homescreen.selectedCatalogIds.get())
+  const currentUserId = useSelector(() => userState$.currentUser.id.get())
 
   const [catalogs, setCatalogs] = useState<Catalog[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -53,8 +54,23 @@ export const useCatalogManagement = (): UseCatalogManagementResult => {
   }, [getAvailableCatalogsUseCase])
 
   useEffect(() => {
-    void loadCatalogs()
-  }, [loadCatalogs])
+    const initializeProviders = async () => {
+      try {
+        const { initializeStremio } = await import(
+          '@/src/infrastructure/providers/stremio/initializeStremio'
+        )
+        await initializeStremio(currentUserId)
+      } catch (error) {
+        console.warn('Stremio initialization warning in catalog management', error)
+      }
+
+      await loadCatalogs()
+    }
+
+    initializeProviders().catch((error) => {
+      console.warn('Failed to initialize catalog providers', error)
+    })
+  }, [currentUserId, loadCatalogs])
 
   const toggleCatalog = useCallback(
     async (catalogId: string) => {
