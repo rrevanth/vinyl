@@ -10,6 +10,7 @@ import type {
   TraktShow,
   TraktSeason,
   TraktEpisode,
+  TraktPlaybackItem,
 } from '../types'
 
 /**
@@ -395,5 +396,26 @@ export class TraktSyncClient extends TraktBaseClient {
 
     await Promise.all(promises)
     return results
+  }
+
+  // Playback Progress Methods
+
+  /**
+   * Get playback progress for in-progress items (continue watching)
+   * Returns movies and episodes that are currently in progress
+   */
+  async getPlaybackProgress(params?: {
+    type?: 'movies' | 'episodes'
+    limit?: number
+  }): Promise<TraktPlaybackItem[]> {
+    return this.get<TraktPlaybackItem[]>('/sync/playback', params)
+  }
+
+  /**
+   * Remove a playback progress item by ID
+   * Removes an item from the continue watching list
+   */
+  async removePlaybackProgress(playbackId: number): Promise<void> {
+    await this.delete(`/sync/playback/${playbackId}`)
   }
 }

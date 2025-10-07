@@ -7,6 +7,7 @@ import { TraktCalendarClient } from './clients/TraktCalendarClient'
 import { TraktSearchClient } from './clients/TraktSearchClient'
 import { TraktUsersClient } from './clients/TraktUsersClient'
 import { TraktSyncClient } from './clients/TraktSyncClient'
+import { TraktPeopleClient } from './clients/TraktPeopleClient'
 
 /**
  * Unified Trakt API client
@@ -29,6 +30,7 @@ export class TraktClient {
   readonly search: TraktSearchClient
   readonly users: TraktUsersClient
   readonly sync: TraktSyncClient
+  readonly people: TraktPeopleClient
 
   // Base client for direct access to authentication methods
   readonly base: TraktBaseClient
@@ -45,6 +47,7 @@ export class TraktClient {
     this.search = new TraktSearchClient(configFactory, logger)
     this.users = new TraktUsersClient(configFactory, logger)
     this.sync = new TraktSyncClient(configFactory, logger)
+    this.people = new TraktPeopleClient(configFactory, logger)
   }
 
   /**
@@ -121,6 +124,7 @@ export class TraktClient {
     this.search.destroy()
     this.users.destroy()
     this.sync.destroy()
+    this.people.destroy()
   }
 
   // Convenience methods for common operations

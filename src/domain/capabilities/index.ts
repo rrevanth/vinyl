@@ -18,6 +18,12 @@ export * from './IMediaSubtitlesCapability'
 export * from './IMediaListsCapability'
 export * from './IMediaListsSearchCapability'
 
+// Trakt auth-gated capabilities
+export * from './IMediaContinueWatchingCapability'
+export * from './IMediaWatchProgressCapability'
+export * from './IMediaWatchlistCapability'
+export * from './IMediaScrobblingCapability'
+
 // Stremio capabilities
 export * from './IStremioAddonCatalogCapability'
 

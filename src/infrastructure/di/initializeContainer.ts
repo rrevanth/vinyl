@@ -12,6 +12,7 @@ import { TMDBClient } from '../api/tmdb/TMDBClient'
 import { TMDBProvider } from '../providers/tmdb/TMDBProvider'
 import { TraktConfigFactory } from '../factories/TraktConfigFactory'
 import { TraktClient } from '../api/trakt/TraktClient'
+import { TraktProvider } from '../providers/trakt/TraktProvider'
 import { StremioConfigFactory } from '../factories/StremioConfigFactory'
 import { StremioAddonStorage } from '../providers/stremio/storage/StremioAddonStorage'
 import { StremioAddonRegistry } from '../providers/stremio/StremioAddonRegistry'
@@ -77,10 +78,22 @@ export function initializeContainer(): void {
   const traktConfigFactory = container.resolve<TraktConfigFactory>(TOKENS.TraktConfigFactory)
   container.register(TOKENS.TraktClient, () => new TraktClient(traktConfigFactory, logger))
 
+  // Register Trakt Provider with all its dependencies
+  const traktClient = container.resolve<TraktClient>(TOKENS.TraktClient)
+  container.register(TOKENS.TraktProvider, () => new TraktProvider(traktClient, queryClient, logger))
+
   // Register Provider Registry
   container.register(TOKENS.ProviderRegistry, () => new ProviderRegistry())
 
   const providerRegistry = container.resolve<IProviderRegistry>(TOKENS.ProviderRegistry)
+
+  // Register TMDB provider with registry
+  const tmdbProvider = container.resolve<TMDBProvider>(TOKENS.TMDBProvider)
+  providerRegistry.registerProvider(tmdbProvider)
+
+  // Register Trakt provider with registry
+  const traktProvider = container.resolve<TraktProvider>(TOKENS.TraktProvider)
+  providerRegistry.registerProvider(traktProvider)
 
   // Register Stremio services
   container.register(TOKENS.StremioConfigFactory, () => new StremioConfigFactory())

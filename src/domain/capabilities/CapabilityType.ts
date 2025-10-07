@@ -20,6 +20,12 @@ export enum CapabilityType {
   MEDIA_LISTS = 'media_lists',
   MEDIA_LISTS_SEARCH = 'media_lists_search',
 
+  // Trakt auth-gated Capabilities
+  MEDIA_CONTINUE_WATCHING = 'media_continue_watching',
+  MEDIA_WATCH_PROGRESS = 'media_watch_progress',
+  MEDIA_WATCHLIST = 'media_watchlist',
+  MEDIA_SCROBBLING = 'media_scrobbling',
+
   // Stremio-specific Capabilities
   STREMIO_ADDON_CATALOG = 'stremio_addon_catalog',
 

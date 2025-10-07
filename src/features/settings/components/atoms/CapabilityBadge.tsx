@@ -31,6 +31,12 @@ const CAPABILITY_ICONS: Record<CapabilityType, keyof typeof Ionicons.glyphMap> =
   [CapabilityType.MEDIA_LISTS]: 'albums-outline',
   [CapabilityType.MEDIA_LISTS_SEARCH]: 'search-outline',
 
+  // Trakt auth-gated Capabilities
+  [CapabilityType.MEDIA_CONTINUE_WATCHING]: 'time-outline',
+  [CapabilityType.MEDIA_WATCH_PROGRESS]: 'checkmark-circle-outline',
+  [CapabilityType.MEDIA_WATCHLIST]: 'bookmark-outline',
+  [CapabilityType.MEDIA_SCROBBLING]: 'sync-outline',
+
   // Stremio-specific Capabilities
   [CapabilityType.STREMIO_ADDON_CATALOG]: 'apps-outline',
 
@@ -63,6 +69,12 @@ const CAPABILITY_LABELS: Record<CapabilityType, string> = {
   [CapabilityType.MEDIA_PEOPLE]: 'people',
   [CapabilityType.MEDIA_LISTS]: 'lists',
   [CapabilityType.MEDIA_LISTS_SEARCH]: 'list_search',
+
+  // Trakt auth-gated Capabilities
+  [CapabilityType.MEDIA_CONTINUE_WATCHING]: 'continue',
+  [CapabilityType.MEDIA_WATCH_PROGRESS]: 'progress',
+  [CapabilityType.MEDIA_WATCHLIST]: 'watchlist',
+  [CapabilityType.MEDIA_SCROBBLING]: 'scrobble',
 
   // Stremio-specific Capabilities
   [CapabilityType.STREMIO_ADDON_CATALOG]: 'addon_catalog',

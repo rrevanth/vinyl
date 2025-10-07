@@ -7,6 +7,7 @@ import type {
   TraktExtended,
   TraktPaginationParams,
   TraktFilterParams,
+  TraktVideo,
 } from '../types'
 
 /**
@@ -34,6 +35,13 @@ export class TraktMoviesClient extends TraktBaseClient {
     options?: { extended?: TraktExtended | TraktExtended[] }
   ): Promise<TraktMovie> {
     return this.get<TraktMovie>(`/movies/${movieId}`, undefined, options)
+  }
+
+  /**
+   * Get movie videos (trailers, teasers, clips, featurettes)
+   */
+  async getVideos(movieId: string | number): Promise<TraktVideo[]> {
+    return this.get<TraktVideo[]>(`/movies/${movieId}/videos`)
   }
 
   /**

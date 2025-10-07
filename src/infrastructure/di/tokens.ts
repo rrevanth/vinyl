@@ -21,6 +21,7 @@ export const TOKENS = {
   // Trakt Services
   TraktConfigFactory: Symbol('TraktConfigFactory'),
   TraktClient: Symbol('TraktClient'),
+  TraktProvider: Symbol('TraktProvider'),
 
   // Stremio Services
   StremioConfigFactory: Symbol('StremioConfigFactory'),

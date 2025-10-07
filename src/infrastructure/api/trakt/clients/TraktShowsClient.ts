@@ -9,6 +9,8 @@ import type {
   TraktExtended,
   TraktPaginationParams,
   TraktFilterParams,
+  TraktShowProgress,
+  TraktVideo,
 } from '../types'
 
 /**
@@ -37,6 +39,13 @@ export class TraktShowsClient extends TraktBaseClient {
     options?: { extended?: TraktExtended | TraktExtended[] }
   ): Promise<TraktShow> {
     return this.get<TraktShow>(`/shows/${showId}`, undefined, options)
+  }
+
+  /**
+   * Get show videos (trailers, teasers, clips, featurettes)
+   */
+  async getVideos(showId: string | number): Promise<TraktVideo[]> {
+    return this.get<TraktVideo[]>(`/shows/${showId}/videos`)
   }
 
   /**
@@ -445,5 +454,31 @@ export class TraktShowsClient extends TraktBaseClient {
    */
   async hideRecommendation(showId: string | number): Promise<void> {
     await this.delete(`/recommendations/shows/${showId}`)
+  }
+
+  // Progress tracking methods (require authentication)
+
+  /**
+   * Get watched progress for a show
+   * Returns detailed progress for all seasons and episodes
+   */
+  async getProgress(
+    showId: string | number,
+    params?: {
+      hidden?: boolean
+      specials?: boolean
+      count_specials?: boolean
+      last_activity?: 'aired' | 'watched'
+    }
+  ): Promise<TraktShowProgress> {
+    return this.get<TraktShowProgress>(`/shows/${showId}/progress/watched`, params)
+  }
+
+  /**
+   * Reset watched progress for a show
+   * Removes all watch history for this show
+   */
+  async resetProgress(showId: string | number): Promise<void> {
+    await this.post(`/shows/${showId}/progress/watched/reset`, {})
   }
 }

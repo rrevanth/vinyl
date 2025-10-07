@@ -189,6 +189,47 @@ export interface TraktPerson {
 }
 
 /**
+ * Cast member for a person's filmography
+ */
+export interface TraktPersonCastCredit {
+  characters: string[]
+  episode_count?: number // Shows only
+  series_regular?: boolean // Shows only
+  movie?: TraktMovie
+  show?: TraktShow
+}
+
+/**
+ * Crew member for a person's filmography
+ */
+export interface TraktPersonCrewCredit {
+  jobs: string[]
+  episode_count?: number // Shows only
+  movie?: TraktMovie
+  show?: TraktShow
+}
+
+/**
+ * Complete filmography response for a person
+ */
+export interface TraktPersonCredits {
+  cast: TraktPersonCastCredit[]
+  crew: {
+    directing?: TraktPersonCrewCredit[]
+    writing?: TraktPersonCrewCredit[]
+    production?: TraktPersonCrewCredit[]
+    art?: TraktPersonCrewCredit[]
+    'costume & make-up'?: TraktPersonCrewCredit[]
+    sound?: TraktPersonCrewCredit[]
+    camera?: TraktPersonCrewCredit[]
+    'visual effects'?: TraktPersonCrewCredit[]
+    lighting?: TraktPersonCrewCredit[]
+    editing?: TraktPersonCrewCredit[]
+    'created by'?: TraktPersonCrewCredit[]
+  }
+}
+
+/**
  * List object
  */
 export interface TraktList {
@@ -429,6 +470,79 @@ export interface TraktErrorResponse {
   error?: string
   error_description?: string
   expires_at?: string // For 409 conflicts (checkin in progress)
+}
+
+/**
+ * Playback progress item (continue watching)
+ */
+export interface TraktPlaybackItem {
+  id: number
+  progress: number
+  paused_at: string
+  type: 'movie' | 'episode'
+  movie?: TraktMovie
+  episode?: TraktEpisode
+  show?: TraktShow
+}
+
+/**
+ * Episode progress for show progress tracking
+ */
+export interface TraktEpisodeProgress {
+  number: number
+  completed: boolean
+  last_watched_at?: string
+  plays?: number
+}
+
+/**
+ * Season progress for show progress tracking
+ */
+export interface TraktSeasonProgress {
+  number: number
+  title?: string
+  aired: number
+  completed: number
+  episodes: TraktEpisodeProgress[]
+}
+
+/**
+ * Next/Last episode info in show progress
+ */
+export interface TraktProgressEpisode {
+  season: number
+  number: number
+  title?: string
+  ids: TraktIds
+}
+
+/**
+ * Show watched progress response
+ */
+export interface TraktShowProgress {
+  aired: number
+  completed: number
+  last_watched_at?: string
+  reset_at?: string
+  seasons: TraktSeasonProgress[]
+  hidden_seasons?: TraktSeasonProgress[]
+  next_episode?: TraktProgressEpisode
+  last_episode?: TraktProgressEpisode
+}
+
+/**
+ * Video object (trailers, teasers, clips, etc.)
+ */
+export interface TraktVideo {
+  title: string
+  url: string
+  site: string // 'youtube', 'vimeo', etc.
+  type: 'trailer' | 'teaser' | 'clip' | 'featurette'
+  size: number // 1080, 720, etc.
+  official: boolean
+  published_at: string
+  country: string
+  language: string
 }
 
 /**
