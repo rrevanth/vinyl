@@ -24,14 +24,12 @@ import type { HttpClient } from '@/src/infrastructure/http/HttpClient'
  *   browsingAddons,
  *   isLoading,
  *   error,
- *   browseAddons,
  *   searchAddons,
  *   filterByCapability,
  *   previewAddon,
+ *   browseSpecificAddonCatalog,
+ *   getAddonCatalogsFromInstalledAddons,
  * } = useStremioAddonCatalog()
- *
- * // Browse catalog
- * await browseAddons('https://catalog.example.com/manifest.json')
  *
  * // Search addons
  * const results = await searchAddons('torrent')
@@ -41,6 +39,9 @@ import type { HttpClient } from '@/src/infrastructure/http/HttpClient'
  *
  * // Preview addon
  * const preview = await previewAddon('https://addon.example.com/manifest.json')
+ *
+ * // Browse specific catalog
+ * const result = await browseSpecificAddonCatalog(transportUrl, 'all', 'official')
  * ```
  */
 export const useStremioAddonCatalog = () => {
@@ -70,33 +71,6 @@ export const useStremioAddonCatalog = () => {
   const browsingAddons = useSelector(() => stremioAddons$.browsing.get())
   const isLoading = useSelector(() => stremioAddons$.isLoading.get())
   const error = useSelector(() => stremioAddons$.error.get())
-
-  /**
-   * Browse addons from catalog URL
-   */
-  const browseAddons = useCallback(
-    async (catalogUrl: string) => {
-      try {
-        stremioAddons$.isLoading.set(true)
-        stremioAddons$.error.set(null)
-
-        logger.info('Browsing addon catalog', { catalogUrl })
-
-        const addons = await catalogUseCase.browseAddonCatalog(catalogUrl)
-        stremioAddons$.browsing.set(addons)
-
-        logger.info('Catalog browsed successfully', { catalogUrl, count: addons.length })
-      } catch (error) {
-        const errorMsg = error instanceof Error ? error.message : 'Unknown error'
-        logger.error('Failed to browse addon catalog', error as Error, { catalogUrl })
-        stremioAddons$.error.set(errorMsg)
-        throw error
-      } finally {
-        stremioAddons$.isLoading.set(false)
-      }
-    },
-    [catalogUseCase, logger]
-  )
 
   /**
    * Search addons by query
@@ -304,7 +278,6 @@ export const useStremioAddonCatalog = () => {
     error,
 
     // Actions
-    browseAddons,
     searchAddons,
     filterByCapability,
     previewAddon,

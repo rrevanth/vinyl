@@ -20,35 +20,6 @@ export class StremioAddonCatalogUseCase {
   ) {}
 
   /**
-   * Browse addons from a catalog URL
-   * Returns array of StremioAddon entities
-   */
-  async browseAddonCatalog(catalogUrl: string): Promise<StremioAddon[]> {
-    try {
-      this.logger.info('Browsing addon catalog', { catalogUrl })
-
-      // For now, return empty array
-      // TODO: Implement catalog fetching when catalog endpoint is available
-      // This would involve:
-      // 1. Fetching the catalog manifest
-      // 2. Getting addon_catalog resource
-      // 3. Processing each addon entry
-      // 4. Creating StremioAddon entities
-
-      this.logger.info('Catalog browsed successfully', {
-        catalogUrl,
-        count: 0,
-      })
-
-      return []
-    } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : 'Unknown error'
-      this.logger.error('Failed to browse addon catalog', error as Error, { catalogUrl })
-      throw new Error(`Failed to browse catalog: ${errorMsg}`)
-    }
-  }
-
-  /**
    * Search addons by query string
    * Returns filtered array of StremioAddon entities
    */

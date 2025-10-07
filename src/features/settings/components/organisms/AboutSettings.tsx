@@ -55,7 +55,6 @@ export const AboutSettings = observer(() => {
   }
 
   const openAttributions = () => {
-    // TODO: Navigate to attributions screen or show modal
     Alert.alert(
       t('settings.about.attributions'),
       'This app is powered by:\n\n• TMDB (The Movie Database)\n• Trakt.tv\n• Stremio\n• FanArt.tv\n• MDBList\n\nThank you for providing free APIs for developers!'
