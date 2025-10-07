@@ -34,17 +34,6 @@ export function initializeContainer(): void {
 
   container.register(TOKENS.UserService, () => new UserService())
 
-  // Register HTTP client (placeholder baseURL, update in your app)
-  container.register(
-    TOKENS.HttpClient,
-    () =>
-      new HttpClient(
-        'https://api.example.com', // TODO: Update with actual API URL
-        () => null, // TODO: Implement token retrieval
-        logger
-      )
-  )
-
   // Register Stremio-specific HTTP Client (no baseURL for absolute URLs)
   container.register(
     TOKENS.StremioHttpClient,

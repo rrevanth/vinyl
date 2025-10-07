@@ -46,7 +46,7 @@ import type { HttpClient } from '@/src/infrastructure/http/HttpClient'
 export const useStremioAddonCatalog = () => {
   // Get services from DI container
   const queryClient = useService<QueryClient>(TOKENS.QueryClient)
-  const httpClient = useService<HttpClient>(TOKENS.HttpClient)
+  const httpClient = useService<HttpClient>(TOKENS.StremioHttpClient)
   const logger = useService<ILoggingService>(TOKENS.LoggingService)
 
   // Create cache instances
