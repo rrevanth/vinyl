@@ -50,7 +50,7 @@ export function initializeContainer(): void {
     TOKENS.StremioHttpClient,
     () =>
       new HttpClient(
-        '', // Empty baseURL - allows absolute URLs to work correctly
+        undefined, // No baseURL - allows absolute URLs to work correctly
         () => null, // Stremio addons don't use auth
         logger
       )

@@ -18,7 +18,7 @@ export class HttpClient {
   private client!: AxiosInstance
 
   constructor(
-    private baseURL: string,
+    private baseURL: string | undefined,
     private getAuthToken: () => string | null,
     private logger?: ILoggingService,
     private additionalHeaders?: Record<string, string>
