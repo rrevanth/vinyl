@@ -1,11 +1,11 @@
 import type { IEnvironmentService } from '../../domain/services/IEnvironmentService'
-import type { TMDBConfig } from '../../domain/entities/UserPreferences'
+import type { TMDBAccount } from '../../domain/entities/UserPreferences'
 
 /**
  * Effective TMDB configuration with resolved values
- * Extends base TMDBConfig with metadata about configuration source
+ * Extends base TMDBAccount with metadata about configuration source
  */
-export interface EffectiveTMDBConfig extends TMDBConfig {
+export interface EffectiveTMDBConfig extends TMDBAccount {
   readonly effectiveApiKey: string
   readonly effectiveBaseURL: string
   readonly effectiveImageBaseURL: string
@@ -17,36 +17,36 @@ export interface EffectiveTMDBConfig extends TMDBConfig {
 /**
  * Factory for creating effective TMDB configuration
  *
- * Implements configuration hierarchy: User Preferences > Environment Variables > Defaults
+ * Implements configuration hierarchy: User Account > Environment Variables > Defaults
  * Provides fallback configuration to ensure TMDB client always has valid settings.
  */
 export class TMDBConfigFactory {
   constructor(private readonly envService: IEnvironmentService) {}
 
   /**
-   * Create effective TMDB configuration from user preferences
+   * Create effective TMDB configuration from user account
    *
    * Configuration priority:
-   * 1. User Preferences (if configured in UserPreferences)
+   * 1. User Account (if configured in UserPreferences.accounts.tmdb)
    * 2. Environment Variables (EXPO_PUBLIC_TMDB_*)
    * 3. Default Values (hardcoded fallbacks)
    *
-   * @param userConfig Optional user preferences configuration
+   * @param userAccount Optional user account configuration
    * @returns Complete TMDB configuration with all required values
    */
-  createEffectiveConfig(userConfig?: TMDBConfig): EffectiveTMDBConfig {
+  createEffectiveConfig(userAccount?: TMDBAccount): EffectiveTMDBConfig {
     // Resolve each configuration value with priority hierarchy
-    const effectiveApiKey = this.resolveApiKey(userConfig?.apiKey)
-    const effectiveBaseURL = this.resolveBaseURL(userConfig?.baseURL)
-    const effectiveImageBaseURL = this.resolveImageBaseURL(userConfig?.imageBaseURL)
-    const effectiveLanguage = this.resolveLanguage(userConfig?.language)
-    const effectiveRegion = this.resolveRegion(userConfig?.region)
+    const effectiveApiKey = this.resolveApiKey(userAccount?.apiKey)
+    const effectiveBaseURL = this.resolveBaseURL(userAccount?.baseURL)
+    const effectiveImageBaseURL = this.resolveImageBaseURL(userAccount?.imageBaseURL)
+    const effectiveLanguage = this.resolveLanguage(userAccount?.language)
+    const effectiveRegion = this.resolveRegion(userAccount?.region)
 
     // Determine primary configuration source
-    const configSource = this.determineConfigSource(userConfig)
+    const configSource = this.determineConfigSource(userAccount)
 
     return {
-      // Original TMDBConfig interface for backward compatibility
+      // Original TMDBAccount interface for backward compatibility
       apiKey: effectiveApiKey,
       baseURL: effectiveBaseURL,
       imageBaseURL: effectiveImageBaseURL,
@@ -101,9 +101,9 @@ export class TMDBConfigFactory {
   /**
    * Determine the primary configuration source for debugging
    */
-  private determineConfigSource(userConfig?: TMDBConfig): 'user' | 'env' | 'default' {
+  private determineConfigSource(userAccount?: TMDBAccount): 'user' | 'env' | 'default' {
     // Check if user has provided any configuration
-    if (userConfig?.apiKey) {
+    if (userAccount?.apiKey) {
       return 'user'
     }
 

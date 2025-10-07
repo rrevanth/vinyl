@@ -93,7 +93,8 @@ const SettingsLayout = observer(() => {
       <Stack.Screen
         name="about"
         options={() => ({
-          headerShown: false
+          title: t('settings.about.title'),
+          headerLargeTitle: false,
         })}
       />
     </ThemedStack>

@@ -35,7 +35,7 @@ export const useAppState = () => {
   return {
     // === APP STATE ===
     appState$,
-    locale: () => appState$.locale.get(),
+    locale: () => userPreferences$.ui.locale.get() as SupportedLocale,
     setLocale,
     getSupportedLocales,
 

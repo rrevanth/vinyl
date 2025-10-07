@@ -1,5 +1,5 @@
 import type { ILoggingService } from '@/src/domain/services/ILoggingService'
-import type { TMDBConfig } from '@/src/domain/entities/UserPreferences'
+import type { TMDBAccount } from '@/src/domain/entities/UserPreferences'
 import type { TMDBClient } from '@/src/infrastructure/api/tmdb/TMDBClient'
 import type { IEnvironmentService } from '@/src/domain/services/IEnvironmentService'
 import { userPreferences$ } from '@/src/presentation/shared/stores/app.store'
@@ -46,7 +46,7 @@ export class TMDBAccountUseCase {
   updateApiKey(apiKey: string): void {
     try {
       this.logger.info('Updating TMDB API key', { hasKey: Boolean(apiKey) })
-      userPreferences$.tmdb.apiKey.set(apiKey)
+      userPreferences$.accounts.tmdb.apiKey.set(apiKey)
       this.logger.info('TMDB API key updated successfully')
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
@@ -61,7 +61,7 @@ export class TMDBAccountUseCase {
   updateBaseURL(baseURL: string): void {
     try {
       this.logger.info('Updating TMDB base URL', { baseURL })
-      userPreferences$.tmdb.baseURL.set(baseURL)
+      userPreferences$.accounts.tmdb.baseURL.set(baseURL)
       this.logger.info('TMDB base URL updated successfully')
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
@@ -76,7 +76,7 @@ export class TMDBAccountUseCase {
   updateImageBaseURL(imageBaseURL: string): void {
     try {
       this.logger.info('Updating TMDB image base URL', { imageBaseURL })
-      userPreferences$.tmdb.imageBaseURL.set(imageBaseURL)
+      userPreferences$.accounts.tmdb.imageBaseURL.set(imageBaseURL)
       this.logger.info('TMDB image base URL updated successfully')
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
@@ -91,7 +91,7 @@ export class TMDBAccountUseCase {
   updateLanguage(language: string): void {
     try {
       this.logger.info('Updating TMDB language', { language })
-      userPreferences$.tmdb.language.set(language)
+      userPreferences$.accounts.tmdb.language.set(language)
       this.logger.info('TMDB language updated successfully')
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
@@ -106,7 +106,7 @@ export class TMDBAccountUseCase {
   updateRegion(region: string): void {
     try {
       this.logger.info('Updating TMDB region', { region })
-      userPreferences$.tmdb.region.set(region)
+      userPreferences$.accounts.tmdb.region.set(region)
       this.logger.info('TMDB region updated successfully')
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
@@ -177,8 +177,8 @@ export class TMDBAccountUseCase {
   /**
    * Get current TMDB configuration from user preferences
    */
-  getTMDBConfig(): TMDBConfig {
-    return userPreferences$.tmdb.get()
+  getTMDBConfig(): TMDBAccount {
+    return userPreferences$.accounts.tmdb.get()!
   }
 
   /**
@@ -189,7 +189,7 @@ export class TMDBAccountUseCase {
    * @param config Partial TMDB configuration to validate and save
    * @returns ValidationResult with success status
    */
-  async validateAndSave(config: Partial<TMDBConfig>): Promise<ValidationResult> {
+  async validateAndSave(config: Partial<TMDBAccount>): Promise<ValidationResult> {
     try {
       this.logger.info('Validating TMDB configuration', {
         hasCustomApiKey: Boolean(config.apiKey),
@@ -198,10 +198,10 @@ export class TMDBAccountUseCase {
       })
 
       // Get current configuration
-      const currentConfig = userPreferences$.tmdb.get()
+      const currentConfig = userPreferences$.accounts.tmdb.get()!
 
       // Merge provided config with current config
-      const newConfig: TMDBConfig = {
+      const newConfig: TMDBAccount = {
         apiKey: config.apiKey !== undefined ? config.apiKey : currentConfig.apiKey,
         baseURL: config.baseURL ?? currentConfig.baseURL,
         imageBaseURL: config.imageBaseURL ?? currentConfig.imageBaseURL,
@@ -217,7 +217,7 @@ export class TMDBAccountUseCase {
 
       // If no custom values, just save and return success (will use env/defaults)
       if (!hasCustomValues) {
-        userPreferences$.tmdb.set(newConfig)
+        userPreferences$.accounts.tmdb.set(newConfig)
         this.logger.info('TMDB configuration saved (using env/defaults)')
         return {
           success: true,
@@ -227,7 +227,7 @@ export class TMDBAccountUseCase {
 
       // Validate custom configuration
       const originalConfig = { ...currentConfig }
-      userPreferences$.tmdb.set(newConfig)
+      userPreferences$.accounts.tmdb.set(newConfig)
 
       try {
         // Create temporary client to test the custom configuration
@@ -242,7 +242,7 @@ export class TMDBAccountUseCase {
 
         if (!testResult.success) {
           // Restore original configuration on failure
-          userPreferences$.tmdb.set(originalConfig)
+          userPreferences$.accounts.tmdb.set(originalConfig)
 
           this.logger.warn('TMDB custom configuration validation failed', {
             error: testResult.error,
@@ -263,7 +263,7 @@ export class TMDBAccountUseCase {
         }
       } catch (testError) {
         // Restore original configuration on error
-        userPreferences$.tmdb.set(originalConfig)
+        userPreferences$.accounts.tmdb.set(originalConfig)
 
         const err = testError instanceof Error ? testError : new Error(String(testError))
         this.logger.error('Error testing TMDB configuration', err)
@@ -291,7 +291,7 @@ export class TMDBAccountUseCase {
     try {
       this.logger.info('Resetting TMDB configuration to defaults')
 
-      userPreferences$.tmdb.set({
+      userPreferences$.accounts.tmdb.set({
         apiKey: '',
         baseURL: 'https://api.themoviedb.org/3',
         imageBaseURL: 'https://image.tmdb.org/t/p/',

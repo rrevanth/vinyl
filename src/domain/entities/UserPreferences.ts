@@ -1,12 +1,35 @@
-import type { StremioUserPreferences } from '../preferences/StremioPreferences'
-import { getDefaultStremioPreferences } from '../preferences/StremioPreferences'
+import type { StremioUserPreferences } from '@/src/domain/preferences/StremioPreferences'
+import { getDefaultStremioPreferences } from '@/src/domain/preferences/StremioPreferences'
 
-export interface TMDBConfig {
-  readonly apiKey: string
-  readonly baseURL: string
-  readonly imageBaseURL: string
-  readonly language: string
-  readonly region: string
+// ============================================================================
+// Merged Account Interfaces (Auth + Settings)
+// ============================================================================
+
+/**
+ * Merged Trakt account combining authentication tokens and settings
+ */
+export interface TraktAccount {
+  // Authentication fields (required when authenticated)
+  readonly username: string
+  readonly userId: string
+  readonly accessToken: string
+  readonly refreshToken: string
+  readonly expiresAt: number
+
+  // API Configuration (optional)
+  readonly clientId?: string
+  readonly clientSecret?: string
+  readonly redirectUri?: string
+  readonly baseUrl?: string
+
+  // Core Settings (optional)
+  readonly language?: string
+  readonly country?: string
+
+  // Feature Settings (optional)
+  readonly calendarSettings?: TraktCalendarSettings
+  readonly contentSettings?: TraktContentSettings
+  readonly advancedSettings?: TraktAdvancedSettings
 }
 
 export interface TraktCalendarSettings {
@@ -28,27 +51,30 @@ export interface TraktAdvancedSettings {
   readonly cacheTimeout?: number
 }
 
-export interface TraktConfig {
-  // API Configuration
-  readonly clientId?: string
-  readonly clientSecret?: string
-  readonly redirectUri?: string
-  readonly baseUrl?: string
+/**
+ * Merged TMDB account combining authentication and settings
+ */
+export interface TMDBAccount {
+  // Authentication fields (optional, future-ready)
+  readonly sessionId?: string
+  readonly accountId?: string
 
-  // Authentication (managed automatically)
-  readonly accessToken?: string
-  readonly refreshToken?: string
-  readonly tokenExpiresAt?: string
-
-  // Core Settings
-  readonly language?: string
-  readonly country?: string
-
-  // Feature Settings
-  readonly calendarSettings?: TraktCalendarSettings
-  readonly contentSettings?: TraktContentSettings
-  readonly advancedSettings?: TraktAdvancedSettings
+  // Settings (required)
+  readonly apiKey: string
+  readonly baseURL: string
+  readonly imageBaseURL: string
+  readonly language: string
+  readonly region: string
 }
+
+/**
+ * Stremio account (references existing StremioUserPreferences)
+ */
+export type StremioAccount = StremioUserPreferences
+
+// ============================================================================
+// User Preferences
+// ============================================================================
 
 export interface ProviderPriorities {
   readonly metadata: readonly ('tmdb' | 'trakt' | 'stremio')[]
@@ -57,7 +83,7 @@ export interface ProviderPriorities {
 
 export interface UIPreferences {
   readonly theme: 'light' | 'dark' | 'system'
-  readonly language: string
+  readonly locale: string
   readonly contentLanguage: string
   readonly autoplayTrailers: boolean
   readonly showAdultContent: boolean
@@ -75,15 +101,21 @@ export interface PlaybackPreferences {
 export interface UserPreferences {
   readonly version: number
   readonly updatedAt: number
-  readonly tmdb: TMDBConfig
-  readonly trakt: TraktConfig
-  readonly stremio: StremioUserPreferences
+  readonly accounts: {
+    readonly trakt?: TraktAccount
+    readonly tmdb?: TMDBAccount
+    readonly stremio?: StremioAccount
+  }
   readonly providerPriorities: ProviderPriorities
   readonly ui: UIPreferences
   readonly playback: PlaybackPreferences
 }
 
-export const createDefaultTMDBConfig = (): TMDBConfig => ({
+// ============================================================================
+// Default Creators
+// ============================================================================
+
+export const createDefaultTMDBAccount = (): TMDBAccount => ({
   apiKey: '', // To be configured by user
   baseURL: 'https://api.themoviedb.org/3',
   imageBaseURL: 'https://image.tmdb.org/t/p/',
@@ -91,8 +123,19 @@ export const createDefaultTMDBConfig = (): TMDBConfig => ({
   region: 'US',
 })
 
-export const createDefaultTraktConfig = (): TraktConfig => ({
-  // API Configuration - will be filled from environment
+export const createDefaultTraktAccount = (
+  authData: {
+    username: string
+    userId: string
+    accessToken: string
+    refreshToken: string
+    expiresAt: number
+  }
+): TraktAccount => ({
+  // Authentication (required)
+  ...authData,
+
+  // API Configuration
   clientId: '',
   clientSecret: '',
   redirectUri: '',
@@ -127,7 +170,7 @@ export const createDefaultProviderPriorities = (): ProviderPriorities => ({
 
 export const createDefaultUIPreferences = (): UIPreferences => ({
   theme: 'system',
-  language: 'en',
+  locale: 'en',
   contentLanguage: 'en-US',
   autoplayTrailers: true,
   showAdultContent: false,
@@ -145,9 +188,11 @@ export const createDefaultPlaybackPreferences = (): PlaybackPreferences => ({
 export const createDefaultUserPreferences = (): UserPreferences => ({
   version: 1,
   updatedAt: Date.now(),
-  tmdb: createDefaultTMDBConfig(),
-  trakt: createDefaultTraktConfig(),
-  stremio: getDefaultStremioPreferences(),
+  accounts: {
+    tmdb: createDefaultTMDBAccount(),
+    stremio: getDefaultStremioPreferences(),
+    // trakt is optional, only added when user authenticates
+  },
   providerPriorities: createDefaultProviderPriorities(),
   ui: createDefaultUIPreferences(),
   playback: createDefaultPlaybackPreferences(),

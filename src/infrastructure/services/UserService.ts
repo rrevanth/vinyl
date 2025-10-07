@@ -1,8 +1,7 @@
 import type { IUserService } from '../../domain/services/IUserService'
-import type { User, UserPreferences, TraktAccount } from '../../domain/entities'
+import type { User, UserPreferences } from '../../domain/entities'
 import {
   createAnonymousUser,
-  upgradeToAuthenticatedUser,
   updateLastActive,
   updateUserPreferences,
 } from '../../domain/entities'
@@ -10,7 +9,6 @@ import {
   userState$,
   userPreferences$,
   isAuthenticated$,
-  hasTraktAuth$,
 } from '../../presentation/shared/stores/app.store'
 
 export class UserService implements IUserService {
@@ -25,18 +23,14 @@ export class UserService implements IUserService {
     }
   }
 
-  async loginWithTrakt(traktAccount: TraktAccount): Promise<void> {
-    const currentUser = userState$.currentUser.get()
-    const authenticatedUser = upgradeToAuthenticatedUser(currentUser, {
-      trakt: traktAccount,
-    })
-
-    userState$.currentUser.set(authenticatedUser)
-  }
-
   async logout(): Promise<void> {
     const anonymousUser = createAnonymousUser()
     userState$.currentUser.set(anonymousUser)
+
+    // Clear account data from preferences
+    userPreferences$.accounts.trakt.set(undefined)
+    userPreferences$.accounts.tmdb.set(undefined)
+    userPreferences$.accounts.stremio.set(undefined)
   }
 
   async updatePreferences(preferences: Partial<UserPreferences>): Promise<void> {
@@ -60,6 +54,6 @@ export class UserService implements IUserService {
   }
 
   hasTraktAuth(): boolean {
-    return hasTraktAuth$.get()
+    return !!userPreferences$.accounts.trakt.get()
   }
 }

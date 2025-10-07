@@ -3,7 +3,6 @@ import { persistObservable, configureObservablePersistence } from '@legendapp/st
 import { ObservablePersistAsyncStorage } from '@legendapp/state/persist-plugins/async-storage'
 import { Appearance } from 'react-native'
 import { UnistylesRuntime } from 'react-native-unistyles'
-import * as Localization from 'expo-localization'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import type { User } from '../../../domain/entities'
 import {
@@ -26,9 +25,10 @@ configureObservablePersistence({
 export type ThemeMode = 'light' | 'dark' | 'system'
 export type { SupportedLocale }
 
-// App-wide state interface
+// App-wide state interface (reserved for future app-level state)
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface AppState {
-  locale: SupportedLocale
+  // Reserved for non-user-specific app state
 }
 
 // User state interface
@@ -39,17 +39,9 @@ interface UserState {
 // Constants
 const supportedLocales: SupportedLocale[] = ['en', 'es']
 
-// Helpers
-const getDeviceLocale = (): SupportedLocale => {
-  const locales = Localization.getLocales()
-  const deviceLocale = locales.length > 0 ? locales[0].languageCode : 'en'
-  const languageCode = deviceLocale?.split('-')[0].toLowerCase() as SupportedLocale
-  return supportedLocales.includes(languageCode) ? languageCode : 'en'
-}
-
 // Default state creators
 const createDefaultAppState = (): AppState => ({
-  locale: getDeviceLocale(),
+  // Reserved for future app-level state
 })
 
 const createDefaultUserState = (): UserState => ({
@@ -58,7 +50,7 @@ const createDefaultUserState = (): UserState => ({
 
 // === PERSISTED OBSERVABLES ===
 
-// App-wide state (locale, etc.)
+// App-wide state (reserved for future app-level state)
 export const appState$ = persistObservable(createDefaultAppState, {
   pluginLocal: ObservablePersistAsyncStorage,
   local: {
@@ -93,8 +85,8 @@ export const isAuthenticated$ = computed(() => {
 })
 
 export const hasTraktAuth$ = computed(() => {
-  const user = userState$.currentUser.get()
-  return addUserHelpers(user).hasTraktAuth
+  const traktAccount = userPreferences$.accounts.trakt.get()
+  return !!traktAccount && !!traktAccount.accessToken
 })
 
 // Theme computeds
@@ -109,9 +101,9 @@ export const effectiveTheme$ = computed(() => {
 })
 
 // Provider configurations (needed by infrastructure layer)
-export const tmdbConfig$ = computed(() => userPreferences$.tmdb.get())
-export const traktConfig$ = computed(() => userPreferences$.trakt.get())
-export const stremioConfig$ = computed(() => userPreferences$.stremio.get())
+export const tmdbConfig$ = computed(() => userPreferences$.accounts.tmdb.get())
+export const traktConfig$ = computed(() => userPreferences$.accounts.trakt.get())
+export const stremioConfig$ = computed(() => userPreferences$.accounts.stremio.get())
 
 // === ACTIONS ===
 
@@ -122,7 +114,7 @@ export const setLocale = (locale: SupportedLocale) => {
       `Unsupported locale: ${locale}. Supported locales: ${supportedLocales.join(', ')}`
     )
   }
-  appState$.locale.set(locale)
+  userPreferences$.ui.locale.set(locale)
 }
 
 export const getSupportedLocales = (): SupportedLocale[] => [...supportedLocales]

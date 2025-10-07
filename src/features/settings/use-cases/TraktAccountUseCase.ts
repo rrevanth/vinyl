@@ -1,7 +1,7 @@
 import type { TraktClient } from '@/src/infrastructure/api/trakt/TraktClient'
 import type { ILoggingService } from '@/src/domain/services/ILoggingService'
-import type { User, TraktAccount } from '@/src/domain/entities/User'
-import { userState$ } from '@/src/presentation/shared/stores/app.store'
+import type { TraktAccount } from '@/src/domain/entities/UserPreferences'
+import { userPreferences$ } from '@/src/presentation/shared/stores/app.store'
 import { DomainError } from '@/src/domain/errors'
 
 /**
@@ -56,7 +56,7 @@ export class TraktAccountUseCase {
 
   /**
    * Handle OAuth callback by exchanging authorization code for access token
-   * Updates userState$ with Trakt account information
+   * Updates userPreferences$ with Trakt account information
    * Returns AuthResult instead of throwing errors
    */
   async handleCallback(code: string, state?: string): Promise<AuthResult> {
@@ -84,19 +84,8 @@ export class TraktAccountUseCase {
         expiresAt: Date.now() + tokenResponse.expires_in * 1000,
       }
 
-      // Update user state with Trakt account
-      const currentUser = userState$.currentUser.get()
-      const updatedUser: User = {
-        ...currentUser,
-        authState: 'authenticated',
-        account: {
-          ...currentUser.account,
-          trakt: traktAccount,
-        },
-        lastActiveAt: Date.now(),
-      }
-
-      userState$.currentUser.set(updatedUser)
+      // Update user preferences with Trakt account
+      userPreferences$.accounts.trakt.set(traktAccount)
 
       this.logger.info('Trakt account connected successfully', {
         username: traktAccount.username,
@@ -120,21 +109,8 @@ export class TraktAccountUseCase {
       // Revoke token with Trakt API
       await this.traktClient.revokeToken()
 
-      // Update user state to remove Trakt account
-      const currentUser = userState$.currentUser.get()
-      const updatedUser: User = {
-        ...currentUser,
-        authState: currentUser.account?.trakt ? 'anonymous' : currentUser.authState,
-        account: currentUser.account
-          ? {
-              ...currentUser.account,
-              trakt: undefined,
-            }
-          : null,
-        lastActiveAt: Date.now(),
-      }
-
-      userState$.currentUser.set(updatedUser)
+      // Remove Trakt account from user preferences
+      userPreferences$.accounts.trakt.set(undefined)
 
       this.logger.info('Trakt account disconnected successfully')
       return { success: true }
@@ -148,15 +124,15 @@ export class TraktAccountUseCase {
   /**
    * Check if user has connected Trakt account
    */
-  isConnected(user: User): boolean {
-    return Boolean(user.account?.trakt)
+  isConnected(): boolean {
+    return !!userPreferences$.accounts.trakt.get()
   }
 
   /**
    * Get Trakt account information if available
    */
-  getAccountInfo(user: User): TraktAccount | undefined {
-    return user.account?.trakt
+  getAccountInfo(): TraktAccount | undefined {
+    return userPreferences$.accounts.trakt.get()
   }
 
   /**
@@ -184,10 +160,9 @@ export class TraktAccountUseCase {
         return { success: false, error: errorMsg }
       }
 
-      // Get the updated configuration with new tokens from userPreferences$
+      // Get the updated account with new tokens from userPreferences$
       // (TraktClient updates this automatically during refresh)
-      const currentUser = userState$.currentUser.get()
-      const currentAccount = currentUser.account?.trakt
+      const currentAccount = userPreferences$.accounts.trakt.get()
 
       if (!currentAccount) {
         const errorMsg = 'Trakt account not found after refresh'
@@ -221,26 +196,17 @@ export class TraktAccountUseCase {
   }
 
   /**
-   * Get current user from state
-   */
-  getCurrentUser(): User {
-    return userState$.currentUser.get()
-  }
-
-  /**
    * Check if current user is connected to Trakt
    */
   isCurrentUserConnected(): boolean {
-    const user = this.getCurrentUser()
-    return this.isConnected(user)
+    return this.isConnected()
   }
 
   /**
    * Get current user's Trakt account info
    */
   getCurrentAccountInfo(): TraktAccount | undefined {
-    const user = this.getCurrentUser()
-    return this.getAccountInfo(user)
+    return this.getAccountInfo()
   }
-
 }
+

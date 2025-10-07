@@ -1,7 +1,7 @@
 import { useCallback, useState, useMemo } from 'react'
 import * as WebBrowser from 'expo-web-browser'
 import { randomUUID } from 'expo-crypto'
-import { userState$ } from '@/src/presentation/shared/stores/app.store'
+import { userPreferences$ } from '@/src/presentation/shared/stores/app.store'
 import {
   oauthState$,
   setPendingOAuthState,
@@ -12,7 +12,7 @@ import { useService } from '@/src/infrastructure/di/useService'
 import { TOKENS } from '@/src/infrastructure/di/tokens'
 import type { TraktClient } from '@/src/infrastructure/api/trakt/TraktClient'
 import type { ILoggingService } from '@/src/domain/services/ILoggingService'
-import type { TraktAccount } from '@/src/domain/entities/User'
+import type { TraktAccount } from '@/src/domain/entities/UserPreferences'
 
 /**
  * Simplified hook for Trakt account OAuth management
@@ -51,11 +51,10 @@ export const useTraktAccount = () => {
   const [error, setError] = useState<string | null>(null)
 
   // Reactive state from Legend State
-  const currentUser = userState$.currentUser.get()
+  const account = userPreferences$.accounts.trakt.get()
 
   // Computed values
-  const isConnected = traktUseCase.isConnected(currentUser)
-  const account = traktUseCase.getAccountInfo(currentUser)
+  const isConnected = traktUseCase.isConnected()
 
   /**
    * Start OAuth authentication flow
@@ -259,6 +258,5 @@ export const useTraktAccount = () => {
  * Use this when you only need to read the account without mutation functions
  */
 export const useTraktAccountInfo = (): TraktAccount | undefined => {
-  const currentUser = userState$.currentUser.get()
-  return currentUser.account?.trakt
+  return userPreferences$.accounts.trakt.get()
 }

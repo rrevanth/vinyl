@@ -1,12 +1,12 @@
 import type { IEnvironmentService } from '../../domain/services/IEnvironmentService'
-import type { TraktConfig } from '../../domain/entities/UserPreferences'
+import type { TraktAccount } from '../../domain/entities/UserPreferences'
 import { InfrastructureError } from '../errors/InfrastructureError'
 
 /**
  * Effective Trakt configuration with resolved values
- * Extends base TraktConfig with metadata about configuration source
+ * Extends base TraktAccount with metadata about configuration source
  */
-export interface EffectiveTraktConfig extends TraktConfig {
+export interface EffectiveTraktConfig extends TraktAccount {
   readonly effectiveClientId: string
   readonly effectiveClientSecret: string
   readonly effectiveRedirectUri: string
@@ -21,7 +21,7 @@ export interface EffectiveTraktConfig extends TraktConfig {
 /**
  * Factory for creating effective Trakt configuration
  *
- * Implements configuration hierarchy: User Preferences > Environment Variables > Defaults
+ * Implements configuration hierarchy: User Account > Environment Variables > Defaults
  * Provides fallback configuration to ensure Trakt client always has valid settings.
  * Handles OAuth token validation and expiration detection.
  */
@@ -29,38 +29,38 @@ export class TraktConfigFactory {
   constructor(private readonly envService: IEnvironmentService) {}
 
   /**
-   * Create effective Trakt configuration from user preferences
+   * Create effective Trakt configuration from user account
    *
    * Configuration priority:
-   * 1. User Preferences (if configured in UserPreferences)
+   * 1. User Account (if configured in UserPreferences.accounts.trakt)
    * 2. Environment Variables (EXPO_PUBLIC_TRAKT_*)
    * 3. Default Values (for basic functionality)
    */
-  createEffectiveConfig(userConfig?: TraktConfig): EffectiveTraktConfig {
+  createEffectiveConfig(userAccount?: TraktAccount): EffectiveTraktConfig {
     // Get effective values with hierarchy
-    const effectiveClientId = userConfig?.clientId || this.envService.getTraktClientId() || ''
+    const effectiveClientId = userAccount?.clientId || this.envService.getTraktClientId() || ''
     const effectiveClientSecret =
-      userConfig?.clientSecret || this.envService.getTraktClientSecret() || ''
+      userAccount?.clientSecret || this.envService.getTraktClientSecret() || ''
     const effectiveRedirectUri =
-      userConfig?.redirectUri || this.envService.get('TRAKT_REDIRECT_URI', 'vnyl://auth/trakt/callback')
+      userAccount?.redirectUri || this.envService.get('TRAKT_REDIRECT_URI', 'vnyl://auth/trakt/callback')
     const effectiveBaseUrl =
-      userConfig?.baseUrl || this.envService.get('TRAKT_BASE_URL', 'https://api.trakt.tv')
-    const effectiveLanguage = userConfig?.language || 'en-US'
-    const effectiveCountry = userConfig?.country || 'US'
+      userAccount?.baseUrl || this.envService.get('TRAKT_BASE_URL', 'https://api.trakt.tv')
+    const effectiveLanguage = userAccount?.language || 'en-US'
+    const effectiveCountry = userAccount?.country || 'US'
 
     // Determine configuration source
-    const configSource: 'user' | 'env' | 'default' = userConfig?.clientId
+    const configSource: 'user' | 'env' | 'default' = userAccount?.clientId
       ? 'user'
       : this.envService.getTraktClientId()
         ? 'env'
         : 'default'
 
     // Check token validity
-    const hasValidTokens = this.hasValidTokens(userConfig)
+    const hasValidTokens = this.hasValidTokens(userAccount)
     const needsAuthentication = !hasValidTokens || !effectiveClientId || !effectiveClientSecret
 
     return {
-      ...userConfig,
+      ...userAccount,
       effectiveClientId,
       effectiveClientSecret,
       effectiveRedirectUri,
@@ -70,7 +70,7 @@ export class TraktConfigFactory {
       configSource,
       hasValidTokens,
       needsAuthentication,
-    }
+    } as EffectiveTraktConfig
   }
 
   /**
@@ -115,8 +115,8 @@ export class TraktConfigFactory {
    * Check if authentication is required
    * Returns true if no valid tokens or client credentials are missing
    */
-  isAuthenticationRequired(config?: TraktConfig): boolean {
-    const effective = this.createEffectiveConfig(config)
+  isAuthenticationRequired(account?: TraktAccount): boolean {
+    const effective = this.createEffectiveConfig(account)
     return effective.needsAuthentication
   }
 
@@ -151,17 +151,17 @@ export class TraktConfigFactory {
   /**
    * Check if tokens are valid and not expired
    */
-  private hasValidTokens(config?: TraktConfig): boolean {
-    if (!config?.accessToken || !config?.refreshToken) {
+  private hasValidTokens(account?: TraktAccount): boolean {
+    if (!account?.accessToken || !account?.refreshToken) {
       return false
     }
 
-    // Check if token is expired
-    if (config.tokenExpiresAt) {
-      const expiresAt = new Date(config.tokenExpiresAt)
-      const now = new Date()
+    // Check if token is expired (expiresAt is a timestamp)
+    if (account.expiresAt) {
+      const expiresAt = account.expiresAt
+      const now = Date.now()
       const bufferMinutes = 5 // Refresh 5 minutes before expiration
-      const bufferTime = new Date(now.getTime() + bufferMinutes * 60 * 1000)
+      const bufferTime = now + bufferMinutes * 60 * 1000
 
       if (expiresAt <= bufferTime) {
         return false // Token expired or about to expire
@@ -175,40 +175,40 @@ export class TraktConfigFactory {
    * Check if token needs refresh
    * Returns true if token exists but will expire soon
    */
-  needsTokenRefresh(config?: TraktConfig): boolean {
-    if (!config?.accessToken || !config?.refreshToken) {
+  needsTokenRefresh(account?: TraktAccount): boolean {
+    if (!account?.accessToken || !account?.refreshToken) {
       return false
     }
 
-    if (!config.tokenExpiresAt) {
+    if (!account.expiresAt) {
       return false // No expiration info
     }
 
-    const expiresAt = new Date(config.tokenExpiresAt)
-    const now = new Date()
+    const expiresAt = account.expiresAt
+    const now = Date.now()
     const refreshThreshold = 60 // Refresh 60 minutes before expiration
-    const refreshTime = new Date(now.getTime() + refreshThreshold * 60 * 1000)
+    const refreshTime = now + refreshThreshold * 60 * 1000
 
     return expiresAt <= refreshTime
   }
 
   /**
-   * Create updated config with new tokens
+   * Create updated account with new tokens
    * Helper for updating configuration after OAuth operations
    */
   updateConfigWithTokens(
-    config: TraktConfig,
+    account: TraktAccount,
     accessToken: string,
     refreshToken: string,
     expiresIn: number
-  ): TraktConfig {
-    const expiresAt = new Date(Date.now() + expiresIn * 1000).toISOString()
+  ): TraktAccount {
+    const expiresAt = Date.now() + expiresIn * 1000
 
     return {
-      ...config,
+      ...account,
       accessToken,
       refreshToken,
-      tokenExpiresAt: expiresAt,
+      expiresAt,
     }
   }
 }

@@ -9,7 +9,7 @@ import { SettingsPickerRow } from '@/src/features/settings/components/atoms/Sett
 import { ConnectionStatus } from '@/src/features/settings/components/atoms/ConnectionStatus'
 import { useTMDBAccount } from '@/src/features/settings/hooks/useTMDBAccount'
 import { t } from '@/src/presentation/shared/i18n'
-import type { TMDBConfig } from '@/src/domain/entities/UserPreferences'
+import type { TMDBAccount } from '@/src/domain/entities/UserPreferences'
 
 const TMDB_LANGUAGE_OPTIONS = [
   { label: 'English', value: 'en-US' },
@@ -100,7 +100,7 @@ const TMDBSettingsScreen = observer(() => {
     isValidating$.set(true)
 
     // Build config to validate
-    const configToValidate: Partial<TMDBConfig> = {
+    const configToValidate: Partial<TMDBAccount> = {
       apiKey: pendingChanges$.apiKey.isCustom.get() ? pendingChanges$.apiKey.value.get() : '',
       baseURL: pendingChanges$.baseURL.isCustom.get()
         ? pendingChanges$.baseURL.value.get()

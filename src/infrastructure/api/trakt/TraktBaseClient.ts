@@ -1,7 +1,7 @@
 import { HttpClient } from '../../http/HttpClient'
 import type { ILoggingService } from '../../../domain/services/ILoggingService'
 import type { TraktConfigFactory, EffectiveTraktConfig } from '../../factories/TraktConfigFactory'
-import { traktConfig$, userPreferences$ } from '../../../presentation/shared/stores/app.store'
+import { userPreferences$ } from '../../../presentation/shared/stores/app.store'
 import { NotFoundError, UnauthorizedError } from '../../../domain/errors'
 import { NetworkError } from '../../errors'
 import type {
@@ -49,11 +49,11 @@ export class TraktBaseClient {
    * Called on initialization and when preferences change
    */
   private reloadConfiguration(): void {
-    // Get current user preferences for Trakt
-    const userConfig = traktConfig$.get()
+    // Get current user account for Trakt from preferences
+    const userAccount = userPreferences$.accounts.trakt.get()
 
     // Create effective configuration with fallbacks
-    this.currentConfig = this.configFactory.createEffectiveConfig(userConfig)
+    this.currentConfig = this.configFactory.createEffectiveConfig(userAccount)
 
     // Validate configuration
     this.configFactory.validateConfig(this.currentConfig)
@@ -95,8 +95,8 @@ export class TraktBaseClient {
    * Automatically reloads when user preferences change
    */
   private setupConfigurationWatcher(): void {
-    this.configSubscription = traktConfig$.onChange(() => {
-      this.logger.debug('Trakt user preferences changed, reloading configuration')
+    this.configSubscription = userPreferences$.accounts.trakt.onChange(() => {
+      this.logger.debug('Trakt user account changed, reloading configuration')
       this.reloadConfiguration()
     })
   }
@@ -151,8 +151,8 @@ export class TraktBaseClient {
         refreshRequest
       )
 
-      // Update configuration with new tokens
-      const updatedConfig = this.configFactory.updateConfigWithTokens(
+      // Update account with new tokens
+      const updatedAccount = this.configFactory.updateConfigWithTokens(
         this.currentConfig,
         tokenResponse.access_token,
         tokenResponse.refresh_token,
@@ -160,10 +160,10 @@ export class TraktBaseClient {
       )
 
       // Update user preferences store
-      userPreferences$.trakt.set(updatedConfig)
+      userPreferences$.accounts.trakt.set(updatedAccount)
 
       // Update current access token for immediate use
-      this.currentAccessToken = updatedConfig.accessToken || null
+      this.currentAccessToken = updatedAccount.accessToken || null
 
       this.logger.info('Trakt access token refreshed successfully')
     } catch (err) {
@@ -198,8 +198,8 @@ export class TraktBaseClient {
         tokenRequest
       )
 
-      // Update configuration with new tokens
-      const updatedConfig = this.configFactory.updateConfigWithTokens(
+      // Update account with new tokens
+      const updatedAccount = this.configFactory.updateConfigWithTokens(
         this.currentConfig,
         tokenResponse.access_token,
         tokenResponse.refresh_token,
@@ -207,10 +207,10 @@ export class TraktBaseClient {
       )
 
       // Update user preferences store
-      userPreferences$.trakt.set(updatedConfig)
+      userPreferences$.accounts.trakt.set(updatedAccount)
 
       // Update current access token for immediate use
-      this.currentAccessToken = updatedConfig.accessToken || null
+      this.currentAccessToken = updatedAccount.accessToken || null
 
       this.logger.info('Trakt OAuth flow completed successfully')
       return tokenResponse
@@ -254,8 +254,8 @@ export class TraktBaseClient {
         request
       )
 
-      // Update configuration with new tokens
-      const updatedConfig = this.configFactory.updateConfigWithTokens(
+      // Update account with new tokens
+      const updatedAccount = this.configFactory.updateConfigWithTokens(
         this.currentConfig,
         tokenResponse.access_token,
         tokenResponse.refresh_token,
@@ -263,10 +263,10 @@ export class TraktBaseClient {
       )
 
       // Update user preferences store
-      userPreferences$.trakt.set(updatedConfig)
+      userPreferences$.accounts.trakt.set(updatedAccount)
 
       // Update current access token for immediate use
-      this.currentAccessToken = updatedConfig.accessToken || null
+      this.currentAccessToken = updatedAccount.accessToken || null
 
       this.logger.info('Trakt device authentication completed successfully')
       return tokenResponse
@@ -291,16 +291,16 @@ export class TraktBaseClient {
         client_secret: this.currentConfig.effectiveClientSecret,
       })
 
-      // Clear tokens from configuration
-      const clearedConfig = {
+      // Clear tokens from account
+      const clearedAccount = {
         ...this.currentConfig,
-        accessToken: undefined,
-        refreshToken: undefined,
-        tokenExpiresAt: undefined,
+        accessToken: '',
+        refreshToken: '',
+        expiresAt: 0,
       }
 
       // Update user preferences store
-      userPreferences$.trakt.set(clearedConfig)
+      userPreferences$.accounts.trakt.set(clearedAccount)
 
       // Clear current access token
       this.currentAccessToken = null

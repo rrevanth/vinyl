@@ -6,7 +6,7 @@ import { TOKENS } from '@/src/infrastructure/di/tokens'
 import type { TMDBClient } from '@/src/infrastructure/api/tmdb/TMDBClient'
 import type { ILoggingService } from '@/src/domain/services/ILoggingService'
 import type { IEnvironmentService } from '@/src/domain/services/IEnvironmentService'
-import type { TMDBConfig } from '@/src/domain/entities/UserPreferences'
+import type { TMDBAccount } from '@/src/domain/entities/UserPreferences'
 
 /**
  * Hook for TMDB account management
@@ -41,7 +41,7 @@ export const useTMDBAccount = () => {
   )
 
   // Reactive TMDB config from Legend State
-  const config = userPreferences$.tmdb.get()
+  const config = userPreferences$.accounts.tmdb.get()!
 
   // Setter functions
   const setApiKey = useCallback(
@@ -83,7 +83,7 @@ export const useTMDBAccount = () => {
     return tmdbUseCase.validateConnection()
   }, [tmdbUseCase])
 
-  const validateAndSave = useCallback(async (config: Partial<TMDBConfig>) => {
+  const validateAndSave = useCallback(async (config: Partial<TMDBAccount>) => {
     return tmdbUseCase.validateAndSave(config)
   }, [tmdbUseCase])
 
@@ -118,6 +118,6 @@ export const useTMDBAccount = () => {
  * Hook for getting TMDB config only (read-only)
  * Use this when you only need to read the config without mutation functions
  */
-export const useTMDBConfig = (): TMDBConfig => {
-  return userPreferences$.tmdb.get()
+export const useTMDBConfig = (): TMDBAccount => {
+  return userPreferences$.accounts.tmdb.get()!
 }
