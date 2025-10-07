@@ -49,6 +49,10 @@ export class UserService implements IUserService {
     return userState$.currentUser.get()
   }
 
+  getCurrentUserPreferences(): UserPreferences {
+    return userPreferences$.get()
+  }
+
   isAuthenticated(): boolean {
     return isAuthenticated$.get()
   }

@@ -1,39 +1,16 @@
-# VNYL Development Guide for Coding Agents
+# Repository Guidelines
 
-## Build Commands
+## Project Structure & Module Organization
+`src/app` hosts Expo Router screens and navigation layouts. Core domain logic stays in `src/domain` (entities, DTOs, use cases), while adapters and external integrations live in `src/infrastructure`. Presentation hooks, stores, and shared UI utilities sit in `src/presentation`, and vertically sliced features compose under `src/features`. Assets needed by Expo move to `assets/`, design references in `designs/`, and automation scripts in `scripts/`. Keep tests adjacent to the code they cover using `*.spec.ts` or `*.test.tsx` naming.
 
-- **Validate**: `bun typecheck && bun lint` (REQUIRED after every change)
-- **Auto-fix**: `bun lint --fix && prettier --write "src/app/**/*.{ts,tsx,js,jsx}"`
-- **Run**: `bun start` | `bun android` | `bun ios` | `bun web`
-- **Package Manager**: Use `bun` for all commands (not npm/yarn)
+## Build, Test, and Development Commands
+Use bun for every script: `bun run start` launches Expo locally, while `bun run android`, `bun run ios`, and `bun run web` target specific platforms. Validate TypeScript and linting together with `bun run validate`. Quick checks rely on `bun typecheck && bun lint`, and `bun run validate:fix` applies ESLint fixes and Prettier formatting. If the workspace drifts, execute `bun run reset-project` to restore Expo caches.
 
-## Code Style & Standards
+## Coding Style & Naming Conventions
+TypeScript strict mode is enforced—avoid `any` and casts that hide type issues. Imports for internal modules must use the `@/` alias (for example, `@/src/domain/entities/User`). Follow the Prettier profile (single quotes, no semicolons, 2 spaces, 100 char line width). Compose UI with React Native primitives plus Unistyles `createStyleSheet` and `useStyles`. Manage local UI state through Legend State and server data via TanStack Query. Domain interfaces use an `I` prefix, while errors extend the relevant Domain or Infrastructure base class.
 
-- **Imports**: Always use `@/` prefix for internal modules (`import { User } from '@/src/domain/entities/User'`)
-- **Components**: React Native primitives only (View, Text, Pressable) - NO external UI libraries
-- **Styling**: Use Unistyles (`createStyleSheet`, `useStyles`) for theming, never StyleSheet.create()
-- **State**: Legend State for UI/app state, TanStack Query for server state
-- **Types**: TypeScript strict mode - never use `any`, avoid `@ts-ignore`
-- **Formatting**: Prettier config: single quotes, no semicolons, 100 char width, 2 spaces
+## Testing Guidelines
+There is no dedicated automated suite yet; write colocated tests when adding coverage, and name them after the file under test. Always run `bun run validate` before opening a PR, and record manual validation steps in the PR body when automated coverage is missing.
 
-## Architecture (CLEAN)
-
-- **Domain**: Business entities, interfaces (`I` prefix), use cases, domain errors
-- **Infrastructure**: Implementations (no `Impl` suffix), HTTP clients, storage, DI container
-- **Presentation**: React components, screens, feature stores, hooks
-- **DI Pattern**: All services via container, use `useService<IService>(TOKENS.Service)` in components
-
-## Error Handling & Validation
-
-- **Validation Gate**: Run `bun typecheck && bun lint` after EVERY change
-- **Errors**: Domain errors extend DomainError, Infrastructure errors extend InfrastructureError
-- **Never**: Skip validation, disable ESLint rules, or use type assertions to bypass errors
-- **Fix Properly**: Address root cause, don't suppress with ignore comments
-
-## Key Patterns
-
-- Pass complete objects (not IDs) between layers and navigation
-- Use Legend Motion for animations, Legend List for virtualized lists
-- All text via i18n keys (snake_case), no hardcoded strings
-- Accessibility props required on interactive elements
-- 44pt minimum touch targets
+## Commit & Pull Request Guidelines
+Commit messages follow `<type>: <imperative summary>` using types such as `feat`, `fix`, `refactor`, or `style`. Keep scope focused and include only reviewed files. PRs must describe the change, link to issues or product requirements, attach screenshots for UI work, and note validation commands. Ensure reviewers can replay steps with `bun run validate` before requesting approval.

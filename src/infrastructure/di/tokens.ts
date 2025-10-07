@@ -31,5 +31,14 @@ export const TOKENS = {
   // Provider Registry
   ProviderRegistry: Symbol('ProviderRegistry'),
 
+  // Homescreen use cases
+  GetHeroItemsUseCase: Symbol('GetHeroItemsUseCase'),
+  GetHomescreenDataUseCase: Symbol('GetHomescreenDataUseCase'),
+  GetAvailableCatalogsUseCase: Symbol('GetAvailableCatalogsUseCase'),
+  LoadMoreCatalogItemsUseCase: Symbol('LoadMoreCatalogItemsUseCase'),
+  ManageCatalogUseCase: Symbol('ManageCatalogUseCase'),
+  UpdateHomescreenPreferencesUseCase: Symbol('UpdateHomescreenPreferencesUseCase'),
+  RefreshHomescreenUseCase: Symbol('RefreshHomescreenUseCase'),
+
   // Add more as needed
 } as const

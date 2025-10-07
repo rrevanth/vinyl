@@ -8,7 +8,21 @@
   "home": {
     "title": "Welcome to VNYL",
     "subtitle": "Your complete media discovery platform",
-    "description": "Powered by TMDB and Stremio - discover movies, TV shows, and streaming options all in one place."
+    "description": "Powered by TMDB and Stremio - discover movies, TV shows, and streaming options all in one place.",
+    "loading": "Loading your homescreen...",
+    "refresh_label": "Refreshing",
+    "hero_label": "Featured",
+    "hero_card_accessibility": "Open details for {title}",
+    "missing_artwork": "Artwork coming soon",
+    "continue_watching_title": "Continue watching",
+    "continue_watching_subtitle": "Pick up right where you left off",
+    "continue_watching_accessibility": "Resume {title}",
+    "continue_watching_progress": "{progress}% complete",
+    "catalog_customize": "Customize",
+    "catalog_customize_accessibility": "Customize the {name} catalog",
+    "empty_state_title": "Nothing to show yet",
+    "empty_state_subtitle": "Connect your providers to populate the homescreen.",
+    "error_title": "Unable to refresh homescreen"
   },
   "search": {
     "title": "Search",
@@ -213,6 +227,34 @@
       "subtitles": "Subtitles",
       "loading_addons": "Loading addons...",
       "no_addons_match_filter": "No addons match your filters"
+    },
+    "homescreen": {
+      "title": "Homescreen",
+      "subtitle": "Personalize the hero section and layout for your home feed.",
+      "hero_section_title": "Hero Section",
+      "hero_section_description": "Control the large carousel at the top of your homescreen.",
+      "hero_enabled_label": "Show hero carousel",
+      "hero_auto_rotate_label": "Auto-rotate featured items",
+      "hero_auto_rotate_hint": "Disable to keep the first item pinned.",
+      "layout_section_title": "Layout",
+      "layout_section_description": "Tune how rows render across the homescreen.",
+      "show_continue_watching_label": "Show Continue Watching row",
+      "compact_mode_label": "Use compact grid",
+      "compact_mode_hint": "Reduces spacing for denser poster grids.",
+      "manage_catalogs_label": "Manage catalogs",
+      "manage_catalogs_description": "{count} catalogs currently enabled."
+    },
+    "catalogs": {
+      "title": "Catalogs",
+      "subtitle": "Choose which provider catalogs appear on the homescreen.",
+      "refresh_label": "Refreshing",
+      "loading": "Loading catalogs...",
+      "error_title": "We couldn’t load catalogs",
+      "catalog_section_title": "Catalog Selection",
+      "catalog_section_description": "Enable the catalogs you want to feature on the homescreen.",
+      "catalog_toggle_accessibility": "Toggle the {name} catalog",
+      "empty_state_title": "No catalogs available",
+      "empty_state_subtitle": "Connect providers like TMDB, Trakt, or Stremio to see more content."
     }
   }
 }

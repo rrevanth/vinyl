@@ -19,6 +19,14 @@ const SettingsScreen = observer(() => {
     router.push('/settings/accounts')
   }
 
+  const navigateToHomescreen = () => {
+    router.push('/settings/homescreen')
+  }
+
+  const navigateToCatalogs = () => {
+    router.push('/settings/catalogs')
+  }
+
   const navigateToStremio = () => {
     router.push('/settings/stremio')
   }
@@ -51,6 +59,18 @@ const SettingsScreen = observer(() => {
           title={t('settings.accounts.title')}
           description="Manage external service connections"
           onPress={navigateToAccounts}
+        />
+        <SettingsNavigationRow
+          iconName="home-outline"
+          title={t('settings.homescreen.title')}
+          description={t('settings.homescreen.subtitle')}
+          onPress={navigateToHomescreen}
+        />
+        <SettingsNavigationRow
+          iconName="albums-outline"
+          title={t('settings.catalogs.title')}
+          description={t('settings.catalogs.subtitle')}
+          onPress={navigateToCatalogs}
         />
         <SettingsNavigationRow
           iconName="extension-puzzle-outline"

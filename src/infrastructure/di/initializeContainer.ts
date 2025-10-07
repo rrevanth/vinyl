@@ -21,6 +21,14 @@ import type { IStorageService } from '../../domain/services/IStorageService'
 import type { ILoggingService } from '../../domain/services/ILoggingService'
 import type { IEnvironmentService } from '../../domain/services/IEnvironmentService'
 import type { IProviderRegistry } from '../../domain/providers/IProviderRegistry'
+import type { IUserService } from '../../domain/services/IUserService'
+import { GetHeroItemsUseCase } from '@/src/domain/use-cases/homescreen/GetHeroItemsUseCase'
+import { GetHomescreenDataUseCase } from '@/src/domain/use-cases/homescreen/GetHomescreenDataUseCase'
+import { LoadMoreCatalogItemsUseCase } from '@/src/domain/use-cases/homescreen/LoadMoreCatalogItemsUseCase'
+import { ManageCatalogUseCase } from '@/src/domain/use-cases/homescreen/ManageCatalogUseCase'
+import { UpdateHomescreenPreferencesUseCase } from '@/src/domain/use-cases/homescreen/UpdateHomescreenPreferencesUseCase'
+import { RefreshHomescreenUseCase } from '@/src/domain/use-cases/homescreen/RefreshHomescreenUseCase'
+import { GetAvailableCatalogsUseCase } from '@/src/domain/use-cases/homescreen/GetAvailableCatalogsUseCase'
 
 export function initializeContainer(): void {
   // Register core services
@@ -34,6 +42,7 @@ export function initializeContainer(): void {
   const environment = container.resolve<IEnvironmentService>(TOKENS.EnvironmentService)
 
   container.register(TOKENS.UserService, () => new UserService())
+  const userService = container.resolve<IUserService>(TOKENS.UserService)
 
   // Register Stremio-specific HTTP Client (no baseURL for absolute URLs)
   container.register(
@@ -114,6 +123,44 @@ export function initializeContainer(): void {
         logger
       )
   )
+
+  // Homescreen use cases
+  container.register(
+    TOKENS.GetHeroItemsUseCase,
+    () => new GetHeroItemsUseCase(providerRegistry, userService, logger)
+  )
+
+  container.register(
+    TOKENS.GetHomescreenDataUseCase,
+    () => new GetHomescreenDataUseCase(providerRegistry, userService, logger)
+  )
+
+  container.register(
+    TOKENS.GetAvailableCatalogsUseCase,
+    () => new GetAvailableCatalogsUseCase(providerRegistry, logger)
+  )
+
+  container.register(
+    TOKENS.LoadMoreCatalogItemsUseCase,
+    () => new LoadMoreCatalogItemsUseCase(providerRegistry, logger)
+  )
+
+  container.register(
+    TOKENS.ManageCatalogUseCase,
+    () => new ManageCatalogUseCase(userService, providerRegistry, logger)
+  )
+
+  container.register(
+    TOKENS.UpdateHomescreenPreferencesUseCase,
+    () => new UpdateHomescreenPreferencesUseCase(userService, logger)
+  )
+
+  container.register(TOKENS.RefreshHomescreenUseCase, () => {
+    const getHomescreenDataUseCase = container.resolve<GetHomescreenDataUseCase>(
+      TOKENS.GetHomescreenDataUseCase
+    )
+    return new RefreshHomescreenUseCase(getHomescreenDataUseCase, userService, logger)
+  })
 }
 
 // Auto-initialize on import (optional, can call manually in _layout.tsx)

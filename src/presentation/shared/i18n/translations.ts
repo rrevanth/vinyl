@@ -14,6 +14,20 @@ interface Translations {
     title: string
     subtitle: string
     description: string
+    loading: string
+    refresh_label: string
+    hero_label: string
+    hero_card_accessibility: string
+    missing_artwork: string
+    continue_watching_title: string
+    continue_watching_subtitle: string
+    continue_watching_accessibility: string
+    continue_watching_progress: string
+    catalog_customize: string
+    catalog_customize_accessibility: string
+    empty_state_title: string
+    empty_state_subtitle: string
+    error_title: string
   }
   search: {
     title: string
@@ -218,6 +232,34 @@ interface Translations {
       subtitles: string
       loading_addons: string
       no_addons_match_filter: string
+    }
+    homescreen: {
+      title: string
+      subtitle: string
+      hero_section_title: string
+      hero_section_description: string
+      hero_enabled_label: string
+      hero_auto_rotate_label: string
+      hero_auto_rotate_hint: string
+      layout_section_title: string
+      layout_section_description: string
+      show_continue_watching_label: string
+      compact_mode_label: string
+      compact_mode_hint: string
+      manage_catalogs_label: string
+      manage_catalogs_description: string
+    }
+    catalogs: {
+      title: string
+      subtitle: string
+      refresh_label: string
+      loading: string
+      error_title: string
+      catalog_section_title: string
+      catalog_section_description: string
+      catalog_toggle_accessibility: string
+      empty_state_title: string
+      empty_state_subtitle: string
     }
   }
 }

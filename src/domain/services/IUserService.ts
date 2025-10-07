@@ -32,6 +32,12 @@ export interface IUserService {
   getCurrentUser(): User
 
   /**
+   * Get current user preferences (reactive)
+   * Returns the persisted preferences object managed separately from user entity
+   */
+  getCurrentUserPreferences(): UserPreferences
+
+  /**
    * Check if user is authenticated
    */
   isAuthenticated(): boolean

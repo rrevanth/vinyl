@@ -8,7 +8,21 @@
   "home": {
     "title": "Bienvenido a VNYL",
     "subtitle": "Tu plataforma completa de descubrimiento de medios",
-    "description": "Impulsado por TMDB y Stremio: descubre películas, programas de TV y opciones de streaming en un solo lugar."
+    "description": "Impulsado por TMDB y Stremio: descubre películas, programas de TV y opciones de streaming en un solo lugar.",
+    "loading": "Cargando tu pantalla de inicio...",
+    "refresh_label": "Actualizando",
+    "hero_label": "Destacado",
+    "hero_card_accessibility": "Abrir detalles de {title}",
+    "missing_artwork": "Arte próximamente",
+    "continue_watching_title": "Seguir viendo",
+    "continue_watching_subtitle": "Retoma justo donde lo dejaste",
+    "continue_watching_accessibility": "Reanudar {title}",
+    "continue_watching_progress": "{progress}% completado",
+    "catalog_customize": "Personalizar",
+    "catalog_customize_accessibility": "Personalizar el catálogo {name}",
+    "empty_state_title": "Aún no hay contenido",
+    "empty_state_subtitle": "Conecta tus proveedores para poblar la pantalla de inicio.",
+    "error_title": "No se pudo actualizar la pantalla de inicio"
   },
   "search": {
     "title": "Buscar",
@@ -213,6 +227,34 @@
       "subtitles": "Subtítulos",
       "loading_addons": "Cargando addons...",
       "no_addons_match_filter": "No hay addons que coincidan con tus filtros"
+    },
+    "homescreen": {
+      "title": "Pantalla de inicio",
+      "subtitle": "Personaliza el carrusel principal y distribución de la pantalla.",
+      "hero_section_title": "Carrusel destacado",
+      "hero_section_description": "Controla el gran carrusel superior de la pantalla de inicio.",
+      "hero_enabled_label": "Mostrar carrusel",
+      "hero_auto_rotate_label": "Rotación automática",
+      "hero_auto_rotate_hint": "Desactiva para mantener fijado el primer elemento.",
+      "layout_section_title": "Disposición",
+      "layout_section_description": "Ajusta cómo se muestran las filas en la pantalla de inicio.",
+      "show_continue_watching_label": "Mostrar fila de Continuar viendo",
+      "compact_mode_label": "Usar cuadrícula compacta",
+      "compact_mode_hint": "Reduce los espacios para mostrar más pósters.",
+      "manage_catalogs_label": "Gestionar catálogos",
+      "manage_catalogs_description": "{count} catálogos habilitados actualmente."
+    },
+    "catalogs": {
+      "title": "Catálogos",
+      "subtitle": "Elige qué catálogos de proveedores aparecen en la pantalla de inicio.",
+      "refresh_label": "Actualizando",
+      "loading": "Cargando catálogos...",
+      "error_title": "No se pudieron cargar los catálogos",
+      "catalog_section_title": "Selección de catálogos",
+      "catalog_section_description": "Activa los catálogos que quieres destacar en la pantalla de inicio.",
+      "catalog_toggle_accessibility": "Alternar el catálogo {name}",
+      "empty_state_title": "No hay catálogos disponibles",
+      "empty_state_subtitle": "Conecta proveedores como TMDB, Trakt o Stremio para ver más contenido."
     }
   }
 }
