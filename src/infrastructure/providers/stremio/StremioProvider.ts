@@ -6,7 +6,9 @@ import type { StremioAddon } from '../../../domain/entities/StremioAddon'
 import { StremioAddonClient } from './clients/StremioAddonClient'
 import type { HttpClient } from '../../http/HttpClient'
 import type { IStorageService } from '../../../domain/services/IStorageService'
+import type { ILoggingService } from '../../../domain/services/ILoggingService'
 import { InfrastructureError } from '../../errors/InfrastructureError'
+import { StremioMediaCatalogCapability } from './capabilities/StremioMediaCatalogCapability'
 
 /**
  * Stremio provider implementation - one provider per addon
@@ -22,10 +24,13 @@ export class StremioProvider implements IProvider {
   private capabilities: CapabilityType[] = []
   private isInitialized = false
 
+  private readonly capabilityInstances = new Map<CapabilityType, unknown>()
+
   constructor(
     private readonly addon: StremioAddon,
     httpClient: HttpClient,
-    _storageService: IStorageService // Unused but required for interface compatibility
+    _storageService: IStorageService, // Unused but required for interface compatibility
+    private readonly logger: ILoggingService
   ) {
     // Create provider metadata from addon
     this.metadata = {
@@ -55,6 +60,8 @@ export class StremioProvider implements IProvider {
 
     // Set capabilities from the processed addon data (already validated by registry)
     this.capabilities = addon.capabilities
+
+    this.registerCapabilities()
   }
 
   /**
@@ -118,7 +125,7 @@ export class StremioProvider implements IProvider {
   getCapability<T>(capability: CapabilityType): T | null {
     // For now, Stremio providers don't implement capabilities directly
     // This would be expanded to return actual capability implementations
-    return this.capabilities.includes(capability) ? ({} as T) : null
+    return (this.capabilityInstances.get(capability) as T | undefined) ?? null
   }
 
   /**
@@ -132,14 +139,14 @@ export class StremioProvider implements IProvider {
    * Check if provider supports a specific capability
    */
   supportsCapability(capability: CapabilityType): boolean {
-    return this.capabilities.includes(capability)
+    return this.capabilityInstances.has(capability)
   }
 
   /**
    * Get all supported capabilities
    */
   getSupportedCapabilities(): CapabilityType[] {
-    return [...this.capabilities]
+    return [...this.capabilityInstances.keys()]
   }
 
   /**
@@ -147,5 +154,16 @@ export class StremioProvider implements IProvider {
    */
   getSummary(): string {
     return `Stremio addon: ${this.addon.name} (${this.capabilities.length} capabilities)`
+  }
+
+  private registerCapabilities(): void {
+    if (this.capabilities.includes(CapabilityType.MEDIA_CATALOG)) {
+      this.capabilityInstances.set(
+        CapabilityType.MEDIA_CATALOG,
+        new StremioMediaCatalogCapability(this.addon, this.addonClient, this.logger)
+      )
+    }
+
+    // Additional capability implementations can be registered here (metadata, streams, etc.)
   }
 }

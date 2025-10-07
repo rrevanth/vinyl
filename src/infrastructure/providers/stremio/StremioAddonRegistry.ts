@@ -285,7 +285,12 @@ export class StremioAddonRegistry {
       })
 
       // Create and register provider
-      const provider = new StremioProvider(stremioAddon, this.httpClient, this.storageService)
+      const provider = new StremioProvider(
+        stremioAddon,
+        this.httpClient,
+        this.storageService,
+        this.logger
+      )
 
       await provider.initialize()
 
