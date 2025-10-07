@@ -1,5 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { View, TextInput, Text, ActivityIndicator, RefreshControl, Linking, Alert, ScrollView, Pressable } from 'react-native'
+import {
+  View,
+  TextInput,
+  Text,
+  ActivityIndicator,
+  RefreshControl,
+  Linking,
+  Alert,
+  ScrollView,
+  Pressable,
+} from 'react-native'
 import { StyleSheet } from 'react-native-unistyles'
 import { observer } from '@legendapp/state/react'
 import { LegendList } from '@legendapp/list'
@@ -132,7 +142,10 @@ const BrowseAddonsScreen = observer(() => {
     async (manifestUrl: string) => {
       try {
         await installAddon(manifestUrl)
-        Alert.alert(t('settings.stremio.install_success'), t('settings.stremio.install_success_message'))
+        Alert.alert(
+          t('settings.stremio.install_success'),
+          t('settings.stremio.install_success_message')
+        )
       } catch (error) {
         Alert.alert(
           t('settings.stremio.install_failed'),
@@ -162,12 +175,17 @@ const BrowseAddonsScreen = observer(() => {
                 await uninstallAddon(addonId)
                 Alert.alert(
                   t('settings.stremio.uninstall_success'),
-                  t('settings.stremio.uninstall_success_message').replace('{name}', addon.getDisplayName())
+                  t('settings.stremio.uninstall_success_message').replace(
+                    '{name}',
+                    addon.getDisplayName()
+                  )
                 )
               } catch (error) {
                 Alert.alert(
                   t('settings.stremio.uninstall_failed'),
-                  error instanceof Error ? error.message : t('settings.stremio.uninstall_failed_message')
+                  error instanceof Error
+                    ? error.message
+                    : t('settings.stremio.uninstall_failed_message')
                 )
               }
             },
@@ -182,7 +200,10 @@ const BrowseAddonsScreen = observer(() => {
   const handleConfigureAddon = useCallback((configureUrl: string) => {
     Linking.openURL(configureUrl).catch((error) => {
       console.error('Failed to open configure URL:', error)
-      Alert.alert(t('settings.stremio.configure_failed'), t('settings.stremio.configure_failed_message'))
+      Alert.alert(
+        t('settings.stremio.configure_failed'),
+        t('settings.stremio.configure_failed_message')
+      )
     })
   }, [])
 

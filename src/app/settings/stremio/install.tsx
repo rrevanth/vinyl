@@ -1,5 +1,13 @@
 import { useState } from 'react'
-import { ScrollView, TextInput, Pressable, Text, View, Alert, ActivityIndicator } from 'react-native'
+import {
+  ScrollView,
+  TextInput,
+  Pressable,
+  Text,
+  View,
+  Alert,
+  ActivityIndicator,
+} from 'react-native'
 import { StyleSheet } from 'react-native-unistyles'
 import { observer } from '@legendapp/state/react'
 import { useRouter } from 'expo-router'
@@ -228,15 +236,14 @@ const InstallAddonScreen = observer(() => {
           footer={t('settings.stremio.configuration_required_footer')}
         >
           <Pressable
-            style={({ pressed }) => [
-              styles.configureButton,
-              pressed && styles.buttonPressed,
-            ]}
+            style={({ pressed }) => [styles.configureButton, pressed && styles.buttonPressed]}
             onPress={handleOpenConfiguration}
             accessibilityRole="button"
             accessibilityLabel={t('settings.stremio.open_configuration')}
           >
-            <Text style={styles.configureButtonText}>{t('settings.stremio.open_configuration')}</Text>
+            <Text style={styles.configureButtonText}>
+              {t('settings.stremio.open_configuration')}
+            </Text>
           </Pressable>
         </SettingsSection>
       )}

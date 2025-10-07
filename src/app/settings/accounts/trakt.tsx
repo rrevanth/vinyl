@@ -95,7 +95,9 @@ const TraktAccountScreen = observer(() => {
             disabled={isLoading}
             accessibilityRole="button"
             accessibilityLabel={
-              error ? t('settings.accounts.trakt.retry_oauth') : t('settings.accounts.trakt.sign_in')
+              error
+                ? t('settings.accounts.trakt.retry_oauth')
+                : t('settings.accounts.trakt.sign_in')
             }
             accessibilityState={{ disabled: isLoading }}
           >

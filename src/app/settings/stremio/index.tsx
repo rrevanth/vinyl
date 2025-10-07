@@ -48,7 +48,9 @@ const StremioSettingsScreen = observer(() => {
             } catch (error) {
               Alert.alert(
                 t('settings.stremio.uninstall_failed'),
-                error instanceof Error ? error.message : t('settings.stremio.uninstall_failed_message')
+                error instanceof Error
+                  ? error.message
+                  : t('settings.stremio.uninstall_failed_message')
               )
             }
           },
@@ -74,7 +76,10 @@ const StremioSettingsScreen = observer(() => {
     import('expo-web-browser').then((WebBrowser) => {
       WebBrowser.openBrowserAsync(configureUrl).catch((error) => {
         console.error('Failed to open configure URL:', error)
-        Alert.alert(t('settings.stremio.configure_failed'), t('settings.stremio.configure_failed_message'))
+        Alert.alert(
+          t('settings.stremio.configure_failed'),
+          t('settings.stremio.configure_failed_message')
+        )
       })
     })
   }
@@ -94,11 +99,7 @@ const StremioSettingsScreen = observer(() => {
 
   const renderEmptyState = () => (
     <View style={styles.emptyState}>
-      <Ionicons
-        name="extension-puzzle-outline"
-        size={48}
-        style={styles.emptyStateIcon}
-      />
+      <Ionicons name="extension-puzzle-outline" size={48} style={styles.emptyStateIcon} />
       <Text style={styles.emptyStateText}>{t('settings.stremio.no_addons_installed')}</Text>
       <Text style={styles.emptyStateSubtext}>
         {t('settings.stremio.no_addons_installed_subtext')}
@@ -151,9 +152,7 @@ const StremioSettingsScreen = observer(() => {
           <SettingsSection
             title={t('settings.stremio.installed_addons')}
             footer={
-              installedAddons.length > 0
-                ? t('settings.stremio.installed_addons_footer')
-                : undefined
+              installedAddons.length > 0 ? t('settings.stremio.installed_addons_footer') : undefined
             }
           >
             {installedAddons.length === 0 && renderEmptyState()}

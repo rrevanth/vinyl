@@ -1,4 +1,13 @@
-import { ScrollView, Pressable, Text, View, Image, Alert, ActivityIndicator, Switch } from 'react-native'
+import {
+  ScrollView,
+  Pressable,
+  Text,
+  View,
+  Image,
+  Alert,
+  ActivityIndicator,
+  Switch,
+} from 'react-native'
 import { StyleSheet } from 'react-native-unistyles'
 import { observer } from '@legendapp/state/react'
 import { useLocalSearchParams, useRouter } from 'expo-router'
@@ -14,14 +23,8 @@ const AddonDetailsScreen = observer(() => {
   const params = useLocalSearchParams<{ addonId: string }>()
   const addonId = params.addonId
 
-  const {
-    installedAddons,
-    isLoading,
-    toggleAddon,
-    refreshAddon,
-    uninstallAddon,
-    getConfigureUrl,
-  } = useStremioAddons()
+  const { installedAddons, isLoading, toggleAddon, refreshAddon, uninstallAddon, getConfigureUrl } =
+    useStremioAddons()
 
   // Find addon from installed addons
   const addon = installedAddons.find((a) => a.id === addonId)
@@ -108,7 +111,10 @@ const AddonDetailsScreen = observer(() => {
               await uninstallAddon(addon.id)
               Alert.alert(
                 t('settings.stremio.uninstall_success'),
-                t('settings.stremio.uninstall_success_message').replace('{name}', addon.getDisplayName()),
+                t('settings.stremio.uninstall_success_message').replace(
+                  '{name}',
+                  addon.getDisplayName()
+                ),
                 [
                   {
                     text: t('settings.stremio.ok'),
@@ -121,7 +127,9 @@ const AddonDetailsScreen = observer(() => {
             } catch (error) {
               Alert.alert(
                 t('settings.stremio.uninstall_failed'),
-                error instanceof Error ? error.message : t('settings.stremio.uninstall_failed_message')
+                error instanceof Error
+                  ? error.message
+                  : t('settings.stremio.uninstall_failed_message')
               )
             }
           },
@@ -254,7 +262,9 @@ const AddonDetailsScreen = observer(() => {
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>{t('settings.stremio.catalogs')}</Text>
               <Text style={styles.infoValue}>
-                {addon.manifest.catalogs.map((c: { name?: string; type: string }) => c.name || c.type).join(', ')}
+                {addon.manifest.catalogs
+                  .map((c: { name?: string; type: string }) => c.name || c.type)
+                  .join(', ')}
               </Text>
             </View>
           )}
@@ -268,10 +278,7 @@ const AddonDetailsScreen = observer(() => {
           footer={t('settings.stremio.configuration_footer')}
         >
           <Pressable
-            style={({ pressed }) => [
-              styles.actionButton,
-              pressed && styles.buttonPressed,
-            ]}
+            style={({ pressed }) => [styles.actionButton, pressed && styles.buttonPressed]}
             onPress={handleConfigure}
             accessibilityRole="button"
             accessibilityLabel={t('settings.stremio.open_configuration')}
