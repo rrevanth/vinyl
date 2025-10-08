@@ -29,9 +29,17 @@ const MediaDetailScreen = observer(() => {
   // Get Media object from store (set before navigation)
   const media = mediaDetail$.media.get()
 
+  console.log('[MediaDetailScreen] Component rendered', {
+    hasMedia: !!media,
+    mediaStableId: media?.stableId,
+    mediaTitle: media?.title,
+  })
+
   // Clear store on unmount
   useEffect(() => {
+    console.log('[MediaDetailScreen] Component mounted')
     return () => {
+      console.log('[MediaDetailScreen] Component unmounting, clearing store')
       clearMediaDetail()
     }
   }, [])

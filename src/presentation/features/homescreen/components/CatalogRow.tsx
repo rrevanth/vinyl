@@ -46,13 +46,25 @@ const CatalogRowComponent: FC<CatalogRowProps> = ({ catalog, onPressItem: onPres
     })
 
     if (onPressItemProp) {
+      console.log('[CatalogRow] Using onPressItemProp')
       onPressItemProp(media)
     } else {
-      // Store media object in store before navigation
-      setMedia(media)
+      console.log('[CatalogRow] Storing media in store and navigating')
+      
+      try {
+        // Store media object in store before navigation
+        setMedia(media)
+        console.log('[CatalogRow] Media stored in store successfully')
 
-      // Navigate with stableId only (Expo Router params only support primitives)
-      router.push(`/media/${media.stableId}` as any)
+        // Navigate with stableId only (Expo Router params only support primitives)
+        const route = `/media/${media.stableId}`
+        console.log('[CatalogRow] Attempting navigation to:', route)
+        
+        router.push(route as any)
+        console.log('[CatalogRow] Navigation command sent')
+      } catch (error) {
+        console.error('[CatalogRow] Navigation failed:', error)
+      }
     }
   }, [onPressItemProp])
 
