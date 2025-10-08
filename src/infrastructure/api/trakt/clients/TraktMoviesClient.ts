@@ -1,12 +1,12 @@
-import { TraktBaseClient } from '../TraktBaseClient'
 import type { ILoggingService } from '../../../../domain/services/ILoggingService'
 import type { TraktConfigFactory } from '../../../factories/TraktConfigFactory'
+import { TraktBaseClient } from '../TraktBaseClient'
 import type {
-  TraktMovie,
   TraktComment,
   TraktExtended,
-  TraktPaginationParams,
   TraktFilterParams,
+  TraktMovie,
+  TraktPaginationParams,
   TraktVideo,
 } from '../types'
 
@@ -32,9 +32,9 @@ export class TraktMoviesClient extends TraktBaseClient {
    */
   async getDetails(
     movieId: string | number,
-    options?: { extended?: TraktExtended | TraktExtended[] }
+    options?: { extended?: TraktExtended }
   ): Promise<TraktMovie> {
-    return this.get<TraktMovie>(`/movies/${movieId}`, undefined, options)
+    return this.get<TraktMovie>(`/movies/${movieId}`, options)
   }
 
   /**
@@ -104,7 +104,7 @@ export class TraktMoviesClient extends TraktBaseClient {
     cast: { character: string; characters: string[]; person: any }[]
     crew: Record<string, { job: string; jobs: string[]; person: any }[]>
   }> {
-    return this.get(`/movies/${movieId}/people`, undefined, options)
+    return this.get(`/movies/${movieId}/people`, options)
   }
 
   /**

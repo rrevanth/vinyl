@@ -12,17 +12,20 @@ import axiosRetry from 'axios-retry'
  * - Request/response logging (dev mode)
  * - HTTP error mapping to domain errors
  * - Automatic retry with exponential backoff
- * - 10-second timeout
+ * - Configurable timeout (default 10 seconds)
  */
 export class HttpClient {
   private client!: AxiosInstance
+  private readonly timeout: number
 
   constructor(
     private baseURL: string | undefined,
     private getAuthToken: () => string | null,
     private logger?: ILoggingService,
-    private additionalHeaders?: Record<string, string>
+    private additionalHeaders?: Record<string, string>,
+    timeout?: number
   ) {
+    this.timeout = timeout ?? 10000
     this.setupAxios()
   }
 
@@ -33,7 +36,7 @@ export class HttpClient {
     // Create Axios instance with base configuration
     this.client = axios.create({
       baseURL: this.baseURL,
-      timeout: 10000, // 10 seconds
+      timeout: this.timeout,
       headers: {
         'Content-Type': 'application/json',
         ...this.additionalHeaders,
@@ -49,14 +52,14 @@ export class HttpClient {
         }
 
         // Log request in development mode
-        if (__DEV__ && this.logger) {
-          this.logger.debug('HTTP Request', {
-            method: config.method?.toUpperCase(),
-            url: config.url,
-            baseURL: config.baseURL,
-            headers: config.headers,
-          })
-        }
+        // if (__DEV__ && this.logger) {
+        //   this.logger.debug('HTTP Request', {
+        //     method: config.method?.toUpperCase(),
+        //     url: config.url,
+        //     baseURL: config.baseURL,
+        //     headers: config.headers,
+        //   })
+        // }
 
         return config
       },
@@ -72,14 +75,14 @@ export class HttpClient {
     this.client.interceptors.response.use(
       (response) => {
         // Log successful response in development mode
-        if (__DEV__ && this.logger) {
-          this.logger.debug('HTTP Response', {
-            status: response.status,
-            statusText: response.statusText,
-            url: response.config.url,
-            data: response.data,
-          })
-        }
+        // if (__DEV__ && this.logger) {
+        //   this.logger.debug('HTTP Response', {
+        //     status: response.status,
+        //     statusText: response.statusText,
+        //     url: response.config.url,
+        //     data: response.data,
+        //   })
+        // }
         return response
       },
       (error: AxiosError) => {

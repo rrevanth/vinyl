@@ -3,17 +3,41 @@ import type { TraktDetailCache } from './cache/TraktDetailCache'
 import type { TraktClient } from '@/src/infrastructure/api/trakt/TraktClient'
 import type { ILoggingService } from '@/src/domain/services/ILoggingService'
 
+// Import all capability implementations
+import { TraktMediaMetadataCapability } from './capabilities/TraktMediaMetadataCapability'
+import { TraktMediaSearchCapability } from './capabilities/TraktMediaSearchCapability'
+import { TraktMediaCatalogCapability } from './capabilities/TraktMediaCatalogCapability'
+import { TraktMediaRecommendationsCapability } from './capabilities/TraktMediaRecommendationsCapability'
+import { TraktMediaImagesCapability } from './capabilities/TraktMediaImagesCapability'
+import { TraktMediaVideosCapability } from './capabilities/TraktMediaVideosCapability'
+import { TraktMediaSeasonsCapability } from './capabilities/TraktMediaSeasonsCapability'
+import { TraktMediaExternalIdsCapability } from './capabilities/TraktMediaExternalIdsCapability'
+import { TraktMediaRatingsCapability } from './capabilities/TraktMediaRatingsCapability'
+import { TraktMediaReviewsCapability } from './capabilities/TraktMediaReviewsCapability'
+import { TraktMediaPeopleCapability } from './capabilities/TraktMediaPeopleCapability'
+import { TraktMediaListsCapability } from './capabilities/TraktMediaListsCapability'
+import { TraktMediaListsSearchCapability } from './capabilities/TraktMediaListsSearchCapability'
+import { TraktPeopleMetadataCapability } from './capabilities/TraktPeopleMetadataCapability'
+import { TraktPeopleSearchCapability } from './capabilities/TraktPeopleSearchCapability'
+import { TraktPeopleFilmographyCapability } from './capabilities/TraktPeopleFilmographyCapability'
+import { TraktPeopleImagesCapability } from './capabilities/TraktPeopleImagesCapability'
+import { TraktPeopleExternalIdsCapability } from './capabilities/TraktPeopleExternalIdsCapability'
+import { TraktPeopleCatalogsCapability } from './capabilities/TraktPeopleCatalogsCapability'
+import { TraktMediaWatchlistCapability } from './capabilities/TraktMediaWatchlistCapability'
+import { TraktMediaScrobblingCapability } from './capabilities/TraktMediaScrobblingCapability'
+import { TraktMediaContinueWatchingCapability } from './capabilities/TraktMediaContinueWatchingCapability'
+import { TraktMediaWatchProgressCapability } from './capabilities/TraktMediaWatchProgressCapability'
+
 /**
  * Central registry for Trakt capability implementations
  *
  * Registers and manages all Trakt capabilities with proper dependencies.
  * Some capabilities are only available when user is authenticated (auth-gated).
  *
- * Capabilities will be implemented by other agents:
- * - Media capabilities (metadata, search, recommendations, etc.)
- * - Auth-gated capabilities (watchlist, scrobbling, continue watching, etc.)
- * - People capabilities (filmography, metadata, search, etc.)
- * - List capabilities (media lists, list search)
+ * Registered Capabilities:
+ * - Media capabilities: metadata, search, catalog, recommendations, images, videos, seasons, external IDs, ratings, reviews, people, lists
+ * - People capabilities: metadata, search, filmography, images, external IDs, catalogs
+ * - Auth-gated capabilities: watchlist, scrobbling, continue watching, watch progress (only when authenticated)
  */
 export class TraktCapabilityRegistry {
   private readonly capabilities = new Map<CapabilityType, any>()
@@ -31,40 +55,148 @@ export class TraktCapabilityRegistry {
     try {
       const isAuthenticated = this.traktClient.isAuthenticated()
 
-      // NOTE: Capability implementations will be added by other agents
-      // This registry structure follows the TMDB pattern
+      // Register core metadata capability (primary cache source)
+      this.capabilities.set(
+        CapabilityType.MEDIA_METADATA,
+        new TraktMediaMetadataCapability(this.cache, this.logger)
+      )
 
-      // TODO: Register MEDIA_METADATA capability (cache-based)
-      // TODO: Register MEDIA_SEARCH capability (fresh data)
-      // TODO: Register MEDIA_CATALOG capability (fresh data)
-      // TODO: Register MEDIA_RECOMMENDATIONS capability (fresh data)
-      // TODO: Register MEDIA_IMAGES capability (cache-based)
-      // TODO: Register MEDIA_VIDEOS capability (cache-based)
-      // TODO: Register MEDIA_SEASONS capability (mixed cache + fresh)
-      // TODO: Register MEDIA_EXTERNAL_IDS capability (cache-based)
-      // TODO: Register MEDIA_RATINGS capability (fresh data)
-      // TODO: Register MEDIA_REVIEWS capability (fresh data)
-      // TODO: Register MEDIA_PEOPLE capability (cache-based)
-      // TODO: Register MEDIA_LISTS capability (fresh data)
-      // TODO: Register MEDIA_LISTS_SEARCH capability (fresh data)
+      // Register search capability (fresh data)
+      this.capabilities.set(
+        CapabilityType.MEDIA_SEARCH,
+        new TraktMediaSearchCapability(this.traktClient, this.logger)
+      )
 
-      // TODO: Register PEOPLE_METADATA capability (fresh data)
-      // TODO: Register PEOPLE_SEARCH capability (fresh data)
-      // TODO: Register PEOPLE_FILMOGRAPHY capability (cache-based)
-      // TODO: Register PEOPLE_IMAGES capability (cache-based)
-      // TODO: Register PEOPLE_EXTERNAL_IDS capability (cache-based)
-      // TODO: Register PEOPLE_CATALOGS capability (fresh data)
+      // Register catalog capability (fresh data) - CRITICAL for homescreen
+      this.capabilities.set(
+        CapabilityType.MEDIA_CATALOG,
+        new TraktMediaCatalogCapability(this.traktClient, this.logger)
+      )
+
+      // Register recommendations capability (fresh data)
+      this.capabilities.set(
+        CapabilityType.MEDIA_RECOMMENDATIONS,
+        new TraktMediaRecommendationsCapability(this.traktClient, this.logger)
+      )
+
+      // Register media content capabilities (use cached data)
+      this.capabilities.set(
+        CapabilityType.MEDIA_IMAGES,
+        new TraktMediaImagesCapability(this.cache, this.logger)
+      )
+
+      this.capabilities.set(
+        CapabilityType.MEDIA_VIDEOS,
+        new TraktMediaVideosCapability(this.traktClient, this.logger)
+      )
+
+      // Register season/episode capability (fresh data)
+      this.capabilities.set(
+        CapabilityType.MEDIA_SEASONS,
+        new TraktMediaSeasonsCapability(this.traktClient, this.logger)
+      )
+
+      // Register external IDs capability (cache + client)
+      this.capabilities.set(
+        CapabilityType.MEDIA_EXTERNAL_IDS,
+        new TraktMediaExternalIdsCapability(this.cache, this.traktClient, this.logger)
+      )
+
+      // Register ratings capability (fresh data)
+      this.capabilities.set(
+        CapabilityType.MEDIA_RATINGS,
+        new TraktMediaRatingsCapability(this.traktClient, this.logger)
+      )
+
+      // Register reviews capability (fresh data)
+      this.capabilities.set(
+        CapabilityType.MEDIA_REVIEWS,
+        new TraktMediaReviewsCapability(this.traktClient, this.logger)
+      )
+
+      // Register media people capability (client-based)
+      this.capabilities.set(
+        CapabilityType.MEDIA_PEOPLE,
+        new TraktMediaPeopleCapability(this.traktClient, this.logger)
+      )
+
+      // Register media lists capability (fresh data)
+      this.capabilities.set(
+        CapabilityType.MEDIA_LISTS,
+        new TraktMediaListsCapability(this.traktClient, this.logger)
+      )
+
+      // Register media lists search capability (fresh data)
+      this.capabilities.set(
+        CapabilityType.MEDIA_LISTS_SEARCH,
+        new TraktMediaListsSearchCapability(this.traktClient, this.logger)
+      )
+
+      // Register people metadata capability (cache-based)
+      this.capabilities.set(
+        CapabilityType.PEOPLE_METADATA,
+        new TraktPeopleMetadataCapability(this.cache, this.logger)
+      )
+
+      // Register people search capability (fresh data)
+      this.capabilities.set(
+        CapabilityType.PEOPLE_SEARCH,
+        new TraktPeopleSearchCapability(this.traktClient, this.logger)
+      )
+
+      // Register people filmography capability (client-based)
+      this.capabilities.set(
+        CapabilityType.PEOPLE_FILMOGRAPHY,
+        new TraktPeopleFilmographyCapability(this.traktClient, this.logger)
+      )
+
+      // Register people images capability (cache-based)
+      this.capabilities.set(
+        CapabilityType.PEOPLE_IMAGES,
+        new TraktPeopleImagesCapability(this.cache, this.logger)
+      )
+
+      // Register people external IDs capability (cache + client)
+      this.capabilities.set(
+        CapabilityType.PEOPLE_EXTERNAL_IDS,
+        new TraktPeopleExternalIdsCapability(this.cache, this.traktClient, this.logger)
+      )
+
+      // Register people catalogs capability (logger only)
+      this.capabilities.set(
+        CapabilityType.PEOPLE_CATALOGS,
+        new TraktPeopleCatalogsCapability(this.logger)
+      )
 
       // Auth-gated capabilities (only register if authenticated)
       if (isAuthenticated) {
-        // TODO: Register MEDIA_WATCHLIST capability (requires auth)
-        // TODO: Register MEDIA_SCROBBLING capability (requires auth)
-        // TODO: Register MEDIA_CONTINUE_WATCHING capability (requires auth)
-        // TODO: Register MEDIA_WATCH_PROGRESS capability (requires auth)
+        // Register watchlist capability (requires auth)
+        this.capabilities.set(
+          CapabilityType.MEDIA_WATCHLIST,
+          new TraktMediaWatchlistCapability(this.traktClient, this.logger)
+        )
 
-        this.logger.debug('Registered auth-gated Trakt capabilities', {
-          count: this.capabilities.size,
-        })
+        // Register scrobbling capability (requires auth)
+        this.capabilities.set(
+          CapabilityType.MEDIA_SCROBBLING,
+          new TraktMediaScrobblingCapability(this.traktClient, this.logger)
+        )
+
+        // Register continue watching capability (requires auth)
+        this.capabilities.set(
+          CapabilityType.MEDIA_CONTINUE_WATCHING,
+          new TraktMediaContinueWatchingCapability(this.traktClient, this.logger)
+        )
+
+        // Register watch progress capability (requires auth)
+        this.capabilities.set(
+          CapabilityType.MEDIA_WATCH_PROGRESS,
+          new TraktMediaWatchProgressCapability(this.traktClient, this.logger)
+        )
+
+        // this.logger.debug('Registered auth-gated Trakt capabilities', {
+        //   count: 4,
+        // })
       }
 
       this.isInitialized = true

@@ -27,6 +27,7 @@ export const TOKENS = {
   StremioConfigFactory: Symbol('StremioConfigFactory'),
   StremioAddonStorage: Symbol('StremioAddonStorage'),
   StremioAddonRegistry: Symbol('StremioAddonRegistry'),
+  StremioInitializationService: Symbol('StremioInitializationService'),
 
   // Provider Registry
   ProviderRegistry: Symbol('ProviderRegistry'),

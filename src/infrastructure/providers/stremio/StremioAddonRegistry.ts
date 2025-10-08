@@ -255,8 +255,11 @@ export class StremioAddonRegistry {
   private async registerProviderForAddon(userId: string, addonId: string): Promise<void> {
     try {
       if (this.activeProviders.has(addonId)) {
+        this.logger.debug('Provider already registered', { addonId })
         return // Already registered
       }
+
+      this.logger.info('Registering provider for addon', { userId, addonId })
 
       // Get addon configuration
       const preferences = await this.addonStorage.getUserPreferences(userId)
@@ -266,10 +269,24 @@ export class StremioAddonRegistry {
         throw new Error(`Addon ${addonId} not found for user ${userId}`)
       }
 
+      this.logger.debug('Found installed addon', {
+        addonId,
+        transportUrl: installedAddon.transportUrl,
+        isEnabled: installedAddon.isEnabled,
+      })
+
       // Get processed addon data for manifest
       const processedAddon = await this.processedAddonCache.getProcessedAddon(
         installedAddon.transportUrl
       )
+
+      this.logger.debug('Retrieved processed addon', {
+        addonId,
+        manifestId: processedAddon.rawManifest.id,
+        manifestName: processedAddon.rawManifest.name,
+        capabilitiesCount: processedAddon.capabilities?.capabilities.length ?? 0,
+        capabilities: processedAddon.capabilities?.capabilities ?? [],
+      })
 
       // Create StremioAddon entity
       const stremioAddon = new StremioAddon({
@@ -282,6 +299,13 @@ export class StremioAddonRegistry {
         userPriority: installedAddon.userConfig.priority,
         userCategories: installedAddon.userConfig.categories,
         customName: installedAddon.userConfig.customName,
+      })
+
+      this.logger.debug('Created StremioAddon entity', {
+        addonId: stremioAddon.id,
+        addonName: stremioAddon.name,
+        capabilities: stremioAddon.capabilities,
+        catalogsCount: stremioAddon.manifest.catalogs?.length ?? 0,
       })
 
       // Create and register provider
@@ -297,9 +321,17 @@ export class StremioAddonRegistry {
       this.activeProviders.set(addonId, provider)
       this.providerRegistry.registerProvider(provider)
 
-      this.logger.debug(`Registered provider for addon ${addonId}`)
+      this.logger.info('Successfully registered provider for addon', {
+        addonId,
+        providerId: provider.metadata.id,
+        providerName: provider.metadata.name,
+        providerStatus: provider.metadata.status,
+      })
     } catch (error) {
-      this.logger.error(`Failed to register provider for addon ${addonId}`, error as Error)
+      this.logger.error(`Failed to register provider for addon ${addonId}`, error as Error, {
+        userId,
+        addonId,
+      })
     }
   }
 

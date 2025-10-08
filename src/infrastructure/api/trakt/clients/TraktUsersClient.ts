@@ -37,7 +37,7 @@ export class TraktUsersClient extends TraktBaseClient {
    * Use 'me' for authenticated user's profile
    */
   async getProfile(username: string, options?: { extended?: TraktExtended }): Promise<TraktUser> {
-    return this.get<TraktUser>(`/users/${username}`, undefined, options)
+    return this.get<TraktUser>(`/users/${username}`, options)
   }
 
   /**
@@ -226,7 +226,7 @@ export class TraktUsersClient extends TraktBaseClient {
     listId: string | number,
     params?: { extended?: TraktExtended }
   ): Promise<any> {
-    return this.get(`/users/${username}/lists/${listId}`, undefined, params)
+    return this.get(`/users/${username}/lists/${listId}`, params)
   }
 
   /**

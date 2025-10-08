@@ -102,7 +102,8 @@ export class ManageCatalogUseCase {
 
     for (const capability of providers) {
       try {
-        const providerCatalogs = await capability.getCatalogs()
+        // Use page 0 for metadata only (fast, no items needed for validation)
+        const providerCatalogs = await capability.getCatalogs({ page: 0 })
         catalogs.push(...providerCatalogs)
       } catch (error) {
         this.loggingService.warn('Failed to fetch catalog list during management operation', {

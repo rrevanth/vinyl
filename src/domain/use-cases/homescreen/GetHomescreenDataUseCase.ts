@@ -139,78 +139,251 @@ export class GetHomescreenDataUseCase {
     preferences: UserPreferences,
     itemsPerCatalog?: number
   ): Promise<Catalog[]> {
+    this.loggingService.info('=== START: fetchCatalogs ===', {
+      itemsPerCatalog,
+      selectedCatalogIds: preferences.homescreen.selectedCatalogIds,
+      catalogOrder: preferences.homescreen.catalogOrder,
+    })
+
     const capabilities = this.providerRegistry
       .getProvidersForCapability<IMediaCatalogCapability>(CapabilityType.MEDIA_CATALOG, true)
 
+    this.loggingService.info('Found catalog capabilities', {
+      capabilitiesCount: capabilities.length,
+      providerIds: capabilities.map((cap) => (cap as any).addon?.id ?? 'unknown'),
+    })
+
     if (capabilities.length === 0) {
+      this.loggingService.warn('No catalog capabilities available')
       return []
     }
 
-    const selectedIds = new Set(preferences.homescreen.selectedCatalogIds)
-    const desiredOrder = preferences.homescreen.catalogOrder
     const limit = itemsPerCatalog ?? 20
 
-    const discoveredCatalogs: Catalog[] = []
-    const seenStableIds = new Set<string>()
+    // Step 1: Fetch metadata for ALL catalogs (page 0 - fast, no items)
+    this.loggingService.info('STEP 1: Fetching metadata for all catalogs (page 0)')
 
+    const allMetadataCatalogs: Catalog[] = []
     for (const capability of capabilities) {
       try {
-        const catalogs = await capability.getCatalogs()
-        for (const catalog of catalogs) {
-          const shouldInclude = selectedIds.size === 0 || selectedIds.has(catalog.stableId)
-          if (!shouldInclude) {
-            continue
-          }
-
-          const trimmedItems = catalog.items.slice(0, limit)
-          if (trimmedItems.length === 0) {
-            continue
-          }
-
-          const key = catalog.stableId || `${catalog.providerId}:${catalog.id}`
-          if (seenStableIds.has(key)) {
-            continue
-          }
-
-          discoveredCatalogs.push(
-            new Catalog({
-              id: catalog.id,
-              providerId: catalog.providerId,
-              type: catalog.type,
-              category: catalog.category,
-              name: preferences.homescreen.catalogCustomNames[catalog.stableId] ?? catalog.name,
-              description: catalog.description,
-              items: trimmedItems,
-              sourceInfo: catalog.sourceInfo,
-              paginationInfo: catalog.paginationInfo,
-              contextMedia: catalog.contextMedia,
-              contextPerson: catalog.contextPerson,
-              filters: catalog.filters,
-              createdAt: catalog.createdAt,
-              expiresAt: catalog.expiresAt,
-            })
-          )
-          seenStableIds.add(key)
-        }
+        const metadataCatalogs = await capability.getCatalogs({ page: 0 })
+        this.loggingService.debug('Received metadata catalogs from capability', {
+          providerId: (capability as any).addon?.id ?? 'unknown',
+          catalogCount: metadataCatalogs.length,
+          stableIds: metadataCatalogs.map((c) => c.stableId),
+        })
+        allMetadataCatalogs.push(...metadataCatalogs)
       } catch (error) {
-        this.loggingService.warn('Failed to load catalog list for homescreen', {
+        this.loggingService.warn('Failed to fetch catalog metadata', {
+          providerId: (capability as any).addon?.id ?? 'unknown',
           error: (error as Error).message,
+          stack: (error as Error).stack,
         })
       }
     }
 
-    if (discoveredCatalogs.length === 0) {
+    this.loggingService.info('STEP 1 COMPLETE: Fetched catalog metadata', {
+      totalCatalogs: allMetadataCatalogs.length,
+      stableIds: allMetadataCatalogs.map((c) => c.stableId),
+      catalogNames: allMetadataCatalogs.map((c) => c.name),
+      providerIds: allMetadataCatalogs.map((c) => c.providerId),
+    })
+
+    // Step 2: Filter by enabled catalogs (selectedCatalogIds)
+    this.loggingService.info('STEP 2: Filtering by enabled catalogs')
+
+    const selectedIds = new Set(preferences.homescreen.selectedCatalogIds)
+    const enabledMetadata = selectedIds.size === 0
+      ? allMetadataCatalogs // Show all if nothing selected
+      : allMetadataCatalogs.filter((catalog) => selectedIds.has(catalog.stableId))
+
+    this.loggingService.info('STEP 2 COMPLETE: Filtered enabled catalogs', {
+      selectedCatalogIdsCount: selectedIds.size,
+      selectedCatalogIds: Array.from(selectedIds),
+      allMetadataCount: allMetadataCatalogs.length,
+      enabledCount: enabledMetadata.length,
+      enabledStableIds: enabledMetadata.map((c) => c.stableId),
+      enabledNames: enabledMetadata.map((c) => c.name),
+      filteredOutCount: allMetadataCatalogs.length - enabledMetadata.length,
+    })
+
+    if (enabledMetadata.length === 0) {
+      this.loggingService.warn('No enabled catalogs after filtering', {
+        selectedCatalogIds: Array.from(selectedIds),
+        allMetadataStableIds: allMetadataCatalogs.map((c) => c.stableId),
+      })
       return []
     }
 
-    if (desiredOrder.length === 0) {
-      return discoveredCatalogs
+    // Step 3: Create a map of stableId → capability for efficient lookup
+    this.loggingService.info('STEP 3: Mapping stableId to capability')
+
+    const stableIdToCapability = new Map<string, IMediaCatalogCapability>()
+    for (const capability of capabilities) {
+      try {
+        const metadataCatalogs = await capability.getCatalogs({ page: 0 })
+        for (const catalog of metadataCatalogs) {
+          stableIdToCapability.set(catalog.stableId, capability)
+          this.loggingService.debug('Mapped stableId to capability', {
+            stableId: catalog.stableId,
+            catalogName: catalog.name,
+            providerId: catalog.providerId,
+          })
+        }
+      } catch {
+        // Already logged in Step 1
+      }
+    }
+
+    this.loggingService.info('STEP 3 COMPLETE: Created stableId → capability map', {
+      mappedStableIds: Array.from(stableIdToCapability.keys()),
+      mappingCount: stableIdToCapability.size,
+    })
+
+    // Step 4: Fetch items (page 1) ONLY for enabled catalogs
+    this.loggingService.info('STEP 4: Fetching items for enabled catalogs (page 1)', {
+      enabledCatalogCount: enabledMetadata.length,
+      limit,
+    })
+    const catalogsWithItems: Catalog[] = []
+    const seenStableIds = new Set<string>()
+
+    for (const metadata of enabledMetadata) {
+      this.loggingService.debug('Processing enabled catalog', {
+        stableId: metadata.stableId,
+        catalogName: metadata.name,
+        providerId: metadata.providerId,
+      })
+
+      const capability = stableIdToCapability.get(metadata.stableId)
+      if (!capability) {
+        this.loggingService.warn('CRITICAL: No capability found for catalog', {
+          stableId: metadata.stableId,
+          catalogName: metadata.name,
+          providerId: metadata.providerId,
+          availableStableIds: Array.from(stableIdToCapability.keys()),
+        })
+        continue
+      }
+
+      try {
+        // Fetch catalogs with items from this provider (page 1)
+        this.loggingService.debug('Fetching page 1 from capability', {
+          stableId: metadata.stableId,
+          catalogName: metadata.name,
+          providerId: metadata.providerId,
+          limit,
+        })
+
+        const catalogs = await capability.getCatalogs({ page: 1, limit })
+
+        this.loggingService.debug('Received page 1 catalogs', {
+          stableId: metadata.stableId,
+          catalogsCount: catalogs.length,
+          catalogStableIds: catalogs.map((c) => c.stableId),
+        })
+
+        // Find the matching catalog by stableId
+        const catalogWithItems = catalogs.find(c => c.stableId === metadata.stableId)
+        if (!catalogWithItems) {
+          this.loggingService.warn('CRITICAL: Catalog not found in page 1 results', {
+            requestedStableId: metadata.stableId,
+            catalogName: metadata.name,
+            receivedStableIds: catalogs.map((c) => c.stableId),
+            receivedCount: catalogs.length,
+          })
+          continue
+        }
+
+        this.loggingService.debug('Found matching catalog', {
+          stableId: catalogWithItems.stableId,
+          catalogName: catalogWithItems.name,
+          itemCount: catalogWithItems.items.length,
+        })
+
+        if (catalogWithItems.items.length === 0) {
+          this.loggingService.warn('Catalog has no items', {
+            stableId: metadata.stableId,
+            catalogName: metadata.name,
+          })
+          continue
+        }
+
+        // Deduplicate by stableId
+        if (seenStableIds.has(catalogWithItems.stableId)) {
+          this.loggingService.debug('Skipping duplicate catalog', {
+            stableId: catalogWithItems.stableId,
+          })
+          continue
+        }
+
+        // Apply custom name if exists
+        const customName = preferences.homescreen.catalogCustomNames[metadata.stableId]
+        const finalCatalog = new Catalog({
+          id: catalogWithItems.id,
+          providerId: catalogWithItems.providerId,
+          type: catalogWithItems.type,
+          category: catalogWithItems.category,
+          name: customName ?? catalogWithItems.name,
+          description: catalogWithItems.description,
+          items: catalogWithItems.items.slice(0, limit),
+          sourceInfo: catalogWithItems.sourceInfo,
+          paginationInfo: catalogWithItems.paginationInfo,
+          contextMedia: catalogWithItems.contextMedia,
+          contextPerson: catalogWithItems.contextPerson,
+          filters: catalogWithItems.filters,
+          createdAt: catalogWithItems.createdAt,
+          expiresAt: catalogWithItems.expiresAt,
+        })
+
+        this.loggingService.info('Added catalog to homescreen', {
+          stableId: finalCatalog.stableId,
+          catalogName: finalCatalog.name,
+          customName: customName ?? 'none',
+          itemCount: finalCatalog.items.length,
+          providerId: finalCatalog.providerId,
+        })
+
+        catalogsWithItems.push(finalCatalog)
+        seenStableIds.add(catalogWithItems.stableId)
+      } catch (error) {
+        this.loggingService.error('Failed to load catalog items for homescreen', error as Error, {
+          catalogStableId: metadata.stableId,
+          catalogName: metadata.name,
+          providerId: metadata.providerId,
+        })
+      }
+    }
+
+    this.loggingService.info('STEP 4 COMPLETE: Fetched catalogs with items', {
+      requestedCount: enabledMetadata.length,
+      successfulCount: catalogsWithItems.length,
+      failedCount: enabledMetadata.length - catalogsWithItems.length,
+      stableIds: catalogsWithItems.map((c) => c.stableId),
+      catalogNames: catalogsWithItems.map((c) => c.name),
+    })
+
+    if (catalogsWithItems.length === 0) {
+      this.loggingService.warn('No catalogs with items after fetching', {
+        enabledMetadataCount: enabledMetadata.length,
+        enabledStableIds: enabledMetadata.map((c) => c.stableId),
+      })
+      return []
+    }
+
+    // Step 5: Sort by catalogOrder (existing logic is correct)
+    this.loggingService.info('STEP 5: Sorting catalogs by user order')
+
+    const catalogOrder = preferences.homescreen.catalogOrder
+    if (catalogOrder.length === 0) {
+      this.loggingService.info('No catalog order specified - returning unsorted')
+      return catalogsWithItems
     }
 
     const orderMap = new Map<string, number>()
-    desiredOrder.forEach((id, index) => orderMap.set(id, index))
+    catalogOrder.forEach((id, index) => orderMap.set(id, index))
 
-    return [...discoveredCatalogs].sort((a, b) => {
+    const sortedCatalogs = [...catalogsWithItems].sort((a, b) => {
       const orderA = orderMap.get(a.stableId)
       const orderB = orderMap.get(b.stableId)
 
@@ -220,5 +393,18 @@ export class GetHomescreenDataUseCase {
 
       return orderA - orderB
     })
+
+    this.loggingService.info('STEP 5 COMPLETE: Sorted catalogs by user order', {
+      catalogOrder,
+      sortedStableIds: sortedCatalogs.map((c) => c.stableId),
+      sortedNames: sortedCatalogs.map((c) => c.name),
+    })
+
+    this.loggingService.info('=== END: fetchCatalogs ===', {
+      finalCatalogCount: sortedCatalogs.length,
+      finalStableIds: sortedCatalogs.map((c) => c.stableId),
+    })
+
+    return sortedCatalogs
   }
 }

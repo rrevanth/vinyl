@@ -1,11 +1,11 @@
 import type { IMediaCatalogCapability } from '@/src/domain/capabilities/IMediaCatalogCapability'
 import type { Catalog } from '@/src/domain/entities/Catalog'
-import type { CatalogFilters } from '@/src/domain/entities/StableIdGenerator'
 import { Catalog as CatalogEntity } from '@/src/domain/entities/Catalog'
-import type { TraktClient } from '@/src/infrastructure/api/trakt/TraktClient'
-import type { ILoggingService } from '@/src/domain/services/ILoggingService'
-import { TraktMediaMapper } from '../mappers/TraktMediaMapper'
+import type { CatalogFilters } from '@/src/domain/entities/StableIdGenerator'
 import { StableIdGenerator } from '@/src/domain/entities/StableIdGenerator'
+import type { ILoggingService } from '@/src/domain/services/ILoggingService'
+import type { TraktClient } from '@/src/infrastructure/api/trakt/TraktClient'
+import { TraktMediaMapper } from '../mappers/TraktMediaMapper'
 
 /**
  * Trakt Media Catalog Capability
@@ -21,11 +21,25 @@ export class TraktMediaCatalogCapability implements IMediaCatalogCapability {
     try {
       this.logger.debug('Fetching Trakt catalogs', { filters })
 
+      // Page 0 = metadata-only mode (no API calls for items)
+      if (filters?.page === 0) {
+        this.logger.debug('Page 0 requested - returning metadata-only catalogs')
+        const metadataCatalogs: Catalog[] = [
+          this.createMetadataCatalog('trending-movies', 'movie', 'Trending Movies'),
+          this.createMetadataCatalog('popular-movies', 'movie', 'Popular Movies'),
+          this.createMetadataCatalog('anticipated-movies', 'movie', 'Anticipated Movies'),
+          this.createMetadataCatalog('trending-shows', 'series', 'Trending Shows'),
+          this.createMetadataCatalog('popular-shows', 'series', 'Popular Shows'),
+          this.createMetadataCatalog('anticipated-shows', 'series', 'Anticipated Shows'),
+        ]
+        return metadataCatalogs
+      }
+
       const catalogs: Catalog[] = []
       const params = {
-        extended: ['full', 'images'] as any,
         limit: filters?.limit || 20,
         page: 1,
+        extended: 'full,images' as const,
       }
 
       // Fetch trending movies
@@ -65,9 +79,9 @@ export class TraktMediaCatalogCapability implements IMediaCatalogCapability {
     try {
       const nextPage = catalog.paginationInfo.currentPage + 1
       const params = {
-        extended: ['full', 'images'] as any,
         limit: 20,
         page: nextPage,
+        extended: 'full,images' as const,
       }
 
       let newData: any[] = []
@@ -152,6 +166,32 @@ export class TraktMediaCatalogCapability implements IMediaCatalogCapability {
       paginationInfo: {
         currentPage: 1,
         totalPages: 2, // Assume there's more content
+        hasMore: true,
+      },
+    })
+  }
+
+  private createMetadataCatalog(
+    id: string,
+    type: 'movie' | 'series',
+    name: string
+  ): Catalog {
+    return new CatalogEntity({
+      id,
+      providerId: 'trakt',
+      type,
+      category: id.split('-')[0], // 'trending', 'popular', 'anticipated'
+      name,
+      description: `${name} from Trakt`,
+      items: [], // Empty items for metadata-only mode
+      sourceInfo: {
+        originalUrl: `/${type === 'series' ? 'shows' : 'movies'}/${id.split('-')[0]}`,
+        totalCount: 0,
+        lastUpdated: new Date(),
+      },
+      paginationInfo: {
+        currentPage: 0,
+        totalPages: 1,
         hasMore: true,
       },
     })

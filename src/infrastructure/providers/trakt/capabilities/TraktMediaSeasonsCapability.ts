@@ -1,7 +1,7 @@
-import type { IMediaSeasonsCapability, Season, Episode } from '@/src/domain/capabilities/IMediaSeasonsCapability'
+import type { Episode, IMediaSeasonsCapability, Season } from '@/src/domain/capabilities/IMediaSeasonsCapability'
 import type { Media } from '@/src/domain/entities/Media'
-import type { TraktClient } from '@/src/infrastructure/api/trakt/TraktClient'
 import type { ILoggingService } from '@/src/domain/services/ILoggingService'
+import type { TraktClient } from '@/src/infrastructure/api/trakt/TraktClient'
 
 /**
  * Trakt Media Seasons Capability
@@ -74,7 +74,7 @@ export class TraktMediaSeasonsCapability implements IMediaSeasonsCapability {
         seasonNumber,
         episodeNumber,
         {
-          extended: ['full', 'images'] as any,
+          extended: 'full,images' as any,
         }
       )
 

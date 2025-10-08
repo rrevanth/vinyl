@@ -2,7 +2,7 @@
  * Base pagination parameters for Trakt API
  * Used across multiple endpoints for consistent pagination
  */
-import type { TraktMovie, TraktShow, TraktSeason, TraktEpisode, TraktList } from './responses'
+import type { TraktEpisode, TraktList, TraktMovie, TraktSeason, TraktShow } from './responses'
 
 export interface TraktPaginationParams {
   page?: number // Default: 1
@@ -13,13 +13,13 @@ export interface TraktPaginationParams {
  * Extended info levels for Trakt API responses
  * Can be combined with comma separation
  */
-export type TraktExtended = 'images' | 'full' | 'metadata'
+export type TraktExtended = 'images' | 'full' | 'metadata' | 'full,images'
 
 /**
  * Base request parameters that apply to most endpoints
  */
 export interface TraktBaseParams {
-  extended?: TraktExtended | TraktExtended[]
+  extended?: TraktExtended
 }
 
 /**

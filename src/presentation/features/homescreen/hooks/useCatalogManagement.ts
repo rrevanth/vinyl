@@ -1,14 +1,13 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect } from 'react'
 import { useSelector } from '@legendapp/state/react'
 import { useService } from '@/src/infrastructure/di/useService'
 import { TOKENS } from '@/src/infrastructure/di/tokens'
-import { userPreferences$, userState$ } from '@/src/presentation/shared/stores/app.store'
+import { userPreferences$ } from '@/src/presentation/shared/stores/app.store'
 import { mediaLibrary$ } from '@/src/presentation/shared/stores/mediaLibrary.store'
 import type { Catalog } from '@/src/domain/entities/Catalog'
-import type { GetAvailableCatalogsUseCase } from '@/src/domain/use-cases/homescreen/GetAvailableCatalogsUseCase'
-import type { ManageCatalogUseCase } from '@/src/domain/use-cases/homescreen/ManageCatalogUseCase'
 import type { UpdateHomescreenPreferencesUseCase } from '@/src/domain/use-cases/homescreen/UpdateHomescreenPreferencesUseCase'
-import type { GetHomescreenDataUseCase } from '@/src/domain/use-cases/homescreen/GetHomescreenDataUseCase'
+import { useCatalogsQuery } from '../queries/useCatalogsQuery'
+import { useToggleCatalogMutation } from '../queries/mutations'
 
 interface UseCatalogManagementResult {
   readonly catalogs: Catalog[]
@@ -19,99 +18,84 @@ interface UseCatalogManagementResult {
   refresh(): Promise<void>
 }
 
+/**
+ * Hook for managing catalog selection with TanStack Query caching
+ *
+ * Features:
+ * - Automatic caching with background refetching
+ * - Optimistic updates for catalog toggles
+ * - Syncs query data to Legend State stores
+ * - Proper error handling with mutations
+ *
+ * Usage:
+ * ```typescript
+ * const {
+ *   catalogs,
+ *   selectedIds,
+ *   toggleCatalog,
+ *   refresh
+ * } = useCatalogManagement()
+ * ```
+ */
 export const useCatalogManagement = (): UseCatalogManagementResult => {
-  const getAvailableCatalogsUseCase = useService<GetAvailableCatalogsUseCase>(
-    TOKENS.GetAvailableCatalogsUseCase
-  )
-  const manageCatalogUseCase = useService<ManageCatalogUseCase>(TOKENS.ManageCatalogUseCase)
   const updateHomescreenPreferencesUseCase = useService<UpdateHomescreenPreferencesUseCase>(
     TOKENS.UpdateHomescreenPreferencesUseCase
   )
-  const getHomescreenDataUseCase = useService<GetHomescreenDataUseCase>(
-    TOKENS.GetHomescreenDataUseCase
-  )
 
   const selectedIds = useSelector(() => userPreferences$.homescreen.selectedCatalogIds.get())
-  const currentUserId = useSelector(() => userState$.currentUser.id.get())
 
-  const [catalogs, setCatalogs] = useState<Catalog[]>([])
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  // Use TanStack Query for data fetching with caching
+  const {
+    data: catalogs,
+    isLoading,
+    error: queryError,
+    refetch,
+  } = useCatalogsQuery()
 
-  const loadCatalogs = useCallback(async () => {
-    setIsLoading(true)
-    setError(null)
+  // Use mutation for catalog toggle
+  const toggleMutation = useToggleCatalogMutation()
 
-    try {
-      const result = await getAvailableCatalogsUseCase.execute()
-      setCatalogs(result)
-      mediaLibrary$.catalogs.available.set(result)
-    } catch (loadError) {
-      setError((loadError as Error).message)
-    } finally {
-      setIsLoading(false)
-    }
-  }, [getAvailableCatalogsUseCase])
-
+  // Sync query data to Legend State stores
   useEffect(() => {
-    const initializeProviders = async () => {
-      try {
-        const { initializeStremio } = await import(
-          '@/src/infrastructure/providers/stremio/initializeStremio'
-        )
-        await initializeStremio(currentUserId)
-      } catch (error) {
-        console.warn('Stremio initialization warning in catalog management', error)
-      }
-
-      await loadCatalogs()
+    if (catalogs) {
+      mediaLibrary$.catalogs.available.set(catalogs)
     }
-
-    initializeProviders().catch((error) => {
-      console.warn('Failed to initialize catalog providers', error)
-    })
-  }, [currentUserId, loadCatalogs])
+  }, [catalogs])
 
   const toggleCatalog = useCallback(
     async (catalogId: string) => {
       try {
-        await manageCatalogUseCase.execute({
-          operation: 'toggle',
-          catalogId,
-        })
+        // Execute mutation (automatically invalidates queries)
+        await toggleMutation.mutateAsync(catalogId)
 
         // Ensure homescreen preferences stay consistent with catalog order list
         const updatedPreferences = userPreferences$.homescreen.get()
-        if (updatedPreferences.catalogOrder.length === 0 && updatedPreferences.selectedCatalogIds.length > 0) {
+        if (
+          updatedPreferences.catalogOrder.length === 0 &&
+          updatedPreferences.selectedCatalogIds.length > 0
+        ) {
           await updateHomescreenPreferencesUseCase.execute({
             catalogs: {
               catalogOrder: updatedPreferences.selectedCatalogIds,
             },
           })
         }
-
-        // Refresh cached homescreen data so the main screen reflects changes
-        const data = await getHomescreenDataUseCase.execute({
-          heroLimit: 10,
-          continueWatchingLimit: 12,
-          itemsPerCatalog: updatedPreferences.itemsPerRow * 4,
-        })
-        mediaLibrary$.hero.items.set(data.heroItems)
-        mediaLibrary$.continueWatching.items.set(data.continueWatching)
-        mediaLibrary$.catalogs.displayed.set(data.catalogs)
       } catch (toggleError) {
-        setError((toggleError as Error).message)
+        console.error('Failed to toggle catalog', toggleError)
+        throw toggleError
       }
     },
-    [getHomescreenDataUseCase, manageCatalogUseCase, updateHomescreenPreferencesUseCase]
+    [toggleMutation, updateHomescreenPreferencesUseCase]
   )
 
   return {
-    catalogs,
+    catalogs: catalogs ?? [],
     selectedIds,
     isLoading,
-    error,
+    error: queryError ? (queryError as Error).message : toggleMutation.error?.message ?? null,
     toggleCatalog,
-    refresh: loadCatalogs,
+    refresh: async () => {
+      await refetch()
+    },
   }
 }

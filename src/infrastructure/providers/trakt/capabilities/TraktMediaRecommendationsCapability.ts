@@ -1,11 +1,11 @@
 import type { IMediaRecommendationsCapability } from '@/src/domain/capabilities/IMediaRecommendationsCapability'
-import type { Media } from '@/src/domain/entities/Media'
 import type { Catalog } from '@/src/domain/entities/Catalog'
 import { Catalog as CatalogEntity } from '@/src/domain/entities/Catalog'
-import type { TraktClient } from '@/src/infrastructure/api/trakt/TraktClient'
-import type { ILoggingService } from '@/src/domain/services/ILoggingService'
-import { TraktMediaMapper } from '../mappers/TraktMediaMapper'
+import type { Media } from '@/src/domain/entities/Media'
 import { StableIdGenerator } from '@/src/domain/entities/StableIdGenerator'
+import type { ILoggingService } from '@/src/domain/services/ILoggingService'
+import type { TraktClient } from '@/src/infrastructure/api/trakt/TraktClient'
+import { TraktMediaMapper } from '../mappers/TraktMediaMapper'
 
 /**
  * Trakt Media Recommendations Capability
@@ -27,7 +27,7 @@ export class TraktMediaRecommendationsCapability implements IMediaRecommendation
 
       const catalogs: Catalog[] = []
       const params = {
-        extended: ['full', 'images'] as any,
+        extended: 'full,images' as any,
         limit: 20,
       }
 

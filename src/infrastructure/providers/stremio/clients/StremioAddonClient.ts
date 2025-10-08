@@ -7,6 +7,7 @@ import type {
   StremioMetaResponse,
   StremioCatalogResponse,
   StremioAddonCatalogResponse,
+  StremioSubtitlesResponse,
 } from '../types'
 
 /**
@@ -127,6 +128,38 @@ export class StremioAddonClient {
     } catch (error) {
       throw new InfrastructureError(
         `Failed to fetch Stremio addon catalog ${type}/${id} from ${this.transportUrl}`,
+        error instanceof Error ? error : new Error(String(error))
+      )
+    }
+  }
+
+  /**
+   * Get subtitles for specific item
+   *
+   * @param type - Media type (e.g., 'movie', 'series')
+   * @param videoId - Video ID (for movies: metaId, for series: metaId:season:episode)
+   * @param extra - Optional extra parameters (videoHash, videoSize, filename for OpenSubtitles)
+   *
+   * @example
+   * // Get subtitles for a movie
+   * await client.getSubtitles('movie', 'tt0848228')
+   * // Get subtitles for a series episode
+   * await client.getSubtitles('series', 'tt0898266:9:17')
+   * // With OpenSubtitles hash
+   * await client.getSubtitles('movie', 'tt0848228', { videoHash: '...' })
+   */
+  async getSubtitles(
+    type: string,
+    videoId: string,
+    extra?: Record<string, string>
+  ): Promise<StremioSubtitlesResponse> {
+    try {
+      const url = this.buildUrl('subtitles', type, videoId, extra)
+      const response = await this.httpClient.get<StremioSubtitlesResponse>(url)
+      return response
+    } catch (error) {
+      throw new InfrastructureError(
+        `Failed to fetch Stremio subtitles ${type}/${videoId} from ${this.transportUrl}`,
         error instanceof Error ? error : new Error(String(error))
       )
     }

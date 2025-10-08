@@ -30,7 +30,7 @@ export class TraktPeopleClient extends TraktBaseClient {
     personId: string | number,
     options?: { extended?: TraktExtended | TraktExtended[] }
   ): Promise<TraktPerson> {
-    return this.get<TraktPerson>(`/people/${personId}`, undefined, options)
+    return this.get<TraktPerson>(`/people/${personId}`, options)
   }
 
   /**
@@ -45,7 +45,7 @@ export class TraktPeopleClient extends TraktBaseClient {
     personId: string | number,
     options?: { extended?: TraktExtended | TraktExtended[] }
   ): Promise<TraktPersonCredits> {
-    return this.get<TraktPersonCredits>(`/people/${personId}/movies`, undefined, options)
+    return this.get<TraktPersonCredits>(`/people/${personId}/movies`, options)
   }
 
   /**
@@ -60,7 +60,7 @@ export class TraktPeopleClient extends TraktBaseClient {
     personId: string | number,
     options?: { extended?: TraktExtended | TraktExtended[] }
   ): Promise<TraktPersonCredits> {
-    return this.get<TraktPersonCredits>(`/people/${personId}/shows`, undefined, options)
+    return this.get<TraktPersonCredits>(`/people/${personId}/shows`, options)
   }
 
   /**

@@ -1,4 +1,10 @@
 {
+  "common": {
+    "close": "Close",
+    "cancel": "Cancel",
+    "save": "Save",
+    "saving": "Saving..."
+  },
   "navigation": {
     "home": "Home",
     "search": "Search",
@@ -20,6 +26,9 @@
     "continue_watching_progress": "{progress}% complete",
     "catalog_customize": "Customize",
     "catalog_customize_accessibility": "Customize the {name} catalog",
+    "catalog_load_error": "Failed to load more items",
+    "catalog_retry": "Retry",
+    "catalog_loading_more": "Loading more...",
     "empty_state_title": "Nothing to show yet",
     "empty_state_subtitle": "Connect your providers to populate the homescreen.",
     "error_title": "Unable to refresh homescreen"
@@ -249,12 +258,42 @@
       "subtitle": "Choose which provider catalogs appear on the homescreen.",
       "refresh_label": "Refreshing",
       "loading": "Loading catalogs...",
-      "error_title": "We couldn’t load catalogs",
+      "error_title": "We couldn't load catalogs",
       "catalog_section_title": "Catalog Selection",
       "catalog_section_description": "Enable the catalogs you want to feature on the homescreen.",
       "catalog_toggle_accessibility": "Toggle the {name} catalog",
       "empty_state_title": "No catalogs available",
-      "empty_state_subtitle": "Connect providers like TMDB, Trakt, or Stremio to see more content."
+      "empty_state_subtitle": "Connect providers like TMDB, Trakt, or Stremio to see more content.",
+      "rename_button": "Rename",
+      "rename_button_accessibility": "Rename {name} catalog",
+      "rename_dialog_title": "Rename Catalog",
+      "rename_dialog_subtitle": "Give a custom name to: {name}",
+      "rename_placeholder": "Enter new name...",
+      "rename_input_accessibility": "Catalog name input",
+      "rename_cancel": "Cancel",
+      "rename_submit": "Save",
+      "rename_error_empty": "Name cannot be empty",
+      "rename_error_too_long": "Name is too long (max 100 characters)",
+      "rename_error_failed": "Failed to rename catalog",
+      "custom_name_badge": "Custom",
+      "index_title": "Catalog Management",
+      "index_subtitle": "Organize and customize your homescreen catalogs",
+      "enabled_catalogs_label": "Enabled Catalogs",
+      "enabled_catalogs_description": "These catalogs are currently visible on your homescreen",
+      "management_section_title": "Management",
+      "enable_disable_title": "Enable/Disable Catalogs",
+      "enable_disable_description": "Toggle which catalogs appear on your homescreen",
+      "reorder_title": "Reorder Catalogs",
+      "reorder_description": "Change the order catalogs appear on your homescreen",
+      "enable_title": "Enable/Disable Catalogs",
+      "enable_subtitle": "Choose which catalogs appear on your homescreen",
+      "enable_section_description": "Enable the catalogs you want to feature on the homescreen",
+      "reorder_subtitle": "Drag to reorder your enabled catalogs",
+      "reorder_empty_title": "No catalogs enabled",
+      "reorder_empty_subtitle": "Go to Enable/Disable to select catalogs first",
+      "move_up_accessibility": "Move {name} up in order",
+      "move_down_accessibility": "Move {name} down in order",
+      "drag_to_reorder_accessibility": "Drag to reorder {name}"
     }
   }
 }

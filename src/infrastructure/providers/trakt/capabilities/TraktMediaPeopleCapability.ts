@@ -1,10 +1,10 @@
 import type { IMediaPeopleCapability } from '@/src/domain/capabilities/IMediaPeopleCapability'
-import type { Media } from '@/src/domain/entities/Media'
 import type { Catalog } from '@/src/domain/entities/Catalog'
 import { Catalog as CatalogEntity } from '@/src/domain/entities/Catalog'
-import type { TraktClient } from '@/src/infrastructure/api/trakt/TraktClient'
-import type { ILoggingService } from '@/src/domain/services/ILoggingService'
+import type { Media } from '@/src/domain/entities/Media'
 import { StableIdGenerator } from '@/src/domain/entities/StableIdGenerator'
+import type { ILoggingService } from '@/src/domain/services/ILoggingService'
+import type { TraktClient } from '@/src/infrastructure/api/trakt/TraktClient'
 
 /**
  * Trakt Media People Capability
@@ -31,11 +31,11 @@ export class TraktMediaPeopleCapability implements IMediaPeopleCapability {
       let peopleData: any
       if (media.type === 'movie') {
         peopleData = await this.traktClient.movies.getPeople(traktId, {
-          extended: ['full', 'images'] as any,
+          extended: 'full,images' as any,
         })
       } else if (media.type === 'series') {
         peopleData = await this.traktClient.shows.getPeople(traktId, {
-          extended: ['full', 'images'] as any,
+          extended: 'full,images' as any,
         })
       } else {
         throw new Error(`Unsupported media type: ${media.type}`)

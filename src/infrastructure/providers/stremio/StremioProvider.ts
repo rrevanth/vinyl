@@ -9,6 +9,9 @@ import type { IStorageService } from '../../../domain/services/IStorageService'
 import type { ILoggingService } from '../../../domain/services/ILoggingService'
 import { InfrastructureError } from '../../errors/InfrastructureError'
 import { StremioMediaCatalogCapability } from './capabilities/StremioMediaCatalogCapability'
+import { StremioMediaMetadataCapability } from './capabilities/StremioMediaMetadataCapability'
+import { StremioMediaStreamsCapability } from './capabilities/StremioMediaStreamsCapability'
+import { StremioMediaSubtitlesCapability } from './capabilities/StremioMediaSubtitlesCapability'
 
 /**
  * Stremio provider implementation - one provider per addon
@@ -164,6 +167,25 @@ export class StremioProvider implements IProvider {
       )
     }
 
-    // Additional capability implementations can be registered here (metadata, streams, etc.)
+    if (this.capabilities.includes(CapabilityType.MEDIA_METADATA)) {
+      this.capabilityInstances.set(
+        CapabilityType.MEDIA_METADATA,
+        new StremioMediaMetadataCapability(this.addon, this.addonClient, this.logger)
+      )
+    }
+
+    if (this.capabilities.includes(CapabilityType.MEDIA_STREAMS)) {
+      this.capabilityInstances.set(
+        CapabilityType.MEDIA_STREAMS,
+        new StremioMediaStreamsCapability(this.addon, this.addonClient, this.logger)
+      )
+    }
+
+    if (this.capabilities.includes(CapabilityType.MEDIA_SUBTITLES)) {
+      this.capabilityInstances.set(
+        CapabilityType.MEDIA_SUBTITLES,
+        new StremioMediaSubtitlesCapability(this.addon, this.addonClient, this.logger)
+      )
+    }
   }
 }

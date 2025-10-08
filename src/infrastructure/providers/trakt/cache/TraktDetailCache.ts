@@ -1,7 +1,7 @@
-import type { QueryClient } from '@tanstack/react-query'
-import type { TraktClient } from '@/src/infrastructure/api/trakt/TraktClient'
 import type { ILoggingService } from '@/src/domain/services/ILoggingService'
-import type { TraktMovie, TraktShow, TraktPerson } from '@/src/infrastructure/api/trakt/types'
+import type { TraktClient } from '@/src/infrastructure/api/trakt/TraktClient'
+import type { TraktMovie, TraktPerson, TraktShow } from '@/src/infrastructure/api/trakt/types'
+import type { QueryClient } from '@tanstack/react-query'
 
 /**
  * Multi-level TanStack Query cache for Trakt extended API responses
@@ -21,7 +21,7 @@ export class TraktDetailCache {
   private readonly STALE_TIME = 1000 * 60 * 30 // 30 minutes
 
   // Extended options for comprehensive data retrieval
-  private readonly EXTENDED_FULL_IMAGES: ('full' | 'images')[] = ['full', 'images']
+  private readonly EXTENDED_FULL_IMAGES = 'full,images' as const
 
   constructor(
     private readonly traktClient: TraktClient,

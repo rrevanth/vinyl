@@ -16,6 +16,7 @@ import { TraktProvider } from '../providers/trakt/TraktProvider'
 import { StremioConfigFactory } from '../factories/StremioConfigFactory'
 import { StremioAddonStorage } from '../providers/stremio/storage/StremioAddonStorage'
 import { StremioAddonRegistry } from '../providers/stremio/StremioAddonRegistry'
+import { StremioInitializationService } from '../services/StremioInitializationService'
 import { ProviderRegistry } from '../providers/ProviderRegistry'
 import type { IStorageService } from '../../domain/services/IStorageService'
 import type { ILoggingService } from '../../domain/services/ILoggingService'
@@ -29,6 +30,7 @@ import { ManageCatalogUseCase } from '@/src/domain/use-cases/homescreen/ManageCa
 import { UpdateHomescreenPreferencesUseCase } from '@/src/domain/use-cases/homescreen/UpdateHomescreenPreferencesUseCase'
 import { RefreshHomescreenUseCase } from '@/src/domain/use-cases/homescreen/RefreshHomescreenUseCase'
 import { GetAvailableCatalogsUseCase } from '@/src/domain/use-cases/homescreen/GetAvailableCatalogsUseCase'
+import { markStepComplete } from '@/src/presentation/shared/stores/initialization.store'
 
 export function initializeContainer(): void {
   // Register core services
@@ -101,8 +103,9 @@ export function initializeContainer(): void {
   providerRegistry.registerProvider(tmdbProvider)
 
   // Register Trakt provider with registry
-  const traktProvider = container.resolve<TraktProvider>(TOKENS.TraktProvider)
-  providerRegistry.registerProvider(traktProvider)
+  // Temporarily disabled per user request
+  // const traktProvider = container.resolve<TraktProvider>(TOKENS.TraktProvider)
+  // providerRegistry.registerProvider(traktProvider)
 
   // Register Stremio services
   container.register(TOKENS.StremioConfigFactory, () => new StremioConfigFactory())
@@ -110,6 +113,7 @@ export function initializeContainer(): void {
 
   const stremioConfigFactory = container.resolve<StremioConfigFactory>(TOKENS.StremioConfigFactory)
   const stremioHttpClient = container.resolve<HttpClient>(TOKENS.StremioHttpClient)
+  const stremioAddonStorage = container.resolve<StremioAddonStorage>(TOKENS.StremioAddonStorage)
 
   container.register(
     TOKENS.StremioAddonRegistry,
@@ -122,6 +126,13 @@ export function initializeContainer(): void {
         queryClient,
         logger
       )
+  )
+
+  // Register Stremio Initialization Service
+  const stremioAddonRegistry = container.resolve<StremioAddonRegistry>(TOKENS.StremioAddonRegistry)
+  container.register(
+    TOKENS.StremioInitializationService,
+    () => new StremioInitializationService(storage, logger, stremioAddonRegistry, stremioAddonStorage)
   )
 
   // Homescreen use cases
@@ -161,6 +172,10 @@ export function initializeContainer(): void {
     )
     return new RefreshHomescreenUseCase(getHomescreenDataUseCase, userService, logger)
   })
+
+  // Mark container and providers initialization complete
+  markStepComplete('container', 'DI container ready')
+  markStepComplete('providers', 'Providers registered')
 }
 
 // Auto-initialize on import (optional, can call manually in _layout.tsx)

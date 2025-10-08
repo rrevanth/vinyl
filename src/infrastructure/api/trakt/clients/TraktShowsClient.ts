@@ -38,7 +38,7 @@ export class TraktShowsClient extends TraktBaseClient {
     showId: string | number,
     options?: { extended?: TraktExtended | TraktExtended[] }
   ): Promise<TraktShow> {
-    return this.get<TraktShow>(`/shows/${showId}`, undefined, options)
+    return this.get<TraktShow>(`/shows/${showId}`, options)
   }
 
   /**
@@ -105,7 +105,7 @@ export class TraktShowsClient extends TraktBaseClient {
     cast: { character: string; characters: string[]; episode_count: number; person: any }[]
     crew: Record<string, { job: string; jobs: string[]; episode_count: number; person: any }[]>
   }> {
-    return this.get(`/shows/${showId}/people`, undefined, options)
+    return this.get(`/shows/${showId}/people`, options)
   }
 
   /**
@@ -159,7 +159,7 @@ export class TraktShowsClient extends TraktBaseClient {
     showId: string | number,
     options?: { extended?: TraktExtended }
   ): Promise<TraktEpisode> {
-    return this.get<TraktEpisode>(`/shows/${showId}/next_episode`, undefined, options)
+    return this.get<TraktEpisode>(`/shows/${showId}/next_episode`, options)
   }
 
   /**
@@ -169,7 +169,7 @@ export class TraktShowsClient extends TraktBaseClient {
     showId: string | number,
     options?: { extended?: TraktExtended }
   ): Promise<TraktEpisode> {
-    return this.get<TraktEpisode>(`/shows/${showId}/last_episode`, undefined, options)
+    return this.get<TraktEpisode>(`/shows/${showId}/last_episode`, options)
   }
 
   // Season Methods
@@ -181,7 +181,7 @@ export class TraktShowsClient extends TraktBaseClient {
     showId: string | number,
     options?: { extended?: TraktExtended | TraktExtended[] }
   ): Promise<TraktSeason[]> {
-    return this.get<TraktSeason[]>(`/shows/${showId}/seasons`, undefined, options)
+    return this.get<TraktSeason[]>(`/shows/${showId}/seasons`, options)
   }
 
   /**
@@ -192,7 +192,7 @@ export class TraktShowsClient extends TraktBaseClient {
     season: number,
     options?: { extended?: TraktExtended | TraktExtended[] }
   ): Promise<TraktEpisode[]> {
-    return this.get<TraktEpisode[]>(`/shows/${showId}/seasons/${season}`, undefined, options)
+    return this.get<TraktEpisode[]>(`/shows/${showId}/seasons/${season}`, options)
   }
 
   /**
@@ -272,7 +272,6 @@ export class TraktShowsClient extends TraktBaseClient {
   ): Promise<TraktEpisode> {
     return this.get<TraktEpisode>(
       `/shows/${showId}/seasons/${season}/episodes/${episode}`,
-      undefined,
       options
     )
   }

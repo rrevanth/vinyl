@@ -25,6 +25,9 @@ interface Translations {
     continue_watching_progress: string
     catalog_customize: string
     catalog_customize_accessibility: string
+    catalog_load_error: string
+    catalog_retry: string
+    catalog_loading_more: string
     empty_state_title: string
     empty_state_subtitle: string
     error_title: string

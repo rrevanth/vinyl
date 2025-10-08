@@ -31,6 +31,14 @@ export interface StremioAddonCatalogResponse {
 }
 
 /**
+ * Subtitles endpoint response: /subtitles/{type}/{videoId}.json
+ */
+export interface StremioSubtitlesResponse {
+  subtitles: StremioSubtitle[]
+  cacheMaxAge?: number
+}
+
+/**
  * Meta Preview Object used in catalog responses
  */
 export interface StremioMetaPreview {

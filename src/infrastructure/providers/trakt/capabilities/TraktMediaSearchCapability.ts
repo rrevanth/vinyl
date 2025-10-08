@@ -1,10 +1,10 @@
 import type { IMediaSearchCapability } from '@/src/domain/capabilities/IMediaSearchCapability'
 import type { Catalog } from '@/src/domain/entities/Catalog'
 import { Catalog as CatalogEntity } from '@/src/domain/entities/Catalog'
-import type { TraktClient } from '@/src/infrastructure/api/trakt/TraktClient'
-import type { ILoggingService } from '@/src/domain/services/ILoggingService'
-import { TraktMediaMapper } from '../mappers/TraktMediaMapper'
 import { StableIdGenerator } from '@/src/domain/entities/StableIdGenerator'
+import type { ILoggingService } from '@/src/domain/services/ILoggingService'
+import type { TraktClient } from '@/src/infrastructure/api/trakt/TraktClient'
+import { TraktMediaMapper } from '../mappers/TraktMediaMapper'
 
 /**
  * Trakt Media Search Capability
@@ -26,7 +26,7 @@ export class TraktMediaSearchCapability implements IMediaSearchCapability {
 
       // Use Trakt search with extended=full for immediate rich data
       const searchResults = await this.traktClient.search.searchAll(query, {
-        extended: ['full', 'images'],
+        extended: 'full,images',
         limit: filters?.limit || 20,
       })
 

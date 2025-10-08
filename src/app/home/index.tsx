@@ -1,12 +1,14 @@
-import { Fragment } from 'react'
+import { Fragment, useCallback } from 'react'
 import { observer } from '@legendapp/state/react'
-import { ActivityIndicator, RefreshControl, ScrollView, Text, View } from 'react-native'
+import { ActivityIndicator, RefreshControl, Text, View } from 'react-native'
+import { LegendList } from '@legendapp/list'
 import { StyleSheet } from 'react-native-unistyles'
 import { t } from '@/src/presentation/shared/i18n'
 import { HeroCarousel } from '@/src/presentation/features/homescreen/components/HeroCarousel'
 import { ContinueWatchingRail } from '@/src/presentation/features/homescreen/components/ContinueWatchingRail'
 import { CatalogRow } from '@/src/presentation/features/homescreen/components/CatalogRow'
 import { useHomescreenData } from '@/src/presentation/features/homescreen/hooks/useHomescreenData'
+import type { Catalog } from '@/src/domain/entities/Catalog'
 
 const HomeScreen = observer(() => {
   const {
@@ -20,52 +22,93 @@ const HomeScreen = observer(() => {
     refresh,
   } = useHomescreenData()
 
+  const showHero = preferences.heroEnabled && heroItems.length > 0
   const showContinueWatching = preferences.showContinueWatching && continueWatching.length > 0
 
-  return (
-    <ScrollView
-      style={styles.container}
-      contentInsetAdjustmentBehavior="automatic"
-      refreshControl={
-        <RefreshControl
-          refreshing={isRefreshing}
-          onRefresh={() => refresh()}
-          tintColor={styles.refreshControl.color}
-          title={t('home.refresh_label')}
-        />
+  // Handle viewability changes for viewport-based loading
+  const handleViewableItemsChanged = useCallback(
+    ({ viewableItems }: { viewableItems: { item: Catalog; index: number }[] }) => {
+      const visibleCatalogIds = viewableItems.map((viewable) => viewable.item.stableId)
+      if (__DEV__) {
+        console.log('[HomeScreen] Visible catalogs:', visibleCatalogIds)
       }
-    >
-      <View style={styles.content}>
-        {isLoading ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={styles.spinner.color} />
-            <Text style={styles.loadingLabel}>{t('home.loading')}</Text>
-          </View>
-        ) : (
-          <Fragment>
-            <HeroCarousel items={heroItems} />
+    },
+    []
+  )
 
-            {showContinueWatching ? <ContinueWatchingRail items={continueWatching} /> : null}
+  // Create header component with Hero and Continue Watching
+  const renderListHeader = useCallback(() => {
+    if (!showHero && !showContinueWatching) {
+      return null
+    }
 
-            {catalogs.length > 0 ? (
-              catalogs.map((catalog) => <CatalogRow key={catalog.stableId} catalog={catalog} />)
-            ) : (
-              <View style={styles.emptyState}>
-                <Text style={styles.emptyTitle}>{t('home.empty_state_title')}</Text>
-                <Text style={styles.emptySubtitle}>{t('home.empty_state_subtitle')}</Text>
-              </View>
-            )}
-          </Fragment>
-        )}
+    return (
+      <Fragment>
+        {showHero ? <HeroCarousel items={heroItems} /> : null}
+        {showContinueWatching ? <ContinueWatchingRail items={continueWatching} /> : null}
+      </Fragment>
+    )
+  }, [showHero, showContinueWatching, heroItems, continueWatching])
 
-        {error ? (
-          <View style={styles.errorBanner}>
-            <Text style={styles.errorTitle}>{t('home.error_title')}</Text>
-            <Text style={styles.errorMessage}>{error}</Text>
-          </View>
-        ) : null}
+  // Render empty state
+  const renderListEmpty = useCallback(() => {
+    if (isLoading) {
+      return null
+    }
+
+    return (
+      <View style={styles.emptyState}>
+        <Text style={styles.emptyTitle}>{t('home.empty_state_title')}</Text>
+        <Text style={styles.emptySubtitle}>{t('home.empty_state_subtitle')}</Text>
       </View>
-    </ScrollView>
+    )
+  }, [isLoading])
+
+  // Show loading state for initial load
+  if (isLoading && catalogs.length === 0) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={styles.spinner.color} />
+          <Text style={styles.loadingLabel}>{t('home.loading')}</Text>
+        </View>
+      </View>
+    )
+  }
+
+  return (
+    <View style={styles.container}>
+      <LegendList
+        data={catalogs}
+        keyExtractor={(catalog: Catalog) => catalog.stableId}
+        renderItem={({ item: catalog }) => <CatalogRow catalog={catalog} />}
+        ListHeaderComponent={renderListHeader}
+        ListEmptyComponent={renderListEmpty}
+        contentContainerStyle={styles.listContent}
+        contentInsetAdjustmentBehavior="automatic"
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={() => refresh()}
+            tintColor={styles.refreshControl.color}
+            title={t('home.refresh_label')}
+          />
+        }
+        onViewableItemsChanged={handleViewableItemsChanged}
+        viewabilityConfig={{
+          itemVisiblePercentThreshold: 50,
+          minimumViewTime: 100,
+        }}
+        estimatedItemSize={300}
+      />
+
+      {error ? (
+        <View style={styles.errorBanner}>
+          <Text style={styles.errorTitle}>{t('home.error_title')}</Text>
+          <Text style={styles.errorMessage}>{error}</Text>
+        </View>
+      ) : null}
+    </View>
   )
 })
 
@@ -76,13 +119,14 @@ const styles = StyleSheet.create((theme) => ({
     flex: 1,
     backgroundColor: theme.colors.background,
   },
-  content: {
+  listContent: {
     paddingVertical: theme.spacing.xl,
-    gap: theme.spacing.xl,
   },
   loadingContainer: {
-    paddingVertical: theme.spacing['2xl'],
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
+    paddingVertical: theme.spacing['2xl'],
     gap: theme.spacing.sm,
   },
   spinner: {
@@ -97,6 +141,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   emptyState: {
     paddingHorizontal: theme.spacing.xl,
+    paddingVertical: theme.spacing['2xl'],
     alignItems: 'flex-start',
     gap: theme.spacing.xs,
   },
@@ -111,11 +156,18 @@ const styles = StyleSheet.create((theme) => ({
     fontSize: theme.fontSize.sm,
   },
   errorBanner: {
-    marginHorizontal: theme.spacing.lg,
-    marginTop: theme.spacing.lg,
+    position: 'absolute',
+    bottom: theme.spacing.lg,
+    left: theme.spacing.lg,
+    right: theme.spacing.lg,
     padding: theme.spacing.md,
     borderRadius: theme.borderRadius.md,
     backgroundColor: theme.colors.errorLight,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
   },
   errorTitle: {
     color: theme.colors.error,

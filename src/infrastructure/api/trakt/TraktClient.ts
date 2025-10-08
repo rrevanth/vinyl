@@ -1,13 +1,13 @@
 import type { ILoggingService } from '../../../domain/services/ILoggingService'
-import type { TraktConfigFactory, EffectiveTraktConfig } from '../../factories/TraktConfigFactory'
+import type { EffectiveTraktConfig, TraktConfigFactory } from '../../factories/TraktConfigFactory'
 import { TraktBaseClient } from './TraktBaseClient'
-import { TraktMoviesClient } from './clients/TraktMoviesClient'
-import { TraktShowsClient } from './clients/TraktShowsClient'
 import { TraktCalendarClient } from './clients/TraktCalendarClient'
-import { TraktSearchClient } from './clients/TraktSearchClient'
-import { TraktUsersClient } from './clients/TraktUsersClient'
-import { TraktSyncClient } from './clients/TraktSyncClient'
+import { TraktMoviesClient } from './clients/TraktMoviesClient'
 import { TraktPeopleClient } from './clients/TraktPeopleClient'
+import { TraktSearchClient } from './clients/TraktSearchClient'
+import { TraktShowsClient } from './clients/TraktShowsClient'
+import { TraktSyncClient } from './clients/TraktSyncClient'
+import { TraktUsersClient } from './clients/TraktUsersClient'
 
 /**
  * Unified Trakt API client
@@ -167,7 +167,7 @@ export class TraktClient {
    */
   async getCompleteMovieData(movieId: string | number) {
     const [details, comments, ratings, related] = await Promise.all([
-      this.movies.getDetails(movieId, { extended: ['full', 'images'] }),
+      this.movies.getDetails(movieId, { extended: 'full,images' }),
       this.movies.getComments(movieId, { limit: 10, sort: 'likes' }),
       this.movies.getRatings(movieId),
       this.movies.getRelated(movieId, { limit: 10, extended: 'full' }),
@@ -181,7 +181,7 @@ export class TraktClient {
    */
   async getCompleteShowData(showId: string | number) {
     const [details, seasons, comments, ratings, related, nextEpisode] = await Promise.all([
-      this.shows.getDetails(showId, { extended: ['full', 'images'] }),
+      this.shows.getDetails(showId, { extended: 'full,images' }),
       this.shows.getSeasons(showId, { extended: 'full' }),
       this.shows.getComments(showId, { limit: 10, sort: 'likes' }),
       this.shows.getRatings(showId),

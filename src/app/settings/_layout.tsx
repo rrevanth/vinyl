@@ -97,6 +97,34 @@ const SettingsLayout = observer(() => {
           headerLargeTitle: false,
         })}
       />
+      <Stack.Screen
+        name="homescreen"
+        options={() => ({
+          title: t('settings.homescreen.title'),
+          headerLargeTitle: false,
+        })}
+      />
+      <Stack.Screen
+        name="catalogs/index"
+        options={() => ({
+          title: t('settings.catalogs.index_title'),
+          headerLargeTitle: false,
+        })}
+      />
+      <Stack.Screen
+        name="catalogs/enable"
+        options={() => ({
+          title: t('settings.catalogs.enable_title'),
+          headerLargeTitle: false,
+        })}
+      />
+      <Stack.Screen
+        name="catalogs/reorder"
+        options={() => ({
+          title: t('settings.catalogs.reorder_title'),
+          headerLargeTitle: false,
+        })}
+      />
     </ThemedStack>
   )
 })

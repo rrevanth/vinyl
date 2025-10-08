@@ -5,6 +5,7 @@ import type { ExternalIds } from './ExternalIds'
  * Used in stable ID generation to ensure unique IDs per filter combination
  */
 export interface CatalogFilters {
+  page?: number
   genre?: string[]
   year?: number
   rating?: string
@@ -72,16 +73,17 @@ export class StableIdGenerator {
 
   /**
    * Generate stable ID for Catalog entities
-   * Includes provider context to avoid conflicts between providers
+   * Includes provider context and catalog ID to avoid conflicts between providers
    */
   static forCatalog(
     providerId: string,
+    catalogId: string,
     type: string,
     category: string,
     filters?: CatalogFilters
   ): string {
     const filterHash = filters ? this.hashFilters(filters) : 'default'
-    return `catalog:${providerId}:${type}:${category}:${filterHash}`
+    return `catalog:${providerId}:${catalogId}:${type}:${category}:${filterHash}`
   }
 
   /**

@@ -12,7 +12,6 @@ import type {
   TraktDeviceCodeResponse,
   TraktDeviceTokenRequest,
   TraktErrorResponse,
-  TraktExtended,
 } from './types'
 
 /**
@@ -69,7 +68,9 @@ export class TraktBaseClient {
       {
         'trakt-api-key': this.currentConfig.effectiveClientId,
         'trakt-api-version': '2',
-      }
+        'User-Agent': 'VNYL/1.0.0', // Required by Trakt API
+      },
+      30000 // 30-second timeout for Trakt API
     )
 
     // Check if token needs refresh and do it in background
@@ -96,7 +97,7 @@ export class TraktBaseClient {
    */
   private setupConfigurationWatcher(): void {
     this.configSubscription = userPreferences$.accounts.trakt.onChange(() => {
-      this.logger.debug('Trakt user account changed, reloading configuration')
+      // this.logger.debug('Trakt user account changed, reloading configuration')
       this.reloadConfiguration()
     })
   }
@@ -316,28 +317,16 @@ export class TraktBaseClient {
   /**
    * Make authenticated GET request
    */
-  async get<T>(
-    endpoint: string,
-    params?: Record<string, any>,
-    options?: { extended?: TraktExtended | TraktExtended[] }
-  ): Promise<T> {
+  async get<T>(endpoint: string, params?: Record<string, any>): Promise<T> {
     const queryParams = new URLSearchParams()
 
-    // Add standard parameters
+    // Add all parameters to query string
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
           queryParams.append(key, String(value))
         }
       })
-    }
-
-    // Add extended info parameter
-    if (options?.extended) {
-      const extended = Array.isArray(options.extended)
-        ? options.extended.join(',')
-        : options.extended
-      queryParams.append('extended', extended)
     }
 
     const url = queryParams.toString() ? `${endpoint}?${queryParams}` : endpoint

@@ -23,7 +23,8 @@ export class GetAvailableCatalogsUseCase {
 
     for (const capability of capabilities) {
       try {
-        const providerCatalogs = await capability.getCatalogs()
+        // Use page 0 to fetch metadata only (no items, fast)
+        const providerCatalogs = await capability.getCatalogs({ page: 0 })
         for (const catalog of providerCatalogs) {
           if (seen.has(catalog.stableId)) {
             continue

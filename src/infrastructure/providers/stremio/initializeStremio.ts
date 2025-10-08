@@ -6,6 +6,19 @@ import type { StremioAddonStorage } from './storage/StremioAddonStorage'
 import type { ILoggingService } from '../../../domain/services/ILoggingService'
 
 /**
+ * @deprecated This file is deprecated. Use StremioInitializationService instead.
+ *
+ * The initialization logic has been moved to:
+ * - Service: src/infrastructure/services/StremioInitializationService.ts
+ * - Hook: src/presentation/shared/hooks/useStremioInitialization.ts
+ * - DI Registration: src/infrastructure/di/initializeContainer.ts
+ *
+ * This file is kept for backward compatibility but should not be imported.
+ * It will be removed in a future version.
+ */
+
+/**
+ * @deprecated Use StremioInitializationService.initialize() instead
  * Initialize Stremio addon system
  * This should be called once at app startup after DI container is initialized
  *
@@ -59,6 +72,7 @@ export async function initializeStremio(userId: string): Promise<void> {
 }
 
 /**
+ * @deprecated Use StremioInitializationService.shutdown() instead
  * Shutdown Stremio addon system
  * Call this when user logs out or app is shutting down
  */

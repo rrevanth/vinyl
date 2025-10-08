@@ -1,9 +1,9 @@
 import type { IMediaExternalIdsCapability } from '@/src/domain/capabilities/IMediaExternalIdsCapability'
-import type { Media } from '@/src/domain/entities/Media'
 import type { ExternalIds } from '@/src/domain/entities/ExternalIds'
-import type { TraktDetailCache } from '../cache/TraktDetailCache'
-import type { TraktClient } from '@/src/infrastructure/api/trakt/TraktClient'
+import type { Media } from '@/src/domain/entities/Media'
 import type { ILoggingService } from '@/src/domain/services/ILoggingService'
+import type { TraktClient } from '@/src/infrastructure/api/trakt/TraktClient'
+import type { TraktDetailCache } from '../cache/TraktDetailCache'
 import { TraktMediaMapper } from '../mappers/TraktMediaMapper'
 
 /**
@@ -64,7 +64,7 @@ export class TraktMediaExternalIdsCapability implements IMediaExternalIdsCapabil
         validPlatform,
         externalId,
         {
-          extended: ['full', 'images'] as any,
+          extended: 'full,images' as any,
         }
       )
 

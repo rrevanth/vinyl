@@ -1,9 +1,9 @@
 import type { IPeopleSearchCapability } from '@/src/domain/capabilities/IPeopleSearchCapability'
 import { Catalog, type CatalogItem } from '@/src/domain/entities/Catalog'
-import type { TraktClient } from '@/src/infrastructure/api/trakt/TraktClient'
 import type { ILoggingService } from '@/src/domain/services/ILoggingService'
-import { TraktPeopleMapper } from '@/src/infrastructure/providers/trakt/mappers/TraktPeopleMapper'
+import type { TraktClient } from '@/src/infrastructure/api/trakt/TraktClient'
 import type { TraktSearchResult } from '@/src/infrastructure/api/trakt/types/responses'
+import { TraktPeopleMapper } from '@/src/infrastructure/providers/trakt/mappers/TraktPeopleMapper'
 
 /**
  * Trakt People Search Capability
@@ -34,7 +34,7 @@ export class TraktPeopleSearchCapability implements IPeopleSearchCapability {
 
       // Use extended=full to get complete person data immediately
       const searchResults = await this.traktClient.search.searchPeople(query, {
-        extended: ['full', 'images'],
+        extended: 'full,images',
         limit,
         page,
       })

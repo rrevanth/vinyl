@@ -1,18 +1,18 @@
 import type {
-  IMediaImagesCapability,
-  MediaImages,
-  MediaImage,
+    IMediaImagesCapability,
+    MediaImage,
+    MediaImages,
 } from '@/src/domain/capabilities/IMediaImagesCapability'
 import type { Media } from '@/src/domain/entities/Media'
-import type { TraktDetailCache } from '../cache/TraktDetailCache'
 import type { ILoggingService } from '@/src/domain/services/ILoggingService'
+import type { TraktDetailCache } from '../cache/TraktDetailCache'
 
 /**
  * Trakt Media Images Capability
  *
  * Retrieves images from cached Trakt extended API responses.
  * This capability leverages the cache populated by TraktMediaMetadataCapability
- * which fetches data with extended=['full', 'images'].
+ * which fetches data with extended='full,images'.
  */
 export class TraktMediaImagesCapability implements IMediaImagesCapability {
   constructor(

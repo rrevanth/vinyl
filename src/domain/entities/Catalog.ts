@@ -120,6 +120,7 @@ export class Catalog {
     // Generate stable ID
     this.stableId = StableIdGenerator.forCatalog(
       data.providerId,
+      data.id,
       data.type,
       data.category,
       data.filters

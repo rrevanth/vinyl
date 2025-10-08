@@ -81,32 +81,15 @@ export const useStremioAddons = () => {
   }, [addonsUseCase, currentUser.id, logger])
 
   /**
-   * Load addons on mount and initialize Stremio system
-   * IMPORTANT: Cleanup happens inside initializeStremio BEFORE loading
+   * Load addons on mount
+   * NOTE: Stremio system is initialized by useStremioInitialization hook
+   * called in root layout, so it's already initialized when this runs
    */
   useEffect(() => {
-    const initialize = async () => {
-      try {
-        // Initialize Stremio system (includes cleanup as first step)
-        const { initializeStremio } = await import(
-          '@/src/infrastructure/providers/stremio/initializeStremio'
-        )
-
-        await initializeStremio(currentUser.id)
-        logger.info('Stremio system initialized', { userId: currentUser.id })
-      } catch (error) {
-        logger.warn('Stremio initialization warning', error as Error)
-        // Continue anyway - not critical
-      }
-
-      // Load installed addons into state (after cleanup and init)
-      await loadInstalledAddons()
-    }
-
-    initialize().catch((error) => {
-      logger.error('Failed to initialize Stremio on mount', error as Error)
+    loadInstalledAddons().catch((error) => {
+      logger.error('Failed to load installed addons on mount', error as Error)
     })
-  }, [currentUser.id, loadInstalledAddons, logger])
+  }, [loadInstalledAddons, logger])
 
   /**
    * Install addon from manifest URL

@@ -1,8 +1,7 @@
 import { memo, useState } from 'react'
-import { Pressable, Switch, Text, View } from 'react-native'
+import { Switch, Text, View } from 'react-native'
 import { StyleSheet } from 'react-native-unistyles'
 import { useSelector } from '@legendapp/state/react'
-import { router } from 'expo-router'
 import { useService } from '@/src/infrastructure/di/useService'
 import { TOKENS } from '@/src/infrastructure/di/tokens'
 import { userPreferences$ } from '@/src/presentation/shared/stores/app.store'
@@ -15,7 +14,6 @@ const HomescreenSettingsScreen = () => {
   )
 
   const preferences = useSelector(() => userPreferences$.homescreen.get())
-  const selectedCatalogIds = useSelector(() => userPreferences$.homescreen.selectedCatalogIds.get())
   const [isUpdating, setIsUpdating] = useState(false)
 
   const handleUpdate = async (
@@ -27,10 +25,6 @@ const HomescreenSettingsScreen = () => {
     } finally {
       setIsUpdating(false)
     }
-  }
-
-  const navigateToCatalogs = () => {
-    router.push('/settings/catalogs')
   }
 
   return (
@@ -109,23 +103,6 @@ const HomescreenSettingsScreen = () => {
           />
         </View>
       </View>
-
-      <Pressable
-        style={styles.catalogShortcut}
-        onPress={navigateToCatalogs}
-        accessibilityRole="button"
-      >
-        <View style={styles.rowText}>
-          <Text style={styles.rowTitle}>{t('settings.homescreen.manage_catalogs_label')}</Text>
-          <Text style={styles.rowSubtitle}>
-            {t('settings.homescreen.manage_catalogs_description').replace(
-              '{count}',
-              String(selectedCatalogIds.length)
-            )}
-          </Text>
-        </View>
-        <Text style={styles.linkArrow}>›</Text>
-      </Pressable>
     </View>
   )
 }
@@ -188,15 +165,5 @@ const styles = StyleSheet.create((theme) => ({
   rowSubtitle: {
     color: theme.colors.textSecondary,
     fontSize: theme.fontSize.xs,
-  },
-  catalogShortcut: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: theme.spacing.md,
-  },
-  linkArrow: {
-    color: theme.colors.textSecondary,
-    fontSize: theme.fontSize.lg,
   },
 }))
