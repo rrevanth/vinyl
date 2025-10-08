@@ -8,7 +8,7 @@ import { userPreferences$ } from '@/src/presentation/shared/stores/app.store'
 import { Ionicons } from '@expo/vector-icons'
 import { observer, useSelector } from '@legendapp/state/react'
 import { memo, useCallback, useMemo, useState } from 'react'
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native'
+import { ActivityIndicator, ScrollView, Text, View } from 'react-native'
 import DraggableFlatList, {
   ScaleDecorator,
   type RenderItemParams,
@@ -22,11 +22,7 @@ interface CatalogWithOrder {
   orderIndex: number
 }
 
-interface ProviderSection {
-  readonly providerId: string
-  readonly providerName: string
-  readonly catalogs: readonly CatalogWithOrder[]
-}
+// Remove ProviderSection interface as we're not grouping by provider
 
 const CatalogsReorderScreen = observer(() => {
   const { catalogs, selectedIds, isLoading } = useCatalogManagement()
@@ -35,22 +31,10 @@ const CatalogsReorderScreen = observer(() => {
 
   const [isSaving, setIsSaving] = useState(false)
   const [localOrder, setLocalOrder] = useState<string[]>([])
-  const [expandedProviders, setExpandedProviders] = useState<Set<string>>(new Set())
 
-  // Toggle provider expansion
-  const toggleProvider = useCallback((providerId: string) => {
-    setExpandedProviders((prev) => {
-      const newSet = new Set(prev)
-      if (newSet.has(providerId)) {
-        newSet.delete(providerId)
-      } else {
-        newSet.add(providerId)
-      }
-      return newSet
-    })
-  }, [])
+  // Remove provider expansion logic as we're not grouping by provider
 
-  // Build complete list of ALL selected catalogs (not just ordered ones)
+  // Build complete list of ALL selected catalogs in order
   const orderedCatalogs = useMemo(() => {
     const selectedSet = new Set(selectedIds)
     const enabledCatalogs = catalogs.filter((cat) => selectedSet.has(cat.stableId))
@@ -83,34 +67,6 @@ const CatalogsReorderScreen = observer(() => {
     sorted.sort((a, b) => a.orderIndex - b.orderIndex)
     return sorted
   }, [catalogs, selectedIds, catalogPreferences, localOrder])
-
-  // Group catalogs by provider
-  const providerSections = useMemo(() => {
-    const grouped = orderedCatalogs.reduce<Record<string, ProviderSection>>(
-      (acc, catalogWithOrder) => {
-        const providerId = catalogWithOrder.catalog.providerId
-        if (!acc[providerId]) {
-          // For Stremio addons, try to extract addon name from sourceInfo
-          const addonName = catalogWithOrder.catalog.sourceInfo?.addonName
-          const providerName = addonName || providerId.toUpperCase()
-
-          acc[providerId] = {
-            providerId,
-            providerName,
-            catalogs: [],
-          }
-        }
-        acc[providerId] = {
-          ...acc[providerId],
-          catalogs: [...acc[providerId].catalogs, catalogWithOrder],
-        }
-        return acc
-      },
-      {}
-    )
-
-    return Object.values(grouped)
-  }, [orderedCatalogs])
 
   const handleReorder = useCallback(
     async (data: CatalogWithOrder[]) => {
@@ -212,50 +168,19 @@ const CatalogsReorderScreen = observer(() => {
         </View>
       ) : null}
 
-      {/* Provider Sections */}
-      {providerSections.map((section) => {
-        const isExpanded = expandedProviders.has(section.providerId)
-
-        return (
-          <View key={section.providerId} style={styles.providerSection}>
-            {/* Provider Header */}
-            <Pressable
-              style={styles.providerHeader}
-              onPress={() => toggleProvider(section.providerId)}
-              accessibilityRole="button"
-              accessibilityLabel={`${section.providerName}. ${isExpanded ? 'Collapse' : 'Expand'} section.`}
-              accessibilityState={{ expanded: isExpanded }}
-            >
-              <View style={styles.providerHeaderLeft}>
-                <Ionicons name="library-outline" size={24} color={styles.iconColor.color} />
-                <Text style={styles.providerName}>{section.providerName}</Text>
-                <Text style={styles.catalogCount}>{section.catalogs.length}</Text>
-              </View>
-              <Ionicons
-                name={isExpanded ? 'chevron-up-outline' : 'chevron-down-outline'}
-                size={20}
-                color={styles.chevronColor.color}
-              />
-            </Pressable>
-
-            {/* Expanded Catalogs with Drag & Drop */}
-            {isExpanded && (
-              <GestureHandlerRootView style={styles.dragContainer}>
-                <DraggableFlatList
-                  data={[...section.catalogs]}
-                  onDragEnd={({ data }: { data: CatalogWithOrder[] }) => {
-                    void handleReorder(data)
-                  }}
-                  keyExtractor={(item) => item.catalog.stableId}
-                  renderItem={renderItem}
-                  containerStyle={styles.dragContent}
-                  activationDistance={10}
-                />
-              </GestureHandlerRootView>
-            )}
-          </View>
-        )
-      })}
+      {/* Simple Catalog List */}
+      <GestureHandlerRootView style={styles.dragContainer}>
+        <DraggableFlatList
+          data={orderedCatalogs}
+          onDragEnd={({ data }: { data: CatalogWithOrder[] }) => {
+            void handleReorder(data)
+          }}
+          keyExtractor={(item) => item.catalog.stableId}
+          renderItem={renderItem}
+          containerStyle={styles.dragContent}
+          activationDistance={10}
+        />
+      </GestureHandlerRootView>
     </ScrollView>
   )
 })
