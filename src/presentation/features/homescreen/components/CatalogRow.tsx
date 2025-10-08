@@ -11,6 +11,7 @@ import { ActivityIndicator, Pressable, Text, View } from 'react-native'
 import { StyleSheet } from 'react-native-unistyles'
 import { useInfiniteCatalogItemsQuery } from '../queries/useInfiniteCatalogItemsQuery'
 import { MediaPosterCard } from './MediaPosterCard'
+import { useSelector } from '@legendapp/state/react'
 
 interface CatalogRowProps {
   readonly catalog: Catalog
@@ -20,14 +21,21 @@ interface CatalogRowProps {
 const CatalogRowComponent: FC<CatalogRowProps> = ({ catalog, onPressItem: onPressItemProp }) => {
   const [isLoadingMore, setIsLoadingMore] = useState(false)
 
-  // Use infinite query hook for pagination
-  const infiniteQuery = useInfiniteCatalogItemsQuery(catalog)
+  // Get the latest catalog from the store to ensure we have the most up-to-date data
+  const latestCatalog = useSelector(() => {
+    const displayedCatalogs = mediaLibrary$.catalogs.displayed.get()
+    return displayedCatalogs.find(c => c.stableId === catalog.stableId) ?? catalog
+  })
+
+  // Use infinite query hook for pagination with the latest catalog
+  // Force re-initialization when catalog changes by using a key
+  const infiniteQuery = useInfiniteCatalogItemsQuery(latestCatalog)
 
   // Get provider name from addon name if available, otherwise use providerId
-  const providerName = catalog.sourceInfo?.addonName || catalog.providerId.toUpperCase()
+  const providerName = latestCatalog.sourceInfo?.addonName || latestCatalog.providerId.toUpperCase()
 
   // Format display name: "Provider - Catalog Name"
-  const displayName = `${providerName} - ${catalog.name}`
+  const displayName = `${providerName} - ${latestCatalog.name}`
 
   // Default navigation handler - store media object before navigating
   const handlePressItem = useCallback((media: Media) => {
@@ -48,9 +56,9 @@ const CatalogRowComponent: FC<CatalogRowProps> = ({ catalog, onPressItem: onPres
     }
   }, [onPressItemProp])
 
-  // Use items from infinite query's latest page if available, otherwise use catalog prop
+  // Use items from infinite query's latest page if available, otherwise use latest catalog from store
   // The latest page contains all accumulated items from previous pages
-  const catalogToRender = infiniteQuery.data?.pages[infiniteQuery.data.pages.length - 1] ?? catalog
+  const catalogToRender = infiniteQuery.data?.pages[infiniteQuery.data.pages.length - 1] ?? latestCatalog
 
   // Keep full CatalogItem objects to preserve unique item.stableId
   const catalogItems = catalogToRender.items.filter(item => !!item.media)
@@ -58,17 +66,17 @@ const CatalogRowComponent: FC<CatalogRowProps> = ({ catalog, onPressItem: onPres
   // Handle end reached for infinite scroll
   const handleEndReached = useCallback(async () => {
     console.log('[CatalogRow] onEndReached triggered', {
-      catalogId: catalog.stableId,
-      canLoadMore: catalog.canLoadMore(),
+      catalogId: latestCatalog.stableId,
+      canLoadMore: latestCatalog.canLoadMore(),
       isLoadingMore,
       isFetchingNextPage: infiniteQuery.isFetchingNextPage,
       hasNextPage: infiniteQuery.hasNextPage,
     })
 
     // Check if can load more and not already loading
-    if (!catalog.canLoadMore() || isLoadingMore || infiniteQuery.isFetchingNextPage) {
+    if (!latestCatalog.canLoadMore() || isLoadingMore || infiniteQuery.isFetchingNextPage) {
       console.log('[CatalogRow] Skipping load more', {
-        canLoadMore: catalog.canLoadMore(),
+        canLoadMore: latestCatalog.canLoadMore(),
         isLoadingMore,
         isFetchingNextPage: infiniteQuery.isFetchingNextPage,
       })
@@ -85,25 +93,31 @@ const CatalogRowComponent: FC<CatalogRowProps> = ({ catalog, onPressItem: onPres
     } finally {
       setIsLoadingMore(false)
     }
-  }, [catalog, isLoadingMore, infiniteQuery])
+  }, [latestCatalog, isLoadingMore, infiniteQuery])
 
   // Update store when new data arrives
   useEffect(() => {
     if (infiniteQuery.data?.pages) {
       const latestPage = infiniteQuery.data.pages[infiniteQuery.data.pages.length - 1]
-      if (latestPage && latestPage.stableId === catalog.stableId) {
+      if (latestPage && latestPage.stableId === latestCatalog.stableId) {
         // Update the catalog in the displayed store
         const displayedCatalogs = mediaLibrary$.catalogs.displayed.get()
-        const catalogIndex = displayedCatalogs.findIndex(c => c.stableId === catalog.stableId)
+        const catalogIndex = displayedCatalogs.findIndex(c => c.stableId === latestCatalog.stableId)
 
         if (catalogIndex !== -1) {
           const updatedCatalogs = [...displayedCatalogs]
           updatedCatalogs[catalogIndex] = latestPage
           mediaLibrary$.catalogs.displayed.set(updatedCatalogs)
+          
+          console.log('[CatalogRow] Updated store with new catalog data', {
+            catalogId: latestPage.stableId,
+            itemCount: latestPage.getItemCount(),
+            canLoadMore: latestPage.canLoadMore(),
+          })
         }
       }
     }
-  }, [infiniteQuery.data, catalog.stableId])
+  }, [infiniteQuery.data, latestCatalog.stableId])
 
   if (catalogItems.length === 0) {
     return null
@@ -144,7 +158,7 @@ const CatalogRowComponent: FC<CatalogRowProps> = ({ catalog, onPressItem: onPres
         onEndReached={handleEndReached}
         onEndReachedThreshold={0.1}
         ListFooterComponent={
-          (isLoadingMore || infiniteQuery.isFetchingNextPage) && catalog.canLoadMore() ? (
+          (isLoadingMore || infiniteQuery.isFetchingNextPage) && latestCatalog.canLoadMore() ? (
             <View style={styles.loadingFooter}>
               <ActivityIndicator
                 size="small"

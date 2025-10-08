@@ -1,13 +1,13 @@
+import { CapabilityType } from '@/src/domain/capabilities/CapabilityType'
+import type { IMediaCatalogCapability } from '@/src/domain/capabilities/IMediaCatalogCapability'
 import type { Catalog } from '@/src/domain/entities/Catalog'
+import { DomainError } from '@/src/domain/errors/DomainError'
+import { NotFoundError } from '@/src/domain/errors/NotFoundError'
+import { ValidationError } from '@/src/domain/errors/ValidationError'
 import type { IProviderRegistry } from '@/src/domain/providers/IProviderRegistry'
 import type { ILoggingService } from '@/src/domain/services/ILoggingService'
 import type { IUserService } from '@/src/domain/services/IUserService'
-import type { IMediaCatalogCapability } from '@/src/domain/capabilities/IMediaCatalogCapability'
 import type { GetEnabledProvidersForCapabilityUseCase } from '@/src/domain/use-cases/providers/GetEnabledProvidersForCapabilityUseCase'
-import { CapabilityType } from '@/src/domain/capabilities/CapabilityType'
-import { NotFoundError } from '@/src/domain/errors/NotFoundError'
-import { ValidationError } from '@/src/domain/errors/ValidationError'
-import { DomainError } from '@/src/domain/errors/DomainError'
 
 export interface LoadMoreCatalogItemsParams {
   readonly catalogStableId: string

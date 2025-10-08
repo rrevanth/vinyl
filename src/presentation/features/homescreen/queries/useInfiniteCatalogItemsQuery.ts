@@ -1,8 +1,8 @@
-import { useInfiniteQuery } from '@tanstack/react-query'
-import { useService } from '@/src/infrastructure/di/useService'
-import { TOKENS } from '@/src/infrastructure/di/tokens'
-import type { LoadMoreCatalogItemsUseCase } from '@/src/domain/use-cases/homescreen/LoadMoreCatalogItemsUseCase'
 import type { Catalog } from '@/src/domain/entities/Catalog'
+import type { LoadMoreCatalogItemsUseCase } from '@/src/domain/use-cases/homescreen/LoadMoreCatalogItemsUseCase'
+import { TOKENS } from '@/src/infrastructure/di/tokens'
+import { useService } from '@/src/infrastructure/di/useService'
+import { useInfiniteQuery } from '@tanstack/react-query'
 
 /**
  * Infinite query hook for loading more catalog items with pagination
@@ -40,6 +40,7 @@ export const useInfiniteCatalogItemsQuery = (catalog: Catalog) => {
     canLoadMore,
     itemCount: catalog.getItemCount(),
     paginationInfo: catalog.paginationInfo,
+    queryKey: ['catalog', 'items', catalog.stableId],
   })
 
   return useInfiniteQuery({
@@ -48,12 +49,27 @@ export const useInfiniteCatalogItemsQuery = (catalog: Catalog) => {
       // pageParam is the catalog with current pagination state
       const currentCatalog = pageParam || catalog
 
+      console.log('[useInfiniteCatalogItemsQuery] queryFn called', {
+        catalogId: currentCatalog.stableId,
+        canLoadMore: currentCatalog.canLoadMore(),
+        itemCount: currentCatalog.getItemCount(),
+        hasPageParam: !!pageParam,
+      })
+
       if (!currentCatalog.canLoadMore()) {
+        console.log('[useInfiniteCatalogItemsQuery] Cannot load more, returning current catalog')
         return currentCatalog
       }
 
+      console.log('[useInfiniteCatalogItemsQuery] Loading more items...')
       const result = await loadMoreCatalogItemsUseCase.execute({
         catalogStableId: currentCatalog.stableId,
+      })
+
+      console.log('[useInfiniteCatalogItemsQuery] Loaded more items', {
+        newItemCount: result.updatedCatalog.getItemCount(),
+        hasMore: result.updatedCatalog.canLoadMore(),
+        newItemsCount: result.newItemsCount,
       })
 
       return result.updatedCatalog
