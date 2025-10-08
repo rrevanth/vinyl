@@ -2,6 +2,7 @@ import type { GetHomescreenDataUseCase } from '@/src/domain/use-cases/homescreen
 import { TOKENS } from '@/src/infrastructure/di/tokens'
 import { useService } from '@/src/infrastructure/di/useService'
 import { userPreferences$ } from '@/src/presentation/shared/stores/app.store'
+import { mediaLibrary$ } from '@/src/presentation/shared/stores/mediaLibrary.store'
 import { useSelector } from '@legendapp/state/react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useCallback, useState } from 'react'
@@ -69,6 +70,30 @@ export const useViewportCatalogLoading = (): ViewportCatalogLoadingResult => {
 
       // Cache the catalog data
       queryClient.setQueryData(cacheKey, catalogData)
+      
+      // Update the store with the loaded catalog data
+      if (catalogData.catalogs.length > 0) {
+        const loadedCatalog = catalogData.catalogs[0]
+        const displayedCatalogs = mediaLibrary$.catalogs.displayed.get()
+        const catalogIndex = displayedCatalogs.findIndex(c => c.stableId === loadedCatalog.stableId)
+        
+        if (catalogIndex !== -1) {
+          // Update existing catalog
+          const updatedCatalogs = [...displayedCatalogs]
+          updatedCatalogs[catalogIndex] = loadedCatalog
+          mediaLibrary$.catalogs.displayed.set(updatedCatalogs)
+        } else {
+          // Add new catalog
+          mediaLibrary$.catalogs.displayed.set([...displayedCatalogs, loadedCatalog])
+        }
+        
+        console.log('[useViewportCatalogLoading] Updated store with catalog data', {
+          catalogId: loadedCatalog.stableId,
+          itemCount: loadedCatalog.getItemCount(),
+          canLoadMore: loadedCatalog.canLoadMore(),
+          paginationInfo: loadedCatalog.paginationInfo,
+        })
+      }
     } catch (error) {
       console.error(`Failed to load catalog ${catalogId}:`, error)
     } finally {
