@@ -119,6 +119,35 @@ interface Translations {
       cache_size: string
       attributions: string
     }
+    providers: {
+      title: string
+      subtitle: string
+      description: string
+      management: string
+      priorities: {
+        title: string
+        description: string
+        drag_to_reorder: string
+        save: string
+        capability_external_ids: string
+        capability_metadata: string
+        capability_videos: string
+        capability_people: string
+        capability_seasons: string
+        capability_ratings: string
+        capability_reviews: string
+        capability_images: string
+        capability_recommendations: string
+        capability_watch_progress: string
+      }
+      capabilities: {
+        title: string
+        description: string
+        toggle_all: string
+        save: string
+        no_providers: string
+      }
+    }
     stremio: {
       title: string
       description: string

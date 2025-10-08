@@ -80,9 +80,9 @@ export class TraktProvider implements IProvider {
       await this.cache.initialize()
       await this.capabilityRegistry.initialize()
 
-      this.metadata.status = ProviderStatus.ENABLED
+      this.metadata.status = ProviderStatus.READY
       this.metadata.health = {
-        status: ProviderStatus.ENABLED,
+        status: ProviderStatus.READY,
         lastChecked: new Date(),
         errorCount: 0,
       }
@@ -116,7 +116,7 @@ export class TraktProvider implements IProvider {
       await this.cache.shutdown()
       this.traktClient.destroy()
 
-      this.metadata.status = ProviderStatus.DISABLED
+      this.metadata.status = ProviderStatus.INITIALIZING
       this.isInitialized = false
       this.logger.info('TraktProvider shutdown successfully')
     } catch (error) {
@@ -138,7 +138,7 @@ export class TraktProvider implements IProvider {
         const isHealthy = true
 
         this.metadata.health = {
-          status: isHealthy ? ProviderStatus.ENABLED : ProviderStatus.ERROR,
+          status: isHealthy ? ProviderStatus.READY : ProviderStatus.ERROR,
           lastChecked: new Date(),
           errorCount: isHealthy ? 0 : this.metadata.health.errorCount + 1,
           lastError: isHealthy ? undefined : 'Connection test failed',
@@ -168,6 +168,13 @@ export class TraktProvider implements IProvider {
 
   getCapability<T>(capability: CapabilityType): T | null {
     return this.capabilityRegistry.getCapability<T>(capability)
+  }
+
+  getSupportedCapabilities(): CapabilityType[] {
+    // Iterate through all capability types and check which ones are supported
+    return Object.values(CapabilityType).filter(
+      (capability) => this.capabilityRegistry.getCapability(capability) !== null
+    )
   }
 
   // ===== AUTHENTICATION MANAGEMENT =====

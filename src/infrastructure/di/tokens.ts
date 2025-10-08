@@ -41,5 +41,16 @@ export const TOKENS = {
   UpdateHomescreenPreferencesUseCase: Symbol('UpdateHomescreenPreferencesUseCase'),
   RefreshHomescreenUseCase: Symbol('RefreshHomescreenUseCase'),
 
+  // Media detail use cases
+  ResolveExternalIdsUseCase: Symbol('ResolveExternalIdsUseCase'),
+  EnrichMediaUseCase: Symbol('EnrichMediaUseCase'),
+  GetWatchProgressUseCase: Symbol('GetWatchProgressUseCase'),
+
+  // Provider management use cases
+  GetEnabledProvidersForCapabilityUseCase: Symbol('GetEnabledProvidersForCapabilityUseCase'),
+  SaveProviderPrioritiesUseCase: Symbol('SaveProviderPrioritiesUseCase'),
+  GetAllProvidersWithCapabilitiesUseCase: Symbol('GetAllProvidersWithCapabilitiesUseCase'),
+  UpdateProviderCapabilitiesUseCase: Symbol('UpdateProviderCapabilitiesUseCase'),
+
   // Add more as needed
 } as const

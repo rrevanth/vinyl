@@ -27,6 +27,10 @@ const SettingsScreen = observer(() => {
     router.push('/settings/catalogs')
   }
 
+  const navigateToProviders = () => {
+    router.push('/settings/providers')
+  }
+
   const navigateToStremio = () => {
     router.push('/settings/stremio')
   }
@@ -71,6 +75,12 @@ const SettingsScreen = observer(() => {
           title={t('settings.catalogs.title')}
           description={t('settings.catalogs.subtitle')}
           onPress={navigateToCatalogs}
+        />
+        <SettingsNavigationRow
+          iconName="swap-vertical-outline"
+          title={t('settings.providers.title')}
+          description={t('settings.providers.subtitle')}
+          onPress={navigateToProviders}
         />
         <SettingsNavigationRow
           iconName="extension-puzzle-outline"

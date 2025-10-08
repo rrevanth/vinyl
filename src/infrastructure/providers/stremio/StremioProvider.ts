@@ -47,7 +47,7 @@ export class StremioProvider implements IProvider {
         addonId: addon.id,
         manifestUrl: addon.transportUrl,
       },
-      status: addon.isEnabled ? ProviderStatus.ENABLED : ProviderStatus.DISABLED,
+      status: addon.isEnabled ? ProviderStatus.READY : ProviderStatus.INITIALIZING,
       health: {
         status: ProviderStatus.INITIALIZING,
         lastChecked: new Date(),
@@ -77,9 +77,9 @@ export class StremioProvider implements IProvider {
       // Test connectivity to addon
       await this.addonClient.getManifest()
 
-      this.metadata.status = ProviderStatus.ENABLED
+      this.metadata.status = ProviderStatus.READY
       this.metadata.health = {
-        status: ProviderStatus.ENABLED,
+        status: ProviderStatus.READY,
         lastChecked: new Date(),
         errorCount: 0,
       }

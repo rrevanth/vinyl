@@ -1,9 +1,9 @@
 /**
  * Provider operational status
+ * Represents the runtime/health state of a provider, NOT user preferences
  */
 export enum ProviderStatus {
-  ENABLED = 'enabled', // Provider is active
-  DISABLED = 'disabled', // User disabled
+  READY = 'ready', // Provider initialized and working
   ERROR = 'error', // Provider is failing
   INITIALIZING = 'initializing', // Provider is being set up
 }

@@ -30,6 +30,13 @@ import { ManageCatalogUseCase } from '@/src/domain/use-cases/homescreen/ManageCa
 import { UpdateHomescreenPreferencesUseCase } from '@/src/domain/use-cases/homescreen/UpdateHomescreenPreferencesUseCase'
 import { RefreshHomescreenUseCase } from '@/src/domain/use-cases/homescreen/RefreshHomescreenUseCase'
 import { GetAvailableCatalogsUseCase } from '@/src/domain/use-cases/homescreen/GetAvailableCatalogsUseCase'
+import { ResolveExternalIdsUseCase } from '@/src/domain/use-cases/media/ResolveExternalIdsUseCase'
+import { EnrichMediaUseCase } from '@/src/domain/use-cases/media/EnrichMediaUseCase'
+import { GetWatchProgressUseCase } from '@/src/domain/use-cases/media/GetWatchProgressUseCase'
+import { GetEnabledProvidersForCapabilityUseCase } from '@/src/domain/use-cases/providers/GetEnabledProvidersForCapabilityUseCase'
+import { SaveProviderPrioritiesUseCase } from '@/src/domain/use-cases/providers/SaveProviderPrioritiesUseCase'
+import { GetAllProvidersWithCapabilitiesUseCase } from '@/src/domain/use-cases/providers/GetAllProvidersWithCapabilitiesUseCase'
+import { UpdateProviderCapabilitiesUseCase } from '@/src/domain/use-cases/providers/UpdateProviderCapabilitiesUseCase'
 import { markStepComplete } from '@/src/presentation/shared/stores/initialization.store'
 
 export function initializeContainer(): void {
@@ -135,31 +142,62 @@ export function initializeContainer(): void {
     () => new StremioInitializationService(storage, logger, stremioAddonRegistry, stremioAddonStorage)
   )
 
-  // Homescreen use cases
+  // Provider management use cases (register FIRST - other use cases depend on this)
   container.register(
-    TOKENS.GetHeroItemsUseCase,
-    () => new GetHeroItemsUseCase(providerRegistry, userService, logger)
+    TOKENS.GetEnabledProvidersForCapabilityUseCase,
+    () => new GetEnabledProvidersForCapabilityUseCase(providerRegistry, userService, logger)
   )
 
   container.register(
-    TOKENS.GetHomescreenDataUseCase,
-    () => new GetHomescreenDataUseCase(providerRegistry, userService, logger)
+    TOKENS.SaveProviderPrioritiesUseCase,
+    () => new SaveProviderPrioritiesUseCase(userService, logger)
   )
 
   container.register(
-    TOKENS.GetAvailableCatalogsUseCase,
-    () => new GetAvailableCatalogsUseCase(providerRegistry, logger)
+    TOKENS.GetAllProvidersWithCapabilitiesUseCase,
+    () => new GetAllProvidersWithCapabilitiesUseCase(providerRegistry, userService, logger)
   )
 
   container.register(
-    TOKENS.LoadMoreCatalogItemsUseCase,
-    () => new LoadMoreCatalogItemsUseCase(providerRegistry, logger)
+    TOKENS.UpdateProviderCapabilitiesUseCase,
+    () => new UpdateProviderCapabilitiesUseCase(userService, providerRegistry, logger)
   )
 
-  container.register(
-    TOKENS.ManageCatalogUseCase,
-    () => new ManageCatalogUseCase(userService, providerRegistry, logger)
-  )
+  // Homescreen use cases (depend on GetEnabledProvidersForCapabilityUseCase)
+  container.register(TOKENS.GetHeroItemsUseCase, () => {
+    const getEnabledProvidersUseCase = container.resolve<GetEnabledProvidersForCapabilityUseCase>(
+      TOKENS.GetEnabledProvidersForCapabilityUseCase
+    )
+    return new GetHeroItemsUseCase(providerRegistry, userService, logger, getEnabledProvidersUseCase)
+  })
+
+  container.register(TOKENS.GetHomescreenDataUseCase, () => {
+    const getEnabledProvidersUseCase = container.resolve<GetEnabledProvidersForCapabilityUseCase>(
+      TOKENS.GetEnabledProvidersForCapabilityUseCase
+    )
+    return new GetHomescreenDataUseCase(providerRegistry, userService, logger, getEnabledProvidersUseCase)
+  })
+
+  container.register(TOKENS.GetAvailableCatalogsUseCase, () => {
+    const getEnabledProvidersUseCase = container.resolve<GetEnabledProvidersForCapabilityUseCase>(
+      TOKENS.GetEnabledProvidersForCapabilityUseCase
+    )
+    return new GetAvailableCatalogsUseCase(providerRegistry, userService, logger, getEnabledProvidersUseCase)
+  })
+
+  container.register(TOKENS.LoadMoreCatalogItemsUseCase, () => {
+    const getEnabledProvidersUseCase = container.resolve<GetEnabledProvidersForCapabilityUseCase>(
+      TOKENS.GetEnabledProvidersForCapabilityUseCase
+    )
+    return new LoadMoreCatalogItemsUseCase(providerRegistry, userService, logger, getEnabledProvidersUseCase)
+  })
+
+  container.register(TOKENS.ManageCatalogUseCase, () => {
+    const getEnabledProvidersUseCase = container.resolve<GetEnabledProvidersForCapabilityUseCase>(
+      TOKENS.GetEnabledProvidersForCapabilityUseCase
+    )
+    return new ManageCatalogUseCase(userService, providerRegistry, logger, getEnabledProvidersUseCase)
+  })
 
   container.register(
     TOKENS.UpdateHomescreenPreferencesUseCase,
@@ -171,6 +209,28 @@ export function initializeContainer(): void {
       TOKENS.GetHomescreenDataUseCase
     )
     return new RefreshHomescreenUseCase(getHomescreenDataUseCase, userService, logger)
+  })
+
+  // Media detail use cases (depend on GetEnabledProvidersForCapabilityUseCase)
+  container.register(TOKENS.ResolveExternalIdsUseCase, () => {
+    const getEnabledProvidersUseCase = container.resolve<GetEnabledProvidersForCapabilityUseCase>(
+      TOKENS.GetEnabledProvidersForCapabilityUseCase
+    )
+    return new ResolveExternalIdsUseCase(providerRegistry, userService, logger, getEnabledProvidersUseCase)
+  })
+
+  container.register(TOKENS.EnrichMediaUseCase, () => {
+    const getEnabledProvidersUseCase = container.resolve<GetEnabledProvidersForCapabilityUseCase>(
+      TOKENS.GetEnabledProvidersForCapabilityUseCase
+    )
+    return new EnrichMediaUseCase(providerRegistry, userService, logger, getEnabledProvidersUseCase)
+  })
+
+  container.register(TOKENS.GetWatchProgressUseCase, () => {
+    const getEnabledProvidersUseCase = container.resolve<GetEnabledProvidersForCapabilityUseCase>(
+      TOKENS.GetEnabledProvidersForCapabilityUseCase
+    )
+    return new GetWatchProgressUseCase(providerRegistry, userService, logger, getEnabledProvidersUseCase)
   })
 
   // Mark container and providers initialization complete

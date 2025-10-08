@@ -76,7 +76,7 @@ export abstract class BaseProvider implements IProvider {
       const responseTime = Date.now() - startTime
 
       this._health = {
-        status: ProviderStatus.ENABLED,
+        status: ProviderStatus.READY,
         lastChecked: new Date(),
         errorCount: 0,
         responseTime,
@@ -127,16 +127,11 @@ export abstract class BaseProvider implements IProvider {
   }
 
   /**
-   * Update provider status (called by registry)
+   * Capability discovery - returns list of all capabilities this provider supports
    */
-  updateStatus(status: ProviderStatus): void {
-    this._metadata.status = status
-  }
-
-  /**
-   * Update last used timestamp (called by registry)
-   */
-  updateLastUsed(): void {
-    this._metadata.lastUsed = new Date()
+  getSupportedCapabilities(): CapabilityType[] {
+    return Object.values(CapabilityType).filter(
+      (capability) => this.getCapability(capability) !== null
+    )
   }
 }

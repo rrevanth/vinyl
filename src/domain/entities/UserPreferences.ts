@@ -1,5 +1,6 @@
 import type { StremioUserPreferences } from '@/src/domain/preferences/StremioPreferences'
 import { getDefaultStremioPreferences } from '@/src/domain/preferences/StremioPreferences'
+import { CapabilityType } from '@/src/domain/capabilities/CapabilityType'
 
 // ============================================================================
 // Merged Account Interfaces (Auth + Settings)
@@ -77,8 +78,32 @@ export type StremioAccount = StremioUserPreferences
 // ============================================================================
 
 export interface ProviderPriorities {
+  // Existing
   readonly metadata: readonly ('tmdb' | 'trakt' | 'stremio')[]
   readonly streams: readonly ('stremio' | 'torrent' | 'direct')[]
+
+  // NEW - Media Enrichment Capabilities
+  readonly external_ids: readonly string[]
+  readonly videos: readonly string[]
+  readonly people: readonly string[]
+  readonly seasons: readonly string[]
+  readonly ratings: readonly string[]
+  readonly reviews: readonly string[]
+  readonly images: readonly string[]
+  readonly recommendations: readonly string[]
+  readonly watch_progress: readonly string[]
+}
+
+/**
+ * Provider settings - user control over which providers and capabilities are enabled
+ */
+export interface ProviderSettings {
+  // Granular capability control per provider
+  // providerId -> enabled capabilities for that provider
+  readonly enabledCapabilitiesByProvider: Readonly<Record<string, readonly CapabilityType[]>>
+
+  // Priority order for each domain capability
+  readonly priorities: ProviderPriorities
 }
 
 export interface UIPreferences {
@@ -125,7 +150,7 @@ export interface UserPreferences {
     readonly tmdb?: TMDBAccount
     readonly stremio?: StremioAccount
   }
-  readonly providerPriorities: ProviderPriorities
+  readonly providers: ProviderSettings
   readonly ui: UIPreferences
   readonly playback: PlaybackPreferences
   readonly homescreen: HomescreenPreferences
@@ -186,6 +211,48 @@ export const createDefaultTraktAccount = (
 export const createDefaultProviderPriorities = (): ProviderPriorities => ({
   metadata: ['tmdb', 'trakt', 'stremio'],
   streams: ['stremio', 'torrent', 'direct'],
+  external_ids: ['tmdb', 'trakt', 'stremio'],
+  videos: ['tmdb', 'trakt'],
+  people: ['tmdb', 'trakt'],
+  seasons: ['tmdb', 'trakt'],
+  ratings: ['trakt', 'tmdb'],
+  reviews: ['tmdb', 'trakt'],
+  images: ['tmdb', 'trakt'],
+  recommendations: ['tmdb', 'trakt'],
+  watch_progress: ['trakt'],
+})
+
+export const createDefaultProviderSettings = (): ProviderSettings => ({
+  enabledCapabilitiesByProvider: {
+    // TMDB - Enable all common capabilities by default
+    'tmdb': [
+      CapabilityType.MEDIA_METADATA,
+      CapabilityType.MEDIA_EXTERNAL_IDS,
+      CapabilityType.MEDIA_IMAGES,
+      CapabilityType.MEDIA_VIDEOS,
+      CapabilityType.MEDIA_PEOPLE,
+      CapabilityType.MEDIA_SEASONS,
+      CapabilityType.MEDIA_RECOMMENDATIONS,
+      CapabilityType.MEDIA_REVIEWS,
+      CapabilityType.MEDIA_SEARCH,
+      CapabilityType.MEDIA_CATALOG,
+    ],
+    // Trakt - Enable all common capabilities by default
+    'trakt': [
+      CapabilityType.MEDIA_METADATA,
+      CapabilityType.MEDIA_EXTERNAL_IDS,
+      CapabilityType.MEDIA_RATINGS,
+      CapabilityType.MEDIA_WATCH_PROGRESS,
+      CapabilityType.MEDIA_RECOMMENDATIONS,
+      CapabilityType.MEDIA_SEARCH,
+      CapabilityType.MEDIA_PEOPLE,
+      CapabilityType.MEDIA_CONTINUE_WATCHING,
+      CapabilityType.MEDIA_WATCHLIST,
+      CapabilityType.MEDIA_CATALOG,
+    ],
+    // Stremio providers will be added dynamically when addons are installed
+  },
+  priorities: createDefaultProviderPriorities(),
 })
 
 export const createDefaultUIPreferences = (): UIPreferences => ({
@@ -232,7 +299,7 @@ export const createDefaultUserPreferences = (): UserPreferences => ({
     stremio: getDefaultStremioPreferences(),
     // trakt is optional, only added when user authenticates
   },
-  providerPriorities: createDefaultProviderPriorities(),
+  providers: createDefaultProviderSettings(),
   ui: createDefaultUIPreferences(),
   playback: createDefaultPlaybackPreferences(),
   homescreen: createDefaultHomescreenPreferences(),

@@ -4,6 +4,7 @@ import type { IUserService } from '@/src/domain/services/IUserService'
 import type { IProviderRegistry } from '@/src/domain/providers/IProviderRegistry'
 import type { ILoggingService } from '@/src/domain/services/ILoggingService'
 import type { IMediaCatalogCapability } from '@/src/domain/capabilities/IMediaCatalogCapability'
+import type { GetEnabledProvidersForCapabilityUseCase } from '@/src/domain/use-cases/providers/GetEnabledProvidersForCapabilityUseCase'
 import { CapabilityType } from '@/src/domain/capabilities/CapabilityType'
 import { ValidationError } from '@/src/domain/errors/ValidationError'
 import { NotFoundError } from '@/src/domain/errors/NotFoundError'
@@ -45,7 +46,8 @@ export class ManageCatalogUseCase {
   constructor(
     private readonly userService: IUserService,
     private readonly providerRegistry: IProviderRegistry,
-    private readonly loggingService: ILoggingService
+    private readonly loggingService: ILoggingService,
+    private readonly getEnabledProvidersUseCase: GetEnabledProvidersForCapabilityUseCase
   ) {}
 
   async execute(params: ManageCatalogParams): Promise<ManageCatalogResult> {
@@ -95,12 +97,17 @@ export class ManageCatalogUseCase {
   }
 
   private async collectCatalogs(): Promise<Catalog[]> {
-    const providers = this.providerRegistry
-      .getProvidersForCapability<IMediaCatalogCapability>(CapabilityType.MEDIA_CATALOG, true)
+    // Get enabled and ready providers for MEDIA_CATALOG capability
+    const readyProviders = this.getEnabledProvidersUseCase.execute(CapabilityType.MEDIA_CATALOG)
+
+    // Extract capabilities
+    const capabilities = readyProviders
+      .map(p => p.getCapability<IMediaCatalogCapability>(CapabilityType.MEDIA_CATALOG))
+      .filter((c): c is IMediaCatalogCapability => c !== null)
 
     const catalogs: Catalog[] = []
 
-    for (const capability of providers) {
+    for (const capability of capabilities) {
       try {
         // Use page 0 for metadata only (fast, no items needed for validation)
         const providerCatalogs = await capability.getCatalogs({ page: 0 })

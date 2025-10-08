@@ -6,6 +6,7 @@ import type { IProviderRegistry } from '@/src/domain/providers/IProviderRegistry
 import type { IUserService } from '@/src/domain/services/IUserService'
 import type { ILoggingService } from '@/src/domain/services/ILoggingService'
 import type { IMediaCatalogCapability } from '@/src/domain/capabilities/IMediaCatalogCapability'
+import type { GetEnabledProvidersForCapabilityUseCase } from '@/src/domain/use-cases/providers/GetEnabledProvidersForCapabilityUseCase'
 import { CapabilityType } from '@/src/domain/capabilities/CapabilityType'
 
 /**
@@ -39,7 +40,8 @@ export class GetHomescreenDataUseCase {
   constructor(
     private readonly providerRegistry: IProviderRegistry,
     private readonly userService: IUserService,
-    private readonly loggingService: ILoggingService
+    private readonly loggingService: ILoggingService,
+    private readonly getEnabledProvidersUseCase: GetEnabledProvidersForCapabilityUseCase
   ) {}
 
   async execute(params: GetHomescreenDataParams = {}): Promise<HomescreenData> {
@@ -71,8 +73,14 @@ export class GetHomescreenDataUseCase {
     }
 
     const heroLimit = limit ?? 10
-    const catalogProviders = this.providerRegistry
-      .getProvidersForCapability<IMediaCatalogCapability>(CapabilityType.MEDIA_CATALOG, true)
+
+    // Get enabled and ready providers for MEDIA_CATALOG capability
+    const readyProviders = this.getEnabledProvidersUseCase.execute(CapabilityType.MEDIA_CATALOG)
+
+    // Extract capabilities
+    const catalogProviders = readyProviders
+      .map(p => p.getCapability<IMediaCatalogCapability>(CapabilityType.MEDIA_CATALOG))
+      .filter((c): c is IMediaCatalogCapability => c !== null)
 
     if (catalogProviders.length === 0) {
       this.loggingService.warn('No catalog providers available while building hero section')
@@ -114,11 +122,13 @@ export class GetHomescreenDataUseCase {
   }
 
   private async fetchContinueWatching(limit?: number): Promise<ContinueWatchingItem[]> {
-    const capabilities = this.providerRegistry
-      .getProvidersForCapability<IMediaContinueWatchingCapability>(
-        CapabilityType.MEDIA_CONTINUE_WATCHING,
-        true
-      )
+    // Get enabled and ready providers for MEDIA_CONTINUE_WATCHING capability
+    const readyProviders = this.getEnabledProvidersUseCase.execute(CapabilityType.MEDIA_CONTINUE_WATCHING)
+
+    // Extract capabilities
+    const capabilities = readyProviders
+      .map(p => p.getCapability<IMediaContinueWatchingCapability>(CapabilityType.MEDIA_CONTINUE_WATCHING))
+      .filter((c): c is IMediaContinueWatchingCapability => c !== null)
 
     if (capabilities.length === 0) {
       return []
@@ -145,8 +155,13 @@ export class GetHomescreenDataUseCase {
       catalogOrder: preferences.homescreen.catalogOrder,
     })
 
-    const capabilities = this.providerRegistry
-      .getProvidersForCapability<IMediaCatalogCapability>(CapabilityType.MEDIA_CATALOG, true)
+    // Get enabled and ready providers for MEDIA_CATALOG capability
+    const readyProviders = this.getEnabledProvidersUseCase.execute(CapabilityType.MEDIA_CATALOG)
+
+    // Extract capabilities
+    const capabilities = readyProviders
+      .map(p => p.getCapability<IMediaCatalogCapability>(CapabilityType.MEDIA_CATALOG))
+      .filter((c): c is IMediaCatalogCapability => c !== null)
 
     this.loggingService.info('Found catalog capabilities', {
       capabilitiesCount: capabilities.length,

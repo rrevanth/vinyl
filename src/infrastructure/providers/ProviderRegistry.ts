@@ -9,8 +9,8 @@ import { ProviderStatus } from '../../domain/providers'
  * Key design principles:
  * - NO business logic (no priority, fallback, or error handling)
  * - NO provider lifecycle management (providers manage themselves)
- * - Simple Map-based storage with basic state management
- * - Use cases handle all complex logic and orchestration
+ * - Simple Map-based storage with operational status tracking
+ * - Use cases handle filtering by user preferences
  */
 export class ProviderRegistry implements IProviderRegistry {
   private providers = new Map<string, IProvider>()
@@ -21,9 +21,9 @@ export class ProviderRegistry implements IProviderRegistry {
 
     // Initialize provider (let it handle its own lifecycle)
     try {
+      ;(provider.metadata as any).status = ProviderStatus.INITIALIZING
       await provider.initialize()
-      // Update status directly on metadata since IProvider doesn't expose updateStatus
-      ;(provider.metadata as any).status = ProviderStatus.ENABLED
+      ;(provider.metadata as any).status = ProviderStatus.READY
     } catch {
       ;(provider.metadata as any).status = ProviderStatus.ERROR
     }
@@ -50,43 +50,39 @@ export class ProviderRegistry implements IProviderRegistry {
     return Array.from(this.providers.values())
   }
 
-  getEnabledProviders(): IProvider[] {
-    return Array.from(this.providers.values()).filter(
-      (provider) => provider.metadata.status === ProviderStatus.ENABLED
+  /**
+   * Returns all providers that support the given capability
+   * No filtering by user preferences - that's handled in use cases
+   */
+  getProvidersForCapability(capability: CapabilityType): IProvider[] {
+    return Array.from(this.providers.values()).filter(provider =>
+      provider.getCapability(capability) !== null
     )
   }
 
   /**
-   * Returns capability instances for all providers that support the given capability
-   * This is the core method - returns actual capability implementations ready to use
+   * Convenience method to get capability instances directly
+   * Returns only non-null capability instances from all providers
    */
-  getProvidersForCapability<T>(capability: CapabilityType, onlyEnabled = true): T[] {
-    const providers = onlyEnabled ? this.getEnabledProviders() : this.getAllProviders()
-
+  getCapabilitiesForType<T>(capability: CapabilityType): T[] {
     const capabilities: T[] = []
-    for (const provider of providers) {
-      const capabilityInstance = provider.getCapability<T>(capability)
-      if (capabilityInstance) {
-        capabilities.push(capabilityInstance)
+    for (const provider of this.providers.values()) {
+      const cap = provider.getCapability<T>(capability)
+      if (cap !== null) {
+        capabilities.push(cap)
       }
     }
-
     return capabilities
   }
 
-  async enableProvider(providerId: string): Promise<void> {
+  /**
+   * Get all capabilities supported by a specific provider
+   */
+  getProviderCapabilities(providerId: string): CapabilityType[] {
     const provider = this.providers.get(providerId)
-    if (provider) {
-      // Update status directly on metadata since IProvider doesn't expose updateStatus
-      ;(provider.metadata as any).status = ProviderStatus.ENABLED
+    if (!provider) {
+      return []
     }
-  }
-
-  async disableProvider(providerId: string): Promise<void> {
-    const provider = this.providers.get(providerId)
-    if (provider) {
-      // Update status directly on metadata since IProvider doesn't expose updateStatus
-      ;(provider.metadata as any).status = ProviderStatus.DISABLED
-    }
+    return provider.getSupportedCapabilities()
   }
 }

@@ -3,31 +3,51 @@ import { memo, useCallback, useEffect, useState } from 'react'
 import { ActivityIndicator, Pressable, Text, View } from 'react-native'
 import { LegendList } from '@legendapp/list'
 import { StyleSheet } from 'react-native-unistyles'
+import { router } from 'expo-router'
 import type { Catalog } from '@/src/domain/entities/Catalog'
 import type { Media } from '@/src/domain/entities/Media'
 import { MediaPosterCard } from './MediaPosterCard'
 import { t } from '@/src/presentation/shared/i18n'
 import { useInfiniteCatalogItemsQuery } from '../queries/useInfiniteCatalogItemsQuery'
 import { mediaLibrary$ } from '@/src/presentation/shared/stores/mediaLibrary.store'
+import { setMedia } from '@/src/presentation/features/media/stores/mediaDetail.store'
 
 interface CatalogRowProps {
   readonly catalog: Catalog
   readonly onPressItem?: (media: Media) => void
 }
 
-const CatalogRowComponent: FC<CatalogRowProps> = ({ catalog, onPressItem }) => {
+const CatalogRowComponent: FC<CatalogRowProps> = ({ catalog, onPressItem: onPressItemProp }) => {
   const [isLoadingMore, setIsLoadingMore] = useState(false)
 
   // Use infinite query hook for pagination
   const infiniteQuery = useInfiniteCatalogItemsQuery(catalog)
 
+  // Default navigation handler - store media object before navigating
+  const handlePressItem = useCallback((media: Media) => {
+    console.log('[CatalogRow] Navigation triggered:', {
+      stableId: media.stableId,
+      title: media.title,
+      type: media.type,
+    })
+
+    if (onPressItemProp) {
+      onPressItemProp(media)
+    } else {
+      // Store media object in store before navigation
+      setMedia(media)
+
+      // Navigate with stableId only (Expo Router params only support primitives)
+      router.push(`/media/${media.stableId}`)
+    }
+  }, [onPressItemProp])
+
   // Use items from infinite query's latest page if available, otherwise use catalog prop
   // The latest page contains all accumulated items from previous pages
   const catalogToRender = infiniteQuery.data?.pages[infiniteQuery.data.pages.length - 1] ?? catalog
 
-  const mediaItems = catalogToRender.items
-    .map((item) => item.media)
-    .filter((media): media is Media => !!media)
+  // Keep full CatalogItem objects to preserve unique item.stableId
+  const catalogItems = catalogToRender.items.filter(item => !!item.media)
 
   // Handle end reached for infinite scroll
   const handleEndReached = useCallback(async () => {
@@ -64,7 +84,7 @@ const CatalogRowComponent: FC<CatalogRowProps> = ({ catalog, onPressItem }) => {
     }
   }, [infiniteQuery.data, catalog.stableId])
 
-  if (mediaItems.length === 0) {
+  if (catalogItems.length === 0) {
     return null
   }
 
@@ -88,15 +108,15 @@ const CatalogRowComponent: FC<CatalogRowProps> = ({ catalog, onPressItem }) => {
 
       <LegendList
         horizontal
-        data={mediaItems}
-        keyExtractor={(media) => media.stableId}
+        data={catalogItems}
+        keyExtractor={(item) => item.stableId}
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
         renderItem={({ item }) => (
           <MediaPosterCard
-            media={item}
+            media={item.media!}
             size="standard"
-            onPress={onPressItem}
+            onPress={handlePressItem}
             testID={`catalog-${catalog.stableId}-${item.stableId}`}
           />
         )}

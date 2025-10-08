@@ -4,6 +4,7 @@ import type { IProviderRegistry } from '@/src/domain/providers/IProviderRegistry
 import type { ILoggingService } from '@/src/domain/services/ILoggingService'
 import type { IUserService } from '@/src/domain/services/IUserService'
 import type { IMediaCatalogCapability } from '@/src/domain/capabilities/IMediaCatalogCapability'
+import type { GetEnabledProvidersForCapabilityUseCase } from '@/src/domain/use-cases/providers/GetEnabledProvidersForCapabilityUseCase'
 import { CapabilityType } from '@/src/domain/capabilities/CapabilityType'
 
 /**
@@ -47,7 +48,8 @@ export class GetHeroItemsUseCase {
   constructor(
     private readonly providerRegistry: IProviderRegistry,
     private readonly userService: IUserService,
-    private readonly loggingService: ILoggingService
+    private readonly loggingService: ILoggingService,
+    private readonly getEnabledProvidersUseCase: GetEnabledProvidersForCapabilityUseCase
   ) {}
 
   async execute(params: GetHeroItemsParams = {}): Promise<GetHeroItemsResult> {
@@ -58,10 +60,16 @@ export class GetHeroItemsUseCase {
     }
 
     const limit = params.limit ?? 10
-    const providers = this.providerRegistry
-      .getProvidersForCapability<IMediaCatalogCapability>(CapabilityType.MEDIA_CATALOG, true)
 
-    if (providers.length === 0) {
+    // Get enabled and ready providers for MEDIA_CATALOG capability
+    const readyProviders = this.getEnabledProvidersUseCase.execute(CapabilityType.MEDIA_CATALOG)
+
+    // Extract capabilities
+    const capabilities = readyProviders
+      .map(p => p.getCapability<IMediaCatalogCapability>(CapabilityType.MEDIA_CATALOG))
+      .filter((c): c is IMediaCatalogCapability => c !== null)
+
+    if (capabilities.length === 0) {
       this.loggingService.warn('No catalog providers available for hero items')
       return this.createEmptyResult()
     }
@@ -69,7 +77,7 @@ export class GetHeroItemsUseCase {
     const aggregated: Media[] = []
     const sources: { providerId: string; category: string; itemCount: number }[] = []
 
-    for (const capability of providers) {
+    for (const capability of capabilities) {
       if (aggregated.length >= limit) {
         break
       }

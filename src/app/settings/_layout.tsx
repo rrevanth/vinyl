@@ -125,6 +125,27 @@ const SettingsLayout = observer(() => {
           headerLargeTitle: false,
         })}
       />
+      <Stack.Screen
+        name="providers/index"
+        options={() => ({
+          title: t('settings.providers.title'),
+          headerLargeTitle: false,
+        })}
+      />
+      <Stack.Screen
+        name="providers/capabilities"
+        options={() => ({
+          title: t('settings.providers.capabilities.title'),
+          headerLargeTitle: false,
+        })}
+      />
+      <Stack.Screen
+        name="providers/priorities"
+        options={() => ({
+          title: t('settings.providers.priorities.title'),
+          headerLargeTitle: false,
+        })}
+      />
     </ThemedStack>
   )
 })

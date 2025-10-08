@@ -1,7 +1,9 @@
 import type { Catalog } from '@/src/domain/entities/Catalog'
 import type { IProviderRegistry } from '@/src/domain/providers/IProviderRegistry'
 import type { ILoggingService } from '@/src/domain/services/ILoggingService'
+import type { IUserService } from '@/src/domain/services/IUserService'
 import type { IMediaCatalogCapability } from '@/src/domain/capabilities/IMediaCatalogCapability'
+import type { GetEnabledProvidersForCapabilityUseCase } from '@/src/domain/use-cases/providers/GetEnabledProvidersForCapabilityUseCase'
 import { CapabilityType } from '@/src/domain/capabilities/CapabilityType'
 
 /**
@@ -11,12 +13,19 @@ import { CapabilityType } from '@/src/domain/capabilities/CapabilityType'
 export class GetAvailableCatalogsUseCase {
   constructor(
     private readonly providerRegistry: IProviderRegistry,
-    private readonly loggingService: ILoggingService
+    private readonly userService: IUserService,
+    private readonly loggingService: ILoggingService,
+    private readonly getEnabledProvidersUseCase: GetEnabledProvidersForCapabilityUseCase
   ) {}
 
   async execute(): Promise<Catalog[]> {
-    const capabilities = this.providerRegistry
-      .getProvidersForCapability<IMediaCatalogCapability>(CapabilityType.MEDIA_CATALOG, true)
+    // Get enabled and ready providers for MEDIA_CATALOG capability
+    const readyProviders = this.getEnabledProvidersUseCase.execute(CapabilityType.MEDIA_CATALOG)
+
+    // Extract capabilities
+    const capabilities = readyProviders
+      .map(p => p.getCapability<IMediaCatalogCapability>(CapabilityType.MEDIA_CATALOG))
+      .filter((c): c is IMediaCatalogCapability => c !== null)
 
     const seen = new Set<string>()
     const catalogs: Catalog[] = []

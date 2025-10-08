@@ -3,7 +3,7 @@ import type { IProvider } from './IProvider'
 
 /**
  * Simplified provider registry interface - No business logic, just storage/retrieval
- * All priority and fallback logic is handled in use cases
+ * All priority and enable/disable logic is handled via UserPreferences
  */
 export interface IProviderRegistry {
   // Registration
@@ -13,12 +13,13 @@ export interface IProviderRegistry {
   // Querying
   getProvider(providerId: string): IProvider | null
   getAllProviders(): IProvider[]
-  getEnabledProviders(): IProvider[]
 
-  // Capability-based resolution (returns pure capability implementations)
-  getProvidersForCapability<T>(capability: CapabilityType, onlyEnabled?: boolean): T[]
+  // Capability-based resolution (returns all providers that support the capability)
+  getProvidersForCapability(capability: CapabilityType): IProvider[]
 
-  // Simple enable/disable (just state management)
-  enableProvider(providerId: string): Promise<void>
-  disableProvider(providerId: string): Promise<void>
+  // Convenience method to get capability instances directly
+  getCapabilitiesForType<T>(capability: CapabilityType): T[]
+
+  // Capability discovery
+  getProviderCapabilities(providerId: string): CapabilityType[]
 }
