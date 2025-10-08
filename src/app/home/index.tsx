@@ -1,14 +1,15 @@
-import { Fragment, useCallback } from 'react'
-import { observer } from '@legendapp/state/react'
-import { ActivityIndicator, RefreshControl, Text, View } from 'react-native'
-import { LegendList } from '@legendapp/list'
-import { StyleSheet } from 'react-native-unistyles'
-import { t } from '@/src/presentation/shared/i18n'
-import { HeroCarousel } from '@/src/presentation/features/homescreen/components/HeroCarousel'
-import { ContinueWatchingRail } from '@/src/presentation/features/homescreen/components/ContinueWatchingRail'
-import { CatalogRow } from '@/src/presentation/features/homescreen/components/CatalogRow'
-import { useHomescreenData } from '@/src/presentation/features/homescreen/hooks/useHomescreenData'
 import type { Catalog } from '@/src/domain/entities/Catalog'
+import { CatalogRow } from '@/src/presentation/features/homescreen/components/CatalogRow'
+import { ContinueWatchingRail } from '@/src/presentation/features/homescreen/components/ContinueWatchingRail'
+import { HeroCarousel } from '@/src/presentation/features/homescreen/components/HeroCarousel'
+import { useHomescreenData } from '@/src/presentation/features/homescreen/hooks/useHomescreenData'
+import { t } from '@/src/presentation/shared/i18n'
+import { userPreferences$ } from '@/src/presentation/shared/stores/app.store'
+import { LegendList } from '@legendapp/list'
+import { observer, useSelector } from '@legendapp/state/react'
+import { Fragment, useCallback } from 'react'
+import { ActivityIndicator, RefreshControl, Text, View } from 'react-native'
+import { StyleSheet } from 'react-native-unistyles'
 
 const HomeScreen = observer(() => {
   const {
@@ -56,10 +57,22 @@ const HomeScreen = observer(() => {
       return null
     }
 
+    // Check if no catalogs are enabled (different from no catalogs available)
+    const catalogPreferences = useSelector(() => userPreferences$.catalogPreferences.get())
+    const enabledCatalogCount = Object.keys(catalogPreferences).length
+
     return (
       <View style={styles.emptyState}>
-        <Text style={styles.emptyTitle}>{t('home.empty_state_title')}</Text>
-        <Text style={styles.emptySubtitle}>{t('home.empty_state_subtitle')}</Text>
+        <Text style={styles.emptyTitle}>
+          {enabledCatalogCount === 0
+            ? t('home.no_catalogs_enabled_title')
+            : t('home.empty_state_title')}
+        </Text>
+        <Text style={styles.emptySubtitle}>
+          {enabledCatalogCount === 0
+            ? t('home.no_catalogs_enabled_subtitle')
+            : t('home.empty_state_subtitle')}
+        </Text>
       </View>
     )
   }, [isLoading])

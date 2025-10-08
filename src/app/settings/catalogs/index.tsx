@@ -1,15 +1,15 @@
+import { SettingsNavigationRow } from '@/src/features/settings/components/atoms/SettingsNavigationRow'
+import { t } from '@/src/presentation/shared/i18n'
+import { userPreferences$ } from '@/src/presentation/shared/stores/app.store'
+import { useSelector } from '@legendapp/state/react'
+import { router } from 'expo-router'
 import { memo } from 'react'
 import { ScrollView, Text, View } from 'react-native'
 import { StyleSheet } from 'react-native-unistyles'
-import { useSelector } from '@legendapp/state/react'
-import { router } from 'expo-router'
-import { userPreferences$ } from '@/src/presentation/shared/stores/app.store'
-import { t } from '@/src/presentation/shared/i18n'
-import { SettingsNavigationRow } from '@/src/features/settings/components/atoms/SettingsNavigationRow'
 
 const CatalogsIndexScreen = () => {
   const enabledCount = useSelector(
-    () => userPreferences$.homescreen.selectedCatalogIds.get().length
+    () => Object.keys(userPreferences$.catalogPreferences.get()).length
   )
 
   return (
@@ -38,7 +38,7 @@ const CatalogsIndexScreen = () => {
             description={t('settings.catalogs.enable_disable_description')}
             iconName="checkmark-circle-outline"
             onPress={() => {
-              router.push('/settings/catalogs/enable')
+              router.push('/settings/catalogs/enable' as any)
             }}
           />
           <SettingsNavigationRow
@@ -46,7 +46,7 @@ const CatalogsIndexScreen = () => {
             description={t('settings.catalogs.reorder_description')}
             iconName="reorder-four-outline"
             onPress={() => {
-              router.push('/settings/catalogs/reorder')
+              router.push('/settings/catalogs/reorder' as any)
             }}
             isLast
           />

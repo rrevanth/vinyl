@@ -1,12 +1,12 @@
-import { memo, useMemo, useState } from 'react'
-import { ActivityIndicator, Pressable, RefreshControl, SectionList, Text, View } from 'react-native'
-import { StyleSheet } from 'react-native-unistyles'
-import { useSelector } from '@legendapp/state/react'
-import { useCatalogManagement } from '@/src/presentation/features/homescreen/hooks/useCatalogManagement'
-import { userPreferences$ } from '@/src/presentation/shared/stores/app.store'
-import { t } from '@/src/presentation/shared/i18n'
 import type { Catalog } from '@/src/domain/entities/Catalog'
-import { CatalogSettingsRow } from '@/src/presentation/features/homescreen/components/CatalogSettingsRow'
+import { useCatalogManagement } from '@/src/presentation/features/homescreen/hooks/useCatalogManagement'
+import { t } from '@/src/presentation/shared/i18n'
+import { userPreferences$ } from '@/src/presentation/shared/stores/app.store'
+import { Ionicons } from '@expo/vector-icons'
+import { useSelector } from '@legendapp/state/react'
+import { memo, useCallback, useMemo, useState } from 'react'
+import { ActivityIndicator, Pressable, ScrollView, Switch, Text, View } from 'react-native'
+import { StyleSheet } from 'react-native-unistyles'
 
 interface ProviderSection {
   readonly providerId: string
@@ -15,15 +15,15 @@ interface ProviderSection {
 }
 
 const CatalogsEnableScreen = () => {
-  const { catalogs, selectedIds, isLoading, error, toggleCatalog, refresh } = useCatalogManagement()
+  const { catalogs, selectedIds, isLoading, error, toggleCatalog } = useCatalogManagement()
 
-  const [collapsedProviders, setCollapsedProviders] = useState<Set<string>>(new Set())
+  const [expandedProviders, setExpandedProviders] = useState<Set<string>>(new Set())
 
   const selectedSet = useMemo(() => new Set(selectedIds), [selectedIds])
-  const catalogCustomNames = useSelector(() => userPreferences$.homescreen.catalogCustomNames.get())
+  const catalogPreferences = useSelector(() => userPreferences$.catalogPreferences.get())
 
   // Group catalogs by provider
-  const sections = useMemo(() => {
+  const providerSections = useMemo(() => {
     const grouped = catalogs.reduce<Record<string, ProviderSection>>((acc, catalog) => {
       const providerId = catalog.providerId
       if (!acc[providerId]) {
@@ -44,63 +44,78 @@ const CatalogsEnableScreen = () => {
       return acc
     }, {})
 
-    return Object.values(grouped).map((section) => ({
-      title: `${section.providerName} (${section.catalogs.length})`,
-      providerId: section.providerId,
-      data: collapsedProviders.has(section.providerId) ? [] : section.catalogs,
-    }))
-  }, [catalogs, collapsedProviders])
+    return Object.values(grouped)
+  }, [catalogs])
 
-  const toggleProvider = (providerId: string) => {
-    setCollapsedProviders((prev) => {
-      const next = new Set(prev)
-      if (next.has(providerId)) {
-        next.delete(providerId)
+  // Toggle provider expansion
+  const toggleProvider = useCallback((providerId: string) => {
+    setExpandedProviders((prev) => {
+      const newSet = new Set(prev)
+      if (newSet.has(providerId)) {
+        newSet.delete(providerId)
       } else {
-        next.add(providerId)
+        newSet.add(providerId)
       }
-      return next
+      return newSet
     })
-  }
+  }, [])
 
-  const renderSectionHeader = ({ section }: { section: { title: string; providerId: string } }) => {
-    const isCollapsed = collapsedProviders.has(section.providerId)
+  // Toggle all catalogs for a provider
+  const toggleAllCatalogs = useCallback(
+    (providerId: string, providerCatalogs: Catalog[]) => {
+      const providerCatalogIds = providerCatalogs.map((c) => c.stableId)
+      const allSelected = providerCatalogIds.every((id) => selectedSet.has(id))
 
+      if (allSelected) {
+        // Deselect all
+        providerCatalogIds.forEach((id) => {
+          if (selectedSet.has(id)) {
+            void toggleCatalog(id)
+          }
+        })
+      } else {
+        // Select all
+        providerCatalogIds.forEach((id) => {
+          if (!selectedSet.has(id)) {
+            void toggleCatalog(id)
+          }
+        })
+      }
+    },
+    [selectedSet, toggleCatalog]
+  )
+
+  if (isLoading && catalogs.length === 0) {
     return (
-      <Pressable
-        style={({ pressed }) => [styles.sectionHeader, pressed && styles.sectionHeaderPressed]}
-        onPress={() => toggleProvider(section.providerId)}
-        accessibilityRole="button"
-        accessibilityState={{ expanded: !isCollapsed }}
-        accessibilityLabel={`${section.title}, ${isCollapsed ? 'collapsed' : 'expanded'}`}
-      >
-        <Text style={styles.collapseIcon}>{isCollapsed ? '▶' : '▼'}</Text>
-        <Text style={styles.sectionTitle}>{section.title}</Text>
-      </Pressable>
+      <View style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={styles.spinner.color} />
+          <Text style={styles.loadingLabel}>{t('settings.catalogs.loading')}</Text>
+        </View>
+      </View>
     )
   }
 
-  const renderItem = ({ item: catalog }: { item: Catalog }) => {
-    const isSelected = selectedSet.has(catalog.stableId)
-    const customName = catalogCustomNames[catalog.stableId]
-
+  if (catalogs.length === 0) {
     return (
-      <CatalogSettingsRow
-        catalog={catalog}
-        customName={customName}
-        isSelected={isSelected}
-        onToggle={() => {
-          void toggleCatalog(catalog.stableId)
-        }}
-      />
+      <View style={styles.emptyContainer}>
+        <Ionicons name="library-outline" size={64} color={styles.iconColor.color} />
+        <Text style={styles.emptyText}>{t('settings.catalogs.no_catalogs_title')}</Text>
+        <Text style={styles.emptySubtitle}>{t('settings.catalogs.no_catalogs_subtitle')}</Text>
+      </View>
     )
   }
 
-  const renderListHeader = () => (
-    <>
+  return (
+    <ScrollView
+      style={styles.scrollView}
+      contentContainerStyle={styles.content}
+      showsVerticalScrollIndicator={false}
+    >
+      {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>{t('settings.catalogs.enable_title')}</Text>
-        <Text style={styles.subtitle}>{t('settings.catalogs.enable_subtitle')}</Text>
+        <Text style={styles.headerTitle}>{t('settings.catalogs.enable_title')}</Text>
+        <Text style={styles.headerDescription}>{t('settings.catalogs.enable_subtitle')}</Text>
       </View>
 
       {error ? (
@@ -110,53 +125,88 @@ const CatalogsEnableScreen = () => {
         </View>
       ) : null}
 
-      {isLoading && catalogs.length === 0 ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={styles.spinner.color} />
-          <Text style={styles.loadingLabel}>{t('settings.catalogs.loading')}</Text>
-        </View>
-      ) : null}
+      {/* Provider Sections */}
+      {providerSections.map((section) => {
+        const isExpanded = expandedProviders.has(section.providerId)
+        const enabledCount = section.catalogs.filter((catalog) =>
+          selectedSet.has(catalog.stableId)
+        ).length
+        const allEnabled = section.catalogs.every((catalog) => selectedSet.has(catalog.stableId))
 
-      {catalogs.length > 0 ? (
-        <View style={styles.section}>
-          <Text style={styles.sectionDescription}>
-            {t('settings.catalogs.enable_section_description')}
-          </Text>
-        </View>
-      ) : null}
-    </>
-  )
+        return (
+          <View key={section.providerId} style={styles.providerSection}>
+            {/* Provider Header */}
+            <Pressable
+              style={styles.providerHeader}
+              onPress={() => toggleProvider(section.providerId)}
+              accessibilityRole="button"
+              accessibilityLabel={`${section.providerName}. ${isExpanded ? 'Collapse' : 'Expand'} section.`}
+              accessibilityState={{ expanded: isExpanded }}
+            >
+              <View style={styles.providerHeaderLeft}>
+                <Ionicons name="library-outline" size={24} color={styles.iconColor.color} />
+                <Text style={styles.providerName}>{section.providerName}</Text>
+                <Text style={styles.catalogCount}>
+                  {enabledCount}/{section.catalogs.length}
+                </Text>
+              </View>
+              <Ionicons
+                name={isExpanded ? 'chevron-up-outline' : 'chevron-down-outline'}
+                size={20}
+                color={styles.chevronColor.color}
+              />
+            </Pressable>
 
-  const renderListEmpty = () =>
-    catalogs.length === 0 && !isLoading ? (
-      <View style={styles.emptyState}>
-        <Text style={styles.emptyTitle}>{t('settings.catalogs.empty_state_title')}</Text>
-        <Text style={styles.emptySubtitle}>{t('settings.catalogs.empty_state_subtitle')}</Text>
-      </View>
-    ) : null
+            {/* Expanded Catalogs */}
+            {isExpanded && (
+              <View style={styles.catalogsContainer}>
+                {/* Toggle All Button */}
+                <Pressable
+                  style={styles.toggleAllRow}
+                  onPress={() => toggleAllCatalogs(section.providerId, [...section.catalogs])}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Toggle all catalogs for ${section.providerName}`}
+                >
+                  <Text style={styles.toggleAllText}>{t('settings.catalogs.toggle_all')}</Text>
+                  <Switch
+                    value={allEnabled}
+                    onValueChange={() =>
+                      toggleAllCatalogs(section.providerId, [...section.catalogs])
+                    }
+                    accessibilityLabel="Toggle all"
+                  />
+                </Pressable>
 
-  return (
-    <SectionList
-      style={styles.container}
-      contentContainerStyle={styles.content}
-      sections={sections}
-      keyExtractor={(item) => item.stableId}
-      renderSectionHeader={renderSectionHeader}
-      renderItem={renderItem}
-      ListHeaderComponent={renderListHeader}
-      ListEmptyComponent={renderListEmpty}
-      stickySectionHeadersEnabled={false}
-      refreshControl={
-        <RefreshControl
-          refreshing={isLoading}
-          onRefresh={() => {
-            void refresh()
-          }}
-          tintColor={styles.refresh.tintColor}
-          title={t('settings.catalogs.refresh_label')}
-        />
-      }
-    />
+                {/* Individual Catalog Toggles */}
+                {section.catalogs.map((catalog) => {
+                  const isSelected = selectedSet.has(catalog.stableId)
+                  const customName = catalogPreferences[catalog.stableId]?.customName
+                  const displayName = customName || `${section.providerName} - ${catalog.name}`
+
+                  return (
+                    <View key={catalog.stableId} style={styles.catalogRow}>
+                      <View style={styles.catalogInfo}>
+                        <Text style={styles.catalogName} numberOfLines={1}>
+                          {displayName}
+                        </Text>
+                        <Text style={styles.catalogType} numberOfLines={1}>
+                          {catalog.type}
+                        </Text>
+                      </View>
+                      <Switch
+                        value={isSelected}
+                        onValueChange={() => toggleCatalog(catalog.stableId)}
+                        accessibilityLabel={`${catalog.name} catalog`}
+                      />
+                    </View>
+                  )
+                })}
+              </View>
+            )}
+          </View>
+        )
+      })}
+    </ScrollView>
   )
 }
 
@@ -164,6 +214,10 @@ export default memo(CatalogsEnableScreen)
 
 const styles = StyleSheet.create((theme) => ({
   container: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+  },
+  scrollView: {
     flex: 1,
     backgroundColor: theme.colors.background,
   },
@@ -179,13 +233,13 @@ const styles = StyleSheet.create((theme) => ({
     gap: theme.spacing.xs,
     marginBottom: theme.spacing.lg,
   },
-  title: {
+  headerTitle: {
     color: theme.colors.text,
     fontSize: theme.fontSize.xl,
     fontFamily: theme.fontFamily.heading,
     fontWeight: theme.fontWeight.semibold,
   },
-  subtitle: {
+  headerDescription: {
     color: theme.colors.textSecondary,
     fontSize: theme.fontSize.sm,
   },
@@ -206,9 +260,10 @@ const styles = StyleSheet.create((theme) => ({
     fontSize: theme.fontSize.sm,
   },
   loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
     gap: theme.spacing.sm,
-    marginBottom: theme.spacing.lg,
   },
   spinner: {
     color: theme.colors.primary,
@@ -259,6 +314,98 @@ const styles = StyleSheet.create((theme) => ({
     fontWeight: theme.fontWeight.semibold,
   },
   emptySubtitle: {
+    color: theme.colors.textSecondary,
+    fontSize: theme.fontSize.sm,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: theme.spacing.xl,
+    gap: theme.spacing.md,
+  },
+  iconColor: {
+    color: theme.colors.textSecondary,
+  },
+  emptyText: {
+    color: theme.colors.text,
+    fontSize: theme.fontSize.lg,
+    fontFamily: theme.fontFamily.heading,
+    fontWeight: theme.fontWeight.semibold,
+    textAlign: 'center',
+  },
+  providerSection: {
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.borderRadius.md,
+    marginBottom: theme.spacing.md,
+    overflow: 'hidden',
+  },
+  providerHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: theme.spacing.md,
+    paddingHorizontal: theme.spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border,
+  },
+  providerHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.md,
+    flex: 1,
+  },
+  providerName: {
+    color: theme.colors.text,
+    fontSize: theme.fontSize.base,
+    fontWeight: theme.fontWeight.medium,
+    flex: 1,
+  },
+  catalogCount: {
+    color: theme.colors.textSecondary,
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.medium,
+  },
+  chevronColor: {
+    color: theme.colors.textSecondary,
+  },
+  catalogsContainer: {
+    paddingVertical: theme.spacing.sm,
+  },
+  toggleAllRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: theme.spacing.md,
+    paddingHorizontal: theme.spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border,
+  },
+  toggleAllText: {
+    color: theme.colors.text,
+    fontSize: theme.fontSize.base,
+    fontWeight: theme.fontWeight.medium,
+  },
+  catalogRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: theme.spacing.md,
+    paddingHorizontal: theme.spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border,
+  },
+  catalogInfo: {
+    flex: 1,
+    marginRight: theme.spacing.md,
+    gap: theme.spacing.xs,
+  },
+  catalogName: {
+    color: theme.colors.text,
+    fontSize: theme.fontSize.base,
+    fontWeight: theme.fontWeight.medium,
+  },
+  catalogType: {
     color: theme.colors.textSecondary,
     fontSize: theme.fontSize.sm,
   },

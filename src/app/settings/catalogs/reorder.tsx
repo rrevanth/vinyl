@@ -1,19 +1,20 @@
-import { memo, useCallback, useMemo, useState } from 'react'
-import { ActivityIndicator, Text, View } from 'react-native'
-import { StyleSheet } from 'react-native-unistyles'
+import type { Catalog } from '@/src/domain/entities/Catalog'
+import type { ManageCatalogUseCase } from '@/src/domain/use-cases/homescreen/ManageCatalogUseCase'
+import { TOKENS } from '@/src/infrastructure/di/tokens'
+import { useService } from '@/src/infrastructure/di/useService'
+import { useCatalogManagement } from '@/src/presentation/features/homescreen/hooks/useCatalogManagement'
+import { t } from '@/src/presentation/shared/i18n'
+import { userPreferences$ } from '@/src/presentation/shared/stores/app.store'
+import { Ionicons } from '@expo/vector-icons'
 import { observer, useSelector } from '@legendapp/state/react'
+import { memo, useCallback, useMemo, useState } from 'react'
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native'
 import DraggableFlatList, {
   ScaleDecorator,
   type RenderItemParams,
 } from 'react-native-draggable-flatlist'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
-import { useCatalogManagement } from '@/src/presentation/features/homescreen/hooks/useCatalogManagement'
-import { userPreferences$ } from '@/src/presentation/shared/stores/app.store'
-import { t } from '@/src/presentation/shared/i18n'
-import type { Catalog } from '@/src/domain/entities/Catalog'
-import { useService } from '@/src/infrastructure/di/useService'
-import { TOKENS } from '@/src/infrastructure/di/tokens'
-import type { ManageCatalogUseCase } from '@/src/domain/use-cases/homescreen/ManageCatalogUseCase'
+import { StyleSheet } from 'react-native-unistyles'
 
 interface CatalogWithOrder {
   catalog: Catalog
@@ -21,22 +22,41 @@ interface CatalogWithOrder {
   orderIndex: number
 }
 
+interface ProviderSection {
+  readonly providerId: string
+  readonly providerName: string
+  readonly catalogs: readonly CatalogWithOrder[]
+}
+
 const CatalogsReorderScreen = observer(() => {
   const { catalogs, selectedIds, isLoading } = useCatalogManagement()
-  const catalogCustomNames = useSelector(() => userPreferences$.homescreen.catalogCustomNames.get())
-  const catalogOrder = useSelector(() => userPreferences$.homescreen.catalogOrder.get())
+  const catalogPreferences = useSelector(() => userPreferences$.catalogPreferences.get())
   const manageCatalogUseCase = useService<ManageCatalogUseCase>(TOKENS.ManageCatalogUseCase)
 
   const [isSaving, setIsSaving] = useState(false)
   const [localOrder, setLocalOrder] = useState<string[]>([])
+  const [expandedProviders, setExpandedProviders] = useState<Set<string>>(new Set())
+
+  // Toggle provider expansion
+  const toggleProvider = useCallback((providerId: string) => {
+    setExpandedProviders((prev) => {
+      const newSet = new Set(prev)
+      if (newSet.has(providerId)) {
+        newSet.delete(providerId)
+      } else {
+        newSet.add(providerId)
+      }
+      return newSet
+    })
+  }, [])
 
   // Build complete list of ALL selected catalogs (not just ordered ones)
   const orderedCatalogs = useMemo(() => {
     const selectedSet = new Set(selectedIds)
     const enabledCatalogs = catalogs.filter((cat) => selectedSet.has(cat.stableId))
 
-    // Use local order if available, otherwise use stored order
-    const currentOrder = localOrder.length > 0 ? localOrder : catalogOrder
+    // Use local order if available, otherwise use stored order from catalogPreferences
+    const currentOrder = localOrder.length > 0 ? localOrder : Object.keys(catalogPreferences)
 
     // Create a map of all selected IDs with their order
     const orderedMap = new Map<string, number>()
@@ -55,14 +75,42 @@ const CatalogsReorderScreen = observer(() => {
       }
       return {
         catalog,
-        customName: catalogCustomNames[catalog.stableId],
+        customName: catalogPreferences[catalog.stableId]?.customName,
         orderIndex,
       }
     })
 
     sorted.sort((a, b) => a.orderIndex - b.orderIndex)
     return sorted
-  }, [catalogs, selectedIds, catalogCustomNames, catalogOrder, localOrder])
+  }, [catalogs, selectedIds, catalogPreferences, localOrder])
+
+  // Group catalogs by provider
+  const providerSections = useMemo(() => {
+    const grouped = orderedCatalogs.reduce<Record<string, ProviderSection>>(
+      (acc, catalogWithOrder) => {
+        const providerId = catalogWithOrder.catalog.providerId
+        if (!acc[providerId]) {
+          // For Stremio addons, try to extract addon name from sourceInfo
+          const addonName = catalogWithOrder.catalog.sourceInfo?.addonName
+          const providerName = addonName || providerId.toUpperCase()
+
+          acc[providerId] = {
+            providerId,
+            providerName,
+            catalogs: [],
+          }
+        }
+        acc[providerId] = {
+          ...acc[providerId],
+          catalogs: [...acc[providerId].catalogs, catalogWithOrder],
+        }
+        return acc
+      },
+      {}
+    )
+
+    return Object.values(grouped)
+  }, [orderedCatalogs])
 
   const handleReorder = useCallback(
     async (data: CatalogWithOrder[]) => {
@@ -87,51 +135,74 @@ const CatalogsReorderScreen = observer(() => {
     [manageCatalogUseCase]
   )
 
-  const renderItem = useCallback(
-    ({ item, drag, isActive }: RenderItemParams<CatalogWithOrder>) => {
-      // Get provider name from addon name if available, otherwise use providerId
-      const providerName = item.catalog.sourceInfo?.addonName || item.catalog.providerId.toUpperCase()
+  const renderItem = useCallback(({ item, drag, isActive }: RenderItemParams<CatalogWithOrder>) => {
+    // Get provider name from addon name if available, otherwise use providerId
+    const providerName = item.catalog.sourceInfo?.addonName || item.catalog.providerId.toUpperCase()
 
-      // Format display name: use custom name if set, otherwise "Provider - Catalog Name"
-      const displayName = item.customName || `${providerName} - ${item.catalog.name}`
+    // Format display name: use custom name if set, otherwise "Provider - Catalog Name"
+    const displayName = item.customName || `${providerName} - ${item.catalog.name}`
 
-      return (
-        <ScaleDecorator>
-          <View
-            style={[styles.card, isActive && styles.cardActive]}
-            accessibilityRole="button"
-            accessibilityLabel={t('settings.catalogs.drag_to_reorder_accessibility').replace(
-              '{name}',
-              displayName
-            )}
-          >
-            <View style={styles.dragHandle} onTouchStart={drag}>
-              <Text style={styles.dragIcon}>≡</Text>
-            </View>
+    return (
+      <ScaleDecorator>
+        <View
+          style={[styles.card, isActive && styles.cardActive]}
+          accessibilityRole="button"
+          accessibilityLabel={t('settings.catalogs.drag_to_reorder_accessibility').replace(
+            '{name}',
+            displayName
+          )}
+        >
+          <View style={styles.dragHandle} onTouchStart={drag}>
+            <Text style={styles.dragIcon}>≡</Text>
+          </View>
 
-            <View style={styles.cardContent}>
-              <Text style={styles.orderNumber}>{item.orderIndex + 1}</Text>
-              <View style={styles.catalogInfo}>
-                <Text style={styles.catalogName} numberOfLines={1}>
-                  {displayName}
-                </Text>
-                <Text style={styles.catalogType} numberOfLines={1}>
-                  {item.catalog.type}
-                </Text>
-              </View>
+          <View style={styles.cardContent}>
+            <Text style={styles.orderNumber}>{item.orderIndex + 1}</Text>
+            <View style={styles.catalogInfo}>
+              <Text style={styles.catalogName} numberOfLines={1}>
+                {displayName}
+              </Text>
+              <Text style={styles.catalogType} numberOfLines={1}>
+                {item.catalog.type}
+              </Text>
             </View>
           </View>
-        </ScaleDecorator>
-      )
-    },
-    []
-  )
+        </View>
+      </ScaleDecorator>
+    )
+  }, [])
 
-  const renderListHeader = () => (
-    <>
+  if (isLoading && orderedCatalogs.length === 0) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={styles.spinner.color} />
+          <Text style={styles.loadingLabel}>{t('settings.catalogs.loading')}</Text>
+        </View>
+      </View>
+    )
+  }
+
+  if (orderedCatalogs.length === 0) {
+    return (
+      <View style={styles.emptyContainer}>
+        <Ionicons name="library-outline" size={64} color={styles.iconColor.color} />
+        <Text style={styles.emptyText}>{t('settings.catalogs.reorder_empty_title')}</Text>
+        <Text style={styles.emptySubtitle}>{t('settings.catalogs.reorder_empty_subtitle')}</Text>
+      </View>
+    )
+  }
+
+  return (
+    <ScrollView
+      style={styles.scrollView}
+      contentContainerStyle={styles.content}
+      showsVerticalScrollIndicator={false}
+    >
+      {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>{t('settings.catalogs.reorder_title')}</Text>
-        <Text style={styles.subtitle}>{t('settings.catalogs.reorder_subtitle')}</Text>
+        <Text style={styles.headerTitle}>{t('settings.catalogs.reorder_title')}</Text>
+        <Text style={styles.headerDescription}>{t('settings.catalogs.reorder_subtitle')}</Text>
       </View>
 
       {isSaving ? (
@@ -140,37 +211,52 @@ const CatalogsReorderScreen = observer(() => {
           <Text style={styles.savingText}>{t('common.saving')}</Text>
         </View>
       ) : null}
-    </>
-  )
 
-  const renderListEmpty = () =>
-    !isLoading && orderedCatalogs.length === 0 ? (
-      <View style={styles.emptyState}>
-        <Text style={styles.emptyTitle}>{t('settings.catalogs.reorder_empty_title')}</Text>
-        <Text style={styles.emptySubtitle}>{t('settings.catalogs.reorder_empty_subtitle')}</Text>
-      </View>
-    ) : isLoading ? (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={styles.spinner.color} />
-        <Text style={styles.loadingLabel}>{t('settings.catalogs.loading')}</Text>
-      </View>
-    ) : null
+      {/* Provider Sections */}
+      {providerSections.map((section) => {
+        const isExpanded = expandedProviders.has(section.providerId)
 
-  return (
-    <GestureHandlerRootView style={styles.container}>
-      {renderListHeader()}
-      <DraggableFlatList
-        data={orderedCatalogs}
-        onDragEnd={({ data }) => {
-          void handleReorder(data)
-        }}
-        keyExtractor={(item) => item.catalog.stableId}
-        renderItem={renderItem}
-        containerStyle={styles.content}
-        ListEmptyComponent={renderListEmpty}
-        activationDistance={10}
-      />
-    </GestureHandlerRootView>
+        return (
+          <View key={section.providerId} style={styles.providerSection}>
+            {/* Provider Header */}
+            <Pressable
+              style={styles.providerHeader}
+              onPress={() => toggleProvider(section.providerId)}
+              accessibilityRole="button"
+              accessibilityLabel={`${section.providerName}. ${isExpanded ? 'Collapse' : 'Expand'} section.`}
+              accessibilityState={{ expanded: isExpanded }}
+            >
+              <View style={styles.providerHeaderLeft}>
+                <Ionicons name="library-outline" size={24} color={styles.iconColor.color} />
+                <Text style={styles.providerName}>{section.providerName}</Text>
+                <Text style={styles.catalogCount}>{section.catalogs.length}</Text>
+              </View>
+              <Ionicons
+                name={isExpanded ? 'chevron-up-outline' : 'chevron-down-outline'}
+                size={20}
+                color={styles.chevronColor.color}
+              />
+            </Pressable>
+
+            {/* Expanded Catalogs with Drag & Drop */}
+            {isExpanded && (
+              <GestureHandlerRootView style={styles.dragContainer}>
+                <DraggableFlatList
+                  data={[...section.catalogs]}
+                  onDragEnd={({ data }: { data: CatalogWithOrder[] }) => {
+                    void handleReorder(data)
+                  }}
+                  keyExtractor={(item) => item.catalog.stableId}
+                  renderItem={renderItem}
+                  containerStyle={styles.dragContent}
+                  activationDistance={10}
+                />
+              </GestureHandlerRootView>
+            )}
+          </View>
+        )
+      })}
+    </ScrollView>
   )
 })
 
@@ -192,13 +278,13 @@ const styles = StyleSheet.create((theme) => ({
     paddingHorizontal: theme.spacing.lg,
     paddingTop: theme.spacing.xl,
   },
-  title: {
+  headerTitle: {
     color: theme.colors.text,
     fontSize: theme.fontSize.xl,
     fontFamily: theme.fontFamily.heading,
     fontWeight: theme.fontWeight.semibold,
   },
-  subtitle: {
+  headerDescription: {
     color: theme.colors.textSecondary,
     fontSize: theme.fontSize.sm,
   },
@@ -301,5 +387,67 @@ const styles = StyleSheet.create((theme) => ({
   loadingLabel: {
     color: theme.colors.textSecondary,
     fontSize: theme.fontSize.sm,
+  },
+  scrollView: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: theme.spacing.xl,
+    gap: theme.spacing.md,
+  },
+  iconColor: {
+    color: theme.colors.textSecondary,
+  },
+  emptyText: {
+    color: theme.colors.text,
+    fontSize: theme.fontSize.lg,
+    fontFamily: theme.fontFamily.heading,
+    fontWeight: theme.fontWeight.semibold,
+    textAlign: 'center',
+  },
+  providerSection: {
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.borderRadius.md,
+    marginBottom: theme.spacing.md,
+    overflow: 'hidden',
+  },
+  providerHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: theme.spacing.md,
+    paddingHorizontal: theme.spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border,
+  },
+  providerHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.md,
+    flex: 1,
+  },
+  providerName: {
+    color: theme.colors.text,
+    fontSize: theme.fontSize.base,
+    fontWeight: theme.fontWeight.medium,
+    flex: 1,
+  },
+  catalogCount: {
+    color: theme.colors.textSecondary,
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.medium,
+  },
+  chevronColor: {
+    color: theme.colors.textSecondary,
+  },
+  dragContainer: {
+    flex: 1,
+  },
+  dragContent: {
+    paddingVertical: theme.spacing.sm,
   },
 }))

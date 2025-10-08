@@ -112,9 +112,7 @@ const ProviderCapabilitiesScreen = observer(() => {
     return (
       <View style={styles.emptyContainer}>
         <Ionicons name="cube-outline" size={64} color={styles.iconColor.color} />
-        <Text style={styles.emptyText}>
-          {t('settings.providers.capabilities.no_providers')}
-        </Text>
+        <Text style={styles.emptyText}>{t('settings.providers.capabilities.no_providers')}</Text>
       </View>
     )
   }
@@ -169,9 +167,7 @@ const ProviderCapabilitiesScreen = observer(() => {
                 {/* Toggle All Button */}
                 <Pressable
                   style={styles.toggleAllRow}
-                  onPress={() =>
-                    toggleAllCapabilities(provider.metadata.id, supportedCapabilities)
-                  }
+                  onPress={() => toggleAllCapabilities(provider.metadata.id, supportedCapabilities)}
                   accessibilityRole="button"
                   accessibilityLabel={`Toggle all capabilities for ${provider.metadata.name}`}
                 >
@@ -226,9 +222,7 @@ const ProviderCapabilitiesScreen = observer(() => {
           {isSaving ? (
             <ActivityIndicator size="small" color="#fff" />
           ) : (
-            <Text style={styles.saveButtonText}>
-              {t('settings.providers.capabilities.save')}
-            </Text>
+            <Text style={styles.saveButtonText}>{t('settings.providers.capabilities.save')}</Text>
           )}
         </Pressable>
       </View>

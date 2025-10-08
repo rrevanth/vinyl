@@ -31,6 +31,8 @@
     "catalog_loading_more": "Loading more...",
     "empty_state_title": "Nothing to show yet",
     "empty_state_subtitle": "Connect your providers to populate the homescreen.",
+    "no_catalogs_enabled_title": "No catalogs enabled",
+    "no_catalogs_enabled_subtitle": "Go to Settings > Catalogs to enable some catalogs for your homescreen.",
     "error_title": "Unable to refresh homescreen"
   },
   "search": {

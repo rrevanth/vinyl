@@ -1,13 +1,10 @@
-import { useCallback, useEffect } from 'react'
-import { useSelector } from '@legendapp/state/react'
-import { useService } from '@/src/infrastructure/di/useService'
-import { TOKENS } from '@/src/infrastructure/di/tokens'
+import type { Catalog } from '@/src/domain/entities/Catalog'
 import { userPreferences$ } from '@/src/presentation/shared/stores/app.store'
 import { mediaLibrary$ } from '@/src/presentation/shared/stores/mediaLibrary.store'
-import type { Catalog } from '@/src/domain/entities/Catalog'
-import type { UpdateHomescreenPreferencesUseCase } from '@/src/domain/use-cases/homescreen/UpdateHomescreenPreferencesUseCase'
-import { useCatalogsQuery } from '../queries/useCatalogsQuery'
+import { useSelector } from '@legendapp/state/react'
+import { useCallback, useEffect } from 'react'
 import { useToggleCatalogMutation } from '../queries/mutations'
+import { useCatalogsQuery } from '../queries/useCatalogsQuery'
 
 interface UseCatalogManagementResult {
   readonly catalogs: Catalog[]
@@ -38,11 +35,8 @@ interface UseCatalogManagementResult {
  * ```
  */
 export const useCatalogManagement = (): UseCatalogManagementResult => {
-  const updateHomescreenPreferencesUseCase = useService<UpdateHomescreenPreferencesUseCase>(
-    TOKENS.UpdateHomescreenPreferencesUseCase
-  )
 
-  const selectedIds = useSelector(() => userPreferences$.homescreen.selectedCatalogIds.get())
+  const selectedIds = useSelector(() => Object.keys(userPreferences$.catalogPreferences.get()))
 
   // Use TanStack Query for data fetching with caching
   const {
@@ -67,25 +61,12 @@ export const useCatalogManagement = (): UseCatalogManagementResult => {
       try {
         // Execute mutation (automatically invalidates queries)
         await toggleMutation.mutateAsync(catalogId)
-
-        // Ensure homescreen preferences stay consistent with catalog order list
-        const updatedPreferences = userPreferences$.homescreen.get()
-        if (
-          updatedPreferences.catalogOrder.length === 0 &&
-          updatedPreferences.selectedCatalogIds.length > 0
-        ) {
-          await updateHomescreenPreferencesUseCase.execute({
-            catalogs: {
-              catalogOrder: updatedPreferences.selectedCatalogIds,
-            },
-          })
-        }
       } catch (toggleError) {
         console.error('Failed to toggle catalog', toggleError)
         throw toggleError
       }
     },
-    [toggleMutation, updateHomescreenPreferencesUseCase]
+    [toggleMutation]
   )
 
   return {

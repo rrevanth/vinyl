@@ -1,29 +1,29 @@
-import { useState, useCallback } from 'react'
-import { ScrollView, Text, View, Pressable, ActivityIndicator } from 'react-native'
-import { StyleSheet } from 'react-native-unistyles'
+import { CapabilityType, getAllCapabilityTypes } from '@/src/domain/capabilities/CapabilityType'
+import type { ProviderPriorities } from '@/src/domain/entities/UserPreferences'
+import type { IProvider } from '@/src/domain/providers/IProvider'
+import type { IUserService } from '@/src/domain/services/IUserService'
+import type { GetEnabledProvidersForCapabilityUseCase } from '@/src/domain/use-cases/providers/GetEnabledProvidersForCapabilityUseCase'
+import type { SaveProviderPrioritiesUseCase } from '@/src/domain/use-cases/providers/SaveProviderPrioritiesUseCase'
+import { TOKENS } from '@/src/infrastructure/di/tokens'
+import { useService } from '@/src/infrastructure/di/useService'
+import { t } from '@/src/presentation/shared/i18n'
+import { Ionicons } from '@expo/vector-icons'
 import { observer } from '@legendapp/state/react'
+import { useCallback, useState } from 'react'
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native'
 import DraggableFlatList, {
   ScaleDecorator,
   type RenderItemParams,
 } from 'react-native-draggable-flatlist'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
-import { Ionicons } from '@expo/vector-icons'
-import { CapabilityType, getAllCapabilityTypes } from '@/src/domain/capabilities/CapabilityType'
-import type { ProviderPriorities } from '@/src/domain/entities/UserPreferences'
-import { useService } from '@/src/infrastructure/di/useService'
-import { TOKENS } from '@/src/infrastructure/di/tokens'
-import type { IProvider } from '@/src/domain/providers/IProvider'
-import type { IUserService } from '@/src/domain/services/IUserService'
-import type { GetEnabledProvidersForCapabilityUseCase } from '@/src/domain/use-cases/providers/GetEnabledProvidersForCapabilityUseCase'
-import type { SaveProviderPrioritiesUseCase } from '@/src/domain/use-cases/providers/SaveProviderPrioritiesUseCase'
-import { t } from '@/src/presentation/shared/i18n'
+import { StyleSheet } from 'react-native-unistyles'
 
 // Helper to convert capability enum to display name
 const getCapabilityDisplayName = (capability: CapabilityType): string => {
   return capability
     .replace(/_/g, ' ')
     .split(' ')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ')
 }
 
@@ -65,7 +65,7 @@ const CAPABILITY_ICONS: Record<string, string> = {
 }
 
 // Generate capabilities array from enum
-const CAPABILITIES = getAllCapabilityTypes().map(type => ({
+const CAPABILITIES = getAllCapabilityTypes().map((type) => ({
   type,
   key: type, // Use the enum value directly as the key
   icon: CAPABILITY_ICONS[type] || 'help-circle-outline', // Fallback icon
@@ -88,7 +88,6 @@ const ProviderPrioritiesScreen = observer(() => {
     return prefs.providers.priorities
   })
 
-
   // Toggle section expansion
   const toggleSection = useCallback((key: string) => {
     setExpandedSections((prev) => {
@@ -103,15 +102,12 @@ const ProviderPrioritiesScreen = observer(() => {
   }, [])
 
   // Update priority order for a capability
-  const updatePriority = useCallback(
-    (capabilityKey: string, newOrder: IProvider[]) => {
-      setPriorities((prev) => ({
-        ...prev,
-        [capabilityKey]: newOrder.map(p => p.metadata.id),
-      }))
-    },
-    []
-  )
+  const updatePriority = useCallback((capabilityKey: string, newOrder: IProvider[]) => {
+    setPriorities((prev) => ({
+      ...prev,
+      [capabilityKey]: newOrder.map((p) => p.metadata.id),
+    }))
+  }, [])
 
   // Save priorities to user preferences
   const handleSave = useCallback(async () => {
@@ -201,11 +197,7 @@ const ProviderPrioritiesScreen = observer(() => {
                 accessibilityLabel={`${getCapabilityDisplayName(capability.type)}. ${isExpanded ? 'Collapse' : 'Expand'} section.`}
                 accessibilityState={{ expanded: isExpanded }}
               >
-                <Ionicons
-                  name={capability.icon as any}
-                  size={24}
-                  color={styles.iconColor.color}
-                />
+                <Ionicons name={capability.icon as any} size={24} color={styles.iconColor.color} />
                 <Text style={styles.capabilityTitle}>
                   {getCapabilityDisplayName(capability.type)}
                 </Text>
@@ -221,7 +213,7 @@ const ProviderPrioritiesScreen = observer(() => {
                   data={orderedProviders}
                   keyExtractor={(provider) => provider.metadata.id}
                   renderItem={renderProviderItem}
-                  onDragEnd={({ data }) => updatePriority(priorityKey, data)}
+                  onDragEnd={({ data }: { data: IProvider[] }) => updatePriority(priorityKey, data)}
                   scrollEnabled={false}
                 />
               )}

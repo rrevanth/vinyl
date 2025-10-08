@@ -1,13 +1,13 @@
+import { CapabilityType } from '@/src/domain/capabilities/CapabilityType'
+import type { IMediaCatalogCapability } from '@/src/domain/capabilities/IMediaCatalogCapability'
+import type { ContinueWatchingItem, IMediaContinueWatchingCapability } from '@/src/domain/capabilities/IMediaContinueWatchingCapability'
 import { Catalog } from '@/src/domain/entities/Catalog'
-import type { ContinueWatchingItem , IMediaContinueWatchingCapability } from '@/src/domain/capabilities/IMediaContinueWatchingCapability'
 import type { Media } from '@/src/domain/entities/Media'
 import type { UserPreferences } from '@/src/domain/entities/UserPreferences'
 import type { IProviderRegistry } from '@/src/domain/providers/IProviderRegistry'
-import type { IUserService } from '@/src/domain/services/IUserService'
 import type { ILoggingService } from '@/src/domain/services/ILoggingService'
-import type { IMediaCatalogCapability } from '@/src/domain/capabilities/IMediaCatalogCapability'
+import type { IUserService } from '@/src/domain/services/IUserService'
 import type { GetEnabledProvidersForCapabilityUseCase } from '@/src/domain/use-cases/providers/GetEnabledProvidersForCapabilityUseCase'
-import { CapabilityType } from '@/src/domain/capabilities/CapabilityType'
 
 /**
  * Response containing all homescreen data sections
@@ -151,8 +151,7 @@ export class GetHomescreenDataUseCase {
   ): Promise<Catalog[]> {
     this.loggingService.info('=== START: fetchCatalogs ===', {
       itemsPerCatalog,
-      selectedCatalogIds: preferences.homescreen.selectedCatalogIds,
-      catalogOrder: preferences.homescreen.catalogOrder,
+      catalogPreferences: Object.keys(preferences.catalogPreferences),
     })
 
     // Get enabled and ready providers for MEDIA_CATALOG capability
@@ -204,13 +203,11 @@ export class GetHomescreenDataUseCase {
       providerIds: allMetadataCatalogs.map((c) => c.providerId),
     })
 
-    // Step 2: Filter by enabled catalogs (selectedCatalogIds)
+    // Step 2: Filter by enabled catalogs (catalogPreferences)
     this.loggingService.info('STEP 2: Filtering by enabled catalogs')
 
-    const selectedIds = new Set(preferences.homescreen.selectedCatalogIds)
-    const enabledMetadata = selectedIds.size === 0
-      ? allMetadataCatalogs // Show all if nothing selected
-      : allMetadataCatalogs.filter((catalog) => selectedIds.has(catalog.stableId))
+    const selectedIds = new Set(Object.keys(preferences.catalogPreferences))
+    const enabledMetadata = allMetadataCatalogs.filter((catalog) => selectedIds.has(catalog.stableId))
 
     this.loggingService.info('STEP 2 COMPLETE: Filtered enabled catalogs', {
       selectedCatalogIdsCount: selectedIds.size,
@@ -333,7 +330,7 @@ export class GetHomescreenDataUseCase {
         }
 
         // Apply custom name if exists
-        const customName = preferences.homescreen.catalogCustomNames[metadata.stableId]
+        const customName = preferences.catalogPreferences[metadata.stableId]?.customName
         const finalCatalog = new Catalog({
           id: catalogWithItems.id,
           providerId: catalogWithItems.providerId,
@@ -386,21 +383,18 @@ export class GetHomescreenDataUseCase {
       return []
     }
 
-    // Step 5: Sort by catalogOrder (existing logic is correct)
+    // Step 5: Sort by catalogPreferences order
     this.loggingService.info('STEP 5: Sorting catalogs by user order')
 
-    const catalogOrder = preferences.homescreen.catalogOrder
-    if (catalogOrder.length === 0) {
-      this.loggingService.info('No catalog order specified - returning unsorted')
+    const catalogPreferences = preferences.catalogPreferences
+    if (Object.keys(catalogPreferences).length === 0) {
+      this.loggingService.info('No catalog preferences specified - returning unsorted')
       return catalogsWithItems
     }
 
-    const orderMap = new Map<string, number>()
-    catalogOrder.forEach((id, index) => orderMap.set(id, index))
-
     const sortedCatalogs = [...catalogsWithItems].sort((a, b) => {
-      const orderA = orderMap.get(a.stableId)
-      const orderB = orderMap.get(b.stableId)
+      const orderA = catalogPreferences[a.stableId]?.order
+      const orderB = catalogPreferences[b.stableId]?.order
 
       if (orderA === undefined && orderB === undefined) return 0
       if (orderA === undefined) return 1
@@ -410,7 +404,7 @@ export class GetHomescreenDataUseCase {
     })
 
     this.loggingService.info('STEP 5 COMPLETE: Sorted catalogs by user order', {
-      catalogOrder,
+      catalogPreferences: Object.keys(catalogPreferences),
       sortedStableIds: sortedCatalogs.map((c) => c.stableId),
       sortedNames: sortedCatalogs.map((c) => c.name),
     })

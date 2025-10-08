@@ -1,8 +1,8 @@
 import type { HomescreenPreferences } from '@/src/domain/entities/UserPreferences'
-import type { IUserService } from '@/src/domain/services/IUserService'
-import type { ILoggingService } from '@/src/domain/services/ILoggingService'
-import { ValidationError } from '@/src/domain/errors/ValidationError'
 import { DomainError } from '@/src/domain/errors/DomainError'
+import { ValidationError } from '@/src/domain/errors/ValidationError'
+import type { ILoggingService } from '@/src/domain/services/ILoggingService'
+import type { IUserService } from '@/src/domain/services/IUserService'
 
 export interface UpdateHomescreenPreferencesParams {
   readonly hero?: {
@@ -11,17 +11,18 @@ export interface UpdateHomescreenPreferencesParams {
     readonly autoRotate?: boolean
     readonly rotationInterval?: number
   }
-  readonly catalogs?: {
-    readonly selectedCatalogIds?: readonly string[]
-    readonly catalogOrder?: readonly string[]
-    readonly customNames?: Readonly<Record<string, string>>
-    readonly displayStyles?: Readonly<Record<string, 'grid' | 'list' | 'carousel'>>
-  }
   readonly layout?: {
     readonly itemsPerRow?: number
     readonly showContinueWatching?: boolean
     readonly compactMode?: boolean
   }
+}
+
+export interface UpdateCatalogPreferencesParams {
+  readonly catalogPreferences?: Readonly<Record<string, {
+    readonly order: number
+    readonly customName?: string
+  }>>
 }
 
 export interface UpdateHomescreenPreferencesResult {
@@ -101,41 +102,6 @@ export class UpdateHomescreenPreferencesUseCase {
       }
     }
 
-    if (params.catalogs?.selectedCatalogIds) {
-      for (const id of params.catalogs.selectedCatalogIds) {
-        if (!id || id.trim() === '') {
-          errors.push('Catalog IDs must be non-empty strings')
-          break
-        }
-      }
-    }
-
-    if (params.catalogs?.catalogOrder && params.catalogs.selectedCatalogIds) {
-      const selectedIds = new Set(params.catalogs.selectedCatalogIds)
-      for (const id of params.catalogs.catalogOrder) {
-        if (!selectedIds.has(id)) {
-          warnings.push(`Catalog order contains unselected catalog: ${id}`)
-        }
-      }
-    }
-
-    if (params.catalogs?.customNames) {
-      for (const [catalogId, customName] of Object.entries(params.catalogs.customNames)) {
-        if (!customName || customName.trim() === '') {
-          errors.push(`Custom name for ${catalogId} cannot be empty`)
-        } else if (customName.length > 100) {
-          errors.push(`Custom name for ${catalogId} is too long`)
-        }
-      }
-    }
-
-    if (params.catalogs?.displayStyles) {
-      for (const [catalogId, style] of Object.entries(params.catalogs.displayStyles)) {
-        if (!['grid', 'list', 'carousel'].includes(style)) {
-          errors.push(`Invalid display style for ${catalogId}`)
-        }
-      }
-    }
 
     if (params.layout?.itemsPerRow !== undefined) {
       const items = params.layout.itemsPerRow
@@ -169,23 +135,6 @@ export class UpdateHomescreenPreferencesUseCase {
         }
       : {}
 
-    const catalogUpdates = params.catalogs
-      ? {
-          selectedCatalogIds: params.catalogs.selectedCatalogIds
-            ? [...params.catalogs.selectedCatalogIds]
-            : current.selectedCatalogIds,
-          catalogOrder: params.catalogs.catalogOrder
-            ? [...params.catalogs.catalogOrder]
-            : current.catalogOrder,
-          catalogCustomNames: params.catalogs.customNames
-            ? { ...current.catalogCustomNames, ...params.catalogs.customNames }
-            : current.catalogCustomNames,
-          catalogDisplayStyles: params.catalogs.displayStyles
-            ? { ...current.catalogDisplayStyles, ...params.catalogs.displayStyles }
-            : current.catalogDisplayStyles,
-        }
-      : {}
-
     const layoutUpdates = params.layout
       ? {
           itemsPerRow: params.layout.itemsPerRow ?? current.itemsPerRow,
@@ -198,7 +147,6 @@ export class UpdateHomescreenPreferencesUseCase {
     return {
       ...current,
       ...heroUpdates,
-      ...catalogUpdates,
       ...layoutUpdates,
     }
   }

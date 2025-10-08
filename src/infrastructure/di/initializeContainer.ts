@@ -1,43 +1,44 @@
 // Initialize and register all services
-import { container } from './Container'
-import { TOKENS } from './tokens'
-import { StorageService } from '../services/StorageService'
-import { LoggingService } from '../services/LoggingService'
-import { UserService } from '../services/UserService'
-import { EnvironmentService } from '../services/EnvironmentService'
-import { HttpClient } from '../http/HttpClient'
-import { QueryClient } from '@tanstack/react-query'
-import { TMDBConfigFactory } from '../factories/TMDBConfigFactory'
-import { TMDBClient } from '../api/tmdb/TMDBClient'
-import { TMDBProvider } from '../providers/tmdb/TMDBProvider'
-import { TraktConfigFactory } from '../factories/TraktConfigFactory'
-import { TraktClient } from '../api/trakt/TraktClient'
-import { TraktProvider } from '../providers/trakt/TraktProvider'
-import { StremioConfigFactory } from '../factories/StremioConfigFactory'
-import { StremioAddonStorage } from '../providers/stremio/storage/StremioAddonStorage'
-import { StremioAddonRegistry } from '../providers/stremio/StremioAddonRegistry'
-import { StremioInitializationService } from '../services/StremioInitializationService'
-import { ProviderRegistry } from '../providers/ProviderRegistry'
-import type { IStorageService } from '../../domain/services/IStorageService'
-import type { ILoggingService } from '../../domain/services/ILoggingService'
-import type { IEnvironmentService } from '../../domain/services/IEnvironmentService'
-import type { IProviderRegistry } from '../../domain/providers/IProviderRegistry'
-import type { IUserService } from '../../domain/services/IUserService'
+import { GetAvailableCatalogsUseCase } from '@/src/domain/use-cases/homescreen/GetAvailableCatalogsUseCase'
 import { GetHeroItemsUseCase } from '@/src/domain/use-cases/homescreen/GetHeroItemsUseCase'
 import { GetHomescreenDataUseCase } from '@/src/domain/use-cases/homescreen/GetHomescreenDataUseCase'
 import { LoadMoreCatalogItemsUseCase } from '@/src/domain/use-cases/homescreen/LoadMoreCatalogItemsUseCase'
 import { ManageCatalogUseCase } from '@/src/domain/use-cases/homescreen/ManageCatalogUseCase'
-import { UpdateHomescreenPreferencesUseCase } from '@/src/domain/use-cases/homescreen/UpdateHomescreenPreferencesUseCase'
 import { RefreshHomescreenUseCase } from '@/src/domain/use-cases/homescreen/RefreshHomescreenUseCase'
-import { GetAvailableCatalogsUseCase } from '@/src/domain/use-cases/homescreen/GetAvailableCatalogsUseCase'
-import { ResolveExternalIdsUseCase } from '@/src/domain/use-cases/media/ResolveExternalIdsUseCase'
+import { UpdateCatalogPreferencesUseCase } from '@/src/domain/use-cases/homescreen/UpdateCatalogPreferencesUseCase'
+import { UpdateHomescreenPreferencesUseCase } from '@/src/domain/use-cases/homescreen/UpdateHomescreenPreferencesUseCase'
 import { EnrichMediaUseCase } from '@/src/domain/use-cases/media/EnrichMediaUseCase'
 import { GetWatchProgressUseCase } from '@/src/domain/use-cases/media/GetWatchProgressUseCase'
+import { ResolveExternalIdsUseCase } from '@/src/domain/use-cases/media/ResolveExternalIdsUseCase'
+import { GetAllProvidersWithCapabilitiesUseCase } from '@/src/domain/use-cases/providers/GetAllProvidersWithCapabilitiesUseCase'
 import { GetEnabledProvidersForCapabilityUseCase } from '@/src/domain/use-cases/providers/GetEnabledProvidersForCapabilityUseCase'
 import { SaveProviderPrioritiesUseCase } from '@/src/domain/use-cases/providers/SaveProviderPrioritiesUseCase'
-import { GetAllProvidersWithCapabilitiesUseCase } from '@/src/domain/use-cases/providers/GetAllProvidersWithCapabilitiesUseCase'
 import { UpdateProviderCapabilitiesUseCase } from '@/src/domain/use-cases/providers/UpdateProviderCapabilitiesUseCase'
 import { markStepComplete } from '@/src/presentation/shared/stores/initialization.store'
+import { QueryClient } from '@tanstack/react-query'
+import type { IProviderRegistry } from '../../domain/providers/IProviderRegistry'
+import type { IEnvironmentService } from '../../domain/services/IEnvironmentService'
+import type { ILoggingService } from '../../domain/services/ILoggingService'
+import type { IStorageService } from '../../domain/services/IStorageService'
+import type { IUserService } from '../../domain/services/IUserService'
+import { TMDBClient } from '../api/tmdb/TMDBClient'
+import { TraktClient } from '../api/trakt/TraktClient'
+import { StremioConfigFactory } from '../factories/StremioConfigFactory'
+import { TMDBConfigFactory } from '../factories/TMDBConfigFactory'
+import { TraktConfigFactory } from '../factories/TraktConfigFactory'
+import { HttpClient } from '../http/HttpClient'
+import { ProviderRegistry } from '../providers/ProviderRegistry'
+import { StremioAddonStorage } from '../providers/stremio/storage/StremioAddonStorage'
+import { StremioAddonRegistry } from '../providers/stremio/StremioAddonRegistry'
+import { TMDBProvider } from '../providers/tmdb/TMDBProvider'
+import { TraktProvider } from '../providers/trakt/TraktProvider'
+import { EnvironmentService } from '../services/EnvironmentService'
+import { LoggingService } from '../services/LoggingService'
+import { StorageService } from '../services/StorageService'
+import { StremioInitializationService } from '../services/StremioInitializationService'
+import { UserService } from '../services/UserService'
+import { container } from './Container'
+import { TOKENS } from './tokens'
 
 export function initializeContainer(): void {
   // Register core services
@@ -202,6 +203,11 @@ export function initializeContainer(): void {
   container.register(
     TOKENS.UpdateHomescreenPreferencesUseCase,
     () => new UpdateHomescreenPreferencesUseCase(userService, logger)
+  )
+
+  container.register(
+    TOKENS.UpdateCatalogPreferencesUseCase,
+    () => new UpdateCatalogPreferencesUseCase(userService, logger)
   )
 
   container.register(TOKENS.RefreshHomescreenUseCase, () => {

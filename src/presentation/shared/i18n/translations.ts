@@ -30,6 +30,8 @@ interface Translations {
     catalog_loading_more: string
     empty_state_title: string
     empty_state_subtitle: string
+    no_catalogs_enabled_title: string
+    no_catalogs_enabled_subtitle: string
     error_title: string
   }
   search: {
@@ -303,3 +305,4 @@ const translations: Record<SupportedLocale, Translations> = {
 
 export { translations }
 export type { Translations }
+

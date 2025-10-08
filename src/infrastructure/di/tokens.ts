@@ -39,6 +39,7 @@ export const TOKENS = {
   LoadMoreCatalogItemsUseCase: Symbol('LoadMoreCatalogItemsUseCase'),
   ManageCatalogUseCase: Symbol('ManageCatalogUseCase'),
   UpdateHomescreenPreferencesUseCase: Symbol('UpdateHomescreenPreferencesUseCase'),
+  UpdateCatalogPreferencesUseCase: Symbol('UpdateCatalogPreferencesUseCase'),
   RefreshHomescreenUseCase: Symbol('RefreshHomescreenUseCase'),
 
   // Media detail use cases

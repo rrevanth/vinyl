@@ -1,10 +1,10 @@
-import { ScrollView, Text, View } from 'react-native'
-import { StyleSheet } from 'react-native-unistyles'
+import { SettingsNavigationRow } from '@/src/features/settings/components/atoms/SettingsNavigationRow'
+import { SettingsSection } from '@/src/features/settings/components/atoms/SettingsSection'
+import { t } from '@/src/presentation/shared/i18n'
 import { observer } from '@legendapp/state/react'
 import { router } from 'expo-router'
-import { SettingsSection } from '@/src/features/settings/components/atoms/SettingsSection'
-import { SettingsNavigationRow } from '@/src/features/settings/components/atoms/SettingsNavigationRow'
-import { t } from '@/src/presentation/shared/i18n'
+import { ScrollView, Text, View } from 'react-native'
+import { StyleSheet } from 'react-native-unistyles'
 
 /**
  * Providers Settings Screen
@@ -15,11 +15,11 @@ import { t } from '@/src/presentation/shared/i18n'
  */
 const ProvidersSettingsScreen = observer(() => {
   const navigateToPriorities = () => {
-    router.push('/settings/providers/priorities')
+    router.push('/settings/providers/priorities' as any)
   }
 
   const navigateToCapabilities = () => {
-    router.push('/settings/providers/capabilities')
+    router.push('/settings/providers/capabilities' as any)
   }
 
   return (
@@ -31,9 +31,7 @@ const ProvidersSettingsScreen = observer(() => {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>{t('settings.providers.title')}</Text>
-        <Text style={styles.headerDescription}>
-          {t('settings.providers.description')}
-        </Text>
+        <Text style={styles.headerDescription}>{t('settings.providers.description')}</Text>
       </View>
 
       {/* Provider Management Section */}

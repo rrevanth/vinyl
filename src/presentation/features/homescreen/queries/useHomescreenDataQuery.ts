@@ -1,9 +1,9 @@
-import { useQuery } from '@tanstack/react-query'
-import { useService } from '@/src/infrastructure/di/useService'
-import { TOKENS } from '@/src/infrastructure/di/tokens'
 import type { GetHomescreenDataUseCase } from '@/src/domain/use-cases/homescreen/GetHomescreenDataUseCase'
-import { useSelector } from '@legendapp/state/react'
+import { TOKENS } from '@/src/infrastructure/di/tokens'
+import { useService } from '@/src/infrastructure/di/useService'
 import { userPreferences$ } from '@/src/presentation/shared/stores/app.store'
+import { useSelector } from '@legendapp/state/react'
+import { useQuery } from '@tanstack/react-query'
 
 interface HomescreenDataParams {
   readonly heroLimit: number
@@ -25,12 +25,13 @@ export const useHomescreenDataQuery = () => {
   const getHomescreenDataUseCase = useService<GetHomescreenDataUseCase>(
     TOKENS.GetHomescreenDataUseCase
   )
-  const preferences = useSelector(() => userPreferences$.homescreen.get())
+  const homescreenPreferences = useSelector(() => userPreferences$.homescreen.get())
+  const catalogPreferences = useSelector(() => userPreferences$.catalogPreferences.get())
 
   const params: HomescreenDataParams = {
     heroLimit: 10,
     continueWatchingLimit: 12,
-    itemsPerCatalog: preferences.itemsPerRow * 4,
+    itemsPerCatalog: homescreenPreferences.itemsPerRow * 4,
   }
 
   return useQuery({
@@ -38,8 +39,8 @@ export const useHomescreenDataQuery = () => {
       'homescreen',
       'data',
       {
-        selectedCatalogIds: preferences.selectedCatalogIds,
-        itemsPerRow: preferences.itemsPerRow,
+        selectedCatalogIds: Object.keys(catalogPreferences),
+        itemsPerRow: homescreenPreferences.itemsPerRow,
       },
     ],
     queryFn: () => getHomescreenDataUseCase.execute(params),

@@ -31,6 +31,8 @@
     "catalog_loading_more": "Cargando más...",
     "empty_state_title": "Aún no hay contenido",
     "empty_state_subtitle": "Conecta tus proveedores para poblar la pantalla de inicio.",
+    "no_catalogs_enabled_title": "No hay catálogos habilitados",
+    "no_catalogs_enabled_subtitle": "Ve a Configuración > Catálogos para habilitar algunos catálogos en tu pantalla de inicio.",
     "error_title": "No se pudo actualizar la pantalla de inicio"
   },
   "search": {

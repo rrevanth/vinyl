@@ -1,16 +1,16 @@
+import type { Catalog } from '@/src/domain/entities/Catalog'
+import type { Media } from '@/src/domain/entities/Media'
+import { setMedia } from '@/src/presentation/features/media/stores/mediaDetail.store'
+import { t } from '@/src/presentation/shared/i18n'
+import { mediaLibrary$ } from '@/src/presentation/shared/stores/mediaLibrary.store'
+import { LegendList } from '@legendapp/list'
+import { router } from 'expo-router'
 import type { FC } from 'react'
 import { memo, useCallback, useEffect, useState } from 'react'
 import { ActivityIndicator, Pressable, Text, View } from 'react-native'
-import { LegendList } from '@legendapp/list'
 import { StyleSheet } from 'react-native-unistyles'
-import { router } from 'expo-router'
-import type { Catalog } from '@/src/domain/entities/Catalog'
-import type { Media } from '@/src/domain/entities/Media'
-import { MediaPosterCard } from './MediaPosterCard'
-import { t } from '@/src/presentation/shared/i18n'
 import { useInfiniteCatalogItemsQuery } from '../queries/useInfiniteCatalogItemsQuery'
-import { mediaLibrary$ } from '@/src/presentation/shared/stores/mediaLibrary.store'
-import { setMedia } from '@/src/presentation/features/media/stores/mediaDetail.store'
+import { MediaPosterCard } from './MediaPosterCard'
 
 interface CatalogRowProps {
   readonly catalog: Catalog
@@ -22,6 +22,12 @@ const CatalogRowComponent: FC<CatalogRowProps> = ({ catalog, onPressItem: onPres
 
   // Use infinite query hook for pagination
   const infiniteQuery = useInfiniteCatalogItemsQuery(catalog)
+
+  // Get provider name from addon name if available, otherwise use providerId
+  const providerName = catalog.sourceInfo?.addonName || catalog.providerId.toUpperCase()
+
+  // Format display name: "Provider - Catalog Name"
+  const displayName = `${providerName} - ${catalog.name}`
 
   // Default navigation handler - store media object before navigating
   const handlePressItem = useCallback((media: Media) => {
@@ -38,7 +44,7 @@ const CatalogRowComponent: FC<CatalogRowProps> = ({ catalog, onPressItem: onPres
       setMedia(media)
 
       // Navigate with stableId only (Expo Router params only support primitives)
-      router.push(`/media/${media.stableId}`)
+      router.push(`/media/${media.stableId}` as any)
     }
   }, [onPressItemProp])
 
@@ -92,13 +98,13 @@ const CatalogRowComponent: FC<CatalogRowProps> = ({ catalog, onPressItem: onPres
     <View style={styles.container}>
       <View style={styles.headerRow}>
         <Text style={styles.title} numberOfLines={1}>
-          {catalog.name}
+          {displayName}
         </Text>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={t('home.catalog_customize_accessibility').replace(
             '{name}',
-            catalog.name
+            displayName
           )}
           style={({ pressed }) => [styles.actionButton, pressed && styles.actionPressed]}
         >

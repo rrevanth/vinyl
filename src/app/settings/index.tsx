@@ -1,10 +1,10 @@
-import { ScrollView } from 'react-native'
-import { StyleSheet } from 'react-native-unistyles'
+import { SettingsNavigationRow } from '@/src/features/settings/components/atoms/SettingsNavigationRow'
+import { SettingsSection } from '@/src/features/settings/components/atoms/SettingsSection'
+import { t } from '@/src/presentation/shared/i18n'
 import { observer } from '@legendapp/state/react'
 import { router } from 'expo-router'
-import { SettingsSection } from '@/src/features/settings/components/atoms/SettingsSection'
-import { SettingsNavigationRow } from '@/src/features/settings/components/atoms/SettingsNavigationRow'
-import { t } from '@/src/presentation/shared/i18n'
+import { ScrollView } from 'react-native'
+import { StyleSheet } from 'react-native-unistyles'
 
 const SettingsScreen = observer(() => {
   const navigateToAppearance = () => {
@@ -28,7 +28,7 @@ const SettingsScreen = observer(() => {
   }
 
   const navigateToProviders = () => {
-    router.push('/settings/providers')
+    router.push('/settings/providers' as any)
   }
 
   const navigateToStremio = () => {

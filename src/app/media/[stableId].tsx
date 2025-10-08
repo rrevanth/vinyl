@@ -3,7 +3,10 @@ import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-nati
 import { Stack, router } from 'expo-router'
 import { StyleSheet } from 'react-native-unistyles'
 import { observer } from '@legendapp/state/react'
-import { clearMediaDetail, mediaDetail$ } from '@/src/presentation/features/media/stores/mediaDetail.store'
+import {
+  clearMediaDetail,
+  mediaDetail$,
+} from '@/src/presentation/features/media/stores/mediaDetail.store'
 import { useMediaDetail } from '@/src/presentation/features/media/hooks/useMediaDetail'
 import { ParallaxHero } from '@/src/presentation/features/media/components/ParallaxHero'
 import { MetadataSection } from '@/src/presentation/features/media/components/MetadataSection'
@@ -34,14 +37,8 @@ const MediaDetailScreen = observer(() => {
   }, [])
 
   // Progressive loading hook
-  const {
-    enrichedData,
-    watchProgress,
-    seasons,
-    isLoading,
-    isLoadingSeasons,
-    error,
-  } = useMediaDetail(media!)
+  const { enrichedData, watchProgress, seasons, isLoading, isLoadingSeasons, error } =
+    useMediaDetail(media!)
 
   // Loading state
   if (!media || isLoading) {
@@ -63,10 +60,7 @@ const MediaDetailScreen = observer(() => {
         <Text style={styles.errorDetails}>{error}</Text>
         <Pressable
           onPress={() => router.back()}
-          style={({ pressed }) => [
-            styles.retryButton,
-            pressed && styles.retryButtonPressed,
-          ]}
+          style={({ pressed }) => [styles.retryButton, pressed && styles.retryButtonPressed]}
           accessibilityRole="button"
           accessibilityLabel={t('media_detail.retry')}
         >
@@ -101,9 +95,7 @@ const MediaDetailScreen = observer(() => {
         {enrichedData && <MetadataSection enrichedData={enrichedData} />}
 
         {/* Season Selector (Series only) */}
-        {media.isSeries() && seasons && seasons.length > 0 && (
-          <SeasonSelector seasons={seasons} />
-        )}
+        {media.isSeries() && seasons && seasons.length > 0 && <SeasonSelector seasons={seasons} />}
 
         {/* Episode List (Series only) */}
         {media.isSeries() && seasons && seasons.length > 0 && (
@@ -114,10 +106,7 @@ const MediaDetailScreen = observer(() => {
                 <Text style={styles.loadingText}>{t('media_detail.loading')}</Text>
               </View>
             ) : (
-              <EpisodeList
-                seasons={seasons}
-                watchProgress={watchProgress?.series}
-              />
+              <EpisodeList seasons={seasons} watchProgress={watchProgress?.series} />
             )}
           </>
         )}

@@ -1,6 +1,6 @@
+import { CapabilityType } from '@/src/domain/capabilities/CapabilityType'
 import type { StremioUserPreferences } from '@/src/domain/preferences/StremioPreferences'
 import { getDefaultStremioPreferences } from '@/src/domain/preferences/StremioPreferences'
-import { CapabilityType } from '@/src/domain/capabilities/CapabilityType'
 
 // ============================================================================
 // Merged Account Interfaces (Auth + Settings)
@@ -137,12 +137,6 @@ export interface HomescreenPreferences {
   readonly heroStyle: 'carousel' | 'featured' | 'stack'
   readonly heroAutoRotate: boolean
   readonly heroRotationInterval: number
-
-  // Catalog Management
-  readonly selectedCatalogIds: readonly string[]
-  readonly catalogOrder: readonly string[]
-  readonly catalogCustomNames: Readonly<Record<string, string>>
-  readonly catalogDisplayStyles: Readonly<Record<string, 'grid' | 'list' | 'carousel'>>
 
   // Layout
   readonly itemsPerRow: number
@@ -287,12 +281,6 @@ export const createDefaultHomescreenPreferences = (): HomescreenPreferences => (
   heroStyle: 'carousel',
   heroAutoRotate: true,
   heroRotationInterval: 5000, // 5 seconds
-
-  // Catalog Management
-  selectedCatalogIds: [],
-  catalogOrder: [],
-  catalogCustomNames: {},
-  catalogDisplayStyles: {},
 
   // Layout
   itemsPerRow: 3,
