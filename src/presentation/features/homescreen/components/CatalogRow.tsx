@@ -57,8 +57,12 @@ const CatalogRowComponent: FC<CatalogRowProps> = ({ catalog, onPressItem: onPres
         console.log('[CatalogRow] Media stored in store successfully')
 
         // Navigate with stableId only (Expo Router params only support primitives)
-        const route = `/media/${media.stableId}`
+        // Encode the stableId to handle special characters like colons
+        const encodedStableId = encodeURIComponent(media.stableId)
+        const route = `/media/${encodedStableId}`
         console.log('[CatalogRow] Attempting navigation to:', route)
+        console.log('[CatalogRow] Original stableId:', media.stableId)
+        console.log('[CatalogRow] Encoded stableId:', encodedStableId)
         
         router.push(route as any)
         console.log('[CatalogRow] Navigation command sent')

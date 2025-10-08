@@ -1,18 +1,18 @@
-import { useEffect } from 'react'
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native'
-import { Stack, router } from 'expo-router'
-import { StyleSheet } from 'react-native-unistyles'
-import { observer } from '@legendapp/state/react'
+import { EpisodeList } from '@/src/presentation/features/media/components/EpisodeList'
+import { MetadataSection } from '@/src/presentation/features/media/components/MetadataSection'
+import { ParallaxHero } from '@/src/presentation/features/media/components/ParallaxHero'
+import { SeasonSelector } from '@/src/presentation/features/media/components/SeasonSelector'
+import { useMediaDetail } from '@/src/presentation/features/media/hooks/useMediaDetail'
 import {
   clearMediaDetail,
   mediaDetail$,
 } from '@/src/presentation/features/media/stores/mediaDetail.store'
-import { useMediaDetail } from '@/src/presentation/features/media/hooks/useMediaDetail'
-import { ParallaxHero } from '@/src/presentation/features/media/components/ParallaxHero'
-import { MetadataSection } from '@/src/presentation/features/media/components/MetadataSection'
-import { SeasonSelector } from '@/src/presentation/features/media/components/SeasonSelector'
-import { EpisodeList } from '@/src/presentation/features/media/components/EpisodeList'
 import { t } from '@/src/presentation/shared/i18n'
+import { observer } from '@legendapp/state/react'
+import { Stack, router, useLocalSearchParams } from 'expo-router'
+import { useEffect } from 'react'
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native'
+import { StyleSheet } from 'react-native-unistyles'
 
 /**
  * Media Detail Screen
@@ -26,13 +26,20 @@ import { t } from '@/src/presentation/shared/i18n'
  * - Episode list with watch progress
  */
 const MediaDetailScreen = observer(() => {
+  // Get route parameters
+  const { stableId: encodedStableId } = useLocalSearchParams<{ stableId: string }>()
+  const stableId = encodedStableId ? decodeURIComponent(encodedStableId) : null
+
   // Get Media object from store (set before navigation)
   const media = mediaDetail$.media.get()
 
   console.log('[MediaDetailScreen] Component rendered', {
+    encodedStableId,
+    stableId,
     hasMedia: !!media,
     mediaStableId: media?.stableId,
     mediaTitle: media?.title,
+    stableIdMatch: media?.stableId === stableId,
   })
 
   // Clear store on unmount
