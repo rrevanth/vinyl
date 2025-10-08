@@ -294,6 +294,7 @@ interface Translations {
       catalog_toggle_accessibility: string
       empty_state_title: string
       empty_state_subtitle: string
+      toggle_all: string
     }
   }
 }

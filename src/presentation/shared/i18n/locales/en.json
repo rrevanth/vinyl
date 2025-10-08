@@ -399,6 +399,7 @@
       "management_section_title": "Management",
       "enable_disable_title": "Enable/Disable Catalogs",
       "enable_disable_description": "Toggle which catalogs appear on your homescreen",
+      "toggle_all": "Toggle All",
       "reorder_title": "Reorder Catalogs",
       "reorder_description": "Change the order catalogs appear on your homescreen",
       "enable_title": "Enable/Disable Catalogs",
