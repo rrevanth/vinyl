@@ -1,10 +1,10 @@
-import { useCallback, useState } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
-import { useService } from '@/src/infrastructure/di/useService'
-import { TOKENS } from '@/src/infrastructure/di/tokens'
 import type { GetHomescreenDataUseCase } from '@/src/domain/use-cases/homescreen/GetHomescreenDataUseCase'
+import { TOKENS } from '@/src/infrastructure/di/tokens'
+import { useService } from '@/src/infrastructure/di/useService'
 import { userPreferences$ } from '@/src/presentation/shared/stores/app.store'
 import { useSelector } from '@legendapp/state/react'
+import { useQueryClient } from '@tanstack/react-query'
+import { useCallback, useState } from 'react'
 
 interface ViewportCatalogLoadingResult {
   readonly visibleCatalogIds: string[]

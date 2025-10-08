@@ -1,8 +1,8 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useService } from '@/src/infrastructure/di/useService'
-import { TOKENS } from '@/src/infrastructure/di/tokens'
 import type { ManageCatalogUseCase } from '@/src/domain/use-cases/homescreen/ManageCatalogUseCase'
 import type { UpdateHomescreenPreferencesUseCase } from '@/src/domain/use-cases/homescreen/UpdateHomescreenPreferencesUseCase'
+import { TOKENS } from '@/src/infrastructure/di/tokens'
+import { useService } from '@/src/infrastructure/di/useService'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 /**
  * Mutation hook for toggling catalog selection
