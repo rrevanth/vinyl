@@ -34,6 +34,14 @@ export const useInfiniteCatalogItemsQuery = (catalog: Catalog) => {
     TOKENS.LoadMoreCatalogItemsUseCase
   )
 
+  const canLoadMore = catalog.canLoadMore()
+  console.log('[useInfiniteCatalogItemsQuery] Query setup', {
+    catalogId: catalog.stableId,
+    canLoadMore,
+    itemCount: catalog.getItemCount(),
+    paginationInfo: catalog.paginationInfo,
+  })
+
   return useInfiniteQuery({
     queryKey: ['catalog', 'items', catalog.stableId],
     queryFn: async ({ pageParam }) => {

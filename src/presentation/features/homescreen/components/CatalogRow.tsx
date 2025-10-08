@@ -57,16 +57,31 @@ const CatalogRowComponent: FC<CatalogRowProps> = ({ catalog, onPressItem: onPres
 
   // Handle end reached for infinite scroll
   const handleEndReached = useCallback(async () => {
+    console.log('[CatalogRow] onEndReached triggered', {
+      catalogId: catalog.stableId,
+      canLoadMore: catalog.canLoadMore(),
+      isLoadingMore,
+      isFetchingNextPage: infiniteQuery.isFetchingNextPage,
+      hasNextPage: infiniteQuery.hasNextPage,
+    })
+
     // Check if can load more and not already loading
     if (!catalog.canLoadMore() || isLoadingMore || infiniteQuery.isFetchingNextPage) {
+      console.log('[CatalogRow] Skipping load more', {
+        canLoadMore: catalog.canLoadMore(),
+        isLoadingMore,
+        isFetchingNextPage: infiniteQuery.isFetchingNextPage,
+      })
       return
     }
 
     try {
+      console.log('[CatalogRow] Starting to load more items')
       setIsLoadingMore(true)
       await infiniteQuery.fetchNextPage()
+      console.log('[CatalogRow] Successfully loaded more items')
     } catch (error) {
-      console.error('Failed to load more catalog items', error)
+      console.error('[CatalogRow] Failed to load more catalog items', error)
     } finally {
       setIsLoadingMore(false)
     }
@@ -127,7 +142,7 @@ const CatalogRowComponent: FC<CatalogRowProps> = ({ catalog, onPressItem: onPres
           />
         )}
         onEndReached={handleEndReached}
-        onEndReachedThreshold={0.5}
+        onEndReachedThreshold={0.1}
         ListFooterComponent={
           (isLoadingMore || infiniteQuery.isFetchingNextPage) && catalog.canLoadMore() ? (
             <View style={styles.loadingFooter}>
