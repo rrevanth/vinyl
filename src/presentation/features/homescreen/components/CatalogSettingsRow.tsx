@@ -13,7 +13,11 @@ interface CatalogSettingsRowProps {
 
 export const CatalogSettingsRow = memo<CatalogSettingsRowProps>(
   ({ catalog, customName, isSelected, onToggle }) => {
-    const displayName = customName || catalog.name
+    // Get provider name from addon name if available, otherwise use providerId
+    const providerName = catalog.sourceInfo?.addonName || catalog.providerId.toUpperCase()
+
+    // Format display name: use custom name if set, otherwise "Provider - Catalog Name"
+    const displayName = customName || `${providerName} - ${catalog.name}`
     const isCustomNamed = Boolean(customName)
 
     // Show original Stremio catalog type if available, otherwise use normalized type

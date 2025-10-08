@@ -77,6 +77,14 @@ export type StremioAccount = StremioUserPreferences
 // User Preferences
 // ============================================================================
 
+/**
+ * Preferences for individual catalogs
+ */
+export interface CatalogPreferences {
+  readonly order: number          // Display order (1, 2, 3...)
+  readonly customName?: string    // Optional user-defined name override
+}
+
 export interface ProviderPriorities {
   // Existing
   readonly metadata: readonly ('tmdb' | 'trakt' | 'stremio')[]
@@ -154,6 +162,7 @@ export interface UserPreferences {
   readonly ui: UIPreferences
   readonly playback: PlaybackPreferences
   readonly homescreen: HomescreenPreferences
+  readonly catalogPreferences: Readonly<Record<string, CatalogPreferences>>
 }
 
 // ============================================================================
@@ -303,6 +312,7 @@ export const createDefaultUserPreferences = (): UserPreferences => ({
   ui: createDefaultUIPreferences(),
   playback: createDefaultPlaybackPreferences(),
   homescreen: createDefaultHomescreenPreferences(),
+  catalogPreferences: {},
 })
 
 export const updateUserPreferences = (

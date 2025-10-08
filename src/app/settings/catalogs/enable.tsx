@@ -170,6 +170,7 @@ const styles = StyleSheet.create((theme) => ({
   content: {
     paddingVertical: theme.spacing.xl,
     paddingHorizontal: theme.spacing.lg,
+    paddingBottom: 80, // Extra space for tab bar
   },
   refresh: {
     tintColor: theme.colors.primary,

@@ -89,7 +89,11 @@ const CatalogsReorderScreen = observer(() => {
 
   const renderItem = useCallback(
     ({ item, drag, isActive }: RenderItemParams<CatalogWithOrder>) => {
-      const displayName = item.customName || item.catalog.name
+      // Get provider name from addon name if available, otherwise use providerId
+      const providerName = item.catalog.sourceInfo?.addonName || item.catalog.providerId.toUpperCase()
+
+      // Format display name: use custom name if set, otherwise "Provider - Catalog Name"
+      const displayName = item.customName || `${providerName} - ${item.catalog.name}`
 
       return (
         <ScaleDecorator>
@@ -180,6 +184,7 @@ const styles = StyleSheet.create((theme) => ({
   content: {
     paddingVertical: theme.spacing.xl,
     paddingHorizontal: theme.spacing.lg,
+    paddingBottom: 80, // Extra space for tab bar
   },
   header: {
     gap: theme.spacing.xs,

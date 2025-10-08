@@ -137,13 +137,6 @@ export class ManageCatalogUseCase {
       if (!params.newOrder || params.newOrder.length === 0) {
         throw new ValidationError('New order is required for reorder operation', 'newOrder')
       }
-
-      const currentIds = new Set(currentPreferences.selectedCatalogIds)
-      const newIds = new Set(params.newOrder)
-
-      if (currentIds.size !== newIds.size || [...currentIds].some((id) => !newIds.has(id))) {
-        throw new ValidationError('Reorder must include all selected catalogs', 'newOrder')
-      }
     }
 
     if (params.operation === 'rename') {
