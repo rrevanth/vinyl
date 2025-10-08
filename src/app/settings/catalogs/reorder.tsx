@@ -8,7 +8,7 @@ import { userPreferences$ } from '@/src/presentation/shared/stores/app.store'
 import { Ionicons } from '@expo/vector-icons'
 import { observer, useSelector } from '@legendapp/state/react'
 import { memo, useCallback, useMemo, useState } from 'react'
-import { ActivityIndicator, ScrollView, Text, View } from 'react-native'
+import { ActivityIndicator, Text, View } from 'react-native'
 import DraggableFlatList, {
   ScaleDecorator,
   type RenderItemParams,
@@ -149,39 +149,39 @@ const CatalogsReorderScreen = observer(() => {
     )
   }
 
-  return (
-    <ScrollView
-      style={styles.scrollView}
-      contentContainerStyle={styles.content}
-      showsVerticalScrollIndicator={false}
-    >
-      {/* Header */}
+  // Header component for the list
+  const renderListHeader = useCallback(
+    () => (
       <View style={styles.header}>
         <Text style={styles.headerTitle}>{t('settings.catalogs.reorder_title')}</Text>
         <Text style={styles.headerDescription}>{t('settings.catalogs.reorder_subtitle')}</Text>
+
+        {isSaving ? (
+          <View style={styles.savingBanner}>
+            <ActivityIndicator size="small" color={styles.spinner.color} />
+            <Text style={styles.savingText}>{t('common.saving')}</Text>
+          </View>
+        ) : null}
       </View>
+    ),
+    [isSaving]
+  )
 
-      {isSaving ? (
-        <View style={styles.savingBanner}>
-          <ActivityIndicator size="small" color={styles.spinner.color} />
-          <Text style={styles.savingText}>{t('common.saving')}</Text>
-        </View>
-      ) : null}
-
-      {/* Simple Catalog List */}
-      <GestureHandlerRootView style={styles.dragContainer}>
-        <DraggableFlatList
-          data={orderedCatalogs}
-          onDragEnd={({ data }: { data: CatalogWithOrder[] }) => {
-            void handleReorder(data)
-          }}
-          keyExtractor={(item) => item.catalog.stableId}
-          renderItem={renderItem}
-          containerStyle={styles.dragContent}
-          activationDistance={10}
-        />
-      </GestureHandlerRootView>
-    </ScrollView>
+  return (
+    <GestureHandlerRootView style={styles.container}>
+      <DraggableFlatList
+        data={orderedCatalogs}
+        onDragEnd={({ data }: { data: CatalogWithOrder[] }) => {
+          void handleReorder(data)
+        }}
+        keyExtractor={(item) => item.catalog.stableId}
+        renderItem={renderItem}
+        ListHeaderComponent={renderListHeader}
+        contentContainerStyle={styles.dragContent}
+        activationDistance={10}
+        showsVerticalScrollIndicator={false}
+      />
+    </GestureHandlerRootView>
   )
 })
 
@@ -192,15 +192,13 @@ const styles = StyleSheet.create((theme) => ({
     flex: 1,
     backgroundColor: theme.colors.background,
   },
-  content: {
-    paddingVertical: theme.spacing.xl,
+  dragContent: {
     paddingHorizontal: theme.spacing.lg,
     paddingBottom: 80, // Extra space for tab bar
   },
   header: {
     gap: theme.spacing.xs,
     marginBottom: theme.spacing.lg,
-    paddingHorizontal: theme.spacing.lg,
     paddingTop: theme.spacing.xl,
   },
   headerTitle: {
@@ -221,7 +219,6 @@ const styles = StyleSheet.create((theme) => ({
     borderRadius: theme.borderRadius.md,
     padding: theme.spacing.md,
     marginBottom: theme.spacing.lg,
-    marginHorizontal: theme.spacing.lg,
   },
   spinner: {
     color: theme.colors.primary,
@@ -371,8 +368,5 @@ const styles = StyleSheet.create((theme) => ({
   },
   dragContainer: {
     flex: 1,
-  },
-  dragContent: {
-    paddingVertical: theme.spacing.sm,
   },
 }))
