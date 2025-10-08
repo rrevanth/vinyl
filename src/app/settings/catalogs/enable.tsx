@@ -62,24 +62,29 @@ const CatalogsEnableScreen = () => {
 
   // Toggle all catalogs for a provider
   const toggleAllCatalogs = useCallback(
-    (providerId: string, providerCatalogs: Catalog[]) => {
+    async (providerId: string, providerCatalogs: Catalog[]) => {
       const providerCatalogIds = providerCatalogs.map((c) => c.stableId)
       const allSelected = providerCatalogIds.every((id) => selectedSet.has(id))
 
-      if (allSelected) {
-        // Deselect all
-        providerCatalogIds.forEach((id) => {
-          if (selectedSet.has(id)) {
-            void toggleCatalog(id)
+      try {
+        if (allSelected) {
+          // Deselect all - process in reverse order to avoid index issues
+          for (let i = providerCatalogIds.length - 1; i >= 0; i--) {
+            const id = providerCatalogIds[i]
+            if (selectedSet.has(id)) {
+              await toggleCatalog(id)
+            }
           }
-        })
-      } else {
-        // Select all
-        providerCatalogIds.forEach((id) => {
-          if (!selectedSet.has(id)) {
-            void toggleCatalog(id)
+        } else {
+          // Select all - process sequentially
+          for (const id of providerCatalogIds) {
+            if (!selectedSet.has(id)) {
+              await toggleCatalog(id)
+            }
           }
-        })
+        }
+      } catch (error) {
+        console.error('Failed to toggle all catalogs:', error)
       }
     },
     [selectedSet, toggleCatalog]
@@ -163,7 +168,7 @@ const CatalogsEnableScreen = () => {
                 {/* Toggle All Button */}
                 <Pressable
                   style={styles.toggleAllRow}
-                  onPress={() => toggleAllCatalogs(section.providerId, [...section.catalogs])}
+                  onPress={() => void toggleAllCatalogs(section.providerId, [...section.catalogs])}
                   accessibilityRole="button"
                   accessibilityLabel={`Toggle all catalogs for ${section.providerName}`}
                 >
@@ -171,7 +176,7 @@ const CatalogsEnableScreen = () => {
                   <Switch
                     value={allEnabled}
                     onValueChange={() =>
-                      toggleAllCatalogs(section.providerId, [...section.catalogs])
+                      void toggleAllCatalogs(section.providerId, [...section.catalogs])
                     }
                     accessibilityLabel="Toggle all"
                   />
