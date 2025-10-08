@@ -54,6 +54,7 @@ export const useInfiniteCatalogItemsQuery = (catalog: Catalog) => {
         canLoadMore: currentCatalog.canLoadMore(),
         itemCount: currentCatalog.getItemCount(),
         hasPageParam: !!pageParam,
+        pageParamItemCount: pageParam?.getItemCount() ?? 0,
       })
 
       if (!currentCatalog.canLoadMore()) {
@@ -64,12 +65,15 @@ export const useInfiniteCatalogItemsQuery = (catalog: Catalog) => {
       console.log('[useInfiniteCatalogItemsQuery] Loading more items...')
       const result = await loadMoreCatalogItemsUseCase.execute({
         catalogStableId: currentCatalog.stableId,
+        currentCatalog: currentCatalog,
       })
 
       console.log('[useInfiniteCatalogItemsQuery] Loaded more items', {
+        oldItemCount: currentCatalog.getItemCount(),
         newItemCount: result.updatedCatalog.getItemCount(),
         hasMore: result.updatedCatalog.canLoadMore(),
         newItemsCount: result.newItemsCount,
+        accumulatedItems: result.updatedCatalog.items.length,
       })
 
       return result.updatedCatalog

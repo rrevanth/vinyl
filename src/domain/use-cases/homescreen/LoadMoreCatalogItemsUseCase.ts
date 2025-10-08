@@ -11,6 +11,7 @@ import type { GetEnabledProvidersForCapabilityUseCase } from '@/src/domain/use-c
 
 export interface LoadMoreCatalogItemsParams {
   readonly catalogStableId: string
+  readonly currentCatalog?: Catalog
 }
 
 export interface LoadMoreCatalogItemsResult {
@@ -38,24 +39,48 @@ export class LoadMoreCatalogItemsUseCase {
       // Get enabled and ready providers for MEDIA_CATALOG capability
       const readyProviders = this.getEnabledProvidersUseCase.execute(CapabilityType.MEDIA_CATALOG)
 
-      // Extract capabilities
-      const capabilities = readyProviders
-        .map(p => p.getCapability<IMediaCatalogCapability>(CapabilityType.MEDIA_CATALOG))
-        .filter((c): c is IMediaCatalogCapability => c !== null)
+      // Use provided current catalog if available, otherwise fetch from provider
+      if (params.currentCatalog) {
+        currentCatalog = params.currentCatalog
+        // Find the matching provider for this catalog
+        const capabilities = readyProviders
+          .map(p => p.getCapability<IMediaCatalogCapability>(CapabilityType.MEDIA_CATALOG))
+          .filter((c): c is IMediaCatalogCapability => c !== null)
 
-      for (const capability of capabilities) {
-        try {
-          const catalogs = await capability.getCatalogs()
-          const catalog = catalogs.find((entry) => entry.stableId === params.catalogStableId)
-          if (catalog) {
-            currentCatalog = catalog
-            matchedProvider = capability
-            break
+        for (const capability of capabilities) {
+          try {
+            const catalogs = await capability.getCatalogs()
+            const catalog = catalogs.find((entry) => entry.stableId === params.catalogStableId)
+            if (catalog) {
+              matchedProvider = capability
+              break
+            }
+          } catch (error) {
+            this.loggingService.warn('Failed to query provider catalogs during pagination', {
+              error: (error as Error).message,
+            })
           }
-        } catch (error) {
-          this.loggingService.warn('Failed to query provider catalogs during pagination', {
-            error: (error as Error).message,
-          })
+        }
+      } else {
+        // Fallback to fetching from provider (original behavior)
+        const capabilities = readyProviders
+          .map(p => p.getCapability<IMediaCatalogCapability>(CapabilityType.MEDIA_CATALOG))
+          .filter((c): c is IMediaCatalogCapability => c !== null)
+
+        for (const capability of capabilities) {
+          try {
+            const catalogs = await capability.getCatalogs()
+            const catalog = catalogs.find((entry) => entry.stableId === params.catalogStableId)
+            if (catalog) {
+              currentCatalog = catalog
+              matchedProvider = capability
+              break
+            }
+          } catch (error) {
+            this.loggingService.warn('Failed to query provider catalogs during pagination', {
+              error: (error as Error).message,
+            })
+          }
         }
       }
 
