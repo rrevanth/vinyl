@@ -4,6 +4,7 @@ import { setMedia } from '@/src/presentation/features/media/stores/mediaDetail.s
 import { t } from '@/src/presentation/shared/i18n'
 import { mediaLibrary$ } from '@/src/presentation/shared/stores/mediaLibrary.store'
 import { LegendList } from '@legendapp/list'
+import { useSelector } from '@legendapp/state/react'
 import { router } from 'expo-router'
 import type { FC } from 'react'
 import { memo, useCallback, useEffect, useState } from 'react'
@@ -11,7 +12,6 @@ import { ActivityIndicator, Pressable, Text, View } from 'react-native'
 import { StyleSheet } from 'react-native-unistyles'
 import { useInfiniteCatalogItemsQuery } from '../queries/useInfiniteCatalogItemsQuery'
 import { MediaPosterCard } from './MediaPosterCard'
-import { useSelector } from '@legendapp/state/react'
 
 interface CatalogRowProps {
   readonly catalog: Catalog
@@ -56,12 +56,23 @@ const CatalogRowComponent: FC<CatalogRowProps> = ({ catalog, onPressItem: onPres
     }
   }, [onPressItemProp])
 
-  // Use items from infinite query's latest page if available, otherwise use latest catalog from store
-  // The latest page contains all accumulated items from previous pages
-  const catalogToRender = infiniteQuery.data?.pages[infiniteQuery.data.pages.length - 1] ?? latestCatalog
+  // Always use the latest catalog from the store to ensure we have the most up-to-date data
+  // The infinite query is used for triggering loadMore, but the store has the accumulated data
+  const catalogItems = latestCatalog.items.filter(item => !!item.media)
 
-  // Keep full CatalogItem objects to preserve unique item.stableId
-  const catalogItems = catalogToRender.items.filter(item => !!item.media)
+  // Debug logging for catalog items
+  console.log('[CatalogRow] Rendering catalog items', {
+    catalogId: latestCatalog.stableId,
+    infiniteQueryPages: infiniteQuery.data?.pages?.length ?? 0,
+    catalogItemsCount: catalogItems.length,
+    latestCatalogItemCount: latestCatalog.items.length,
+    infiniteQueryData: !!infiniteQuery.data,
+    infiniteQueryPagesData: infiniteQuery.data?.pages?.map(page => ({
+      itemCount: page.items.length,
+      canLoadMore: page.canLoadMore()
+    })),
+    usingStoreData: true
+  })
 
   // Handle end reached for infinite scroll
   const handleEndReached = useCallback(async () => {
