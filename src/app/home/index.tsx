@@ -3,6 +3,7 @@ import { CatalogRow } from '@/src/presentation/features/homescreen/components/Ca
 import { ContinueWatchingRail } from '@/src/presentation/features/homescreen/components/ContinueWatchingRail'
 import { HeroCarousel } from '@/src/presentation/features/homescreen/components/HeroCarousel'
 import { useHomescreenData } from '@/src/presentation/features/homescreen/hooks/useHomescreenData'
+import { useViewportCatalogLoading } from '@/src/presentation/features/homescreen/hooks/useViewportCatalogLoading'
 import { t } from '@/src/presentation/shared/i18n'
 import { userPreferences$ } from '@/src/presentation/shared/stores/app.store'
 import { LegendList } from '@legendapp/list'
@@ -26,6 +27,9 @@ const HomeScreen = observer(() => {
   const showHero = preferences.heroEnabled && heroItems.length > 0
   const showContinueWatching = preferences.showContinueWatching && continueWatching.length > 0
 
+  // Viewport-based catalog loading
+  const { updateVisibleCatalogs } = useViewportCatalogLoading()
+
   // Handle viewability changes for viewport-based loading
   const handleViewableItemsChanged = useCallback(
     ({ viewableItems }: { viewableItems: { item: Catalog; index: number }[] }) => {
@@ -33,8 +37,9 @@ const HomeScreen = observer(() => {
       if (__DEV__) {
         console.log('[HomeScreen] Visible catalogs:', visibleCatalogIds)
       }
+      updateVisibleCatalogs(visibleCatalogIds)
     },
-    []
+    [updateVisibleCatalogs]
   )
 
   // Create header component with Hero and Continue Watching

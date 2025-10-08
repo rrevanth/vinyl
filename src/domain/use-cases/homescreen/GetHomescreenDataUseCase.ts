@@ -29,6 +29,7 @@ export interface GetHomescreenDataParams {
   readonly heroLimit?: number
   readonly continueWatchingLimit?: number
   readonly itemsPerCatalog?: number
+  readonly specificCatalogIds?: string[]
 }
 
 /**
@@ -50,7 +51,7 @@ export class GetHomescreenDataUseCase {
     const [heroItems, continueWatching, catalogs] = await Promise.all([
       this.fetchHeroItems(preferences, params.heroLimit),
       this.fetchContinueWatching(params.continueWatchingLimit),
-      this.fetchCatalogs(preferences, params.itemsPerCatalog),
+      this.fetchCatalogs(preferences, params.itemsPerCatalog, params.specificCatalogIds),
     ])
 
     return {
@@ -147,7 +148,8 @@ export class GetHomescreenDataUseCase {
 
   private async fetchCatalogs(
     preferences: UserPreferences,
-    itemsPerCatalog?: number
+    itemsPerCatalog?: number,
+    specificCatalogIds?: string[]
   ): Promise<Catalog[]> {
     this.loggingService.info('=== START: fetchCatalogs ===', {
       itemsPerCatalog,
@@ -227,6 +229,28 @@ export class GetHomescreenDataUseCase {
       return []
     }
 
+    // Step 2.5: Filter by specific catalog IDs if provided (for viewport loading)
+    let finalMetadata = enabledMetadata
+    if (specificCatalogIds && specificCatalogIds.length > 0) {
+      const specificIds = new Set(specificCatalogIds)
+      finalMetadata = enabledMetadata.filter((catalog) => specificIds.has(catalog.stableId))
+      
+      this.loggingService.info('STEP 2.5 COMPLETE: Filtered by specific catalog IDs', {
+        specificCatalogIds,
+        enabledCount: enabledMetadata.length,
+        finalCount: finalMetadata.length,
+        finalStableIds: finalMetadata.map((c) => c.stableId),
+      })
+      
+      if (finalMetadata.length === 0) {
+        this.loggingService.warn('No catalogs match specific catalog IDs', {
+          specificCatalogIds,
+          enabledStableIds: enabledMetadata.map((c) => c.stableId),
+        })
+        return []
+      }
+    }
+
     // Step 3: Create a map of stableId → capability for efficient lookup
     this.loggingService.info('STEP 3: Mapping stableId to capability')
 
@@ -252,15 +276,15 @@ export class GetHomescreenDataUseCase {
       mappingCount: stableIdToCapability.size,
     })
 
-    // Step 4: Fetch items (page 1) ONLY for enabled catalogs
-    this.loggingService.info('STEP 4: Fetching items for enabled catalogs (page 1)', {
-      enabledCatalogCount: enabledMetadata.length,
+    // Step 4: Fetch items (page 1) ONLY for final catalogs
+    this.loggingService.info('STEP 4: Fetching items for final catalogs (page 1)', {
+      finalCatalogCount: finalMetadata.length,
       limit,
     })
     const catalogsWithItems: Catalog[] = []
     const seenStableIds = new Set<string>()
 
-    for (const metadata of enabledMetadata) {
+    for (const metadata of finalMetadata) {
       this.loggingService.debug('Processing enabled catalog', {
         stableId: metadata.stableId,
         catalogName: metadata.name,

@@ -32,9 +32,12 @@ export const useToggleCatalogMutation = () => {
     mutationFn: (catalogId: string) =>
       manageCatalogUseCase.execute({ operation: 'toggle', catalogId }),
     onSuccess: () => {
-      // Invalidate related queries to trigger refetch
+      // Only invalidate cache - don't refetch all data
       void queryClient.invalidateQueries({ queryKey: ['homescreen'] })
       void queryClient.invalidateQueries({ queryKey: ['catalogs'] })
+      
+      // Remove specific catalog data from cache to force reload when needed
+      void queryClient.removeQueries({ queryKey: ['catalog', 'data'] })
     },
   })
 }
