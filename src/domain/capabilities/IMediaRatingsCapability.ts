@@ -1,4 +1,5 @@
 import type { Media } from '../entities/Media'
+import type { Result } from '../types/Result'
 
 /**
  * Media Ratings Capability - Provides ratings and reviews aggregation
@@ -9,7 +10,7 @@ export interface IMediaRatingsCapability {
    * @param media - The media to get ratings for
    * @returns Aggregated ratings from different platforms
    */
-  getRatings(media: Media): Promise<MediaRatings>
+  getRatings(media: Media): Promise<Result<MediaRatings>>
 }
 
 /**

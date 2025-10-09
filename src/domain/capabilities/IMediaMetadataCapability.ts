@@ -1,5 +1,6 @@
 import type { Media } from '../entities/Media'
 import type { EnrichedMedia } from '../entities/EnrichedMedia'
+import type { Result } from '../types/Result'
 
 /**
  * Media Metadata Capability - Enriches basic media with detailed information
@@ -11,12 +12,12 @@ export interface IMediaMetadataCapability {
    * @param media - Base media to enrich
    * @returns Enriched media with comprehensive metadata
    */
-  enrichMedia(media: Media): Promise<EnrichedMedia>
+  enrichMedia(media: Media): Promise<Result<EnrichedMedia>>
 
   /**
    * Batch enrich multiple media items for efficiency
    * @param mediaList - Array of base media to enrich
    * @returns Array of enriched media with comprehensive metadata
    */
-  enrichMediaBatch(mediaList: Media[]): Promise<EnrichedMedia[]>
+  enrichMediaBatch(mediaList: Media[]): Promise<Result<EnrichedMedia[]>>
 }

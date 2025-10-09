@@ -4,6 +4,7 @@ import { Catalog, type CatalogItem } from '../../../../domain/entities/Catalog'
 import type { TMDBDetailCache } from '../cache/TMDBDetailCache'
 import type { ILoggingService } from '../../../../domain/services/ILoggingService'
 import { TMDBMediaMapper } from '../../../mappers/tmdb/TMDBMediaMapper'
+import { ok, fail, type Result } from '@/src/domain/types/Result'
 
 /**
  * TMDB People Filmography Capability
@@ -20,14 +21,19 @@ export class TMDBPeopleFilmographyCapability implements IPeopleFilmographyCapabi
   /**
    * Get filmography catalogs for a person
    */
-  async getFilmography(person: Person): Promise<Catalog[]> {
-    try {
-      // Extract TMDB ID from person's external IDs
-      const tmdbId = this.extractTMDBId(person)
-      if (!tmdbId) {
-        throw new Error(`No TMDB ID found for person: ${person.name}`)
-      }
+  async getFilmography(person: Person): Promise<Result<Catalog[]>> {
+    // Extract TMDB ID from person's external IDs
+    const tmdbId = this.extractTMDBId(person)
+    if (!tmdbId) {
+      this.logger.warn(`No TMDB ID found for person: ${person.name}`)
+      return fail(
+        new Error(`No TMDB ID found for person: ${person.name}`),
+        'tmdb',
+        'missing_id'
+      )
+    }
 
+    try {
       // Get cached person details with credits
       const personDetails = await this.cache.getOrFetchPersonDetails(tmdbId)
 
@@ -51,11 +57,11 @@ export class TMDBPeopleFilmographyCapability implements IPeopleFilmographyCapabi
         tvCredits: personDetails.tv_credits?.cast?.length || 0,
       })
 
-      return catalogs
+      return ok(catalogs, 'tmdb', { cached: true })
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
       this.logger.error(`Failed to get filmography for person: ${person.name}`, err)
-      throw err
+      return fail(err, 'tmdb', 'api_error')
     }
   }
 

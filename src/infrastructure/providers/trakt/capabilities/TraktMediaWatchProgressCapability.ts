@@ -9,6 +9,7 @@ import type {
 import type { Media } from '@/src/domain/entities/Media'
 import type { ILoggingService } from '@/src/domain/services/ILoggingService'
 import type { TraktClient } from '@/src/infrastructure/api/trakt/TraktClient'
+import { ok, fail, type Result } from '@/src/domain/types/Result'
 
 /**
  * Trakt Watch Progress Capability
@@ -31,18 +32,21 @@ export class TraktMediaWatchProgressCapability implements IMediaWatchProgressCap
   /**
    * Get watch progress for a media item
    */
-  async getProgress(media: Media): Promise<WatchProgress> {
+  async getProgress(media: Media): Promise<Result<WatchProgress>> {
+    // Extract Trakt ID
+    const traktId = media.externalIds.trakt?.id
+    if (!traktId) {
+      this.logger.warn('[TraktMediaWatchProgressCapability] Missing Trakt ID', {
+        mediaId: media.stableId,
+      })
+      return fail(new Error(`Missing Trakt ID for media: ${media.stableId}`), 'trakt', 'missing_id')
+    }
+
     try {
       this.logger.info('[TraktMediaWatchProgressCapability] Fetching progress', {
         mediaId: media.stableId,
         type: media.type,
       })
-
-      // Extract Trakt ID
-      const traktId = media.externalIds.trakt?.id
-      if (!traktId) {
-        throw new Error(`Missing Trakt ID for media: ${media.stableId}`)
-      }
 
       if (media.type === 'movie') {
         return this.getMovieProgress(media, traktId)
@@ -50,17 +54,18 @@ export class TraktMediaWatchProgressCapability implements IMediaWatchProgressCap
         return this.getSeriesProgress(media, traktId)
       }
     } catch (error) {
-      this.logger.error('[TraktMediaWatchProgressCapability] Failed to fetch progress', error as Error, {
+      const err = error instanceof Error ? error : new Error(String(error))
+      this.logger.error('[TraktMediaWatchProgressCapability] Failed to fetch progress', err, {
         mediaId: media.stableId,
       })
-      throw error
+      return fail(err, 'trakt', 'api_error')
     }
   }
 
   /**
    * Get watch progress for a movie
    */
-  private async getMovieProgress(media: Media, traktId: string): Promise<WatchProgress> {
+  private async getMovieProgress(media: Media, traktId: string): Promise<Result<WatchProgress>> {
     // Get watch history for this movie
     const history = await this.traktClient.users.getMovieHistory('me', { item_id: Number(traktId) })
 
@@ -74,18 +79,20 @@ export class TraktMediaWatchProgressCapability implements IMediaWatchProgressCap
       lastWatchedAt,
     }
 
-    return {
+    const result: WatchProgress = {
       mediaId: media.stableId,
       mediaType: 'movie',
       movie: movieProgress,
       lastUpdated: new Date(),
     }
+
+    return ok(result, 'trakt', { cached: false })
   }
 
   /**
    * Get watch progress for a TV series
    */
-  private async getSeriesProgress(media: Media, traktId: string): Promise<WatchProgress> {
+  private async getSeriesProgress(media: Media, traktId: string): Promise<Result<WatchProgress>> {
     // Get show progress from Trakt
     const showProgress = await this.traktClient.shows.getProgress(traktId, {
       hidden: false,
@@ -141,30 +148,39 @@ export class TraktMediaWatchProgressCapability implements IMediaWatchProgressCap
         : undefined,
     }
 
-    return {
+    const result: WatchProgress = {
       mediaId: media.stableId,
       mediaType: 'series',
       series: seriesProgress,
       lastUpdated: new Date(),
     }
+
+    return ok(result, 'trakt', { cached: false })
   }
 
   /**
    * Mark media as watched
    */
-  async markAsWatched(media: Media, episodeInfo?: { season: number; episode: number }): Promise<void> {
+  async markAsWatched(media: Media, episodeInfo?: { season: number; episode: number }): Promise<Result<void>> {
+    // Extract Trakt ID
+    const traktId = media.externalIds.trakt?.id
+    if (!traktId) {
+      this.logger.warn('[TraktMediaWatchProgressCapability] Missing Trakt ID', {
+        mediaId: media.stableId,
+      })
+      return fail(
+        new Error(`Missing Trakt ID for media: ${media.stableId}`),
+        'trakt',
+        'missing_id'
+      )
+    }
+
     try {
       this.logger.info('[TraktMediaWatchProgressCapability] Marking as watched', {
         mediaId: media.stableId,
         type: media.type,
         episodeInfo,
       })
-
-      // Extract Trakt ID
-      const traktId = media.externalIds.trakt?.id
-      if (!traktId) {
-        throw new Error(`Missing Trakt ID for media: ${media.stableId}`)
-      }
 
       const watchedAt = new Date().toISOString()
 
@@ -184,7 +200,11 @@ export class TraktMediaWatchProgressCapability implements IMediaWatchProgressCap
         )
       } else {
         if (!episodeInfo) {
-          throw new Error('Episode info required for series')
+          return fail(
+            new Error('Episode info required for series'),
+            'trakt',
+            'missing_id'
+          )
         }
 
         await this.traktClient.sync.markEpisodeWatched(
@@ -203,30 +223,40 @@ export class TraktMediaWatchProgressCapability implements IMediaWatchProgressCap
       this.logger.info('[TraktMediaWatchProgressCapability] Marked as watched', {
         mediaId: media.stableId,
       })
+
+      return ok(undefined, 'trakt')
     } catch (error) {
-      this.logger.error('[TraktMediaWatchProgressCapability] Failed to mark as watched', error as Error, {
+      const err = error instanceof Error ? error : new Error(String(error))
+      this.logger.error('[TraktMediaWatchProgressCapability] Failed to mark as watched', err, {
         mediaId: media.stableId,
       })
-      throw error
+      return fail(err, 'trakt', 'api_error')
     }
   }
 
   /**
    * Mark media as unwatched
    */
-  async markAsUnwatched(media: Media, episodeInfo?: { season: number; episode: number }): Promise<void> {
+  async markAsUnwatched(media: Media, episodeInfo?: { season: number; episode: number }): Promise<Result<void>> {
+    // Extract Trakt ID
+    const traktId = media.externalIds.trakt?.id
+    if (!traktId) {
+      this.logger.warn('[TraktMediaWatchProgressCapability] Missing Trakt ID', {
+        mediaId: media.stableId,
+      })
+      return fail(
+        new Error(`Missing Trakt ID for media: ${media.stableId}`),
+        'trakt',
+        'missing_id'
+      )
+    }
+
     try {
       this.logger.info('[TraktMediaWatchProgressCapability] Marking as unwatched', {
         mediaId: media.stableId,
         type: media.type,
         episodeInfo,
       })
-
-      // Extract Trakt ID
-      const traktId = media.externalIds.trakt?.id
-      if (!traktId) {
-        throw new Error(`Missing Trakt ID for media: ${media.stableId}`)
-      }
 
       if (media.type === 'movie') {
         await this.traktClient.sync.removeFromHistory({
@@ -245,7 +275,11 @@ export class TraktMediaWatchProgressCapability implements IMediaWatchProgressCap
         })
       } else {
         if (!episodeInfo) {
-          throw new Error('Episode info required for series')
+          return fail(
+            new Error('Episode info required for series'),
+            'trakt',
+            'missing_id'
+          )
         }
 
         await this.traktClient.sync.removeFromHistory({
@@ -265,11 +299,14 @@ export class TraktMediaWatchProgressCapability implements IMediaWatchProgressCap
       this.logger.info('[TraktMediaWatchProgressCapability] Marked as unwatched', {
         mediaId: media.stableId,
       })
+
+      return ok(undefined, 'trakt')
     } catch (error) {
-      this.logger.error('[TraktMediaWatchProgressCapability] Failed to mark as unwatched', error as Error, {
+      const err = error instanceof Error ? error : new Error(String(error))
+      this.logger.error('[TraktMediaWatchProgressCapability] Failed to mark as unwatched', err, {
         mediaId: media.stableId,
       })
-      throw error
+      return fail(err, 'trakt', 'api_error')
     }
   }
 

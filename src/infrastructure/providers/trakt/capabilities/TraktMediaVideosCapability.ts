@@ -4,6 +4,7 @@ import type { Media } from '@/src/domain/entities/Media'
 import type { TraktClient } from '@/src/infrastructure/api/trakt/TraktClient'
 import type { ILoggingService } from '@/src/domain/services/ILoggingService'
 import type { TraktVideo } from '@/src/infrastructure/api/trakt/types'
+import { ok, type Result } from '@/src/domain/types/Result'
 
 /**
  * Trakt Media Videos Capability
@@ -23,13 +24,13 @@ export class TraktMediaVideosCapability implements IMediaVideosCapability {
     private readonly logger: ILoggingService
   ) {}
 
-  async getVideos(media: Media): Promise<MediaVideo[]> {
+  async getVideos(media: Media): Promise<Result<MediaVideo[]>> {
     try {
       // Extract Trakt ID from media's external IDs
       const traktId = this.extractTraktId(media)
       if (!traktId) {
         this.logger.debug(`No Trakt ID found for ${media.type} media: ${media.title}`)
-        return []
+        return ok([], "trakt", { cached: false })
       }
 
       // Fetch videos based on media type
@@ -40,7 +41,7 @@ export class TraktMediaVideosCapability implements IMediaVideosCapability {
         traktVideos = await this.traktClient.shows.getVideos(traktId)
       } else {
         this.logger.warn(`Unsupported media type for videos: ${media.type}`)
-        return []
+        return ok([], "trakt", { cached: false })
       }
 
       // Map Trakt videos to domain MediaVideo type
@@ -59,11 +60,11 @@ export class TraktMediaVideosCapability implements IMediaVideosCapability {
         }
       )
 
-      return sortedVideos
+      return ok(sortedVideos, "trakt", { cached: false })
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
       this.logger.error(`Failed to get videos for ${media.type}: ${media.title}`, err)
-      return [] // Return empty array on error instead of throwing
+      return ok([], "trakt", { cached: false }) // Return empty array on error instead of throwing
     }
   }
 

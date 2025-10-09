@@ -4,6 +4,7 @@ import { ExternalIds, ExternalId } from '@/src/domain/entities/ExternalIds'
 import type { TraktDetailCache } from '@/src/infrastructure/providers/trakt/cache/TraktDetailCache'
 import type { ILoggingService } from '@/src/domain/services/ILoggingService'
 import type { TraktClient } from '@/src/infrastructure/api/trakt/TraktClient'
+import { ok, fail, type Result } from '@/src/domain/types/Result'
 
 /**
  * Trakt People External IDs Capability
@@ -21,7 +22,7 @@ export class TraktPeopleExternalIdsCapability implements IPeopleExternalIdsCapab
   /**
    * Get external IDs for a person from cached details
    */
-  async getExternalIds(person: Person): Promise<ExternalIds> {
+  async getExternalIds(person: Person): Promise<Result<ExternalIds>> {
     try {
       const traktId = this.extractTraktId(person)
       if (!traktId) {
@@ -68,18 +69,18 @@ export class TraktPeopleExternalIdsCapability implements IPeopleExternalIdsCapab
         hasTvdb: !!traktPerson.ids.tvdb,
       })
 
-      return externalIds
+      return ok(externalIds, "trakt", { cached: false })
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
       this.logger.error(`Failed to get external IDs for person: ${person.name}`, err)
-      throw err
+      return fail(err, "trakt", "api_error")
     }
   }
 
   /**
    * Find person by external ID from another platform
    */
-  async findByExternalId(externalId: string, platform: string): Promise<Person | null> {
+  async findByExternalId(externalId: string, platform: string): Promise<Result<Person | null>> {
     try {
       this.logger.debug(`Finding person by ${platform} ID: ${externalId}`)
 
@@ -96,7 +97,7 @@ export class TraktPeopleExternalIdsCapability implements IPeopleExternalIdsCapab
 
       if (searchResults.length === 0 || !searchResults[0].person) {
         this.logger.debug(`No person found for ${platform} ID: ${externalId}`)
-        return null
+        return ok(null, "trakt", { cached: false })
       }
 
       // Import mapper to convert to Person entity
@@ -110,12 +111,12 @@ export class TraktPeopleExternalIdsCapability implements IPeopleExternalIdsCapab
         traktId: person.externalIds.trakt?.id,
       })
 
-      return person
+      return ok(person, "trakt", { cached: false })
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
       this.logger.error(`Failed to find person by ${platform} ID: ${externalId}`, err)
       // Return null instead of throwing - person not found is a valid result
-      return null
+      return ok(null, "trakt", { cached: false })
     }
   }
 

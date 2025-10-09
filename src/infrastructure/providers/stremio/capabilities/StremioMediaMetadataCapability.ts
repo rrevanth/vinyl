@@ -3,10 +3,10 @@ import type { Media } from '@/src/domain/entities/Media'
 import type { EnrichedMedia } from '@/src/domain/entities/EnrichedMedia'
 import type { StremioAddon } from '@/src/domain/entities/StremioAddon'
 import type { ILoggingService } from '@/src/domain/services/ILoggingService'
+import { ok, fail, type Result } from '@/src/domain/types/Result'
 import type { StremioAddonClient } from '@/src/infrastructure/providers/stremio/clients/StremioAddonClient'
 import { StremioMetaMapper } from '@/src/infrastructure/mappers/stremio/StremioMetaMapper'
 import { StremioIdResolver } from '@/src/infrastructure/providers/stremio/utils/StremioIdResolver'
-import { InfrastructureError } from '@/src/infrastructure/errors/InfrastructureError'
 
 /**
  * Provides detailed metadata enrichment backed by a Stremio addon
@@ -18,7 +18,7 @@ export class StremioMediaMetadataCapability implements IMediaMetadataCapability 
     private readonly logger: ILoggingService
   ) {}
 
-  async enrichMedia(media: Media): Promise<EnrichedMedia> {
+  async enrichMedia(media: Media): Promise<Result<EnrichedMedia>> {
     // Resolve Stremio ID for this media
     const resolvedId = StremioIdResolver.resolveId(media, this.addon.manifest)
 
@@ -28,10 +28,11 @@ export class StremioMediaMetadataCapability implements IMediaMetadataCapability 
         mediaStableId: media.stableId,
       })
 
-      // Return minimal enriched media
-      return {
-        media,
-      }
+      return fail(
+        new Error('Could not resolve Stremio ID for media metadata'),
+        `stremio:${this.addon.id}`,
+        'missing_id'
+      )
     }
 
     try {
@@ -48,7 +49,7 @@ export class StremioMediaMetadataCapability implements IMediaMetadataCapability 
         resolvedId: resolvedId.id,
       })
 
-      return enrichedMedia
+      return ok(enrichedMedia, `stremio:${this.addon.id}`)
     } catch (error) {
       this.logger.error(
         'Failed to enrich media from Stremio addon',
@@ -61,21 +62,33 @@ export class StremioMediaMetadataCapability implements IMediaMetadataCapability 
         }
       )
 
-      throw new InfrastructureError(
-        `Failed to enrich media from Stremio addon: ${this.addon.name}`,
-        error instanceof Error ? error : new Error(String(error))
+      return fail(
+        error instanceof Error ? error : new Error(String(error)),
+        `stremio:${this.addon.id}`,
+        'api_error'
       )
     }
   }
 
-  async enrichMediaBatch(mediaList: Media[]): Promise<EnrichedMedia[]> {
+  async enrichMediaBatch(mediaList: Media[]): Promise<Result<EnrichedMedia[]>> {
     // Simple parallel enrichment
-    const results = await Promise.allSettled(
-      mediaList.map((media) => this.enrichMedia(media))
-    )
+    const results = await Promise.allSettled(mediaList.map((media) => this.enrichMedia(media)))
 
-    return results
-      .filter((result): result is PromiseFulfilledResult<EnrichedMedia> => result.status === 'fulfilled')
-      .map((result) => result.value)
+    const successfulResults = results
+      .filter(
+        (result): result is PromiseFulfilledResult<Result<EnrichedMedia>> =>
+          result.status === 'fulfilled' && result.value.success === true
+      )
+      .map((result) => (result.value as { success: true; data: EnrichedMedia }).data)
+
+    if (successfulResults.length === 0) {
+      return fail(
+        new Error('All media enrichment failed'),
+        `stremio:${this.addon.id}`,
+        'api_error'
+      )
+    }
+
+    return ok(successfulResults, `stremio:${this.addon.id}`)
   }
 }

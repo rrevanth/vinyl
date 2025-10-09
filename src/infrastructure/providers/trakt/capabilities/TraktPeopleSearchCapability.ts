@@ -4,6 +4,7 @@ import type { ILoggingService } from '@/src/domain/services/ILoggingService'
 import type { TraktClient } from '@/src/infrastructure/api/trakt/TraktClient'
 import type { TraktSearchResult } from '@/src/infrastructure/api/trakt/types/responses'
 import { TraktPeopleMapper } from '@/src/infrastructure/providers/trakt/mappers/TraktPeopleMapper'
+import { ok, fail, type Result } from '@/src/domain/types/Result'
 
 /**
  * Trakt People Search Capability
@@ -22,7 +23,7 @@ export class TraktPeopleSearchCapability implements IPeopleSearchCapability {
   /**
    * Search for people by name
    */
-  async searchPeople(query: string, filters?: Record<string, any>): Promise<Catalog> {
+  async searchPeople(query: string, filters?: Record<string, any>): Promise<Result<Catalog>> {
     try {
       const limit = filters?.limit || 20
       const page = filters?.page || 1
@@ -52,11 +53,11 @@ export class TraktPeopleSearchCapability implements IPeopleSearchCapability {
 
       this.logger.debug(`Found ${searchResults.length} people for query: "${query}"`)
 
-      return catalog
+      return ok(catalog, "trakt", { cached: false })
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
       this.logger.error(`Failed to search people for query: "${query}"`, err)
-      throw err
+      return fail(err, "trakt", "api_error")
     }
   }
 
@@ -65,7 +66,7 @@ export class TraktPeopleSearchCapability implements IPeopleSearchCapability {
    * Note: Trakt doesn't have a dedicated popular people endpoint,
    * so this returns an empty catalog for now
    */
-  async getPopularPeople(category?: string): Promise<Catalog> {
+  async getPopularPeople(category?: string): Promise<Result<Catalog>> {
     try {
       this.logger.debug(`Getting popular people`, { category })
 
@@ -81,7 +82,7 @@ export class TraktPeopleSearchCapability implements IPeopleSearchCapability {
 
       this.logger.warn('Trakt API does not provide a popular people endpoint')
 
-      return new Catalog({
+      return ok(new Catalog({
         id: catalogId,
         providerId: 'trakt',
         name: catalogName,
@@ -103,11 +104,11 @@ export class TraktPeopleSearchCapability implements IPeopleSearchCapability {
           offset: 0,
           limit: 20,
         },
-      })
+      }), "trakt", { cached: false })
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
       this.logger.error(`Failed to get popular people`, err, { category })
-      throw err
+      return fail(err, "trakt", "api_error")
     }
   }
 

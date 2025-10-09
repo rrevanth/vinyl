@@ -7,6 +7,7 @@ import type { Media } from '../../../../domain/entities/Media'
 import type { TMDBDetailCache } from '../cache/TMDBDetailCache'
 import type { TMDBClient } from '../../../api/tmdb/TMDBClient'
 import type { ILoggingService } from '../../../../domain/services/ILoggingService'
+import { ok, fail, type Result } from '@/src/domain/types/Result'
 
 /**
  * TMDB Media Seasons Capability
@@ -21,23 +22,32 @@ export class TMDBMediaSeasonsCapability implements IMediaSeasonsCapability {
     private readonly logger: ILoggingService
   ) {}
 
-  async getSeasons(media: Media, seasonNumber?: number): Promise<Season[]> {
+  async getSeasons(media: Media, seasonNumber?: number): Promise<Result<Season[]>> {
+    if (media.type !== 'series') {
+      return fail(
+        new Error(`Season data only available for series, got: ${media.type}`),
+        'tmdb',
+        'unsupported'
+      )
+    }
+
+    // Extract TMDB ID from media's external IDs
+    const tmdbId = this.extractTMDBId(media)
+    if (!tmdbId) {
+      this.logger.warn(`No TMDB ID found for series: ${media.title}`)
+      return fail(
+        new Error(`No TMDB ID found for series: ${media.title}`),
+        'tmdb',
+        'missing_id'
+      )
+    }
+
     try {
-      if (media.type !== 'series') {
-        throw new Error(`Season data only available for series, got: ${media.type}`)
-      }
-
-      // Extract TMDB ID from media's external IDs
-      const tmdbId = this.extractTMDBId(media)
-      if (!tmdbId) {
-        throw new Error(`No TMDB ID found for series: ${media.title}`)
-      }
-
       // Get cached TV details which includes basic season info
       const tvDetails = await this.cache.getOrFetchTVDetails(tmdbId)
 
       if (!tvDetails.seasons || tvDetails.seasons.length === 0) {
-        return []
+        return ok([], 'tmdb', { cached: true })
       }
 
       // Filter for specific season if requested
@@ -66,26 +76,36 @@ export class TMDBMediaSeasonsCapability implements IMediaSeasonsCapability {
         seasonNumbers: seasons.map((s) => s.seasonNumber),
       })
 
-      return seasons
+      return ok(seasons, 'tmdb', { cached: true })
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
       this.logger.error(`Failed to get seasons for series: ${media.title}`, err)
-      throw err
+      return fail(err, 'tmdb', 'api_error')
     }
   }
 
-  async getEpisode(media: Media, seasonNumber: number, episodeNumber: number): Promise<Episode> {
+  async getEpisode(media: Media, seasonNumber: number, episodeNumber: number): Promise<Result<Episode>> {
+    if (media.type !== 'series') {
+      this.logger.warn(`Episode data only available for series, got: ${media.type}`)
+      return fail(
+        new Error(`Episode data only available for series, got: ${media.type}`),
+        'tmdb',
+        'unsupported'
+      )
+    }
+
+    // Extract TMDB ID from media's external IDs
+    const tmdbId = this.extractTMDBId(media)
+    if (!tmdbId) {
+      this.logger.warn(`No TMDB ID found for series: ${media.title}`)
+      return fail(
+        new Error(`No TMDB ID found for series: ${media.title}`),
+        'tmdb',
+        'missing_id'
+      )
+    }
+
     try {
-      if (media.type !== 'series') {
-        throw new Error(`Episode data only available for series, got: ${media.type}`)
-      }
-
-      // Extract TMDB ID from media's external IDs
-      const tmdbId = this.extractTMDBId(media)
-      if (!tmdbId) {
-        throw new Error(`No TMDB ID found for series: ${media.title}`)
-      }
-
       // Get specific episode details from TMDB API
       const episodeDetails = await this.tmdbClient.tv.getEpisodeDetails(
         tmdbId,
@@ -103,14 +123,18 @@ export class TMDBMediaSeasonsCapability implements IMediaSeasonsCapability {
         }
       )
 
-      return episode
+      return ok(episode, 'tmdb')
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
       this.logger.error(
         `Failed to get episode S${seasonNumber}E${episodeNumber} for series: ${media.title}`,
         err
       )
-      throw err
+      // Check if it's a 404 error
+      if (err.message?.includes('404') || err.message?.includes('not found')) {
+        return fail(err, 'tmdb', 'not_found')
+      }
+      return fail(err, 'tmdb', 'api_error')
     }
   }
 
@@ -131,7 +155,9 @@ export class TMDBMediaSeasonsCapability implements IMediaSeasonsCapability {
       airDate: seasonDetails.air_date ? new Date(seasonDetails.air_date) : undefined,
       episodeCount: seasonDetails.episodes?.length || basicSeasonData.episode_count || 0,
       episodes: (seasonDetails.episodes || []).map((ep: any) => this.mapEpisode(ep)),
-      posterPath: seasonDetails.poster_path || undefined,
+      posterPath: seasonDetails.poster_path
+        ? this.tmdbClient.images.getPosterURL(seasonDetails.poster_path, 'w500')
+        : undefined,
     }
   }
 
@@ -147,7 +173,9 @@ export class TMDBMediaSeasonsCapability implements IMediaSeasonsCapability {
       airDate: seasonData.air_date ? new Date(seasonData.air_date) : undefined,
       episodeCount: seasonData.episode_count || 0,
       episodes: [], // No episode details in basic data
-      posterPath: seasonData.poster_path,
+      posterPath: seasonData.poster_path
+        ? this.tmdbClient.images.getPosterURL(seasonData.poster_path, 'w500')
+        : undefined,
     }
   }
 
@@ -165,7 +193,9 @@ export class TMDBMediaSeasonsCapability implements IMediaSeasonsCapability {
       overview: episodeData.overview,
       airDate: episodeData.air_date ? new Date(episodeData.air_date) : undefined,
       runtime: episodeData.runtime,
-      stillPath: episodeData.still_path,
+      stillPath: episodeData.still_path
+        ? this.tmdbClient.images.getStillURL(episodeData.still_path, 'w300')
+        : undefined,
       voteAverage: episodeData.vote_average,
       voteCount: episodeData.vote_count,
       productionCode: episodeData.production_code,

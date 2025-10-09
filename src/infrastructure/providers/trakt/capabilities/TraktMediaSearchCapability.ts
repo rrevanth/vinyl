@@ -5,6 +5,7 @@ import { StableIdGenerator } from '@/src/domain/entities/StableIdGenerator'
 import type { ILoggingService } from '@/src/domain/services/ILoggingService'
 import type { TraktClient } from '@/src/infrastructure/api/trakt/TraktClient'
 import { TraktMediaMapper } from '../mappers/TraktMediaMapper'
+import { ok, fail, type Result } from '@/src/domain/types/Result'
 
 /**
  * Trakt Media Search Capability
@@ -16,9 +17,9 @@ export class TraktMediaSearchCapability implements IMediaSearchCapability {
     private readonly logger: ILoggingService
   ) {}
 
-  async searchMedia(query: string, filters?: Record<string, any>): Promise<Catalog[]> {
+  async searchMedia(query: string, filters?: Record<string, any>): Promise<Result<Catalog[]>> {
     if (!query || query.trim().length < 2) {
-      return []
+      return ok([], "trakt", { cached: false })
     }
 
     try {
@@ -83,18 +84,18 @@ export class TraktMediaSearchCapability implements IMediaSearchCapability {
       })
 
       this.logger.debug(`Search returned ${catalogItems.length} results for: ${query}`)
-      return [catalog]
+      return ok([catalog], "trakt", { cached: false })
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
       this.logger.error(`Failed to search Trakt for: ${query}`, err)
-      throw err
+      return fail(err, "trakt", "api_error")
     }
   }
 
-  async loadMoreItems(catalog: Catalog): Promise<Catalog> {
+  async loadMoreItems(catalog: Catalog): Promise<Result<Catalog>> {
     // Trakt's basic search endpoint doesn't support pagination
     // Return the original catalog unchanged
     this.logger.debug(`Trakt search does not support pagination, returning original catalog`)
-    return catalog
+    return ok(catalog, "trakt", { cached: false })
   }
 }

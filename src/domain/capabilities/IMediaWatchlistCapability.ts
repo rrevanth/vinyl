@@ -1,4 +1,5 @@
 import type { Media } from '@/src/domain/entities/Media'
+import type { Result } from '../types/Result'
 
 /**
  * Represents an item in the watchlist
@@ -28,19 +29,19 @@ export interface IMediaWatchlistCapability {
     type?: 'movies' | 'shows'
     sort?: 'added' | 'released' | 'title'
     limit?: number
-  }): Promise<WatchlistItem[]>
+  }): Promise<Result<WatchlistItem[]>>
 
   /**
    * Add media to the watchlist
    * @param media - Complete media object or array of media objects
    */
-  addToWatchlist(media: Media | Media[]): Promise<void>
+  addToWatchlist(media: Media | Media[]): Promise<Result<void>>
 
   /**
    * Remove media from the watchlist
    * @param media - Complete media object or array of media objects
    */
-  removeFromWatchlist(media: Media | Media[]): Promise<void>
+  removeFromWatchlist(media: Media | Media[]): Promise<Result<void>>
 
   /**
    * Indicates whether this capability requires authentication

@@ -4,6 +4,7 @@ import { Catalog as CatalogEntity } from '@/src/domain/entities/Catalog'
 import { StableIdGenerator, type CatalogFilters } from '@/src/domain/entities/StableIdGenerator'
 import type { StremioAddon } from '@/src/domain/entities/StremioAddon'
 import type { ILoggingService } from '@/src/domain/services/ILoggingService'
+import { ok, fail, type Result } from '@/src/domain/types/Result'
 import { StremioMediaMapper } from '@/src/infrastructure/mappers/stremio/StremioMediaMapper'
 import type { StremioAddonClient } from '@/src/infrastructure/providers/stremio/clients/StremioAddonClient'
 import type { StremioCatalog } from '@/src/infrastructure/providers/stremio/types/manifest'
@@ -19,7 +20,7 @@ export class StremioMediaCatalogCapability implements IMediaCatalogCapability {
     private readonly logger: ILoggingService
   ) {}
 
-  async getCatalogs(filters?: CatalogFilters): Promise<Catalog[]> {
+  async getCatalogs(filters?: CatalogFilters): Promise<Result<Catalog[]>> {
     const catalogDefinitions = this.addon.manifest.catalogs ?? []
 
     this.logger.info('StremioMediaCatalogCapability.getCatalogs called', {
@@ -35,7 +36,11 @@ export class StremioMediaCatalogCapability implements IMediaCatalogCapability {
         addonId: this.addon.id,
         addonName: this.addon.name,
       })
-      return []
+      return fail(
+        new Error('No catalog definitions found in addon manifest'),
+        `stremio:${this.addon.id}`,
+        'not_found'
+      )
     }
 
     // Log each catalog definition
@@ -74,7 +79,7 @@ export class StremioMediaCatalogCapability implements IMediaCatalogCapability {
         stableIds: metadataCatalogs.map((c) => c.stableId),
       })
 
-      return metadataCatalogs
+      return ok(metadataCatalogs, `stremio:${this.addon.id}`)
     }
 
     // Page 1+ = fetch items from API
@@ -157,7 +162,14 @@ export class StremioMediaCatalogCapability implements IMediaCatalogCapability {
             return null
           }
 
-          const mediaItems = StremioMediaMapper.fromMetaPreviewArray(normalizedMetas, this.addon.id)
+          const mediaItems = StremioMediaMapper.fromMetaPreviewArray(
+            normalizedMetas,
+            this.addon.id,
+            this.addon.name,
+            definition.id,
+            definition.type,
+            this.addon.transportUrl
+          )
           const catalogId = `${this.addon.id}-${definition.type}-${definition.id}`
           const catalogStableId = StableIdGenerator.forCatalog(
             this.addon.id,
@@ -224,15 +236,139 @@ export class StremioMediaCatalogCapability implements IMediaCatalogCapability {
       stableIds: validCatalogs.map((c) => c.stableId),
     })
 
-    return validCatalogs
+    if (validCatalogs.length === 0) {
+      return fail(
+        new Error('No valid catalogs after fetching items'),
+        `stremio:${this.addon.id}`,
+        'not_found'
+      )
+    }
+
+    return ok(validCatalogs, `stremio:${this.addon.id}`)
   }
 
-  // Stremio catalog endpoints do not provide pagination metadata; return original catalog untouched.
-  async loadMoreItems(catalog: Catalog): Promise<Catalog> {
-    this.logger.debug('Stremio catalogs do not support pagination yet', {
+  async loadMoreItems(catalog: Catalog): Promise<Result<Catalog>> {
+    const sourceInfo = catalog.sourceInfo
+    if (!sourceInfo?.catalogDefinition) {
+      this.logger.warn('No catalog definition found for pagination', {
+        catalogId: catalog.id,
+      })
+      return ok(catalog, `stremio:${this.addon.id}`)
+    }
+
+    const definition = sourceInfo.catalogDefinition as StremioCatalog
+    const currentPage = catalog.paginationInfo.currentPage
+
+    // Check if catalog supports skip
+    const skipExtra = definition.extra?.find((e) => e.name === 'skip')
+    if (!skipExtra) {
+      this.logger.debug('Catalog does not support pagination (no skip parameter)', {
+        catalogId: catalog.id,
+      })
+      return ok(catalog, `stremio:${this.addon.id}`)
+    }
+
+    // Calculate next skip value
+    const itemsPerPage = 100 // Stremio default page size
+    const nextSkip = currentPage * itemsPerPage
+
+    this.logger.info('Loading more items for Stremio catalog', {
       catalogId: catalog.id,
+      currentPage,
+      nextSkip,
     })
-    return catalog
+
+    try {
+      // Fetch next page with skip parameter
+      const response = await this.addonClient.getCatalog(definition.type, definition.id, {
+        skip: nextSkip.toString(),
+      })
+
+      const metas = response.metas ?? []
+
+      if (metas.length === 0) {
+        this.logger.info('No more items available', {
+          catalogId: catalog.id,
+        })
+        return ok(
+          new CatalogEntity({
+            ...catalog,
+            paginationInfo: {
+              ...catalog.paginationInfo,
+              hasMore: false,
+            },
+          }),
+          `stremio:${this.addon.id}`
+        )
+      }
+
+      // Normalize types
+      const normalizedMetas = metas
+        .map((meta) => {
+          const normalizedType = this.normalizeType(meta.type ?? definition.type)
+          if (!normalizedType) return null
+          return { ...meta, type: normalizedType }
+        })
+        .filter(
+          (meta): meta is typeof metas[number] & { type: 'movie' | 'series' } => meta !== null
+        )
+
+      // Create media items with complete context
+      const mediaItems = StremioMediaMapper.fromMetaPreviewArray(
+        normalizedMetas,
+        this.addon.id,
+        this.addon.name,
+        definition.id,
+        definition.type,
+        this.addon.transportUrl
+      )
+
+      // Create new catalog items
+      const startIndex = catalog.items.length
+      const newItems = mediaItems.map((media, index) => ({
+        stableId: StableIdGenerator.forCatalogItem(
+          catalog.stableId,
+          media.stableId,
+          startIndex + index
+        ),
+        media,
+      }))
+
+      this.logger.info('Successfully loaded more items', {
+        catalogId: catalog.id,
+        newItemsCount: newItems.length,
+        totalItemsCount: catalog.items.length + newItems.length,
+      })
+
+      return ok(
+        new CatalogEntity({
+          ...catalog,
+          items: [...catalog.items, ...newItems],
+          paginationInfo: {
+            currentPage: currentPage + 1,
+            totalPages: catalog.paginationInfo.totalPages,
+            hasMore: metas.length === itemsPerPage,
+          },
+        }),
+        `stremio:${this.addon.id}`
+      )
+    } catch (error) {
+      this.logger.error('Failed to load more items', error as Error, {
+        catalogId: catalog.id,
+        currentPage,
+      })
+      // Return catalog with hasMore=false instead of throwing to allow graceful degradation
+      return ok(
+        new CatalogEntity({
+          ...catalog,
+          paginationInfo: {
+            ...catalog.paginationInfo,
+            hasMore: false,
+          },
+        }),
+        `stremio:${this.addon.id}`
+      )
+    }
   }
 
   private createMetadataCatalog(definition: StremioCatalog): Catalog {
@@ -272,7 +408,7 @@ export class StremioMediaCatalogCapability implements IMediaCatalogCapability {
       return 'movie'
     }
 
-    if (['series', 'show', 'shows', 'tv', 'channel', 'channels'].includes(lower)) {
+    if (['series', 'show', 'shows', 'tv', 'channel', 'channels', 'anime'].includes(lower)) {
       return 'series'
     }
 

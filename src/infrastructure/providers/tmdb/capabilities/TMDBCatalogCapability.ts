@@ -6,6 +6,7 @@ import type { TMDBClient } from '../../../api/tmdb/TMDBClient'
 import type { ILoggingService } from '../../../../domain/services/ILoggingService'
 import { TMDBMediaMapper } from '../../../mappers/tmdb/TMDBMediaMapper'
 import { StableIdGenerator } from '../../../../domain/entities/StableIdGenerator'
+import { ok, fail, type Result } from '@/src/domain/types/Result'
 
 /**
  * TMDB Media Catalog Capability
@@ -19,7 +20,7 @@ export class TMDBCatalogCapability implements IMediaCatalogCapability {
     private readonly logger: ILoggingService
   ) {}
 
-  async getCatalogs(filters?: CatalogFilters): Promise<Catalog[]> {
+  async getCatalogs(filters?: CatalogFilters): Promise<Result<Catalog[]>> {
     try {
       this.logger.debug('Getting TMDB catalogs', { filters })
 
@@ -54,15 +55,15 @@ export class TMDBCatalogCapability implements IMediaCatalogCapability {
       }
 
       this.logger.debug(`Retrieved ${catalogs.length} TMDB catalogs`)
-      return catalogs
+      return ok(catalogs, 'tmdb')
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
       this.logger.error('Failed to get TMDB catalogs', err)
-      throw err
+      return fail(err, 'tmdb', 'api_error')
     }
   }
 
-  async loadMoreItems(catalog: Catalog): Promise<Catalog> {
+  async loadMoreItems(catalog: Catalog): Promise<Result<Catalog>> {
     try {
       const nextPage = catalog.paginationInfo.currentPage + 1
 
@@ -96,15 +97,17 @@ export class TMDBCatalogCapability implements IMediaCatalogCapability {
         }
       })
 
-      return catalog.appendItems(newItems, {
+      const updatedCatalog = catalog.appendItems(newItems, {
         currentPage: response.page,
         totalPages: response.total_pages,
         hasMore: response.page < response.total_pages,
       })
+
+      return ok(updatedCatalog, 'tmdb')
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
       this.logger.error(`Failed to load more items for catalog: ${catalog.id}`, err)
-      throw err
+      return fail(err, 'tmdb', 'api_error')
     }
   }
 

@@ -33,7 +33,18 @@ export class GetAvailableCatalogsUseCase {
     for (const capability of capabilities) {
       try {
         // Use page 0 to fetch metadata only (no items, fast)
-        const providerCatalogs = await capability.getCatalogs({ page: 0 })
+        const result = await capability.getCatalogs({ page: 0 })
+
+        if (!result.success) {
+          this.loggingService.warn('Failed to enumerate provider catalogs for homescreen settings', {
+            providerId: result.providerId,
+            reason: result.reason,
+            error: result.error.message,
+          })
+          continue
+        }
+
+        const providerCatalogs = result.data
         for (const catalog of providerCatalogs) {
           if (seen.has(catalog.stableId)) {
             continue

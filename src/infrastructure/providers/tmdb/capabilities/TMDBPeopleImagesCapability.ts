@@ -5,6 +5,7 @@ import type {
 import type { Person } from '../../../../domain/entities/Person'
 import type { TMDBDetailCache } from '../cache/TMDBDetailCache'
 import type { ILoggingService } from '../../../../domain/services/ILoggingService'
+import { ok, fail, type Result } from '@/src/domain/types/Result'
 
 /**
  * TMDB People Images Capability
@@ -21,14 +22,19 @@ export class TMDBPeopleImagesCapability implements IPeopleImagesCapability {
   /**
    * Get images for a person
    */
-  async getImages(person: Person): Promise<PersonImage[]> {
-    try {
-      // Extract TMDB ID from person's external IDs
-      const tmdbId = this.extractTMDBId(person)
-      if (!tmdbId) {
-        throw new Error(`No TMDB ID found for person: ${person.name}`)
-      }
+  async getImages(person: Person): Promise<Result<PersonImage[]>> {
+    // Extract TMDB ID from person's external IDs
+    const tmdbId = this.extractTMDBId(person)
+    if (!tmdbId) {
+      this.logger.warn(`No TMDB ID found for person: ${person.name}`)
+      return fail(
+        new Error(`No TMDB ID found for person: ${person.name}`),
+        'tmdb',
+        'missing_id'
+      )
+    }
 
+    try {
       // Get cached person details with images
       const personDetails = await this.cache.getOrFetchPersonDetails(tmdbId)
 
@@ -41,11 +47,11 @@ export class TMDBPeopleImagesCapability implements IPeopleImagesCapability {
         taggedImageCount: personImages.filter((img) => img.imageType !== 'profile').length,
       })
 
-      return personImages
+      return ok(personImages, 'tmdb', { cached: true })
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
       this.logger.error(`Failed to get images for person: ${person.name}`, err)
-      throw err
+      return fail(err, 'tmdb', 'api_error')
     }
   }
 

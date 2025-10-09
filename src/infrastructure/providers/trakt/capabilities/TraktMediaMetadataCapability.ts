@@ -4,6 +4,7 @@ import type { EnrichedMedia } from '@/src/domain/entities/EnrichedMedia'
 import type { TraktDetailCache } from '../cache/TraktDetailCache'
 import type { ILoggingService } from '@/src/domain/services/ILoggingService'
 import { TraktMediaMapper } from '../mappers/TraktMediaMapper'
+import { ok, fail, type Result } from '@/src/domain/types/Result'
 
 /**
  * Trakt Media Metadata Capability - Primary cache source
@@ -18,14 +19,19 @@ export class TraktMediaMetadataCapability implements IMediaMetadataCapability {
     private readonly logger: ILoggingService
   ) {}
 
-  async enrichMedia(media: Media): Promise<EnrichedMedia> {
-    try {
-      // Extract Trakt ID from media's external IDs
-      const traktId = this.extractTraktId(media)
-      if (!traktId) {
-        throw new Error(`No Trakt ID found for ${media.type} media: ${media.title}`)
-      }
+  async enrichMedia(media: Media): Promise<Result<EnrichedMedia>> {
+    // Extract Trakt ID from media's external IDs
+    const traktId = this.extractTraktId(media)
+    if (!traktId) {
+      this.logger.warn(`No Trakt ID found for ${media.type} media: ${media.title}`)
+      return fail(
+        new Error(`No Trakt ID found for ${media.type} media: ${media.title}`),
+        'trakt',
+        'missing_id'
+      )
+    }
 
+    try {
       // Get or fetch extended detail from cache (THIS IS THE CORE CACHE SOURCE)
       let extendedData: any
       if (media.type === 'movie') {
@@ -33,7 +39,12 @@ export class TraktMediaMetadataCapability implements IMediaMetadataCapability {
       } else if (media.type === 'series') {
         extendedData = await this.cache.getOrFetchShowDetails(traktId)
       } else {
-        throw new Error(`Unsupported media type: ${media.type}`)
+        this.logger.warn(`Unsupported media type: ${media.type}`)
+        return fail(
+          new Error(`Unsupported media type: ${media.type}`),
+          'trakt',
+          'unsupported'
+        )
       }
 
       // Convert extended API response to enriched media using mapper
@@ -45,29 +56,38 @@ export class TraktMediaMetadataCapability implements IMediaMetadataCapability {
         genreCount: enrichedMedia.genres?.length || 0,
       })
 
-      return enrichedMedia
+      return ok(enrichedMedia, 'trakt')
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
       this.logger.error(`Failed to enrich metadata for ${media.type}: ${media.title}`, err)
-      throw err
+      return fail(err, 'trakt', 'api_error')
     }
   }
 
-  async enrichMediaBatch(mediaList: Media[]): Promise<EnrichedMedia[]> {
-    // Process in parallel for better performance
-    const enrichmentPromises = mediaList.map(async (media) => {
-      try {
-        return await this.enrichMedia(media)
-      } catch (error) {
-        this.logger.error(`Failed to enrich media in batch: ${media.title}`, error as Error)
-        return null // Return null for failed items
-      }
-    })
+  async enrichMediaBatch(mediaList: Media[]): Promise<Result<EnrichedMedia[]>> {
+    try {
+      // Process in parallel for better performance
+      const enrichmentPromises = mediaList.map(async (media) => {
+        const result = await this.enrichMedia(media)
+        if (result.success) {
+          return result.data
+        } else {
+          this.logger.error(`Failed to enrich media in batch: ${media.title}`, result.error)
+          return null
+        }
+      })
 
-    const results = await Promise.all(enrichmentPromises)
+      const results = await Promise.all(enrichmentPromises)
 
-    // Filter out null values (failed enrichments)
-    return results.filter((result): result is EnrichedMedia => result !== null)
+      // Filter out null values (failed enrichments)
+      const enrichedMedia = results.filter((result): result is EnrichedMedia => result !== null)
+
+      return ok(enrichedMedia, 'trakt')
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error))
+      this.logger.error('Failed to enrich media batch', err)
+      return fail(err, 'trakt', 'api_error')
+    }
   }
 
   /**

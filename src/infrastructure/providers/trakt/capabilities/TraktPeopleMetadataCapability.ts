@@ -3,6 +3,7 @@ import { Person } from '@/src/domain/entities/Person'
 import type { TraktDetailCache } from '@/src/infrastructure/providers/trakt/cache/TraktDetailCache'
 import type { ILoggingService } from '@/src/domain/services/ILoggingService'
 import { TraktPeopleMapper } from '@/src/infrastructure/providers/trakt/mappers/TraktPeopleMapper'
+import { ok, fail, type Result } from '@/src/domain/types/Result'
 
 /**
  * Trakt People Metadata Capability
@@ -19,7 +20,7 @@ export class TraktPeopleMetadataCapability implements IPeopleMetadataCapability 
     private readonly logger: ILoggingService
   ) {}
 
-  async getPersonMetadata(person: Person): Promise<Person> {
+  async getPersonMetadata(person: Person): Promise<Result<Person>> {
     try {
       // Extract Trakt person ID from external IDs
       const traktId = this.extractTraktId(person)
@@ -42,15 +43,15 @@ export class TraktPeopleMetadataCapability implements IPeopleMetadataCapability 
         hasBirthday: !!traktPerson.birthday,
       })
 
-      return enrichedPerson
+      return ok(enrichedPerson, "trakt", { cached: false })
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
       this.logger.error(`Failed to get metadata for person: ${person.name}`, err)
-      throw err
+      return fail(err, "trakt", "api_error")
     }
   }
 
-  async getBatchPersonMetadata(people: Person[]): Promise<Person[]> {
+  async getBatchPersonMetadata(people: Person[]): Promise<Result<Person[]>> {
     const enrichedPeople: Person[] = []
 
     // Process people in parallel with concurrency limit
@@ -59,10 +60,11 @@ export class TraktPeopleMetadataCapability implements IPeopleMetadataCapability 
 
     for (const chunk of chunks) {
       const chunkPromises = chunk.map(async (person) => {
-        try {
-          return await this.getPersonMetadata(person)
-        } catch (error) {
-          this.logger.error(`Failed to enrich person in batch: ${person.name}`, error as Error)
+        const result = await this.getPersonMetadata(person)
+        if (result.success) {
+          return result.data
+        } else {
+          this.logger.error(`Failed to enrich person in batch: ${person.name}`, result.error)
           // Return original person if enrichment fails
           return person
         }
@@ -73,7 +75,7 @@ export class TraktPeopleMetadataCapability implements IPeopleMetadataCapability 
     }
 
     this.logger.debug(`Enriched ${enrichedPeople.length}/${people.length} people in batch`)
-    return enrichedPeople
+    return ok(enrichedPeople, "trakt", { cached: false })
   }
 
   /**

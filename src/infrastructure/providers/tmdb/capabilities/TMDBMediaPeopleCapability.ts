@@ -4,6 +4,7 @@ import { Catalog, type CatalogItem } from '../../../../domain/entities/Catalog'
 import type { TMDBDetailCache } from '../cache/TMDBDetailCache'
 import type { ILoggingService } from '../../../../domain/services/ILoggingService'
 import { TMDBPersonMapper } from '../../../mappers/tmdb/entities/TMDBPersonMapper'
+import { ok, fail, type Result } from '@/src/domain/types/Result'
 
 /**
  * TMDB Media People Capability
@@ -20,21 +21,30 @@ export class TMDBMediaPeopleCapability implements IMediaPeopleCapability {
   /**
    * Get people catalogs for a media item
    */
-  async getPeopleCatalogs(media: Media): Promise<Catalog[]> {
-    try {
-      // Extract TMDB ID from media's external IDs
-      const tmdbId = this.extractTMDBId(media)
-      if (!tmdbId) {
-        throw new Error(`No TMDB ID found for media: ${media.title}`)
-      }
+  async getPeopleCatalogs(media: Media): Promise<Result<Catalog[]>> {
+    // Extract TMDB ID from media's external IDs
+    const tmdbId = this.extractTMDBId(media)
+    if (!tmdbId) {
+      this.logger.warn(`No TMDB ID found for media: ${media.title}`)
+      return fail(
+        new Error(`No TMDB ID found for media: ${media.title}`),
+        'tmdb',
+        'missing_id'
+      )
+    }
 
+    try {
       let mediaDetails: any
       if (media.type === 'movie') {
         mediaDetails = await this.cache.getOrFetchMovieDetails(tmdbId)
       } else if (media.type === 'series') {
         mediaDetails = await this.cache.getOrFetchTVDetails(tmdbId)
       } else {
-        throw new Error(`Unsupported media type: ${media.type}`)
+        return fail(
+          new Error(`Unsupported media type: ${media.type}`),
+          'tmdb',
+          'unsupported'
+        )
       }
 
       const catalogs: Catalog[] = []
@@ -50,11 +60,11 @@ export class TMDBMediaPeopleCapability implements IMediaPeopleCapability {
         type: media.type,
       })
 
-      return catalogs
+      return ok(catalogs, 'tmdb', { cached: true })
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
       this.logger.error(`Failed to get people catalogs for media: ${media.title}`, err)
-      throw err
+      return fail(err, 'tmdb', 'api_error')
     }
   }
 

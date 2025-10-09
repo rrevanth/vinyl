@@ -1,6 +1,7 @@
 import type { IPeopleCatalogsCapability } from '@/src/domain/capabilities/IPeopleCatalogsCapability'
 import { Catalog } from '@/src/domain/entities/Catalog'
 import type { ILoggingService } from '@/src/domain/services/ILoggingService'
+import { ok, type Result } from '@/src/domain/types/Result'
 
 /**
  * Trakt People Catalogs Capability
@@ -28,28 +29,28 @@ export class TraktPeopleCatalogsCapability implements IPeopleCatalogsCapability 
    * Get catalogs of people (popular actors, directors, etc.)
    * Returns empty array since Trakt doesn't provide people catalog endpoints
    */
-  async getPeopleCatalogs(category?: string): Promise<Catalog[]> {
+  async getPeopleCatalogs(category?: string): Promise<Result<Catalog[]>> {
     this.logger.warn(
       `Trakt API does not provide people catalog endpoints (category: ${category || 'none'}). ` +
         `Consider using TMDB provider for people catalogs instead.`
     )
 
     // Return empty array - people catalogs not available from Trakt
-    return []
+    return ok([], 'trakt', { cached: false })
   }
 
   /**
    * Get people trending in different time periods
    * Returns empty catalog since Trakt doesn't provide trending people endpoint
    */
-  async getTrendingPeople(timeWindow?: string): Promise<Catalog> {
+  async getTrendingPeople(timeWindow?: string): Promise<Result<Catalog>> {
     this.logger.warn(
       `Trakt API does not provide trending people endpoint (timeWindow: ${timeWindow || 'none'}). ` +
         `Consider using TMDB provider for trending people instead.`
     )
 
     // Return empty catalog - trending people not available from Trakt
-    return new Catalog({
+    const catalog = new Catalog({
       id: 'trakt_people_trending_unavailable',
       providerId: 'trakt',
       name: 'Trending People (Unavailable)',
@@ -72,20 +73,22 @@ export class TraktPeopleCatalogsCapability implements IPeopleCatalogsCapability 
         limit: 0,
       },
     })
+
+    return ok(catalog, 'trakt', { cached: false })
   }
 
   /**
    * Get people by specific criteria
    * Returns empty catalog since Trakt doesn't provide people filtering endpoints
    */
-  async getPeopleByCriteria(criteria: Record<string, any>): Promise<Catalog> {
+  async getPeopleByCriteria(criteria: Record<string, any>): Promise<Result<Catalog>> {
     this.logger.warn(
       `Trakt API does not provide people filtering endpoints (criteria: ${JSON.stringify(criteria)}). ` +
         `Consider using TMDB provider for people filtering instead.`
     )
 
     // Return empty catalog - criteria-based people search not available from Trakt
-    return new Catalog({
+    const catalog = new Catalog({
       id: 'trakt_people_criteria_unavailable',
       providerId: 'trakt',
       name: 'People by Criteria (Unavailable)',
@@ -108,5 +111,7 @@ export class TraktPeopleCatalogsCapability implements IPeopleCatalogsCapability 
         limit: 0,
       },
     })
+
+    return ok(catalog, 'trakt', { cached: false })
   }
 }

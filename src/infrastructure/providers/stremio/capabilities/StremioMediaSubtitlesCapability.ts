@@ -3,10 +3,10 @@ import type { Media } from '@/src/domain/entities/Media'
 import type { Subtitle } from '@/src/domain/entities/Stream'
 import type { StremioAddon } from '@/src/domain/entities/StremioAddon'
 import type { ILoggingService } from '@/src/domain/services/ILoggingService'
+import { ok, fail, type Result } from '@/src/domain/types/Result'
 import type { StremioAddonClient } from '@/src/infrastructure/providers/stremio/clients/StremioAddonClient'
 import { StremioSubtitleMapper } from '@/src/infrastructure/mappers/stremio/StremioSubtitleMapper'
 import { StremioIdResolver } from '@/src/infrastructure/providers/stremio/utils/StremioIdResolver'
-import { InfrastructureError } from '@/src/infrastructure/errors/InfrastructureError'
 
 /**
  * Provides subtitle files backed by a Stremio addon
@@ -18,7 +18,7 @@ export class StremioMediaSubtitlesCapability implements IMediaSubtitlesCapabilit
     private readonly logger: ILoggingService
   ) {}
 
-  async getSubtitles(media: Media): Promise<Subtitle[]> {
+  async getSubtitles(media: Media): Promise<Result<Subtitle[]>> {
     // Resolve Stremio ID for this media
     const resolvedId = StremioIdResolver.resolveId(media, this.addon.manifest)
 
@@ -27,7 +27,11 @@ export class StremioMediaSubtitlesCapability implements IMediaSubtitlesCapabilit
         addonId: this.addon.id,
         mediaStableId: media.stableId,
       })
-      return []
+      return fail(
+        new Error('Could not resolve Stremio ID for subtitles'),
+        `stremio:${this.addon.id}`,
+        'missing_id'
+      )
     }
 
     try {
@@ -41,7 +45,11 @@ export class StremioMediaSubtitlesCapability implements IMediaSubtitlesCapabilit
           resolvedType: resolvedId.type,
           resolvedId: resolvedId.id,
         })
-        return []
+        return fail(
+          new Error('No subtitles found for media'),
+          `stremio:${this.addon.id}`,
+          'not_found'
+        )
       }
 
       // Transform to domain subtitles
@@ -59,7 +67,7 @@ export class StremioMediaSubtitlesCapability implements IMediaSubtitlesCapabilit
         resolvedId: resolvedId.id,
       })
 
-      return subtitles
+      return ok(subtitles, `stremio:${this.addon.id}`)
     } catch (error) {
       this.logger.error(
         'Failed to fetch subtitles from Stremio addon',
@@ -72,9 +80,10 @@ export class StremioMediaSubtitlesCapability implements IMediaSubtitlesCapabilit
         }
       )
 
-      throw new InfrastructureError(
-        `Failed to fetch subtitles from Stremio addon: ${this.addon.name}`,
-        error instanceof Error ? error : new Error(String(error))
+      return fail(
+        error instanceof Error ? error : new Error(String(error)),
+        `stremio:${this.addon.id}`,
+        'api_error'
       )
     }
   }
@@ -83,7 +92,7 @@ export class StremioMediaSubtitlesCapability implements IMediaSubtitlesCapabilit
     media: Media,
     seasonNumber: number,
     episodeNumber: number
-  ): Promise<Subtitle[]> {
+  ): Promise<Result<Subtitle[]>> {
     // Resolve Stremio ID with episode information
     const resolvedId = StremioIdResolver.resolveId(
       media,
@@ -99,7 +108,11 @@ export class StremioMediaSubtitlesCapability implements IMediaSubtitlesCapabilit
         season: seasonNumber,
         episode: episodeNumber,
       })
-      return []
+      return fail(
+        new Error('Could not resolve Stremio ID for episode subtitles'),
+        `stremio:${this.addon.id}`,
+        'missing_id'
+      )
     }
 
     try {
@@ -115,7 +128,11 @@ export class StremioMediaSubtitlesCapability implements IMediaSubtitlesCapabilit
           resolvedType: resolvedId.type,
           resolvedId: resolvedId.id,
         })
-        return []
+        return fail(
+          new Error('No subtitles found for episode'),
+          `stremio:${this.addon.id}`,
+          'not_found'
+        )
       }
 
       // Transform to domain subtitles
@@ -135,7 +152,7 @@ export class StremioMediaSubtitlesCapability implements IMediaSubtitlesCapabilit
         resolvedId: resolvedId.id,
       })
 
-      return subtitles
+      return ok(subtitles, `stremio:${this.addon.id}`)
     } catch (error) {
       this.logger.error(
         'Failed to fetch episode subtitles from Stremio addon',
@@ -150,9 +167,10 @@ export class StremioMediaSubtitlesCapability implements IMediaSubtitlesCapabilit
         }
       )
 
-      throw new InfrastructureError(
-        `Failed to fetch episode subtitles from Stremio addon: ${this.addon.name}`,
-        error instanceof Error ? error : new Error(String(error))
+      return fail(
+        error instanceof Error ? error : new Error(String(error)),
+        `stremio:${this.addon.id}`,
+        'api_error'
       )
     }
   }

@@ -3,6 +3,7 @@ import type { Media } from '@/src/domain/entities/Media'
 import type { ILoggingService } from '@/src/domain/services/ILoggingService'
 import type { TraktClient } from '@/src/infrastructure/api/trakt/TraktClient'
 import { TraktMediaMapper } from '@/src/infrastructure/providers/trakt/mappers/TraktMediaMapper'
+import { ok, fail, type Result } from '@/src/domain/types/Result'
 
 /**
  * Trakt Watchlist Capability
@@ -29,7 +30,7 @@ export class TraktMediaWatchlistCapability implements IMediaWatchlistCapability 
     type?: 'movies' | 'shows'
     sort?: 'added' | 'released' | 'title'
     limit?: number
-  }): Promise<WatchlistItem[]> {
+  }): Promise<Result<WatchlistItem[]>> {
     try {
       this.logger.info('[TraktMediaWatchlistCapability] Fetching watchlist', { params })
 
@@ -68,17 +69,18 @@ export class TraktMediaWatchlistCapability implements IMediaWatchlistCapability 
         count: watchlistItems.length,
       })
 
-      return watchlistItems
+      return ok(watchlistItems, 'trakt', { cached: false })
     } catch (error) {
-      this.logger.error('[TraktMediaWatchlistCapability] Failed to fetch watchlist', error as Error)
-      throw error
+      const err = error instanceof Error ? error : new Error(String(error))
+      this.logger.error('[TraktMediaWatchlistCapability] Failed to fetch watchlist', err)
+      return fail(err, 'trakt', 'api_error')
     }
   }
 
   /**
    * Add media to the watchlist
    */
-  async addToWatchlist(media: Media | Media[]): Promise<void> {
+  async addToWatchlist(media: Media | Media[]): Promise<Result<void>> {
     try {
       const mediaArray = Array.isArray(media) ? media : [media]
       this.logger.info('[TraktMediaWatchlistCapability] Adding to watchlist', {
@@ -128,16 +130,18 @@ export class TraktMediaWatchlistCapability implements IMediaWatchlistCapability 
         moviesAdded: movies.length,
         showsAdded: shows.length,
       })
+      return ok(undefined, 'trakt', { cached: false })
     } catch (error) {
-      this.logger.error('[TraktMediaWatchlistCapability] Failed to add to watchlist', error as Error)
-      throw error
+      const err = error instanceof Error ? error : new Error(String(error))
+      this.logger.error('[TraktMediaWatchlistCapability] Failed to add to watchlist', err)
+      return fail(err, 'trakt', 'api_error')
     }
   }
 
   /**
    * Remove media from the watchlist
    */
-  async removeFromWatchlist(media: Media | Media[]): Promise<void> {
+  async removeFromWatchlist(media: Media | Media[]): Promise<Result<void>> {
     try {
       const mediaArray = Array.isArray(media) ? media : [media]
       this.logger.info('[TraktMediaWatchlistCapability] Removing from watchlist', {
@@ -187,9 +191,11 @@ export class TraktMediaWatchlistCapability implements IMediaWatchlistCapability 
         moviesRemoved: movies.length,
         showsRemoved: shows.length,
       })
+      return ok(undefined, 'trakt', { cached: false })
     } catch (error) {
-      this.logger.error('[TraktMediaWatchlistCapability] Failed to remove from watchlist', error as Error)
-      throw error
+      const err = error instanceof Error ? error : new Error(String(error))
+      this.logger.error('[TraktMediaWatchlistCapability] Failed to remove from watchlist', err)
+      return fail(err, 'trakt', 'api_error')
     }
   }
 

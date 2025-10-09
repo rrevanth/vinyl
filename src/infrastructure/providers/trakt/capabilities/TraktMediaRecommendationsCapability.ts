@@ -6,6 +6,7 @@ import { StableIdGenerator } from '@/src/domain/entities/StableIdGenerator'
 import type { ILoggingService } from '@/src/domain/services/ILoggingService'
 import type { TraktClient } from '@/src/infrastructure/api/trakt/TraktClient'
 import { TraktMediaMapper } from '../mappers/TraktMediaMapper'
+import { ok, fail, type Result } from '@/src/domain/types/Result'
 
 /**
  * Trakt Media Recommendations Capability
@@ -17,7 +18,7 @@ export class TraktMediaRecommendationsCapability implements IMediaRecommendation
     private readonly logger: ILoggingService
   ) {}
 
-  async getRecommendations(media: Media): Promise<Catalog[]> {
+  async getRecommendations(media: Media): Promise<Result<Catalog[]>> {
     try {
       // Extract Trakt ID
       const traktId = media.externalIds.trakt?.id
@@ -79,11 +80,11 @@ export class TraktMediaRecommendationsCapability implements IMediaRecommendation
       }
 
       this.logger.debug(`Retrieved ${catalogs.length} recommendation catalogs for: ${media.title}`)
-      return catalogs
+      return ok(catalogs, "trakt", { cached: false })
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
       this.logger.error(`Failed to get recommendations for ${media.type}: ${media.title}`, err)
-      throw err
+      return fail(err, "trakt", "api_error")
     }
   }
 }

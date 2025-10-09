@@ -5,6 +5,7 @@ import type { ILoggingService } from '@/src/domain/services/ILoggingService'
 import type { TraktClient } from '@/src/infrastructure/api/trakt/TraktClient'
 import type { TraktDetailCache } from '../cache/TraktDetailCache'
 import { TraktMediaMapper } from '../mappers/TraktMediaMapper'
+import { ok, fail, type Result } from '@/src/domain/types/Result'
 
 /**
  * Trakt Media External IDs Capability
@@ -17,13 +18,13 @@ export class TraktMediaExternalIdsCapability implements IMediaExternalIdsCapabil
     private readonly logger: ILoggingService
   ) {}
 
-  async getExternalIds(media: Media): Promise<ExternalIds> {
+  async getExternalIds(media: Media): Promise<Result<ExternalIds>> {
     try {
       // If we already have a Trakt ID, get cached data with all IDs
       const traktId = media.externalIds.trakt?.id
       if (!traktId) {
         // Return existing external IDs if no Trakt ID
-        return media.externalIds
+        return ok(media.externalIds, "trakt", { cached: false })
       }
 
       // Get cached extended data (should already have all IDs)
@@ -45,15 +46,15 @@ export class TraktMediaExternalIdsCapability implements IMediaExternalIdsCapabil
         hasTvdb: !!enrichedMedia.media.externalIds.tvdb,
       })
 
-      return enrichedMedia.media.externalIds
+      return ok(enrichedMedia.media.externalIds, "trakt", { cached: false })
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
       this.logger.error(`Failed to get external IDs for ${media.type}: ${media.title}`, err)
-      throw err
+      return fail(err, "trakt", "api_error")
     }
   }
 
-  async findByExternalId(externalId: string, platform: string): Promise<Media | null> {
+  async findByExternalId(externalId: string, platform: string): Promise<Result<Media | null>> {
     try {
       this.logger.debug(`Searching Trakt for ${platform} ID: ${externalId}`)
 
@@ -70,7 +71,7 @@ export class TraktMediaExternalIdsCapability implements IMediaExternalIdsCapabil
 
       if (searchResults.length === 0) {
         this.logger.debug(`No results found for ${platform} ID: ${externalId}`)
-        return null
+        return ok(null, "trakt", { cached: false })
       }
 
       // Return the first result
@@ -87,11 +88,11 @@ export class TraktMediaExternalIdsCapability implements IMediaExternalIdsCapabil
         this.logger.debug(`Found media for ${platform} ID ${externalId}: ${media.title}`)
       }
 
-      return media
+      return ok(media, "trakt", { cached: false })
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
       this.logger.error(`Failed to find media by ${platform} ID: ${externalId}`, err)
-      throw err
+      return fail(err, "trakt", "api_error")
     }
   }
 }

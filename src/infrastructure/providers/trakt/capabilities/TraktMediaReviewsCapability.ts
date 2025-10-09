@@ -7,6 +7,7 @@ import { ReviewType } from '@/src/domain/capabilities/IMediaReviewsCapability'
 import type { Media } from '@/src/domain/entities/Media'
 import type { TraktClient } from '@/src/infrastructure/api/trakt/TraktClient'
 import type { ILoggingService } from '@/src/domain/services/ILoggingService'
+import { ok, fail, type Result } from '@/src/domain/types/Result'
 
 /**
  * Trakt Media Reviews Capability
@@ -18,7 +19,7 @@ export class TraktMediaReviewsCapability implements IMediaReviewsCapability {
     private readonly logger: ILoggingService
   ) {}
 
-  async getReviews(media: Media, reviewType?: ReviewType): Promise<Review[]> {
+  async getReviews(media: Media, reviewType?: ReviewType): Promise<Result<Review[]>> {
     try {
       // Extract Trakt ID
       const traktId = media.externalIds.trakt?.id
@@ -44,11 +45,11 @@ export class TraktMediaReviewsCapability implements IMediaReviewsCapability {
       const reviews: Review[] = commentsData.map(comment => this.mapCommentToReview(comment))
 
       this.logger.debug(`Retrieved ${reviews.length} reviews for ${media.type}: ${media.title}`)
-      return reviews
+      return ok(reviews, "trakt", { cached: false })
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
       this.logger.error(`Failed to get reviews for ${media.type}: ${media.title}`, err)
-      throw err
+      return fail(err, "trakt", "api_error")
     }
   }
 
@@ -56,7 +57,7 @@ export class TraktMediaReviewsCapability implements IMediaReviewsCapability {
     media: Media,
     page: number,
     reviewType?: ReviewType
-  ): Promise<ReviewsResponse> {
+  ): Promise<Result<ReviewsResponse>> {
     try {
       // Extract Trakt ID
       const traktId = media.externalIds.trakt?.id
@@ -100,11 +101,11 @@ export class TraktMediaReviewsCapability implements IMediaReviewsCapability {
         }
       )
 
-      return response
+      return ok(response, "trakt", { cached: false })
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
       this.logger.error(`Failed to get paginated reviews for ${media.type}: ${media.title}`, err)
-      throw err
+      return fail(err, "trakt", "api_error")
     }
   }
 

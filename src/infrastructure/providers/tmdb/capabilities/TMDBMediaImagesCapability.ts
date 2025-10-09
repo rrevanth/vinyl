@@ -6,6 +6,7 @@ import type {
 import type { Media } from '../../../../domain/entities/Media'
 import type { TMDBDetailCache } from '../cache/TMDBDetailCache'
 import type { ILoggingService } from '../../../../domain/services/ILoggingService'
+import { ok, fail, type Result } from '@/src/domain/types/Result'
 
 /**
  * TMDB Media Images Capability
@@ -19,14 +20,19 @@ export class TMDBMediaImagesCapability implements IMediaImagesCapability {
     private readonly logger: ILoggingService
   ) {}
 
-  async getImages(media: Media): Promise<MediaImages> {
-    try {
-      // Extract TMDB ID from media's external IDs
-      const tmdbId = this.extractTMDBId(media)
-      if (!tmdbId) {
-        throw new Error(`No TMDB ID found for ${media.type} media: ${media.title}`)
-      }
+  async getImages(media: Media): Promise<Result<MediaImages>> {
+    // Extract TMDB ID from media's external IDs
+    const tmdbId = this.extractTMDBId(media)
+    if (!tmdbId) {
+      this.logger.warn(`No TMDB ID found for media: ${media.title}`)
+      return fail(
+        new Error(`No TMDB ID found for ${media.type} media: ${media.title}`),
+        'tmdb',
+        'missing_id'
+      )
+    }
 
+    try {
       // Get cached extended data (should already be populated by metadata capability)
       let extendedData: any
       if (media.type === 'movie') {
@@ -34,7 +40,11 @@ export class TMDBMediaImagesCapability implements IMediaImagesCapability {
       } else if (media.type === 'series') {
         extendedData = await this.cache.getOrFetchTVDetails(tmdbId)
       } else {
-        throw new Error(`Unsupported media type: ${media.type}`)
+        return fail(
+          new Error(`Unsupported media type: ${media.type}`),
+          'tmdb',
+          'unsupported'
+        )
       }
 
       // Extract images from the cached response
@@ -53,11 +63,11 @@ export class TMDBMediaImagesCapability implements IMediaImagesCapability {
         logoCount: result.logos.length,
       })
 
-      return result
+      return ok(result, 'tmdb', { cached: true })
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
       this.logger.error(`Failed to get images for ${media.type}: ${media.title}`, err)
-      throw err
+      return fail(err, 'tmdb', 'api_error')
     }
   }
 

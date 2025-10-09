@@ -4,6 +4,7 @@ import type { Catalog } from '@/src/domain/entities/Catalog'
 import { Catalog as CatalogEntity } from '@/src/domain/entities/Catalog'
 import type { TraktClient } from '@/src/infrastructure/api/trakt/TraktClient'
 import type { ILoggingService } from '@/src/domain/services/ILoggingService'
+import { ok, fail, type Result } from '@/src/domain/types/Result'
 
 /**
  * Trakt Media Lists Capability
@@ -15,7 +16,7 @@ export class TraktMediaListsCapability implements IMediaListsCapability {
     private readonly logger: ILoggingService
   ) {}
 
-  async getListsContaining(media: Media): Promise<Catalog[]> {
+  async getListsContaining(media: Media): Promise<Result<Catalog[]>> {
     try {
       // Extract Trakt ID
       const traktId = media.externalIds.trakt?.id
@@ -60,15 +61,15 @@ export class TraktMediaListsCapability implements IMediaListsCapability {
         )
 
       this.logger.debug(`Retrieved ${catalogs.length} lists containing: ${media.title}`)
-      return catalogs
+      return ok(catalogs, "trakt", { cached: false })
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
       this.logger.error(`Failed to get lists for ${media.type}: ${media.title}`, err)
-      throw err
+      return fail(err, "trakt", "api_error")
     }
   }
 
-  async getFeaturedLists(category?: string): Promise<Catalog[]> {
+  async getFeaturedLists(category?: string): Promise<Result<Catalog[]>> {
     try {
       // Get popular lists from Trakt
       // Note: Trakt doesn't have a direct "featured lists" endpoint
@@ -100,15 +101,15 @@ export class TraktMediaListsCapability implements IMediaListsCapability {
         })
 
       this.logger.debug(`Retrieved ${catalogs.length} featured lists`)
-      return catalogs
+      return ok(catalogs, "trakt", { cached: false })
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
       this.logger.error('Failed to get featured lists', err)
-      throw err
+      return fail(err, "trakt", "api_error")
     }
   }
 
-  async getList(listId: string): Promise<Catalog> {
+  async getList(listId: string): Promise<Result<Catalog>> {
     try {
       // Note: Trakt API requires authentication for most list operations
       // This is a placeholder implementation
@@ -117,7 +118,7 @@ export class TraktMediaListsCapability implements IMediaListsCapability {
       this.logger.warn(`Getting list details for ${listId} - requires authentication`)
 
       // Return empty catalog as placeholder
-      return new CatalogEntity({
+      return ok(new CatalogEntity({
         id: `list-${listId}`,
         providerId: 'trakt',
         type: 'mixed',
@@ -130,11 +131,11 @@ export class TraktMediaListsCapability implements IMediaListsCapability {
           totalCount: 0,
           lastUpdated: new Date(),
         },
-      })
+      }), "trakt", { cached: false })
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
       this.logger.error(`Failed to get list: ${listId}`, err)
-      throw err
+      return fail(err, "trakt", "api_error")
     }
   }
 }

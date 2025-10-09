@@ -1,4 +1,5 @@
 import type { Media } from '../entities/Media'
+import type { Result } from '../types/Result'
 
 /**
  * Media Reviews Capability - Provides user and critic reviews
@@ -10,7 +11,7 @@ export interface IMediaReviewsCapability {
    * @param reviewType - Type of reviews to fetch
    * @returns Array of reviews
    */
-  getReviews(media: Media, reviewType?: ReviewType): Promise<Review[]>
+  getReviews(media: Media, reviewType?: ReviewType): Promise<Result<Review[]>>
 
   /**
    * Get paginated reviews
@@ -19,7 +20,7 @@ export interface IMediaReviewsCapability {
    * @param reviewType - Type of reviews to fetch
    * @returns Reviews with pagination info
    */
-  getReviewsPaginated(media: Media, page: number, reviewType?: ReviewType): Promise<ReviewsResponse>
+  getReviewsPaginated(media: Media, page: number, reviewType?: ReviewType): Promise<Result<ReviewsResponse>>
 }
 
 /**

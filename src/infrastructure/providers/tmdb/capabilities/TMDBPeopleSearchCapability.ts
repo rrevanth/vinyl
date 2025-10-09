@@ -5,6 +5,7 @@ import type { ILoggingService } from '../../../../domain/services/ILoggingServic
 import { TMDBCatalogMapper } from '../../../mappers/tmdb/entities/TMDBCatalogMapper'
 import { TMDBPersonMapper } from '../../../mappers/tmdb/entities/TMDBPersonMapper'
 import type { TMDBPaginatedResponse, TMDBPersonResponse } from '../../../api/tmdb/types'
+import { ok, fail, type Result } from '@/src/domain/types/Result'
 
 /**
  * TMDB People Search Capability
@@ -21,7 +22,7 @@ export class TMDBPeopleSearchCapability implements IPeopleSearchCapability {
   /**
    * Search for people by name
    */
-  async searchPeople(query: string, filters?: Record<string, any>): Promise<Catalog> {
+  async searchPeople(query: string, filters?: Record<string, any>): Promise<Result<Catalog>> {
     try {
       const page = filters?.page || 1
       const includeAdult = filters?.include_adult || false
@@ -46,18 +47,18 @@ export class TMDBPeopleSearchCapability implements IPeopleSearchCapability {
         currentPage: response.page,
       })
 
-      return catalog
+      return ok(catalog, 'tmdb')
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
       this.logger.error(`Failed to search people for query: "${query}"`, err)
-      throw err
+      return fail(err, 'tmdb', 'api_error')
     }
   }
 
   /**
    * Get popular/trending people
    */
-  async getPopularPeople(category?: string): Promise<Catalog> {
+  async getPopularPeople(category?: string): Promise<Result<Catalog>> {
     try {
       this.logger.debug(`Getting popular people`, { category })
 
@@ -97,11 +98,11 @@ export class TMDBPeopleSearchCapability implements IPeopleSearchCapability {
         totalResults: response.total_results,
       })
 
-      return catalog
+      return ok(catalog, 'tmdb')
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
       this.logger.error(`Failed to get popular people`, err, { category })
-      throw err
+      return fail(err, 'tmdb', 'api_error')
     }
   }
 

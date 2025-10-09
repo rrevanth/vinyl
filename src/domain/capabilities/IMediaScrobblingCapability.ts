@@ -1,4 +1,5 @@
 import type { Media } from '@/src/domain/entities/Media'
+import type { Result } from '../types/Result'
 
 /**
  * Media Scrobbling Capability - Manages real-time playback tracking and check-ins
@@ -15,7 +16,7 @@ export interface IMediaScrobblingCapability {
     media: Media,
     progress: number,
     episodeInfo?: { season: number; episode: number }
-  ): Promise<void>
+  ): Promise<Result<void>>
 
   /**
    * Pause scrobbling
@@ -27,7 +28,7 @@ export interface IMediaScrobblingCapability {
     media: Media,
     progress: number,
     episodeInfo?: { season: number; episode: number }
-  ): Promise<void>
+  ): Promise<Result<void>>
 
   /**
    * Stop scrobbling (end playback tracking)
@@ -39,7 +40,7 @@ export interface IMediaScrobblingCapability {
     media: Media,
     progress: number,
     episodeInfo?: { season: number; episode: number }
-  ): Promise<void>
+  ): Promise<Result<void>>
 
   /**
    * Check-in to media (social feature for sharing what you're watching)
@@ -51,12 +52,12 @@ export interface IMediaScrobblingCapability {
     media: Media,
     message?: string,
     episodeInfo?: { season: number; episode: number }
-  ): Promise<void>
+  ): Promise<Result<void>>
 
   /**
    * Cancel an active check-in
    */
-  cancelCheckin(): Promise<void>
+  cancelCheckin(): Promise<Result<void>>
 
   /**
    * Indicates whether this capability requires authentication

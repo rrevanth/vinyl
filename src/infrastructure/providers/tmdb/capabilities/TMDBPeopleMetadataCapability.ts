@@ -3,6 +3,7 @@ import type { Person } from '../../../../domain/entities/Person'
 import type { TMDBClient } from '../../../api/tmdb/TMDBClient'
 import type { ILoggingService } from '../../../../domain/services/ILoggingService'
 import { TMDBPersonMapper } from '../../../mappers/tmdb/entities/TMDBPersonMapper'
+import { ok, fail, type Result } from '@/src/domain/types/Result'
 
 /**
  * TMDB People Metadata Capability
@@ -16,14 +17,19 @@ export class TMDBPeopleMetadataCapability implements IPeopleMetadataCapability {
     private readonly logger: ILoggingService
   ) {}
 
-  async getPersonMetadata(person: Person): Promise<Person> {
-    try {
-      // Extract TMDB ID from person's external IDs
-      const tmdbId = this.extractTMDBId(person)
-      if (!tmdbId) {
-        throw new Error(`No TMDB ID found for person: ${person.name}`)
-      }
+  async getPersonMetadata(person: Person): Promise<Result<Person>> {
+    // Extract TMDB ID from person's external IDs
+    const tmdbId = this.extractTMDBId(person)
+    if (!tmdbId) {
+      this.logger.warn(`No TMDB ID found for person: ${person.name}`)
+      return fail(
+        new Error(`No TMDB ID found for person: ${person.name}`),
+        'tmdb',
+        'missing_id'
+      )
+    }
 
+    try {
       // Get comprehensive person data with all available append options
       const personDetails = await this.tmdbClient.people.getPersonDetails(tmdbId, [
         'movie_credits',
@@ -44,15 +50,15 @@ export class TMDBPeopleMetadataCapability implements IPeopleMetadataCapability {
         tvCredits: personDetails.tv_credits?.cast?.length || 0,
       })
 
-      return enrichedPerson
+      return ok(enrichedPerson, 'tmdb')
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
       this.logger.error(`Failed to get metadata for person: ${person.name}`, err)
-      throw err
+      return fail(err, 'tmdb', 'api_error')
     }
   }
 
-  async getBatchPersonMetadata(people: Person[]): Promise<Person[]> {
+  async getBatchPersonMetadata(people: Person[]): Promise<Result<Person[]>> {
     const enrichedPeople: Person[] = []
 
     // Process people in parallel with concurrency limit
@@ -61,10 +67,14 @@ export class TMDBPeopleMetadataCapability implements IPeopleMetadataCapability {
 
     for (const chunk of chunks) {
       const chunkPromises = chunk.map(async (person) => {
-        try {
-          return await this.getPersonMetadata(person)
-        } catch (error) {
-          this.logger.error(`Failed to enrich person in batch: ${person.name}`, error as Error)
+        const result = await this.getPersonMetadata(person)
+        if (result.success && result.data) {
+          return result.data
+        } else {
+          const errorMessage = result.success === false && result.error ? result.error.message : 'Unknown error'
+          this.logger.warn(`Failed to enrich person in batch: ${person.name}`, {
+            error: errorMessage,
+          })
           // Return original person if enrichment fails
           return person
         }
@@ -75,7 +85,7 @@ export class TMDBPeopleMetadataCapability implements IPeopleMetadataCapability {
     }
 
     this.logger.debug(`Enriched ${enrichedPeople.length}/${people.length} people in batch`)
-    return enrichedPeople
+    return ok(enrichedPeople, 'tmdb', { count: enrichedPeople.length })
   }
 
   /**

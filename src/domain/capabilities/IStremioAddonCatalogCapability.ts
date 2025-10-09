@@ -1,5 +1,6 @@
 import type { StremioAddonCatalogRequest } from '../entities/StremioRequests'
 import type { StremioAddon } from '../entities/StremioAddon'
+import type { Result } from '../types/Result'
 
 /**
  * Response from a Stremio addon catalog endpoint
@@ -42,5 +43,5 @@ export interface IStremioAddonCatalogCapability {
    * console.log(`Found ${response.addons.length} official addons`)
    * ```
    */
-  getAddonCatalog(request: StremioAddonCatalogRequest): Promise<StremioAddonCatalogResponse>
+  getAddonCatalog(request: StremioAddonCatalogRequest): Promise<Result<StremioAddonCatalogResponse>>
 }

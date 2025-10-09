@@ -6,6 +6,7 @@ import { VideoType } from '../../../../domain/capabilities/IMediaVideosCapabilit
 import type { Media } from '../../../../domain/entities/Media'
 import type { TMDBDetailCache } from '../cache/TMDBDetailCache'
 import type { ILoggingService } from '../../../../domain/services/ILoggingService'
+import { ok, fail, type Result } from '@/src/domain/types/Result'
 
 /**
  * TMDB Media Videos Capability
@@ -19,14 +20,19 @@ export class TMDBMediaVideosCapability implements IMediaVideosCapability {
     private readonly logger: ILoggingService
   ) {}
 
-  async getVideos(media: Media): Promise<MediaVideo[]> {
-    try {
-      // Extract TMDB ID from media's external IDs
-      const tmdbId = this.extractTMDBId(media)
-      if (!tmdbId) {
-        throw new Error(`No TMDB ID found for ${media.type} media: ${media.title}`)
-      }
+  async getVideos(media: Media): Promise<Result<MediaVideo[]>> {
+    // Extract TMDB ID from media's external IDs
+    const tmdbId = this.extractTMDBId(media)
+    if (!tmdbId) {
+      this.logger.warn(`No TMDB ID found for media: ${media.title}`)
+      return fail(
+        new Error(`No TMDB ID found for ${media.type} media: ${media.title}`),
+        'tmdb',
+        'missing_id'
+      )
+    }
 
+    try {
       // Get cached extended data (should already be populated by metadata capability)
       let extendedData: any
       if (media.type === 'movie') {
@@ -34,7 +40,11 @@ export class TMDBMediaVideosCapability implements IMediaVideosCapability {
       } else if (media.type === 'series') {
         extendedData = await this.cache.getOrFetchTVDetails(tmdbId)
       } else {
-        throw new Error(`Unsupported media type: ${media.type}`)
+        return fail(
+          new Error(`Unsupported media type: ${media.type}`),
+          'tmdb',
+          'unsupported'
+        )
       }
 
       // Extract videos from the cached response
@@ -48,11 +58,11 @@ export class TMDBMediaVideosCapability implements IMediaVideosCapability {
         trailerCount: result.filter((v: MediaVideo) => v.type === VideoType.TRAILER).length,
       })
 
-      return result
+      return ok(result, 'tmdb', { cached: true })
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
       this.logger.error(`Failed to get videos for ${media.type}: ${media.title}`, err)
-      throw err
+      return fail(err, 'tmdb', 'api_error')
     }
   }
 

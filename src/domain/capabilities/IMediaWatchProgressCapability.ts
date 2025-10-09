@@ -1,4 +1,5 @@
 import type { Media } from '@/src/domain/entities/Media'
+import type { Result } from '../types/Result'
 
 /**
  * Progress information for a single episode
@@ -98,21 +99,21 @@ export interface IMediaWatchProgressCapability {
    * @param media - Complete media object
    * @returns Watch progress information
    */
-  getProgress(media: Media): Promise<WatchProgress>
+  getProgress(media: Media): Promise<Result<WatchProgress>>
 
   /**
    * Mark media as watched
    * @param media - Complete media object
    * @param episodeInfo - Episode information (required for series)
    */
-  markAsWatched(media: Media, episodeInfo?: { season: number; episode: number }): Promise<void>
+  markAsWatched(media: Media, episodeInfo?: { season: number; episode: number }): Promise<Result<void>>
 
   /**
    * Mark media as unwatched
    * @param media - Complete media object
    * @param episodeInfo - Episode information (required for series)
    */
-  markAsUnwatched(media: Media, episodeInfo?: { season: number; episode: number }): Promise<void>
+  markAsUnwatched(media: Media, episodeInfo?: { season: number; episode: number }): Promise<Result<void>>
 
   /**
    * Indicates whether this capability requires authentication

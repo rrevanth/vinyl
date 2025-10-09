@@ -5,6 +5,7 @@ import type { TMDBClient } from '../../../api/tmdb/TMDBClient'
 import type { ILoggingService } from '../../../../domain/services/ILoggingService'
 import { TMDBMediaMapper } from '../../../mappers/tmdb/TMDBMediaMapper'
 import { StableIdGenerator } from '../../../../domain/entities/StableIdGenerator'
+import { ok, fail, type Result } from '@/src/domain/types/Result'
 
 /**
  * TMDB Media Search Capability
@@ -16,9 +17,9 @@ export class TMDBMediaSearchCapability implements IMediaSearchCapability {
     private readonly logger: ILoggingService
   ) {}
 
-  async searchMedia(query: string, filters?: Record<string, any>): Promise<Catalog[]> {
+  async searchMedia(query: string, filters?: Record<string, any>): Promise<Result<Catalog[]>> {
     if (!query || query.trim().length < 2) {
-      return []
+      return ok([], 'tmdb', { empty_query: true })
     }
 
     try {
@@ -83,15 +84,15 @@ export class TMDBMediaSearchCapability implements IMediaSearchCapability {
       })
 
       this.logger.debug(`Search returned ${catalogItems.length} results for: ${query}`)
-      return [catalog]
+      return ok([catalog], 'tmdb')
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
       this.logger.error(`Failed to search TMDB for: ${query}`, err)
-      throw err
+      return fail(err, 'tmdb', 'api_error')
     }
   }
 
-  async loadMoreItems(catalog: Catalog): Promise<Catalog> {
+  async loadMoreItems(catalog: Catalog): Promise<Result<Catalog>> {
     // Extract query from catalog ID
     const query = catalog.id.replace('search-', '').replace(/-/g, ' ')
     const nextPage = catalog.paginationInfo.currentPage + 1
@@ -133,15 +134,17 @@ export class TMDBMediaSearchCapability implements IMediaSearchCapability {
       }
 
       // Append new items to existing catalog
-      return catalog.appendItems(newItems, {
+      const updatedCatalog = catalog.appendItems(newItems, {
         currentPage: searchResults.page,
         totalPages: searchResults.total_pages,
         hasMore: searchResults.page < searchResults.total_pages,
       })
+
+      return ok(updatedCatalog, 'tmdb')
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
       this.logger.error(`Failed to load more search results for: ${query}`, err)
-      throw err
+      return fail(err, 'tmdb', 'api_error')
     }
   }
 }

@@ -5,6 +5,7 @@ import type { Media } from '@/src/domain/entities/Media'
 import { StableIdGenerator } from '@/src/domain/entities/StableIdGenerator'
 import type { ILoggingService } from '@/src/domain/services/ILoggingService'
 import type { TraktClient } from '@/src/infrastructure/api/trakt/TraktClient'
+import { ok, fail, type Result } from '@/src/domain/types/Result'
 
 /**
  * Trakt Media People Capability
@@ -19,7 +20,7 @@ export class TraktMediaPeopleCapability implements IMediaPeopleCapability {
     private readonly logger: ILoggingService
   ) {}
 
-  async getPeopleCatalogs(media: Media): Promise<Catalog[]> {
+  async getPeopleCatalogs(media: Media): Promise<Result<Catalog[]>> {
     try {
       // Extract Trakt ID
       const traktId = media.externalIds.trakt?.id
@@ -109,11 +110,11 @@ export class TraktMediaPeopleCapability implements IMediaPeopleCapability {
       }
 
       this.logger.debug(`Retrieved ${catalogs.length} people catalogs for: ${media.title}`)
-      return catalogs
+      return ok(catalogs, "trakt", { cached: false })
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
       this.logger.error(`Failed to get people catalogs for ${media.type}: ${media.title}`, err)
-      throw err
+      return fail(err, "trakt", "api_error")
     }
   }
 }

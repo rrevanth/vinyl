@@ -1,4 +1,5 @@
 import type { Person } from '../entities/Person'
+import type { Result } from '../types/Result'
 
 /**
  * People Metadata Capability - Provides detailed person information
@@ -9,12 +10,12 @@ export interface IPeopleMetadataCapability {
    * @param person - Base person to enrich
    * @returns Person with full metadata (biography, birthdate, etc.)
    */
-  getPersonMetadata(person: Person): Promise<Person>
+  getPersonMetadata(person: Person): Promise<Result<Person>>
 
   /**
    * Get multiple people metadata in batch
    * @param people - Array of base people to enrich
    * @returns Array of enriched people
    */
-  getBatchPersonMetadata(people: Person[]): Promise<Person[]>
+  getBatchPersonMetadata(people: Person[]): Promise<Result<Person[]>>
 }

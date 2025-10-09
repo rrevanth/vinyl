@@ -3,10 +3,10 @@ import type { Media } from '@/src/domain/entities/Media'
 import type { Stream } from '@/src/domain/entities/Stream'
 import type { StremioAddon } from '@/src/domain/entities/StremioAddon'
 import type { ILoggingService } from '@/src/domain/services/ILoggingService'
+import { ok, fail, type Result } from '@/src/domain/types/Result'
 import type { StremioAddonClient } from '@/src/infrastructure/providers/stremio/clients/StremioAddonClient'
 import { StremioStreamMapper } from '@/src/infrastructure/mappers/stremio/StremioStreamMapper'
 import { StremioIdResolver } from '@/src/infrastructure/providers/stremio/utils/StremioIdResolver'
-import { InfrastructureError } from '@/src/infrastructure/errors/InfrastructureError'
 
 /**
  * Provides playable streams backed by a Stremio addon
@@ -19,7 +19,7 @@ export class StremioMediaStreamsCapability implements IMediaStreamsCapability {
     private readonly logger: ILoggingService
   ) {}
 
-  async getStreams(media: Media): Promise<Stream[]> {
+  async getStreams(media: Media): Promise<Result<Stream[]>> {
     // Resolve Stremio ID for this media
     const resolvedId = StremioIdResolver.resolveId(media, this.addon.manifest)
 
@@ -28,7 +28,11 @@ export class StremioMediaStreamsCapability implements IMediaStreamsCapability {
         addonId: this.addon.id,
         mediaStableId: media.stableId,
       })
-      return []
+      return fail(
+        new Error('Could not resolve Stremio ID for streams'),
+        `stremio:${this.addon.id}`,
+        'missing_id'
+      )
     }
 
     try {
@@ -42,7 +46,11 @@ export class StremioMediaStreamsCapability implements IMediaStreamsCapability {
           resolvedType: resolvedId.type,
           resolvedId: resolvedId.id,
         })
-        return []
+        return fail(
+          new Error('No streams found for media'),
+          `stremio:${this.addon.id}`,
+          'not_found'
+        )
       }
 
       // Transform to domain streams
@@ -60,7 +68,7 @@ export class StremioMediaStreamsCapability implements IMediaStreamsCapability {
         resolvedId: resolvedId.id,
       })
 
-      return streams
+      return ok(streams, `stremio:${this.addon.id}`)
     } catch (error) {
       this.logger.error(
         'Failed to fetch streams from Stremio addon',
@@ -73,9 +81,10 @@ export class StremioMediaStreamsCapability implements IMediaStreamsCapability {
         }
       )
 
-      throw new InfrastructureError(
-        `Failed to fetch streams from Stremio addon: ${this.addon.name}`,
-        error instanceof Error ? error : new Error(String(error))
+      return fail(
+        error instanceof Error ? error : new Error(String(error)),
+        `stremio:${this.addon.id}`,
+        'api_error'
       )
     }
   }
@@ -84,7 +93,7 @@ export class StremioMediaStreamsCapability implements IMediaStreamsCapability {
     media: Media,
     seasonNumber: number,
     episodeNumber: number
-  ): Promise<Stream[]> {
+  ): Promise<Result<Stream[]>> {
     // Resolve Stremio ID with episode information
     const resolvedId = StremioIdResolver.resolveId(
       media,
@@ -100,7 +109,11 @@ export class StremioMediaStreamsCapability implements IMediaStreamsCapability {
         season: seasonNumber,
         episode: episodeNumber,
       })
-      return []
+      return fail(
+        new Error('Could not resolve Stremio ID for episode streams'),
+        `stremio:${this.addon.id}`,
+        'missing_id'
+      )
     }
 
     try {
@@ -116,7 +129,11 @@ export class StremioMediaStreamsCapability implements IMediaStreamsCapability {
           resolvedType: resolvedId.type,
           resolvedId: resolvedId.id,
         })
-        return []
+        return fail(
+          new Error('No streams found for episode'),
+          `stremio:${this.addon.id}`,
+          'not_found'
+        )
       }
 
       // Transform to domain streams
@@ -136,7 +153,7 @@ export class StremioMediaStreamsCapability implements IMediaStreamsCapability {
         resolvedId: resolvedId.id,
       })
 
-      return streams
+      return ok(streams, `stremio:${this.addon.id}`)
     } catch (error) {
       this.logger.error(
         'Failed to fetch episode streams from Stremio addon',
@@ -151,9 +168,10 @@ export class StremioMediaStreamsCapability implements IMediaStreamsCapability {
         }
       )
 
-      throw new InfrastructureError(
-        `Failed to fetch episode streams from Stremio addon: ${this.addon.name}`,
-        error instanceof Error ? error : new Error(String(error))
+      return fail(
+        error instanceof Error ? error : new Error(String(error)),
+        `stremio:${this.addon.id}`,
+        'api_error'
       )
     }
   }

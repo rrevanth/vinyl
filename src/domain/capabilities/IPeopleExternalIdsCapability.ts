@@ -1,5 +1,6 @@
 import type { Person } from '../entities/Person'
 import type { ExternalIds } from '../entities/ExternalIds'
+import type { Result } from '../types/Result'
 
 /**
  * People External IDs Capability - Cross-platform person ID mapping
@@ -10,7 +11,7 @@ export interface IPeopleExternalIdsCapability {
    * @param person - The person to get external IDs for
    * @returns ExternalIds object with platform mappings
    */
-  getExternalIds(person: Person): Promise<ExternalIds>
+  getExternalIds(person: Person): Promise<Result<ExternalIds>>
 
   /**
    * Find person by external ID from another platform
@@ -18,5 +19,5 @@ export interface IPeopleExternalIdsCapability {
    * @param platform - Platform the ID belongs to (imdb, tmdb, etc.)
    * @returns Person object if found
    */
-  findByExternalId(externalId: string, platform: string): Promise<Person | null>
+  findByExternalId(externalId: string, platform: string): Promise<Result<Person | null>>
 }

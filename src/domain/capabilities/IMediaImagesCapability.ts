@@ -1,4 +1,5 @@
 import type { Media } from '../entities/Media'
+import type { Result } from '../types/Result'
 
 /**
  * Media Images Capability - Provides posters, backdrops, and promotional images
@@ -9,7 +10,7 @@ export interface IMediaImagesCapability {
    * @param media - The media to get images for
    * @returns Collection of images by type
    */
-  getImages(media: Media): Promise<MediaImages>
+  getImages(media: Media): Promise<Result<MediaImages>>
 }
 
 /**

@@ -2,6 +2,7 @@ import type { Episode, IMediaSeasonsCapability, Season } from '@/src/domain/capa
 import type { Media } from '@/src/domain/entities/Media'
 import type { ILoggingService } from '@/src/domain/services/ILoggingService'
 import type { TraktClient } from '@/src/infrastructure/api/trakt/TraktClient'
+import { ok, fail, type Result } from '@/src/domain/types/Result'
 
 /**
  * Trakt Media Seasons Capability
@@ -13,7 +14,7 @@ export class TraktMediaSeasonsCapability implements IMediaSeasonsCapability {
     private readonly logger: ILoggingService
   ) {}
 
-  async getSeasons(media: Media, seasonNumber?: number): Promise<Season[]> {
+  async getSeasons(media: Media, seasonNumber?: number): Promise<Result<Season[]>> {
     try {
       if (media.type !== 'series') {
         throw new Error(`Cannot get seasons for non-series media: ${media.type}`)
@@ -48,15 +49,15 @@ export class TraktMediaSeasonsCapability implements IMediaSeasonsCapability {
       }))
 
       this.logger.debug(`Retrieved ${seasons.length} seasons for: ${media.title}`)
-      return seasons
+      return ok(seasons, "trakt", { cached: false })
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
       this.logger.error(`Failed to get seasons for series: ${media.title}`, err)
-      throw err
+      return fail(err, "trakt", "api_error")
     }
   }
 
-  async getEpisode(media: Media, seasonNumber: number, episodeNumber: number): Promise<Episode> {
+  async getEpisode(media: Media, seasonNumber: number, episodeNumber: number): Promise<Result<Episode>> {
     try {
       if (media.type !== 'series') {
         throw new Error(`Cannot get episode for non-series media: ${media.type}`)
@@ -81,14 +82,14 @@ export class TraktMediaSeasonsCapability implements IMediaSeasonsCapability {
       const episode = this.mapEpisode(episodeData, seasonNumber)
 
       this.logger.debug(`Retrieved episode S${seasonNumber}E${episodeNumber} for: ${media.title}`)
-      return episode
+      return ok(episode, "trakt", { cached: false })
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
       this.logger.error(
         `Failed to get episode S${seasonNumber}E${episodeNumber} for series: ${media.title}`,
         err
       )
-      throw err
+      return fail(err, "trakt", "api_error")
     }
   }
 

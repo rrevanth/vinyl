@@ -1,4 +1,5 @@
 import type { Media } from '@/src/domain/entities/Media'
+import type { Result } from '../types/Result'
 
 /**
  * Represents an item in the continue watching list with playback progress
@@ -33,18 +34,18 @@ export interface IMediaContinueWatchingCapability {
    * @param params - Optional filters for limit and media type
    * @returns Array of continue watching items with playback progress
    */
-  getContinueWatching(params?: { limit?: number; type?: 'movies' | 'episodes' }): Promise<ContinueWatchingItem[]>
+  getContinueWatching(params?: { limit?: number; type?: 'movies' | 'episodes' }): Promise<Result<ContinueWatchingItem[]>>
 
   /**
    * Remove a media item from the continue watching list
    * @param media - Complete media object to remove
    */
-  removeFromContinueWatching(media: Media): Promise<void>
+  removeFromContinueWatching(media: Media): Promise<Result<void>>
 
   /**
    * Clear all items from the continue watching list
    */
-  clearContinueWatching(): Promise<void>
+  clearContinueWatching(): Promise<Result<void>>
 
   /**
    * Indicates whether this capability requires authentication

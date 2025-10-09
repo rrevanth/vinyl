@@ -191,83 +191,79 @@ export class EnrichMediaUseCase {
   /**
    * Fetch data from providers respecting priority order
    * Tries each provider in order until one succeeds
+   * Now uses Result pattern - no try/catch needed around capability calls
    */
   private async fetchWithPriority<TCapability, TResult>(
     capabilityType: CapabilityType,
     providerPriority: readonly string[],
     media: Media,
-    fetcher: (capability: TCapability) => Promise<TResult>
+    fetcher: (capability: TCapability) => Promise<{ success: boolean; data?: TResult; providerId?: string; reason?: string; error?: Error }>
   ): Promise<{ data?: TResult; providerId?: string; error?: string }> {
-    try {
-      // Get enabled and ready providers using centralized use case
-      const readyProviders = this.getEnabledProvidersUseCase.execute(capabilityType)
+    // Get enabled and ready providers using centralized use case
+    const readyProviders = this.getEnabledProvidersUseCase.execute(capabilityType)
 
-      // Extract capabilities
-      const capabilities = readyProviders
-        .map(p => p.getCapability<TCapability>(capabilityType))
-        .filter((c): c is TCapability => c !== null)
+    // Extract capabilities with provider IDs
+    const capabilities = readyProviders
+      .map(p => ({
+        capability: p.getCapability<TCapability>(capabilityType),
+        providerId: p.metadata.id
+      }))
+      .filter((c): c is { capability: TCapability; providerId: string } => c.capability !== null)
 
-      if (capabilities.length === 0) {
-        this.logger.warn('No providers support capability', {
-          capability: capabilityType,
-          mediaId: media.stableId,
-        })
-        return { error: 'No providers available' }
-      }
-
-      // Sort capabilities by user's priority order
-      const sortedCapabilities = this.sortByPriority(capabilities, providerPriority, readyProviders)
-
-      // Try each provider in order until one succeeds
-      for (const capability of sortedCapabilities) {
-        try {
-          const result = await fetcher(capability)
-
-          this.logger.info('Successfully fetched data from provider', {
-            capability: capabilityType,
-            mediaId: media.stableId,
-          })
-
-          return { data: result, providerId: 'provider' }
-        } catch (error) {
-          this.logger.warn('Provider failed to fetch data', {
-            capability: capabilityType,
-            error: error instanceof Error ? error.message : String(error),
-            mediaId: media.stableId,
-          })
-          // Continue to next provider
-        }
-      }
-
-      return { error: 'All providers failed' }
-    } catch (error) {
-      this.logger.error('Failed to fetch data with priority', error as Error, {
+    if (capabilities.length === 0) {
+      this.logger.warn('No providers support capability', {
         capability: capabilityType,
         mediaId: media.stableId,
       })
-      return { error: error instanceof Error ? error.message : String(error) }
+      return { error: 'No providers available' }
     }
+
+    // Sort by priority
+    const sorted = this.sortByPriority(capabilities, providerPriority)
+
+    // Try each provider - check Result.success, NO try/catch
+    for (const { capability } of sorted) {
+      const result = await fetcher(capability)
+
+      if (result.success) {
+        this.logger.info('Successfully fetched data from provider', {
+          capability: capabilityType,
+          providerId: result.providerId,
+          mediaId: media.stableId,
+        })
+        return { data: result.data, providerId: result.providerId }
+      }
+
+      // Log why this provider failed
+      this.logger.warn('Provider failed to fetch data', {
+        capability: capabilityType,
+        providerId: result.providerId,
+        reason: result.reason,
+        error: result.error?.message,
+        mediaId: media.stableId,
+      })
+      // Continue to next provider
+    }
+
+    return { error: 'All providers failed' }
   }
 
   /**
    * Sort capabilities by user's provider priority order
    * Providers not in priority list are placed at the end
    */
-  private sortByPriority<T>(capabilities: T[], priority: readonly string[], providers: any[]): T[] {
-    // For now, we can't sort because capabilities don't expose provider ID
-    // This is a limitation of the current capability interface design
-    // Return as-is, which will use the order they were registered
-    return [...capabilities]
+  private sortByPriority<T extends { providerId: string }>(
+    items: T[],
+    priority: readonly string[]
+  ): T[] {
+    return items.sort((a, b) => {
+      const indexA = priority.indexOf(a.providerId)
+      const indexB = priority.indexOf(b.providerId)
 
-    // TODO: Enhance IProvider to expose providerId on capabilities
-    // Then implement proper sorting like:
-    // return [...capabilities].sort((a, b) => {
-    //   const aIndex = priority.indexOf(a.providerId)
-    //   const bIndex = priority.indexOf(b.providerId)
-    //   if (aIndex === -1 && bIndex === -1) return 0
-    //   if (aIndex === -1) return 1
-    //   if (bIndex === -1) return -1
-    //   return aIndex - bIndex
-    // })
+      if (indexA === -1 && indexB === -1) return 0
+      if (indexA === -1) return 1
+      if (indexB === -1) return -1
+      return indexA - indexB
+    })
   }
 }

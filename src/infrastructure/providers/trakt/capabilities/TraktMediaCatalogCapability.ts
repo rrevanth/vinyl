@@ -6,6 +6,7 @@ import { StableIdGenerator } from '@/src/domain/entities/StableIdGenerator'
 import type { ILoggingService } from '@/src/domain/services/ILoggingService'
 import type { TraktClient } from '@/src/infrastructure/api/trakt/TraktClient'
 import { TraktMediaMapper } from '../mappers/TraktMediaMapper'
+import { ok, fail, type Result } from '@/src/domain/types/Result'
 
 /**
  * Trakt Media Catalog Capability
@@ -17,7 +18,7 @@ export class TraktMediaCatalogCapability implements IMediaCatalogCapability {
     private readonly logger: ILoggingService
   ) {}
 
-  async getCatalogs(filters?: CatalogFilters): Promise<Catalog[]> {
+  async getCatalogs(filters?: CatalogFilters): Promise<Result<Catalog[]>> {
     try {
       this.logger.debug('Fetching Trakt catalogs', { filters })
 
@@ -32,7 +33,7 @@ export class TraktMediaCatalogCapability implements IMediaCatalogCapability {
           this.createMetadataCatalog('popular-shows', 'series', 'Popular Shows'),
           this.createMetadataCatalog('anticipated-shows', 'series', 'Anticipated Shows'),
         ]
-        return metadataCatalogs
+        return ok(metadataCatalogs, "trakt", { cached: false })
       }
 
       const catalogs: Catalog[] = []
@@ -67,15 +68,15 @@ export class TraktMediaCatalogCapability implements IMediaCatalogCapability {
       catalogs.push(this.createCatalog('anticipated-shows', 'series', 'Anticipated Shows', anticipatedShows.map(item => item.show)))
 
       this.logger.debug(`Retrieved ${catalogs.length} Trakt catalogs`)
-      return catalogs
+      return ok(catalogs, "trakt", { cached: false })
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
       this.logger.error('Failed to fetch Trakt catalogs', err)
-      throw err
+      return fail(err, "trakt", "api_error")
     }
   }
 
-  async loadMoreItems(catalog: Catalog): Promise<Catalog> {
+  async loadMoreItems(catalog: Catalog): Promise<Result<Catalog>> {
     try {
       const nextPage = catalog.paginationInfo.currentPage + 1
       const params = {
@@ -121,15 +122,15 @@ export class TraktMediaCatalogCapability implements IMediaCatalogCapability {
       })
 
       // Append new items to catalog
-      return catalog.appendItems(newItems, {
+      return ok(catalog.appendItems(newItems, {
         currentPage: nextPage,
         totalPages: nextPage + 1, // Trakt doesn't provide total pages, assume there's always one more
         hasMore: newItems.length > 0,
-      })
+      }), "trakt", { cached: false })
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
       this.logger.error(`Failed to load more items for catalog: ${catalog.id}`, err)
-      throw err
+      return fail(err, "trakt", "api_error")
     }
   }
 

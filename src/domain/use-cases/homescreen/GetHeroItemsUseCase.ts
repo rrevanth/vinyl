@@ -83,7 +83,18 @@ export class GetHeroItemsUseCase {
       }
 
       try {
-        const catalogs = await capability.getCatalogs(params.filters)
+        const result = await capability.getCatalogs(params.filters)
+
+        if (!result.success) {
+          this.loggingService.warn('Failed to fetch hero catalog', {
+            providerId: result.providerId,
+            reason: result.reason,
+            error: result.error.message,
+          })
+          continue
+        }
+
+        const catalogs = result.data
         const heroCatalog = this.pickHeroCatalog(catalogs)
         if (!heroCatalog) {
           continue
@@ -121,9 +132,7 @@ export class GetHeroItemsUseCase {
     }
   }
 
-  private pickHeroCatalog(
-    catalogs: Awaited<ReturnType<IMediaCatalogCapability['getCatalogs']>>
-  ) {
+  private pickHeroCatalog(catalogs: import('@/src/domain/entities/Catalog').Catalog[]) {
     const heroCategoryOrder = ['featured', 'hero', 'trending', 'popular', 'top_rated']
     for (const category of heroCategoryOrder) {
       const match = catalogs.find((catalog) => catalog.category.toLowerCase() === category)

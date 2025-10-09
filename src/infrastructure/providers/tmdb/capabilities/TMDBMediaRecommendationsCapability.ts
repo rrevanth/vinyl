@@ -6,6 +6,7 @@ import type { TMDBClient } from '../../../api/tmdb/TMDBClient'
 import type { ILoggingService } from '../../../../domain/services/ILoggingService'
 import { TMDBMediaMapper } from '../../../mappers/tmdb/TMDBMediaMapper'
 import { StableIdGenerator } from '../../../../domain/entities/StableIdGenerator'
+import { ok, fail, type Result } from '@/src/domain/types/Result'
 
 /**
  * TMDB Media Recommendations Capability
@@ -18,14 +19,19 @@ export class TMDBMediaRecommendationsCapability implements IMediaRecommendations
     private readonly logger: ILoggingService
   ) {}
 
-  async getRecommendations(media: Media): Promise<Catalog[]> {
-    try {
-      // Extract TMDB ID from media's external IDs
-      const tmdbId = this.extractTMDBId(media)
-      if (!tmdbId) {
-        throw new Error(`No TMDB ID found for ${media.type} media: ${media.title}`)
-      }
+  async getRecommendations(media: Media): Promise<Result<Catalog[]>> {
+    // Extract TMDB ID from media's external IDs
+    const tmdbId = this.extractTMDBId(media)
+    if (!tmdbId) {
+      this.logger.warn(`No TMDB ID found for media: ${media.title}`)
+      return fail(
+        new Error(`No TMDB ID found for ${media.type} media: ${media.title}`),
+        'tmdb',
+        'missing_id'
+      )
+    }
 
+    try {
       const catalogs: Catalog[] = []
 
       if (media.type === 'movie') {
@@ -35,7 +41,11 @@ export class TMDBMediaRecommendationsCapability implements IMediaRecommendations
         // Get similar TV shows
         catalogs.push(await this.createSimilarTVCatalog(tmdbId, media))
       } else {
-        throw new Error(`Recommendations not supported for media type: ${media.type}`)
+        return fail(
+          new Error(`Recommendations not supported for media type: ${media.type}`),
+          'tmdb',
+          'unsupported'
+        )
       }
 
       // Filter out empty catalogs
@@ -49,11 +59,11 @@ export class TMDBMediaRecommendationsCapability implements IMediaRecommendations
         }
       )
 
-      return nonEmptyCatalogs
+      return ok(nonEmptyCatalogs, 'tmdb')
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
       this.logger.error(`Failed to get recommendations for ${media.type}: ${media.title}`, err)
-      throw err
+      return fail(err, 'tmdb', 'api_error')
     }
   }
 

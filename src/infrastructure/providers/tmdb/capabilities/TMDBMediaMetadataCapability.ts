@@ -4,6 +4,7 @@ import type { EnrichedMedia } from '../../../../domain/entities/EnrichedMedia'
 import type { TMDBDetailCache } from '../cache/TMDBDetailCache'
 import type { ILoggingService } from '../../../../domain/services/ILoggingService'
 import { TMDBMediaMapper } from '../../../mappers/tmdb/TMDBMediaMapper'
+import { ok, fail, type Result } from '@/src/domain/types/Result'
 
 /**
  * TMDB Media Metadata Capability - Primary cache source
@@ -17,14 +18,19 @@ export class TMDBMediaMetadataCapability implements IMediaMetadataCapability {
     private readonly logger: ILoggingService
   ) {}
 
-  async enrichMedia(media: Media): Promise<EnrichedMedia> {
-    try {
-      // Extract TMDB ID from media's external IDs
-      const tmdbId = this.extractTMDBId(media)
-      if (!tmdbId) {
-        throw new Error(`No TMDB ID found for ${media.type} media: ${media.title}`)
-      }
+  async enrichMedia(media: Media): Promise<Result<EnrichedMedia>> {
+    // Extract TMDB ID from media's external IDs
+    const tmdbId = this.extractTMDBId(media)
+    if (!tmdbId) {
+      this.logger.warn(`No TMDB ID found for media: ${media.title}`)
+      return fail(
+        new Error(`No TMDB ID found for ${media.type} media: ${media.title}`),
+        'tmdb',
+        'missing_id'
+      )
+    }
 
+    try {
       // Get or fetch extended detail (THIS IS THE CORE CACHE SOURCE)
       let extendedData: any
       if (media.type === 'movie') {
@@ -32,7 +38,13 @@ export class TMDBMediaMetadataCapability implements IMediaMetadataCapability {
       } else if (media.type === 'series') {
         extendedData = await this.cache.getOrFetchTVDetails(tmdbId)
       } else {
-        throw new Error(`Unsupported media type: ${media.type}`)
+        const unsupportedError = new Error(`Unsupported media type: ${media.type}`)
+        this.logger.error(`Unsupported media type: ${media.type}`, unsupportedError)
+        return fail(
+          unsupportedError,
+          'tmdb',
+          'unsupported'
+        )
       }
 
       // Convert extended API response to enriched media
@@ -47,30 +59,37 @@ export class TMDBMediaMetadataCapability implements IMediaMetadataCapability {
         genreCount: enrichedMedia.genres?.length || 0,
       })
 
-      return enrichedMedia
+      return ok(enrichedMedia, 'tmdb', { cached: true })
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
       this.logger.error(`Failed to enrich metadata for ${media.type}: ${media.title}`, err)
-      throw err
+      return fail(err, 'tmdb', 'api_error')
     }
   }
 
-  async enrichMediaBatch(mediaList: Media[]): Promise<EnrichedMedia[]> {
-    // TODO: Implement batch processing for better performance
-    // For now, process sequentially
+  async enrichMediaBatch(mediaList: Media[]): Promise<Result<EnrichedMedia[]>> {
     const enrichedMedia: EnrichedMedia[] = []
 
     for (const media of mediaList) {
-      try {
-        const enriched = await this.enrichMedia(media)
-        enrichedMedia.push(enriched)
-      } catch (error) {
-        this.logger.error(`Failed to enrich media in batch: ${media.title}`, error as Error)
-        // Continue with other items, don't fail entire batch
+      const result = await this.enrichMedia(media)
+      if (result.success && result.data) {
+        enrichedMedia.push(result.data)
+      } else {
+        this.logger.warn(`Failed to enrich media in batch: ${media.title}`, {
+          error: result.success === false && result.error ? result.error.message : 'Unknown error',
+        })
       }
     }
 
-    return enrichedMedia
+    if (enrichedMedia.length === 0 && mediaList.length > 0) {
+      return fail(
+        new Error('Failed to enrich any media in batch'),
+        'tmdb',
+        'api_error'
+      )
+    }
+
+    return ok(enrichedMedia, 'tmdb', { count: enrichedMedia.length })
   }
 
   /**

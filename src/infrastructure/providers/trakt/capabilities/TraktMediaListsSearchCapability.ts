@@ -4,6 +4,7 @@ import { Catalog as CatalogEntity } from '@/src/domain/entities/Catalog'
 import type { TraktClient } from '@/src/infrastructure/api/trakt/TraktClient'
 import type { ILoggingService } from '@/src/domain/services/ILoggingService'
 import { StableIdGenerator } from '@/src/domain/entities/StableIdGenerator'
+import { ok, fail, type Result } from '@/src/domain/types/Result'
 
 /**
  * Trakt Media Lists Search Capability
@@ -15,9 +16,9 @@ export class TraktMediaListsSearchCapability implements IMediaListsSearchCapabil
     private readonly logger: ILoggingService
   ) {}
 
-  async searchLists(query: string, filters?: Record<string, any>): Promise<Catalog> {
+  async searchLists(query: string, filters?: Record<string, any>): Promise<Result<Catalog>> {
     if (!query || query.trim().length < 2) {
-      return this.createEmptyListsCatalog(query)
+      return ok(this.createEmptyListsCatalog(query), "trakt", { cached: false })
     }
 
     try {
@@ -66,15 +67,15 @@ export class TraktMediaListsSearchCapability implements IMediaListsSearchCapabil
       })
 
       this.logger.debug(`List search returned ${catalogItems.length} results for: ${query}`)
-      return catalog
+      return ok(catalog, "trakt", { cached: false })
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
       this.logger.error(`Failed to search lists for: ${query}`, err)
-      throw err
+      return fail(err, "trakt", "api_error")
     }
   }
 
-  async getListsByCreator(creatorId: string): Promise<Catalog[]> {
+  async getListsByCreator(creatorId: string): Promise<Result<Catalog[]>> {
     try {
       this.logger.debug(`Getting lists by creator: ${creatorId}`)
 
@@ -86,11 +87,11 @@ export class TraktMediaListsSearchCapability implements IMediaListsSearchCapabil
         `Getting lists by creator ${creatorId} requires authentication - not implemented`
       )
 
-      return []
+      return ok([], "trakt", { cached: false })
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
       this.logger.error(`Failed to get lists by creator: ${creatorId}`, err)
-      throw err
+      return fail(err, "trakt", "api_error")
     }
   }
 

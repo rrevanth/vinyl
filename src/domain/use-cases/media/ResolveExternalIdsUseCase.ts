@@ -31,78 +31,69 @@ export class ResolveExternalIdsUseCase {
       type: media.type,
     })
 
-    try {
-      // Get enabled and ready providers using centralized use case
-      const readyProviders = this.getEnabledProvidersUseCase.execute(
-        CapabilityType.MEDIA_EXTERNAL_IDS
-      )
+    // Get enabled and ready providers using centralized use case
+    const readyProviders = this.getEnabledProvidersUseCase.execute(
+      CapabilityType.MEDIA_EXTERNAL_IDS
+    )
 
-      // Extract capabilities
-      const capabilities = readyProviders
-        .map(p => p.getCapability<IMediaExternalIdsCapability>(CapabilityType.MEDIA_EXTERNAL_IDS))
-        .filter((c): c is IMediaExternalIdsCapability => c !== null)
+    // Extract capabilities
+    const capabilities = readyProviders
+      .map(p => p.getCapability<IMediaExternalIdsCapability>(CapabilityType.MEDIA_EXTERNAL_IDS))
+      .filter((c): c is IMediaExternalIdsCapability => c !== null)
 
-      if (capabilities.length === 0) {
-        this.logger.warn('No providers support MEDIA_EXTERNAL_IDS capability', {
-          mediaId: media.stableId,
-        })
-        return media.externalIds
-      }
-
-      this.logger.info('Fetching external IDs from providers', {
+    if (capabilities.length === 0) {
+      this.logger.warn('No providers support MEDIA_EXTERNAL_IDS capability', {
         mediaId: media.stableId,
-        providerCount: capabilities.length,
       })
-
-      // Fetch from all providers in parallel
-      const results = await Promise.allSettled(
-        capabilities.map((capability) =>
-          capability.getExternalIds(media).catch((error: Error) => {
-            this.logger.error('Failed to fetch external IDs from provider', error, {
-              mediaId: media.stableId,
-            })
-            return media.externalIds // Fallback to existing IDs
-          })
-        )
-      )
-
-      // Merge all successful results
-      let mergedIds = media.externalIds
-
-      for (const result of results) {
-        if (result.status === 'fulfilled') {
-          mergedIds = mergedIds.merge(result.value)
-
-          // Early exit optimization: stop when we have key IDs (IMDB + TMDB + Trakt)
-          if (mergedIds.imdb && mergedIds.tmdb && mergedIds.trakt) {
-            this.logger.info('Early exit: all key external IDs resolved', {
-              mediaId: media.stableId,
-              hasImdb: !!mergedIds.imdb,
-              hasTmdb: !!mergedIds.tmdb,
-              hasTrakt: !!mergedIds.trakt,
-            })
-            break
-          }
-        }
-      }
-
-      this.logger.info('External IDs resolved successfully', {
-        mediaId: media.stableId,
-        hasImdb: !!mergedIds.imdb,
-        hasTmdb: !!mergedIds.tmdb,
-        hasTrakt: !!mergedIds.trakt,
-        hasTvdb: !!mergedIds.tvdb,
-        hasStremio: !!mergedIds.stremio,
-      })
-
-      return mergedIds
-    } catch (error) {
-      this.logger.error('Failed to resolve external IDs', error as Error, {
-        mediaId: media.stableId,
-        title: media.title,
-      })
-      // Return existing IDs as fallback
       return media.externalIds
     }
+
+    this.logger.info('Fetching external IDs from providers', {
+      mediaId: media.stableId,
+      providerCount: capabilities.length,
+    })
+
+    // Fetch from all providers in parallel - using Result pattern
+    const results = await Promise.all(
+      capabilities.map((capability) => capability.getExternalIds(media))
+    )
+
+    // Merge all successful results
+    let mergedIds = media.externalIds
+
+    for (const result of results) {
+      if (result.success) {
+        mergedIds = mergedIds.merge(result.data)
+
+        // Early exit optimization: stop when we have key IDs (IMDB + TMDB + Trakt)
+        if (mergedIds.imdb && mergedIds.tmdb && mergedIds.trakt) {
+          this.logger.info('Early exit: all key external IDs resolved', {
+            mediaId: media.stableId,
+            hasImdb: !!mergedIds.imdb,
+            hasTmdb: !!mergedIds.tmdb,
+            hasTrakt: !!mergedIds.trakt,
+          })
+          break
+        }
+      } else {
+        this.logger.warn('Provider failed to fetch external IDs', {
+          mediaId: media.stableId,
+          providerId: result.providerId,
+          reason: result.reason,
+          error: result.error.message,
+        })
+      }
+    }
+
+    this.logger.info('External IDs resolved successfully', {
+      mediaId: media.stableId,
+      hasImdb: !!mergedIds.imdb,
+      hasTmdb: !!mergedIds.tmdb,
+      hasTrakt: !!mergedIds.trakt,
+      hasTvdb: !!mergedIds.tvdb,
+      hasStremio: !!mergedIds.stremio,
+    })
+
+    return mergedIds
   }
 }

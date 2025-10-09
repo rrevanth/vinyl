@@ -5,6 +5,7 @@ import type { TMDBDetailCache } from '../cache/TMDBDetailCache'
 import type { TMDBClient } from '../../../api/tmdb/TMDBClient'
 import type { ILoggingService } from '../../../../domain/services/ILoggingService'
 import { TMDBPersonMapper } from '../../../mappers/tmdb/entities/TMDBPersonMapper'
+import { ok, fail, type Result } from '@/src/domain/types/Result'
 
 /**
  * TMDB People External IDs Capability
@@ -22,14 +23,19 @@ export class TMDBPeopleExternalIdsCapability implements IPeopleExternalIdsCapabi
   /**
    * Get external IDs for a person
    */
-  async getExternalIds(person: Person): Promise<ExternalIds> {
-    try {
-      // Extract TMDB ID from person's external IDs
-      const tmdbId = this.extractTMDBId(person)
-      if (!tmdbId) {
-        throw new Error(`No TMDB ID found for person: ${person.name}`)
-      }
+  async getExternalIds(person: Person): Promise<Result<ExternalIds>> {
+    // Extract TMDB ID from person's external IDs
+    const tmdbId = this.extractTMDBId(person)
+    if (!tmdbId) {
+      this.logger.warn(`No TMDB ID found for person: ${person.name}`)
+      return fail(
+        new Error(`No TMDB ID found for person: ${person.name}`),
+        'tmdb',
+        'missing_id'
+      )
+    }
 
+    try {
       // Get cached person details with external IDs
       const personDetails = await this.cache.getOrFetchPersonDetails(tmdbId)
 
@@ -42,18 +48,18 @@ export class TMDBPeopleExternalIdsCapability implements IPeopleExternalIdsCapabi
         platforms: Object.keys(enrichedExternalIds),
       })
 
-      return enrichedExternalIds
+      return ok(enrichedExternalIds, 'tmdb', { cached: true })
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
       this.logger.error(`Failed to get external IDs for person: ${person.name}`, err)
-      throw err
+      return fail(err, 'tmdb', 'api_error')
     }
   }
 
   /**
    * Find person by external ID from another platform
    */
-  async findByExternalId(externalId: string, platform: string): Promise<Person | null> {
+  async findByExternalId(externalId: string, platform: string): Promise<Result<Person>> {
     try {
       this.logger.debug(`Finding person by external ID: ${platform}:${externalId}`)
 
@@ -69,18 +75,22 @@ export class TMDBPeopleExternalIdsCapability implements IPeopleExternalIdsCapabi
             personName: person.name,
           })
 
-          return person
+          return ok(person, 'tmdb')
         }
       }
 
       // For other platforms, we would need to implement search-based lookup
       // This is a future enhancement
       this.logger.debug(`External ID lookup not supported for platform: ${platform}`)
-      return null
+      return fail(
+        new Error(`External ID lookup not supported for platform: ${platform}`),
+        'tmdb',
+        'unsupported'
+      )
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
       this.logger.error(`Failed to find person by external ID: ${platform}:${externalId}`, err)
-      return null
+      return fail(err, 'tmdb', 'api_error')
     }
   }
 

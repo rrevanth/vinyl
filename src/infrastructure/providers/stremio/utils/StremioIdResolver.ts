@@ -1,4 +1,5 @@
 import type { Media } from '@/src/domain/entities/Media'
+import type { StremioExternalId } from '@/src/domain/entities/ExternalIds'
 import type { StremioManifest } from '@/src/infrastructure/providers/stremio/types/manifest'
 
 /**
@@ -72,8 +73,10 @@ export class StremioIdResolver {
         const baseId = primaryId.id
         const id = this.formatEpisodeId(baseId, season, episode)
 
-        // Use media type directly, normalizing it for Stremio
-        const stremioType = this.normalizeMediaType(media.type)
+        // Use original Stremio type if available, otherwise fallback to normalized type
+        const stremioType = media.externalIds.stremio
+          ? (media.externalIds.stremio as StremioExternalId).mediaType
+          : this.normalizeMediaType(media.type)
 
         return {
           type: stremioType,
@@ -95,7 +98,10 @@ export class StremioIdResolver {
     season?: number,
     episode?: number
   ): ResolvedStremioId | null {
-    const stremioType = this.normalizeMediaType(media.type)
+    // Use original Stremio type if available, otherwise fallback to normalized type
+    const stremioType = media.externalIds.stremio
+      ? (media.externalIds.stremio as StremioExternalId).mediaType
+      : this.normalizeMediaType(media.type)
 
     // Check IMDB ID
     if (media.externalIds.imdb) {

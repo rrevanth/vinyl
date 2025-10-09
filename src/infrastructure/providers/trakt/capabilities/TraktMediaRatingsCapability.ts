@@ -2,6 +2,7 @@ import type { IMediaRatingsCapability, MediaRatings, Rating } from '@/src/domain
 import type { Media } from '@/src/domain/entities/Media'
 import type { TraktClient } from '@/src/infrastructure/api/trakt/TraktClient'
 import type { ILoggingService } from '@/src/domain/services/ILoggingService'
+import { ok, fail, type Result } from '@/src/domain/types/Result'
 
 /**
  * Trakt Media Ratings Capability
@@ -13,7 +14,7 @@ export class TraktMediaRatingsCapability implements IMediaRatingsCapability {
     private readonly logger: ILoggingService
   ) {}
 
-  async getRatings(media: Media): Promise<MediaRatings> {
+  async getRatings(media: Media): Promise<Result<MediaRatings>> {
     try {
       // Extract Trakt ID
       const traktId = media.externalIds.trakt?.id
@@ -52,11 +53,11 @@ export class TraktMediaRatingsCapability implements IMediaRatingsCapability {
         voteCount: traktRating?.voteCount,
       })
 
-      return ratings
+      return ok(ratings, "trakt", { cached: false })
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
       this.logger.error(`Failed to get ratings for ${media.type}: ${media.title}`, err)
-      throw err
+      return fail(err, "trakt", "api_error")
     }
   }
 }

@@ -2,6 +2,7 @@ import type { IMediaScrobblingCapability } from '@/src/domain/capabilities/IMedi
 import type { Media } from '@/src/domain/entities/Media'
 import type { ILoggingService } from '@/src/domain/services/ILoggingService'
 import type { TraktClient } from '@/src/infrastructure/api/trakt/TraktClient'
+import { ok, fail, type Result } from '@/src/domain/types/Result'
 
 /**
  * Trakt Scrobbling Capability
@@ -28,7 +29,7 @@ export class TraktMediaScrobblingCapability implements IMediaScrobblingCapabilit
     media: Media,
     progress: number,
     episodeInfo?: { season: number; episode: number }
-  ): Promise<void> {
+  ): Promise<Result<void>> {
     try {
       this.logger.info('[TraktMediaScrobblingCapability] Starting scrobble', {
         mediaId: media.stableId,
@@ -86,11 +87,13 @@ export class TraktMediaScrobblingCapability implements IMediaScrobblingCapabilit
       this.logger.info('[TraktMediaScrobblingCapability] Started scrobble', {
         mediaId: media.stableId,
       })
+      return ok(undefined, "trakt", { cached: false })
     } catch (error) {
-      this.logger.error('[TraktMediaScrobblingCapability] Failed to start scrobble', error as Error, {
+      const err = error instanceof Error ? error : new Error(String(error))
+      this.logger.error('[TraktMediaScrobblingCapability] Failed to start scrobble', err, {
         mediaId: media.stableId,
       })
-      throw error
+      return fail(err, "trakt", "api_error")
     }
   }
 
@@ -101,7 +104,7 @@ export class TraktMediaScrobblingCapability implements IMediaScrobblingCapabilit
     media: Media,
     progress: number,
     episodeInfo?: { season: number; episode: number }
-  ): Promise<void> {
+  ): Promise<Result<void>> {
     try {
       this.logger.info('[TraktMediaScrobblingCapability] Pausing scrobble', {
         mediaId: media.stableId,
@@ -160,11 +163,13 @@ export class TraktMediaScrobblingCapability implements IMediaScrobblingCapabilit
       this.logger.info('[TraktMediaScrobblingCapability] Paused scrobble', {
         mediaId: media.stableId,
       })
+      return ok(undefined, "trakt", { cached: false })
     } catch (error) {
-      this.logger.error('[TraktMediaScrobblingCapability] Failed to pause scrobble', error as Error, {
+      const err = error instanceof Error ? error : new Error(String(error))
+      this.logger.error('[TraktMediaScrobblingCapability] Failed to pause scrobble', err, {
         mediaId: media.stableId,
       })
-      throw error
+      return fail(err, "trakt", "api_error")
     }
   }
 
@@ -175,7 +180,7 @@ export class TraktMediaScrobblingCapability implements IMediaScrobblingCapabilit
     media: Media,
     progress: number,
     episodeInfo?: { season: number; episode: number }
-  ): Promise<void> {
+  ): Promise<Result<void>> {
     try {
       this.logger.info('[TraktMediaScrobblingCapability] Stopping scrobble', {
         mediaId: media.stableId,
@@ -234,11 +239,13 @@ export class TraktMediaScrobblingCapability implements IMediaScrobblingCapabilit
       this.logger.info('[TraktMediaScrobblingCapability] Stopped scrobble', {
         mediaId: media.stableId,
       })
+      return ok(undefined, "trakt", { cached: false })
     } catch (error) {
-      this.logger.error('[TraktMediaScrobblingCapability] Failed to stop scrobble', error as Error, {
+      const err = error instanceof Error ? error : new Error(String(error))
+      this.logger.error('[TraktMediaScrobblingCapability] Failed to stop scrobble', err, {
         mediaId: media.stableId,
       })
-      throw error
+      return fail(err, "trakt", "api_error")
     }
   }
 
@@ -249,7 +256,7 @@ export class TraktMediaScrobblingCapability implements IMediaScrobblingCapabilit
     media: Media,
     message?: string,
     episodeInfo?: { season: number; episode: number }
-  ): Promise<void> {
+  ): Promise<Result<void>> {
     try {
       this.logger.info('[TraktMediaScrobblingCapability] Checking in', {
         mediaId: media.stableId,
@@ -306,27 +313,31 @@ export class TraktMediaScrobblingCapability implements IMediaScrobblingCapabilit
       this.logger.info('[TraktMediaScrobblingCapability] Checked in', {
         mediaId: media.stableId,
       })
+      return ok(undefined, "trakt", { cached: false })
     } catch (error) {
-      this.logger.error('[TraktMediaScrobblingCapability] Failed to check in', error as Error, {
+      const err = error instanceof Error ? error : new Error(String(error))
+      this.logger.error('[TraktMediaScrobblingCapability] Failed to check in', err, {
         mediaId: media.stableId,
       })
-      throw error
+      return fail(err, "trakt", "api_error")
     }
   }
 
   /**
    * Cancel an active check-in
    */
-  async cancelCheckin(): Promise<void> {
+  async cancelCheckin(): Promise<Result<void>> {
     try {
       this.logger.info('[TraktMediaScrobblingCapability] Canceling check-in')
 
       await this.traktClient.sync.cancelCheckin()
 
       this.logger.info('[TraktMediaScrobblingCapability] Canceled check-in')
+      return ok(undefined, "trakt", { cached: false })
     } catch (error) {
-      this.logger.error('[TraktMediaScrobblingCapability] Failed to cancel check-in', error as Error)
-      throw error
+      const err = error instanceof Error ? error : new Error(String(error))
+      this.logger.error('[TraktMediaScrobblingCapability] Failed to cancel check-in', err)
+      return fail(err, "trakt", "api_error")
     }
   }
 

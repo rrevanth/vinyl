@@ -1,5 +1,6 @@
 import type { Media } from '../entities/Media'
 import type { Subtitle } from '../entities/Stream'
+import type { Result } from '../types/Result'
 
 /**
  * Media Subtitles Capability - Provides subtitle files for content
@@ -10,7 +11,7 @@ export interface IMediaSubtitlesCapability {
    * @param media - The movie to get subtitles for
    * @returns Array of available subtitles
    */
-  getSubtitles(media: Media): Promise<Subtitle[]>
+  getSubtitles(media: Media): Promise<Result<Subtitle[]>>
 
   /**
    * Get available subtitles for a TV series episode
@@ -23,5 +24,5 @@ export interface IMediaSubtitlesCapability {
     media: Media,
     seasonNumber: number,
     episodeNumber: number
-  ): Promise<Subtitle[]>
+  ): Promise<Result<Subtitle[]>>
 }

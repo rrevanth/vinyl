@@ -4,6 +4,7 @@ import type { TMDBClient } from '../../../api/tmdb/TMDBClient'
 import type { ILoggingService } from '../../../../domain/services/ILoggingService'
 import { TMDBPersonMapper } from '../../../mappers/tmdb/entities/TMDBPersonMapper'
 import type { TMDBPaginatedResponse, TMDBPersonResponse } from '../../../api/tmdb/types'
+import { ok, fail, type Result } from '@/src/domain/types/Result'
 
 /**
  * TMDB People Catalogs Capability
@@ -20,7 +21,7 @@ export class TMDBPeopleCatalogsCapability implements IPeopleCatalogsCapability {
   /**
    * Get available people catalogs
    */
-  async getPeopleCatalogs(category?: string): Promise<Catalog[]> {
+  async getPeopleCatalogs(category?: string): Promise<Result<Catalog[]>> {
     try {
       this.logger.debug('Fetching people catalogs', { category })
 
@@ -54,26 +55,34 @@ export class TMDBPeopleCatalogsCapability implements IPeopleCatalogsCapability {
 
       this.logger.debug(`Generated ${catalogs.length} people catalogs`)
 
-      return catalogs
+      return ok(catalogs, 'tmdb')
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
       this.logger.error('Failed to get people catalogs', err)
-      throw err
+      return fail(err, 'tmdb', 'api_error')
     }
   }
 
   /**
    * Get people trending in different time periods
    */
-  async getTrendingPeople(timeWindow?: string): Promise<Catalog> {
+  async getTrendingPeople(timeWindow?: string): Promise<Result<Catalog>> {
     const period = (timeWindow === 'week' ? 'week' : 'day') as 'day' | 'week'
-    return this.getTrendingPeopleCatalog(period)
+
+    try {
+      const catalog = await this.getTrendingPeopleCatalog(period)
+      return ok(catalog, 'tmdb')
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error))
+      this.logger.error(`Failed to get trending people for ${period}`, err)
+      return fail(err, 'tmdb', 'api_error')
+    }
   }
 
   /**
    * Get people by specific criteria
    */
-  async getPeopleByCriteria(criteria: Record<string, any>): Promise<Catalog> {
+  async getPeopleByCriteria(criteria: Record<string, any>): Promise<Result<Catalog>> {
     try {
       this.logger.debug('Getting people by criteria', { criteria })
 
@@ -81,16 +90,18 @@ export class TMDBPeopleCatalogsCapability implements IPeopleCatalogsCapability {
       // This could be enhanced to support genre filters, nationality, etc.
       const response = await this.tmdbClient.people.getPopularPeople()
 
-      return this.createPeopleCatalog(
+      const catalog = this.createPeopleCatalog(
         response,
         `tmdb_people_criteria_${Date.now()}`,
         'People by Criteria',
         'People matching specified criteria'
       )
+
+      return ok(catalog, 'tmdb')
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
       this.logger.error('Failed to get people by criteria', err, { criteria })
-      throw err
+      return fail(err, 'tmdb', 'api_error')
     }
   }
 

@@ -10,6 +10,7 @@ import type {
   TraktPersonCastCredit,
   TraktPersonCrewCredit,
 } from '@/src/infrastructure/api/trakt/types'
+import { ok, fail, type Result } from '@/src/domain/types/Result'
 
 /**
  * Department name mappings for crew credits
@@ -50,7 +51,7 @@ export class TraktPeopleFilmographyCapability implements IPeopleFilmographyCapab
    * @param person - Person entity with Trakt external ID
    * @returns Array of filmography catalogs grouped by department/role
    */
-  async getFilmography(person: Person): Promise<Catalog[]> {
+  async getFilmography(person: Person): Promise<Result<Catalog[]>> {
     // Extract Trakt person ID
     const traktId = person.externalIds.trakt?.id
 
@@ -58,7 +59,7 @@ export class TraktPeopleFilmographyCapability implements IPeopleFilmographyCapab
       this.logger.warn('Cannot fetch filmography: Person has no Trakt ID', {
         personName: person.name,
       })
-      return []
+      return ok([], "trakt", { cached: false })
     }
 
     try {
@@ -82,13 +83,14 @@ export class TraktPeopleFilmographyCapability implements IPeopleFilmographyCapab
         totalItems: catalogs.reduce((sum, cat) => sum + cat.items.length, 0),
       })
 
-      return catalogs
+      return ok(catalogs, "trakt", { cached: false })
     } catch (error) {
-      this.logger.error('Failed to fetch filmography', error as Error, {
+      const err = error instanceof Error ? error : new Error(String(error))
+      this.logger.error('Failed to fetch filmography', err, {
         personName: person.name,
         traktId,
       })
-      throw error
+      return fail(err, "trakt", "api_error")
     }
   }
 

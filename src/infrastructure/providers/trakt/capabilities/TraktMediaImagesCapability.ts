@@ -6,6 +6,7 @@ import type {
 import type { Media } from '@/src/domain/entities/Media'
 import type { ILoggingService } from '@/src/domain/services/ILoggingService'
 import type { TraktDetailCache } from '../cache/TraktDetailCache'
+import { ok, fail, type Result } from '@/src/domain/types/Result'
 
 /**
  * Trakt Media Images Capability
@@ -20,7 +21,7 @@ export class TraktMediaImagesCapability implements IMediaImagesCapability {
     private readonly logger: ILoggingService
   ) {}
 
-  async getImages(media: Media): Promise<MediaImages> {
+  async getImages(media: Media): Promise<Result<MediaImages>> {
     try {
       // Extract Trakt ID from media's external IDs
       const traktId = media.externalIds.trakt?.id
@@ -54,11 +55,11 @@ export class TraktMediaImagesCapability implements IMediaImagesCapability {
         logoCount: result.logos.length,
       })
 
-      return result
+      return ok(result, "trakt", { cached: false })
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
       this.logger.error(`Failed to get images for ${media.type}: ${media.title}`, err)
-      throw err
+      return fail(err, "trakt", "api_error")
     }
   }
 

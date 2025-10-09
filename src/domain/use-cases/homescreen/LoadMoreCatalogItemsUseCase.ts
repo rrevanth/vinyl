@@ -49,7 +49,18 @@ export class LoadMoreCatalogItemsUseCase {
 
         for (const capability of capabilities) {
           try {
-            const catalogs = await capability.getCatalogs()
+            const result = await capability.getCatalogs()
+
+            if (!result.success) {
+              this.loggingService.warn('Failed to query provider catalogs during pagination', {
+                providerId: result.providerId,
+                reason: result.reason,
+                error: result.error.message,
+              })
+              continue
+            }
+
+            const catalogs = result.data
             const catalog = catalogs.find((entry) => entry.stableId === params.catalogStableId)
             if (catalog) {
               matchedProvider = capability
@@ -69,7 +80,18 @@ export class LoadMoreCatalogItemsUseCase {
 
         for (const capability of capabilities) {
           try {
-            const catalogs = await capability.getCatalogs()
+            const result = await capability.getCatalogs()
+
+            if (!result.success) {
+              this.loggingService.warn('Failed to query provider catalogs during pagination', {
+                providerId: result.providerId,
+                reason: result.reason,
+                error: result.error.message,
+              })
+              continue
+            }
+
+            const catalogs = result.data
             const catalog = catalogs.find((entry) => entry.stableId === params.catalogStableId)
             if (catalog) {
               currentCatalog = catalog
@@ -92,7 +114,18 @@ export class LoadMoreCatalogItemsUseCase {
         throw new ValidationError('Catalog has no more items to load', 'pagination')
       }
 
-      const updatedCatalog = await matchedProvider.loadMoreItems(currentCatalog)
+      const result = await matchedProvider.loadMoreItems(currentCatalog)
+
+      if (!result.success) {
+        this.loggingService.error('Failed to load more items', result.error, {
+          catalogStableId: params.catalogStableId,
+          providerId: result.providerId,
+          reason: result.reason,
+        })
+        throw new DomainError('Unable to load more catalog items')
+      }
+
+      const updatedCatalog = result.data
       const newItemsCount = updatedCatalog.getItemCount() - currentCatalog.getItemCount()
 
       return {

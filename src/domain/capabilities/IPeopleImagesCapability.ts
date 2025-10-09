@@ -1,4 +1,5 @@
 import type { Person } from '../entities/Person'
+import type { Result } from '../types/Result'
 
 /**
  * People Images Capability - Provides profile photos and headshots
@@ -9,7 +10,7 @@ export interface IPeopleImagesCapability {
    * @param person - The person to get images for
    * @returns Array of person images
    */
-  getImages(person: Person): Promise<PersonImage[]>
+  getImages(person: Person): Promise<Result<PersonImage[]>>
 }
 
 /**

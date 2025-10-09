@@ -1,5 +1,6 @@
 import type { Media } from '../entities/Media'
 import type { ExternalIds } from '../entities/ExternalIds'
+import type { Result } from '../types/Result'
 
 /**
  * Media External IDs Capability - Provides external platform IDs for cross-referencing
@@ -10,7 +11,7 @@ export interface IMediaExternalIdsCapability {
    * @param media - The media to get external IDs for
    * @returns ExternalIds object with platform mappings
    */
-  getExternalIds(media: Media): Promise<ExternalIds>
+  getExternalIds(media: Media): Promise<Result<ExternalIds>>
 
   /**
    * Find media by external ID from another platform
@@ -18,5 +19,5 @@ export interface IMediaExternalIdsCapability {
    * @param platform - Platform the ID belongs to (imdb, tmdb, etc.)
    * @returns Media object if found
    */
-  findByExternalId(externalId: string, platform: string): Promise<Media | null>
+  findByExternalId(externalId: string, platform: string): Promise<Result<Media | null>>
 }

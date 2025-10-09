@@ -3,6 +3,7 @@ import type { Media } from '@/src/domain/entities/Media'
 import type { ILoggingService } from '@/src/domain/services/ILoggingService'
 import type { TraktClient } from '@/src/infrastructure/api/trakt/TraktClient'
 import { TraktMediaMapper } from '@/src/infrastructure/providers/trakt/mappers/TraktMediaMapper'
+import { ok, fail, type Result } from '@/src/domain/types/Result'
 
 /**
  * Trakt Continue Watching Capability
@@ -28,7 +29,7 @@ export class TraktMediaContinueWatchingCapability implements IMediaContinueWatch
   async getContinueWatching(params?: {
     limit?: number
     type?: 'movies' | 'episodes'
-  }): Promise<ContinueWatchingItem[]> {
+  }): Promise<Result<ContinueWatchingItem[]>> {
     try {
       this.logger.info('[TraktMediaContinueWatchingCapability] Fetching continue watching', { params })
 
@@ -78,31 +79,35 @@ export class TraktMediaContinueWatchingCapability implements IMediaContinueWatch
         count: continueWatchingItems.length,
       })
 
-      return continueWatchingItems
+      return ok(continueWatchingItems, 'trakt')
     } catch (error) {
       this.logger.error('[TraktMediaContinueWatchingCapability] Failed to fetch continue watching', error as Error)
-      throw error
+      return fail(error as Error, 'trakt', 'api_error')
     }
   }
 
   /**
    * Remove a media item from the continue watching list
    */
-  async removeFromContinueWatching(media: Media): Promise<void> {
+  async removeFromContinueWatching(media: Media): Promise<Result<void>> {
     try {
       this.logger.info('[TraktMediaContinueWatchingCapability] Removing from continue watching', {
         mediaId: media.stableId,
       })
 
       // Get current continue watching to find playback ID
-      const continueWatching = await this.getContinueWatching()
-      const item = continueWatching.find((cw) => cw.media.stableId === media.stableId)
+      const continueWatchingResult = await this.getContinueWatching()
+      if (!continueWatchingResult.success) {
+        return fail(continueWatchingResult.error, 'trakt', continueWatchingResult.reason)
+      }
+
+      const item = continueWatchingResult.data.find((cw) => cw.media.stableId === media.stableId)
 
       if (!item) {
         this.logger.warn('[TraktMediaContinueWatchingCapability] Media not found in continue watching', {
           mediaId: media.stableId,
         })
-        return
+        return ok(undefined, 'trakt')
       }
 
       await this.traktClient.sync.removePlaybackProgress(item.playbackId)
@@ -111,35 +116,42 @@ export class TraktMediaContinueWatchingCapability implements IMediaContinueWatch
         mediaId: media.stableId,
         playbackId: item.playbackId,
       })
+
+      return ok(undefined, 'trakt')
     } catch (error) {
       this.logger.error('[TraktMediaContinueWatchingCapability] Failed to remove from continue watching', error as Error, {
         mediaId: media.stableId,
       })
-      throw error
+      return fail(error as Error, 'trakt', 'api_error')
     }
   }
 
   /**
    * Clear all items from the continue watching list
    */
-  async clearContinueWatching(): Promise<void> {
+  async clearContinueWatching(): Promise<Result<void>> {
     try {
       this.logger.info('[TraktMediaContinueWatchingCapability] Clearing continue watching')
 
-      const continueWatching = await this.getContinueWatching()
+      const continueWatchingResult = await this.getContinueWatching()
+      if (!continueWatchingResult.success) {
+        return fail(continueWatchingResult.error, 'trakt', continueWatchingResult.reason)
+      }
 
       await Promise.all(
-        continueWatching.map((item) =>
+        continueWatchingResult.data.map((item) =>
           this.traktClient.sync.removePlaybackProgress(item.playbackId)
         )
       )
 
       this.logger.info('[TraktMediaContinueWatchingCapability] Cleared continue watching', {
-        count: continueWatching.length,
+        count: continueWatchingResult.data.length,
       })
+
+      return ok(undefined, 'trakt')
     } catch (error) {
       this.logger.error('[TraktMediaContinueWatchingCapability] Failed to clear continue watching', error as Error)
-      throw error
+      return fail(error as Error, 'trakt', 'api_error')
     }
   }
 

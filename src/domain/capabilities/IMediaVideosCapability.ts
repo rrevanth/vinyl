@@ -1,4 +1,5 @@
 import type { Media } from '../entities/Media'
+import type { Result } from '../types/Result'
 
 /**
  * Media Videos Capability - Provides trailers, clips, and promotional videos
@@ -9,7 +10,7 @@ export interface IMediaVideosCapability {
    * @param media - The media to get videos for
    * @returns Array of video URLs with metadata
    */
-  getVideos(media: Media): Promise<MediaVideo[]>
+  getVideos(media: Media): Promise<Result<MediaVideo[]>>
 }
 
 /**

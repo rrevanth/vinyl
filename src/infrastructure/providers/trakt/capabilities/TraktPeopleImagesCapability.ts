@@ -3,6 +3,7 @@ import type { Person } from '@/src/domain/entities/Person'
 import type { TraktDetailCache } from '@/src/infrastructure/providers/trakt/cache/TraktDetailCache'
 import type { ILoggingService } from '@/src/domain/services/ILoggingService'
 import { PersonImageType } from '@/src/domain/capabilities/IPeopleImagesCapability'
+import { ok, fail, type Result } from '@/src/domain/types/Result'
 
 /**
  * Trakt People Images Capability
@@ -19,13 +20,14 @@ export class TraktPeopleImagesCapability implements IPeopleImagesCapability {
   /**
    * Get images for a person (profile photos, headshots)
    */
-  async getImages(person: Person): Promise<PersonImage[]> {
-    try {
-      const traktId = this.extractTraktId(person)
-      if (!traktId) {
-        throw new Error(`No Trakt ID found for person: ${person.name}`)
-      }
+  async getImages(person: Person): Promise<Result<PersonImage[]>> {
+    const traktId = this.extractTraktId(person)
+    if (!traktId) {
+      this.logger.warn(`No Trakt ID found for person: ${person.name}`)
+      return fail(new Error(`No Trakt ID found for person: ${person.name}`), 'trakt', 'missing_id')
+    }
 
+    try {
       // Get person details from cache (includes images)
       const traktPerson = await this.detailCache.getOrFetchPersonDetails(traktId)
 
@@ -55,11 +57,11 @@ export class TraktPeopleImagesCapability implements IPeopleImagesCapability {
         name: traktPerson.name,
       })
 
-      return images
+      return ok(images, 'trakt', { cached: false })
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
       this.logger.error(`Failed to get images for person: ${person.name}`, err)
-      throw err
+      return fail(err, 'trakt', 'api_error')
     }
   }
 
