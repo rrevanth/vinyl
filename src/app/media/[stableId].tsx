@@ -10,9 +10,9 @@ import {
 import { t } from '@/src/presentation/shared/i18n'
 import { observer } from '@legendapp/state/react'
 import { Stack, router, useLocalSearchParams } from 'expo-router'
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native'
-import { StyleSheet } from 'react-native-unistyles'
+import { StyleSheet, useUnistyles } from 'react-native-unistyles'
 
 /**
  * Media Detail Screen
@@ -32,6 +32,20 @@ const MediaDetailScreen = observer(() => {
 
   // Get Media object from store (set before navigation)
   const media = mediaDetail$.media.get()
+  const catalogItem = mediaDetail$.catalogItem.get()
+  const { theme } = useUnistyles()
+
+  const headerOptions = useMemo(
+    () => ({
+      headerShown: true,
+      headerTransparent: true,
+      headerBackButtonDisplayMode: 'minimal' as const,
+      headerTitle: '',
+      headerTintColor: theme.colors.text,
+      headerBackTitle: '',
+    }),
+    [theme.colors.text]
+  )
 
   console.log('[MediaDetailScreen] Component rendered', {
     encodedStableId,
@@ -40,6 +54,8 @@ const MediaDetailScreen = observer(() => {
     mediaStableId: media?.stableId,
     mediaTitle: media?.title,
     stableIdMatch: media?.stableId === stableId,
+    hasCatalogItem: !!catalogItem,
+    catalogItemStableId: catalogItem?.stableId,
   })
 
   // Clear store on unmount
@@ -59,7 +75,7 @@ const MediaDetailScreen = observer(() => {
   if (!media || isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <Stack.Screen options={{ headerShown: false }} />
+        <Stack.Screen options={headerOptions} />
         <ActivityIndicator size="large" color={styles.primaryColor.color} />
         <Text style={styles.loadingText}>{t('media_detail.loading')}</Text>
       </View>
@@ -70,7 +86,7 @@ const MediaDetailScreen = observer(() => {
   if (error) {
     return (
       <View style={styles.errorContainer}>
-        <Stack.Screen options={{ headerShown: false }} />
+        <Stack.Screen options={headerOptions} />
         <Text style={styles.errorText}>{t('media_detail.error_loading')}</Text>
         <Text style={styles.errorDetails}>{error}</Text>
         <Pressable
@@ -88,14 +104,7 @@ const MediaDetailScreen = observer(() => {
   return (
     <View style={styles.container}>
       {/* Configure Stack Screen */}
-      <Stack.Screen
-        options={{
-          headerTransparent: true,
-          headerTitle: '',
-          headerTintColor: '#fff',
-          headerBackTitle: '',
-        }}
-      />
+      <Stack.Screen options={headerOptions} />
 
       {/* Scrollable Content */}
       <ScrollView

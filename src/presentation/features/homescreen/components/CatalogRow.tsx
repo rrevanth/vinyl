@@ -1,6 +1,6 @@
-import type { Catalog } from '@/src/domain/entities/Catalog'
+import type { Catalog, CatalogItem } from '@/src/domain/entities/Catalog'
 import type { Media } from '@/src/domain/entities/Media'
-import { setMedia } from '@/src/presentation/features/media/stores/mediaDetail.store'
+import { setCatalogItem } from '@/src/presentation/features/media/stores/mediaDetail.store'
 import { t } from '@/src/presentation/shared/i18n'
 import { mediaLibrary$ } from '@/src/presentation/shared/stores/mediaLibrary.store'
 import { LegendList } from '@legendapp/list'
@@ -37,24 +37,37 @@ const CatalogRowComponent: FC<CatalogRowProps> = ({ catalog, onPressItem: onPres
   // Format display name: "Provider - Catalog Name"
   const displayName = `${providerName} - ${latestCatalog.name}`
 
-  // Default navigation handler - store media object before navigating
-  const handlePressItem = useCallback((media: Media) => {
-    console.log('[CatalogRow] Navigation triggered:', {
-      stableId: media.stableId,
-      title: media.title,
-      type: media.type,
-    })
+  // Default navigation handler - store catalog item before navigating
+  const handlePressItem = useCallback(
+    (item: CatalogItem) => {
+      const media = item.media
+      if (!media) {
+        console.warn('[CatalogRow] Ignoring press because catalog item is missing media', {
+          catalogItemId: item.stableId,
+          catalogId: latestCatalog.stableId,
+        })
+        return
+      }
 
-    if (onPressItemProp) {
-      console.log('[CatalogRow] Using onPressItemProp')
-      onPressItemProp(media)
-    } else {
-      console.log('[CatalogRow] Storing media in store and navigating')
-      
+      console.log('[CatalogRow] Navigation triggered:', {
+        stableId: media.stableId,
+        title: media.title,
+        type: media.type,
+        catalogItemId: item.stableId,
+      })
+
+      if (onPressItemProp) {
+        console.log('[CatalogRow] Using onPressItemProp')
+        onPressItemProp(media)
+        return
+      }
+
+      console.log('[CatalogRow] Storing catalog item in store and navigating')
+
       try {
-        // Store media object in store before navigation
-        setMedia(media)
-        console.log('[CatalogRow] Media stored in store successfully')
+        // Store catalog item before navigation so detail screen has full context
+        setCatalogItem(item)
+        console.log('[CatalogRow] Catalog item stored in store successfully')
 
         // Navigate with stableId only (Expo Router params only support primitives)
         // Encode the stableId to handle special characters like colons
@@ -63,14 +76,15 @@ const CatalogRowComponent: FC<CatalogRowProps> = ({ catalog, onPressItem: onPres
         console.log('[CatalogRow] Attempting navigation to:', route)
         console.log('[CatalogRow] Original stableId:', media.stableId)
         console.log('[CatalogRow] Encoded stableId:', encodedStableId)
-        
+
         router.push(route as any)
         console.log('[CatalogRow] Navigation command sent')
       } catch (error) {
         console.error('[CatalogRow] Navigation failed:', error)
       }
-    }
-  }, [onPressItemProp])
+    },
+    [latestCatalog.stableId, onPressItemProp]
+  )
 
   // Always use the latest catalog from the store to ensure we have the most up-to-date data
   // The infinite query is used for triggering loadMore, but the store has the accumulated data
@@ -178,7 +192,7 @@ const CatalogRowComponent: FC<CatalogRowProps> = ({ catalog, onPressItem: onPres
           <MediaPosterCard
             media={item.media!}
             size="standard"
-            onPress={handlePressItem}
+            onPress={() => handlePressItem(item)}
             testID={`catalog-${catalog.stableId}-${item.stableId}`}
           />
         )}

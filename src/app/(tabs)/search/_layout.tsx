@@ -1,3 +1,4 @@
+import '@/src/presentation/theme/unistyles'
 import { t } from '@/src/presentation/shared/i18n'
 import { observer } from '@legendapp/state/react'
 import { Stack } from 'expo-router'

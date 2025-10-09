@@ -4,12 +4,14 @@ import type { ExternalIds } from '@/src/domain/entities/ExternalIds'
 import type { EnrichedMedia } from '@/src/domain/entities/EnrichedMedia'
 import type { WatchProgress } from '@/src/domain/capabilities/IMediaWatchProgressCapability'
 import type { Season } from '@/src/domain/capabilities/IMediaSeasonsCapability'
+import type { CatalogItem } from '@/src/domain/entities/Catalog'
 
 /**
  * Media detail store for progressive loading and UI state
  * Follows CLEAN architecture - Domain entities only, no Infrastructure dependencies
  */
 export interface MediaDetailState {
+  catalogItem: CatalogItem | null
   // Core data
   media: Media | null
   externalIds: ExternalIds | null
@@ -29,6 +31,7 @@ export interface MediaDetailState {
 }
 
 const createDefaultState = (): MediaDetailState => ({
+  catalogItem: null,
   media: null,
   externalIds: null,
   enrichedData: null,
@@ -59,14 +62,15 @@ export const clearMediaDetail = (): void => {
 }
 
 /**
- * Set media and reset dependent state
- * Call when navigating to a new media detail screen
+ * Set catalog item and reset dependent state.
  */
-export const setMedia = (media: Media): void => {
+export const setCatalogItem = (catalogItem: CatalogItem): void => {
+  const media = catalogItem.media ?? null
   mediaDetail$.set({
     ...createDefaultState(),
+    catalogItem,
     media,
-    externalIds: media.externalIds,
+    externalIds: media?.externalIds ?? null,
   })
 }
 
