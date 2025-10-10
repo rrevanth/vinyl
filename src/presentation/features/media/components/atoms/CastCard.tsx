@@ -3,7 +3,10 @@ import { memo } from 'react'
 import { Image, Pressable, Text, View } from 'react-native'
 import { StyleSheet } from 'react-native-unistyles'
 import { SymbolView } from 'expo-symbols'
+import { useQueryClient } from '@tanstack/react-query'
+import { router } from 'expo-router'
 import type { Person } from '@/src/domain/entities/Person'
+import type { PersonDetailData } from '@/src/domain/use-cases/people/GetPersonDetailUseCase'
 import { t } from '@/src/presentation/shared/i18n'
 
 interface CastCardProps {
@@ -15,24 +18,50 @@ interface CastCardProps {
 
 const CastCardComponent: FC<CastCardProps> = ({ person, character, onPress, testID }) => {
   const profileImage = person.images.getBestProfile()
-  const hasPress = !!onPress
+  const queryClient = useQueryClient()
 
-  const Component = hasPress ? Pressable : View
+  const handlePress = () => {
+    if (onPress) {
+      onPress()
+      return
+    }
+
+    // Pre-populate TanStack Query cache with Person object before navigation
+    queryClient.setQueryData<PersonDetailData>(['person-detail', person.stableId], {
+      person,
+      externalIds: person.externalIds,
+      enrichments: {
+        metadata: null,
+        filmography: null,
+        images: null,
+      },
+      providersUsed: {
+        metadata: [],
+        filmography: [],
+        images: [],
+      },
+      errors: {},
+    })
+
+    // Navigate with encoded stableId for URL safety
+    const encodedStableId = encodeURIComponent(person.stableId)
+    router.push(`/person/${encodedStableId}` as any)
+  }
 
   return (
-    <Component
+    <Pressable
       testID={testID}
-      accessibilityRole={hasPress ? 'button' : undefined}
+      accessibilityRole="button"
       accessibilityLabel={
         character
           ? `${person.name}, ${t('media.cast.as')} ${character}`
           : person.name
       }
-      accessibilityHint={hasPress ? t('media.cast.view_details_hint') : undefined}
-      onPress={onPress}
+      accessibilityHint={t('media.cast.view_details_hint')}
+      onPress={handlePress}
       style={({ pressed }: { pressed?: boolean }) => [
         styles.container,
-        hasPress && pressed && styles.pressed,
+        pressed && styles.pressed,
       ]}
     >
       <View style={styles.imageContainer}>
@@ -64,7 +93,7 @@ const CastCardComponent: FC<CastCardProps> = ({ person, character, onPress, test
           </Text>
         )}
       </View>
-    </Component>
+    </Pressable>
   )
 }
 

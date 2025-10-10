@@ -53,6 +53,10 @@ export const TOKENS = {
   GetWatchProgressUseCase: Symbol('GetWatchProgressUseCase'),
   GetMediaDetailUseCase: Symbol('GetMediaDetailUseCase'),
 
+  // People detail use cases
+  ResolvePersonExternalIdsUseCase: Symbol('ResolvePersonExternalIdsUseCase'),
+  GetPersonDetailUseCase: Symbol('GetPersonDetailUseCase'),
+
   // Provider management use cases
   GetEnabledProvidersForCapabilityUseCase: Symbol('GetEnabledProvidersForCapabilityUseCase'),
   SaveProviderPrioritiesUseCase: Symbol('SaveProviderPrioritiesUseCase'),

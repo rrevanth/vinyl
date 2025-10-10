@@ -129,6 +129,21 @@
     "episode_number_title": "Temporada {season} Episodio {episode}: {title}",
     "no_episodes": "No hay episodios disponibles"
   },
+  "person_detail": {
+    "loading": "Cargando...",
+    "error_loading": "Error al cargar detalles de la persona",
+    "biography": "Biografía",
+    "no_biography": "No hay biografía disponible",
+    "known_for": "Conocido por",
+    "personal_info": "Información personal",
+    "birthdate": "Nacimiento",
+    "birthplace": "Lugar de nacimiento",
+    "department": "Departamento",
+    "filmography": "Filmografía",
+    "all": "Todo",
+    "movies": "Películas",
+    "tv": "Series de TV"
+  },
   "provider_priorities": {
     "title": "Prioridades de proveedores",
     "subtitle": "Gestionar orden de proveedores por capacidad",

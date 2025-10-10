@@ -11,6 +11,8 @@ import { EnrichMediaUseCase } from '@/src/domain/use-cases/media/EnrichMediaUseC
 import { GetMediaDetailUseCase } from '@/src/domain/use-cases/media/GetMediaDetailUseCase'
 import { GetWatchProgressUseCase } from '@/src/domain/use-cases/media/GetWatchProgressUseCase'
 import { ResolveExternalIdsUseCase } from '@/src/domain/use-cases/media/ResolveExternalIdsUseCase'
+import { GetPersonDetailUseCase } from '@/src/domain/use-cases/people/GetPersonDetailUseCase'
+import { ResolvePersonExternalIdsUseCase } from '@/src/domain/use-cases/people/ResolvePersonExternalIdsUseCase'
 import { GetAllProvidersWithCapabilitiesUseCase } from '@/src/domain/use-cases/providers/GetAllProvidersWithCapabilitiesUseCase'
 import { GetEnabledProvidersForCapabilityUseCase } from '@/src/domain/use-cases/providers/GetEnabledProvidersForCapabilityUseCase'
 import { SaveProviderPrioritiesUseCase } from '@/src/domain/use-cases/providers/SaveProviderPrioritiesUseCase'
@@ -269,6 +271,24 @@ export async function initializeContainer(): Promise<void> {
       getWatchProgressUseCase,
       logger
     )
+  })
+
+  // People detail use cases
+  container.register(TOKENS.ResolvePersonExternalIdsUseCase, () => {
+    const getEnabledProvidersUseCase = container.resolve<GetEnabledProvidersForCapabilityUseCase>(
+      TOKENS.GetEnabledProvidersForCapabilityUseCase
+    )
+    return new ResolvePersonExternalIdsUseCase(providerRegistry, userService, logger, getEnabledProvidersUseCase)
+  })
+
+  container.register(TOKENS.GetPersonDetailUseCase, () => {
+    const resolvePersonExternalIdsUseCase = container.resolve<ResolvePersonExternalIdsUseCase>(
+      TOKENS.ResolvePersonExternalIdsUseCase
+    )
+    const getEnabledProvidersUseCase = container.resolve<GetEnabledProvidersForCapabilityUseCase>(
+      TOKENS.GetEnabledProvidersForCapabilityUseCase
+    )
+    return new GetPersonDetailUseCase(resolvePersonExternalIdsUseCase, getEnabledProvidersUseCase, logger)
   })
 
   // Mark container and providers initialization complete

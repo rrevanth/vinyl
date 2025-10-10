@@ -24,34 +24,22 @@ export class TMDBPeopleExternalIdsCapability implements IPeopleExternalIdsCapabi
    * Get external IDs for a person
    */
   async getExternalIds(person: Person): Promise<Result<ExternalIds>> {
-    // Extract TMDB ID from person's external IDs
-    const tmdbId = this.extractTMDBId(person)
-    if (!tmdbId) {
-      this.logger.warn(`No TMDB ID found for person: ${person.name}`)
-      return fail(
-        new Error(`No TMDB ID found for person: ${person.name}`),
-        'tmdb',
-        'missing_id'
-      )
-    }
-
     try {
-      // Get cached person details with external IDs
-      const personDetails = await this.cache.getOrFetchPersonDetails(tmdbId)
+      // 1. Try direct TMDB ID lookup if exists
+      const tmdbId = person.externalIds.tmdb?.id
+      if (tmdbId) {
+        this.logger.debug(`Getting external IDs for TMDB ID: ${tmdbId}`, {
+          name: person.name,
+        })
+        return await this.fetchExternalIdsByTMDBId(parseInt(tmdbId))
+      }
 
-      // Extract and enrich external IDs from TMDB response
-      const enrichedExternalIds = this.mapTMDBExternalIds(personDetails, tmdbId)
-
-      this.logger.debug(`Retrieved external IDs for person ${tmdbId}`, {
-        name: person.name,
-        externalIdCount: Object.keys(enrichedExternalIds).length,
-        platforms: Object.keys(enrichedExternalIds),
-      })
-
-      return ok(enrichedExternalIds, 'tmdb', { cached: true })
+      // 2. Fallback: search for person and get external IDs
+      this.logger.debug(`No TMDB ID found, searching for: ${person.name}`)
+      return await this.searchAndFetchExternalIds(person)
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
-      this.logger.error(`Failed to get external IDs for person: ${person.name}`, err)
+      this.logger.error(`Failed to get external IDs for: ${person.name}`, err)
       return fail(err, 'tmdb', 'api_error')
     }
   }
@@ -90,6 +78,62 @@ export class TMDBPeopleExternalIdsCapability implements IPeopleExternalIdsCapabi
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
       this.logger.error(`Failed to find person by external ID: ${platform}:${externalId}`, err)
+      return fail(err, 'tmdb', 'api_error')
+    }
+  }
+
+  /**
+   * Fetch external IDs using TMDB ID
+   */
+  private async fetchExternalIdsByTMDBId(tmdbId: number): Promise<Result<ExternalIds>> {
+    try {
+      // Get cached person details with external IDs
+      const personDetails = await this.cache.getOrFetchPersonDetails(tmdbId)
+
+      // Extract and enrich external IDs from TMDB response
+      const enrichedExternalIds = this.mapTMDBExternalIds(personDetails, tmdbId)
+
+      this.logger.debug(`Retrieved external IDs for person ${tmdbId}`, {
+        externalIdCount: Object.keys(enrichedExternalIds).length,
+        platforms: Object.keys(enrichedExternalIds),
+      })
+
+      return ok(enrichedExternalIds, 'tmdb', { cached: true })
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error))
+      this.logger.error(`Failed to fetch external IDs for TMDB ID ${tmdbId}`, err)
+      return fail(err, 'tmdb', 'api_error')
+    }
+  }
+
+  /**
+   * Search for person and fetch external IDs
+   */
+  private async searchAndFetchExternalIds(person: Person): Promise<Result<ExternalIds>> {
+    try {
+      // 1. Search using person name
+      const searchResults = await this.tmdbClient.search.searchPeople({
+        query: person.name,
+      })
+
+      if (!searchResults.results || searchResults.results.length === 0) {
+        this.logger.warn(`No search results found for: ${person.name}`)
+        return fail(new Error('No search results found'), 'tmdb', 'not_found')
+      }
+
+      // 2. Take best match (first result from TMDB)
+      const bestMatch = searchResults.results[0]
+
+      this.logger.debug(`Found match for ${person.name}`, {
+        tmdbId: bestMatch.id,
+        name: bestMatch.name,
+      })
+
+      // 3. Fetch external IDs for matched person
+      return await this.fetchExternalIdsByTMDBId(bestMatch.id)
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error))
+      this.logger.error(`Failed to search and fetch external IDs for: ${person.name}`, err)
       return fail(err, 'tmdb', 'api_error')
     }
   }
@@ -173,20 +217,5 @@ export class TMDBPeopleExternalIdsCapability implements IPeopleExternalIdsCapabi
     }
 
     return new ExternalIds(externalIdsData)
-  }
-
-  /**
-   * Extract TMDB ID from person's external IDs
-   */
-  private extractTMDBId(person: Person): number | null {
-    if (person.externalIds.tmdb?.id) {
-      const id = parseInt(person.externalIds.tmdb.id)
-      if (!isNaN(id)) {
-        return id
-      }
-    }
-
-    this.logger.warn(`No TMDB ID found for person: ${person.name}`)
-    return null
   }
 }

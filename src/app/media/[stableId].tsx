@@ -15,7 +15,6 @@ import { ActivityIndicator, Pressable, Text, View } from 'react-native'
 import Animated, { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated'
 import { StyleSheet, useUnistyles } from 'react-native-unistyles'
 import type { MediaVideo } from '@/src/domain/capabilities/IMediaVideosCapability'
-import type { Person } from '@/src/domain/entities/Person'
 import type { Media } from '@/src/domain/entities/Media'
 import { useQueryClient } from '@tanstack/react-query'
 import type { MediaDetailData } from '@/src/domain/use-cases/media/GetMediaDetailUseCase'
@@ -91,11 +90,6 @@ const MediaDetailScreen = observer(() => {
     console.log('Video pressed', video.id)
   }, [])
 
-  const handlePressPerson = useCallback((person: Person) => {
-    // Navigate to person detail (future)
-    console.log('Person pressed', person.stableId, person.name)
-  }, [])
-
   const handlePressRecommendation = useCallback((recommendedMedia: Media) => {
     // Pre-populate cache with Media object before navigation
     queryClient.setQueryData<MediaDetailData>(['media-detail', recommendedMedia.stableId], {
@@ -169,7 +163,7 @@ const MediaDetailScreen = observer(() => {
 
         {/* Cast Section */}
         {peopleCatalogs && peopleCatalogs.length > 0 && (
-          <CastSection catalogs={peopleCatalogs} onPressPerson={handlePressPerson} />
+          <CastSection catalogs={peopleCatalogs} />
         )}
 
         {/* Season Selector (Series only) */}

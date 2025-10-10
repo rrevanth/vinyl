@@ -128,6 +128,21 @@ interface Translations {
     episode_number_title: string
     no_episodes: string
   }
+  person_detail: {
+    loading: string
+    error_loading: string
+    biography: string
+    no_biography: string
+    known_for: string
+    personal_info: string
+    birthdate: string
+    birthplace: string
+    department: string
+    filmography: string
+    all: string
+    movies: string
+    tv: string
+  }
   settings: {
     title: string
     appearance: {
