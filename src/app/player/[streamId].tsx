@@ -4,11 +4,11 @@ import { Stack, useLocalSearchParams, useRouter } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import { StyleSheet } from 'react-native-unistyles'
 import { useQueryClient } from '@tanstack/react-query'
-import type { Media } from '@/src/domain/entities/Media'
 import type { Stream } from '@/src/domain/entities/Stream'
 import { useService } from '@/src/infrastructure/di/useService'
 import { TOKENS } from '@/src/infrastructure/di/tokens'
 import type { GetVideoPlayerUseCase } from '@/src/domain/use-cases/player/GetVideoPlayerUseCase'
+import type { MediaDetailData } from '@/src/domain/use-cases/media/GetMediaDetailUseCase'
 import { VideoPlayerType } from '@/src/domain/entities/VideoPlayerType'
 import { ExpoVideoPlayer } from '@/src/presentation/features/player/components/ExpoVideoPlayer'
 import { RNVlcPlayer } from '@/src/presentation/features/player/components/RNVlcPlayer'
@@ -48,7 +48,9 @@ export default function PlayerScreen() {
   }, [params.streamData])
 
   // Get media from cache (should be available from useMediaStreams)
-  const media = queryClient.getQueryData<Media>(['media-detail', params.mediaStableId])
+  // Cache stores MediaDetailData objects, not raw Media objects
+  const cachedData = queryClient.getQueryData<MediaDetailData>(['media-detail', params.mediaStableId])
+  const media = cachedData?.media
 
   console.log('[PlayerScreen] Media from cache:', {
     cacheKey: params.mediaStableId,

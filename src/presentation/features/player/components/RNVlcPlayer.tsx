@@ -136,14 +136,14 @@ export const RNVlcPlayer: React.FC<RNVlcPlayerProps> = ({
     console.log('[RNVlcPlayer] Video info:', {
       duration: event.duration,
       videoSize: event.videoSize,
-      audioTracks: event.audioTracks.length,
-      textTracks: event.textTracks.length,
+      audioTracks: event.audioTracks?.length ?? 0,
+      textTracks: event.textTracks?.length ?? 0,
     })
     setIsLoaded(true)
     setDuration(event.duration)
 
     // Map VLC audio tracks to domain entities
-    const mappedAudioTracks: AudioTrack[] = event.audioTracks.map((track) => ({
+    const mappedAudioTracks: AudioTrack[] = (event.audioTracks ?? []).map((track) => ({
       id: track.id,
       name: track.name || `Track ${track.id}`,
       language: undefined, // VLC doesn't expose language in track info
@@ -152,7 +152,7 @@ export const RNVlcPlayer: React.FC<RNVlcPlayerProps> = ({
     setAudioTracks(mappedAudioTracks)
 
     // Map VLC subtitle tracks to domain entities
-    const mappedSubtitleTracks: SubtitleTrack[] = event.textTracks.map((track) => ({
+    const mappedSubtitleTracks: SubtitleTrack[] = (event.textTracks ?? []).map((track) => ({
       id: track.id,
       name: track.name || `Subtitle ${track.id}`,
       language: undefined, // VLC doesn't expose language in track info
