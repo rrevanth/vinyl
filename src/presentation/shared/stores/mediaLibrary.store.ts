@@ -1,6 +1,5 @@
 import { observable } from '@legendapp/state'
 import type { Media } from '@/src/domain/entities/Media'
-import type { Catalog } from '@/src/domain/entities/Catalog'
 import type { ContinueWatchingItem } from '@/src/domain/capabilities/IMediaContinueWatchingCapability'
 
 /**
@@ -97,12 +96,8 @@ export const mediaLibrary$ = observable({
   /** Map of media ID to watch progress */
   watchProgress: {} as Record<string, WatchProgress>,
   
-  // Catalogs for homescreen
+  // Catalogs UI state (data lives in TanStack Query cache)
   catalogs: {
-    /** All available catalogs */
-    available: [] as Catalog[],
-    /** Catalogs currently displayed on homescreen */
-    displayed: [] as Catalog[],
     /** Global loading state for catalogs */
     isLoading: false,
     /** Specific catalog IDs currently loading */
@@ -383,20 +378,6 @@ export const markMovieWatched = (mediaId: string, watched: boolean = true) => {
 // =============================================================================
 
 /**
- * Set available catalogs
- */
-export const setAvailableCatalogs = (catalogs: Catalog[]) => {
-  mediaLibrary$.catalogs.available.set(catalogs)
-}
-
-/**
- * Set displayed catalogs for homescreen
- */
-export const setDisplayedCatalogs = (catalogs: Catalog[]) => {
-  mediaLibrary$.catalogs.displayed.set(catalogs)
-}
-
-/**
  * Add catalog to loading state
  */
 export const addCatalogLoading = (catalogId: string) => {
@@ -420,14 +401,6 @@ export const removeCatalogLoading = (catalogId: string) => {
 export const isCatalogLoading = (catalogId: string): boolean => {
   const loadingIds = mediaLibrary$.catalogs.loadingCatalogIds.get()
   return loadingIds.includes(catalogId)
-}
-
-/**
- * Find catalog by ID
- */
-export const findCatalogById = (catalogId: string): Catalog | null => {
-  const catalogs = mediaLibrary$.catalogs.available.get()
-  return catalogs.find(catalog => catalog.id === catalogId) || null
 }
 
 // =============================================================================

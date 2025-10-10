@@ -8,6 +8,8 @@ import type {
 } from '@/src/domain/capabilities/IMediaWatchProgressCapability'
 import { CapabilityType } from '@/src/domain/capabilities/CapabilityType'
 import type { GetEnabledProvidersForCapabilityUseCase } from '@/src/domain/use-cases/providers/GetEnabledProvidersForCapabilityUseCase'
+import type { Result } from '@/src/domain/types/Result'
+import { ok, fail } from '@/src/domain/types/Result'
 
 /**
  * Use case for fetching watch progress for media
@@ -24,9 +26,9 @@ export class GetWatchProgressUseCase {
   /**
    * Execute the use case to get watch progress
    * @param media - The media to get watch progress for
-   * @returns Watch progress information or null if not available
+   * @returns Result containing watch progress information or null if not available
    */
-  async execute(media: Media): Promise<WatchProgress | null> {
+  async execute(media: Media): Promise<Result<WatchProgress | null>> {
     this.logger.info('Getting watch progress for media', {
       mediaId: media.stableId,
       title: media.title,
@@ -54,7 +56,7 @@ export class GetWatchProgressUseCase {
       this.logger.warn('No providers support MEDIA_WATCH_PROGRESS capability', {
         mediaId: media.stableId,
       })
-      return null
+      return ok(null, 'system', { reason: 'no_providers' })
     }
 
     // Sort capabilities by user's priority order
@@ -67,44 +69,39 @@ export class GetWatchProgressUseCase {
 
     // Try each provider in order until one succeeds - Using Result pattern
     for (const { capability, providerId } of sortedCapabilities) {
-      try {
-        const result = await capability.getProgress(media)
+      const result = await capability.getProgress(media)
 
-        if (!result.success) {
-          this.logger.warn('Failed to fetch watch progress from provider', {
-            providerId: result.providerId,
-            reason: result.reason,
-            error: result.error.message,
-            mediaId: media.stableId,
-          })
-          continue
-        }
-
-        const progress = result.data
-
-        this.logger.info('Successfully fetched watch progress', {
-          mediaId: media.stableId,
-          providerId,
-          hasProgress: !!progress,
-          mediaType: progress?.mediaType,
-        })
-
-        return progress
-      } catch (error) {
+      if (!result.success) {
         this.logger.warn('Failed to fetch watch progress from provider', {
-          providerId,
-          error: error instanceof Error ? error.message : String(error),
+          providerId: result.providerId,
+          reason: result.reason,
+          error: result.error.message,
           mediaId: media.stableId,
         })
-        // Continue to next provider
+        continue
       }
+
+      const progress = result.data
+
+      this.logger.info('Successfully fetched watch progress', {
+        mediaId: media.stableId,
+        providerId,
+        hasProgress: !!progress,
+        mediaType: progress?.mediaType,
+      })
+
+      return ok(progress, providerId, result.metadata)
     }
 
     this.logger.warn('All providers failed to fetch watch progress', {
       mediaId: media.stableId,
     })
 
-    return null
+    return fail(
+      new Error('All providers failed to fetch watch progress'),
+      'system',
+      'api_error'
+    )
   }
 
   /**

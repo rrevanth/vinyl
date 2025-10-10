@@ -20,11 +20,13 @@ export class ExternalId {
 export class StremioExternalId {
   constructor(
     public readonly addonId: string,
-    public readonly catalogId: string,
+    public readonly addonName: string, // Addon display name for provider UI
+    public readonly catalogId: string, // Actual catalog ID (e.g., 'ustv', not 'catalog')
+    public readonly catalogType: string, // Original catalog type from manifest
     public readonly mediaType: string, // Stremio's resource type: 'movie', 'series', 'anime', 'tv', 'channel', etc.
     public readonly mediaId: string,
     public readonly providerId: string, // Our internal provider ID (e.g., 'stremio:torrentio')
-    public readonly manifestUrl?: string
+    public readonly manifestUrl: string // Required for API calls
   ) {}
 
   toString(): string {
@@ -59,6 +61,8 @@ export class ExternalIds {
   public readonly trakt?: ExternalId
   public readonly tvdb?: ExternalId
   public readonly fanart?: ExternalId
+  public readonly mal?: ExternalId
+  public readonly kitsu?: ExternalId
 
   // Stremio-specific (ONLY when media originally came from Stremio catalog)
   public readonly stremio?: StremioExternalId
@@ -70,6 +74,8 @@ export class ExternalIds {
       trakt: ExternalId
       tvdb: ExternalId
       fanart: ExternalId
+      mal: ExternalId
+      kitsu: ExternalId
       stremio: StremioExternalId
     }> = {}
   ) {
@@ -78,22 +84,24 @@ export class ExternalIds {
     this.trakt = data.trakt
     this.tvdb = data.tvdb
     this.fanart = data.fanart
+    this.mal = data.mal
+    this.kitsu = data.kitsu
     this.stremio = data.stremio
   }
 
   /**
    * Get the primary external ID for this entity
-   * Priority: IMDB > TMDB > Trakt > TVDB > Stremio > Fanart
+   * Priority: IMDB > TMDB > Trakt > TVDB > Stremio > Fanart > MAL > Kitsu
    */
   getPrimaryId(): ExternalId | StremioExternalId | null {
-    return this.imdb || this.tmdb || this.trakt || this.tvdb || this.stremio || this.fanart || null
+    return this.imdb || this.tmdb || this.trakt || this.tvdb || this.stremio || this.fanart || this.mal || this.kitsu || null
   }
 
   /**
    * Check if any external IDs exist
    */
   hasAnyId(): boolean {
-    return !!(this.imdb || this.tmdb || this.trakt || this.tvdb || this.stremio || this.fanart)
+    return !!(this.imdb || this.tmdb || this.trakt || this.tvdb || this.stremio || this.fanart || this.mal || this.kitsu)
   }
 
   /**
@@ -108,6 +116,8 @@ export class ExternalIds {
     if (this.tvdb) ids.push(this.tvdb)
     if (this.stremio) ids.push(this.stremio)
     if (this.fanart) ids.push(this.fanart)
+    if (this.mal) ids.push(this.mal)
+    if (this.kitsu) ids.push(this.kitsu)
 
     return ids
   }
@@ -124,6 +134,8 @@ export class ExternalIds {
       tvdb: this.tvdb || other.tvdb,
       fanart: this.fanart || other.fanart,
       stremio: this.stremio || other.stremio,
+      mal: this.mal || other.mal,
+      kitsu: this.kitsu || other.kitsu,
     })
   }
 }
@@ -172,20 +184,42 @@ export const ExternalIdHelpers = {
   },
 
   /**
+   * Create ExternalIds from MAL ID
+   */
+  fromMal(malId: number, providerId: string = 'mal'): ExternalIds {
+    return new ExternalIds({
+      mal: new ExternalId(malId.toString(), providerId, `https://myanimelist.net/anime/${malId}`),
+    })
+  },
+
+  /**
+   * Create ExternalIds from Kitsu ID
+   */
+  fromKitsu(kitsuId: number, providerId: string = 'kitsu'): ExternalIds {
+    return new ExternalIds({
+      kitsu: new ExternalId(kitsuId.toString(), providerId, `https://kitsu.io/anime/${kitsuId}`),
+    })
+  },
+
+  /**
    * Create ExternalIds from Stremio addon info
    */
   fromStremio(
     addonId: string,
+    addonName: string,
     catalogId: string,
+    catalogType: string,
     mediaType: string,
     mediaId: string,
     providerId: string,
-    manifestUrl?: string
+    manifestUrl: string
   ): ExternalIds {
     return new ExternalIds({
       stremio: new StremioExternalId(
         addonId,
+        addonName,
         catalogId,
+        catalogType,
         mediaType,
         mediaId,
         providerId,

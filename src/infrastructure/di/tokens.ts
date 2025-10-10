@@ -6,6 +6,11 @@ export const TOKENS = {
   UserService: Symbol('UserService'),
   EnvironmentService: Symbol('EnvironmentService'),
 
+  // Repositories
+  UserPreferencesRepository: Symbol('UserPreferencesRepository'),
+  CatalogRepository: Symbol('CatalogRepository'),
+  MediaRepository: Symbol('MediaRepository'),
+
   // HTTP
   HttpClient: Symbol('HttpClient'),
   StremioHttpClient: Symbol('StremioHttpClient'),
@@ -46,6 +51,7 @@ export const TOKENS = {
   ResolveExternalIdsUseCase: Symbol('ResolveExternalIdsUseCase'),
   EnrichMediaUseCase: Symbol('EnrichMediaUseCase'),
   GetWatchProgressUseCase: Symbol('GetWatchProgressUseCase'),
+  GetMediaDetailUseCase: Symbol('GetMediaDetailUseCase'),
 
   // Provider management use cases
   GetEnabledProvidersForCapabilityUseCase: Symbol('GetEnabledProvidersForCapabilityUseCase'),

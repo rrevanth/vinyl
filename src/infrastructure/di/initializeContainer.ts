@@ -8,6 +8,7 @@ import { RefreshHomescreenUseCase } from '@/src/domain/use-cases/homescreen/Refr
 import { UpdateCatalogPreferencesUseCase } from '@/src/domain/use-cases/homescreen/UpdateCatalogPreferencesUseCase'
 import { UpdateHomescreenPreferencesUseCase } from '@/src/domain/use-cases/homescreen/UpdateHomescreenPreferencesUseCase'
 import { EnrichMediaUseCase } from '@/src/domain/use-cases/media/EnrichMediaUseCase'
+import { GetMediaDetailUseCase } from '@/src/domain/use-cases/media/GetMediaDetailUseCase'
 import { GetWatchProgressUseCase } from '@/src/domain/use-cases/media/GetWatchProgressUseCase'
 import { ResolveExternalIdsUseCase } from '@/src/domain/use-cases/media/ResolveExternalIdsUseCase'
 import { GetAllProvidersWithCapabilitiesUseCase } from '@/src/domain/use-cases/providers/GetAllProvidersWithCapabilitiesUseCase'
@@ -32,6 +33,9 @@ import { StremioAddonStorage } from '../providers/stremio/storage/StremioAddonSt
 import { StremioAddonRegistry } from '../providers/stremio/StremioAddonRegistry'
 import { TMDBProvider } from '../providers/tmdb/TMDBProvider'
 import { TraktProvider } from '../providers/trakt/TraktProvider'
+import { CatalogRepository } from '../repositories/CatalogRepository'
+import { MediaRepository } from '../repositories/MediaRepository'
+import { UserPreferencesRepository } from '../repositories/UserPreferencesRepository'
 import { EnvironmentService } from '../services/EnvironmentService'
 import { LoggingService } from '../services/LoggingService'
 import { StorageService } from '../services/StorageService'
@@ -40,11 +44,16 @@ import { UserService } from '../services/UserService'
 import { container } from './Container'
 import { TOKENS } from './tokens'
 
-export function initializeContainer(): void {
+export async function initializeContainer(): Promise<void> {
   // Register core services
   container.register(TOKENS.StorageService, () => new StorageService())
   container.register(TOKENS.LoggingService, () => new LoggingService())
   container.register(TOKENS.EnvironmentService, () => new EnvironmentService())
+
+  // Register repositories
+  container.register(TOKENS.UserPreferencesRepository, () => new UserPreferencesRepository())
+  container.register(TOKENS.CatalogRepository, () => new CatalogRepository())
+  container.register(TOKENS.MediaRepository, () => new MediaRepository())
 
   // Register services with dependencies
   const storage = container.resolve<IStorageService>(TOKENS.StorageService)
@@ -53,6 +62,9 @@ export function initializeContainer(): void {
 
   container.register(TOKENS.UserService, () => new UserService())
   const userService = container.resolve<IUserService>(TOKENS.UserService)
+
+  // Initialize user FIRST to get userId for Stremio
+  await userService.initializeUser()
 
   // Register Stremio-specific HTTP Client (no baseURL for absolute URLs)
   container.register(
@@ -117,7 +129,9 @@ export function initializeContainer(): void {
 
   // Register Stremio services
   container.register(TOKENS.StremioConfigFactory, () => new StremioConfigFactory())
-  container.register(TOKENS.StremioAddonStorage, () => new StremioAddonStorage(storage))
+
+  const userPreferencesRepo = container.resolve<UserPreferencesRepository>(TOKENS.UserPreferencesRepository)
+  container.register(TOKENS.StremioAddonStorage, () => new StremioAddonStorage(userPreferencesRepo, logger))
 
   const stremioConfigFactory = container.resolve<StremioConfigFactory>(TOKENS.StremioConfigFactory)
   const stremioHttpClient = container.resolve<HttpClient>(TOKENS.StremioHttpClient)
@@ -130,6 +144,7 @@ export function initializeContainer(): void {
         stremioConfigFactory,
         providerRegistry,
         stremioHttpClient,
+        stremioAddonStorage,
         storage,
         queryClient,
         logger
@@ -239,10 +254,33 @@ export function initializeContainer(): void {
     return new GetWatchProgressUseCase(providerRegistry, userService, logger, getEnabledProvidersUseCase)
   })
 
+  // GetMediaDetailUseCase orchestrates the three use cases above
+  container.register(TOKENS.GetMediaDetailUseCase, () => {
+    const resolveExternalIdsUseCase = container.resolve<ResolveExternalIdsUseCase>(
+      TOKENS.ResolveExternalIdsUseCase
+    )
+    const enrichMediaUseCase = container.resolve<EnrichMediaUseCase>(TOKENS.EnrichMediaUseCase)
+    const getWatchProgressUseCase = container.resolve<GetWatchProgressUseCase>(
+      TOKENS.GetWatchProgressUseCase
+    )
+    return new GetMediaDetailUseCase(
+      resolveExternalIdsUseCase,
+      enrichMediaUseCase,
+      getWatchProgressUseCase,
+      logger
+    )
+  })
+
   // Mark container and providers initialization complete
   markStepComplete('container', 'DI container ready')
   markStepComplete('providers', 'Providers registered')
-}
 
-// Auto-initialize on import (optional, can call manually in _layout.tsx)
-initializeContainer()
+  // Initialize Stremio addon system asynchronously
+  const currentUser = userService.getCurrentUser()
+  const stremioInitService = container.resolve<StremioInitializationService>(
+    TOKENS.StremioInitializationService
+  )
+  await stremioInitService.initialize(currentUser.id)
+
+  logger.info('Container initialization complete', { userId: currentUser.id })
+}

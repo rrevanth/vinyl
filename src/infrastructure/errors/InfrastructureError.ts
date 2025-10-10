@@ -1,4 +1,10 @@
-// Base error for infrastructure layer failures
+/**
+ * Base error for infrastructure layer failures
+ * All infrastructure errors should extend from this class
+ *
+ * @example
+ * throw new InfrastructureError('Database connection failed', dbError)
+ */
 export class InfrastructureError extends Error {
   constructor(
     message: string,

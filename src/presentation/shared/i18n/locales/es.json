@@ -42,6 +42,24 @@
   "library": {
     "title": "Biblioteca"
   },
+  "media": {
+    "video": {
+      "play": "Reproducir video",
+      "play_hint": "Toca para ver este video"
+    },
+    "cast": {
+      "as": "como",
+      "view_details_hint": "Toca para ver detalles del actor"
+    },
+    "actions": {
+      "play": "Reproducir",
+      "play_hint": "Comenzar a ver este contenido",
+      "add_to_library": "Agregar a Biblioteca",
+      "add_to_library_hint": "Guardar esto en tu biblioteca",
+      "share": "Compartir",
+      "share_hint": "Compartir esto con otros"
+    }
+  },
   "media_detail": {
     "loading": "Cargando...",
     "error_loading": "Error al cargar detalles del contenido",
@@ -54,9 +72,13 @@
     "release_date": "Estreno",
     "genres": "Géneros",
     "cast": "Reparto",
+    "trailers": "Tráilers",
+    "more_like_this": "Más como esto",
+    "see_all": "Ver todo",
     "seasons": "Temporadas",
     "episodes": "Episodios",
     "season": "Temporada {number}",
+    "season_short": "T{number}",
     "episode": "Episodio {number}",
     "episode_title": "T{season}E{episode} - {title}",
     "watch_progress": "Reanudar",
@@ -102,7 +124,10 @@
     "not_watched": "No visto",
     "plays": "{count} reproducciones",
     "last_watched": "Visto por última vez {date}",
-    "progress_percent": "{percent}% completado"
+    "progress_percent": "{percent}% completado",
+    "episode_badge": "E{number}",
+    "episode_number_title": "Temporada {season} Episodio {episode}: {title}",
+    "no_episodes": "No hay episodios disponibles"
   },
   "provider_priorities": {
     "title": "Prioridades de proveedores",

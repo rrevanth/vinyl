@@ -1,38 +1,50 @@
-import { EpisodeList } from '@/src/presentation/features/media/components/EpisodeList'
+import { EpisodeCarousel } from '@/src/presentation/features/media/components/EpisodeCarousel'
 import { MetadataSection } from '@/src/presentation/features/media/components/MetadataSection'
 import { ParallaxHero } from '@/src/presentation/features/media/components/ParallaxHero'
 import { SeasonSelector } from '@/src/presentation/features/media/components/SeasonSelector'
+import { ActionButtonRow } from '@/src/presentation/features/media/components/molecules/ActionButtonRow'
+import { VideosSection } from '@/src/presentation/features/media/components/organisms/VideosSection'
+import { CastSection } from '@/src/presentation/features/media/components/organisms/CastSection'
+import { RecommendationsSection } from '@/src/presentation/features/media/components/organisms/RecommendationsSection'
 import { useMediaDetail } from '@/src/presentation/features/media/hooks/useMediaDetail'
-import {
-  clearMediaDetail,
-  mediaDetail$,
-} from '@/src/presentation/features/media/stores/mediaDetail.store'
 import { t } from '@/src/presentation/shared/i18n'
 import { observer } from '@legendapp/state/react'
 import { Stack, router, useLocalSearchParams } from 'expo-router'
-import { useEffect, useMemo } from 'react'
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native'
+import { useCallback, useMemo } from 'react'
+import { ActivityIndicator, Pressable, Text, View } from 'react-native'
+import Animated, { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated'
 import { StyleSheet, useUnistyles } from 'react-native-unistyles'
+import type { MediaVideo } from '@/src/domain/capabilities/IMediaVideosCapability'
+import type { Person } from '@/src/domain/entities/Person'
+import type { Media } from '@/src/domain/entities/Media'
+import { useQueryClient } from '@tanstack/react-query'
+import type { MediaDetailData } from '@/src/domain/use-cases/media/GetMediaDetailUseCase'
 
 /**
  * Media Detail Screen
  * Dynamic route: /media/[stableId]
- * Gets Media object from store (set by navigation from CatalogRow)
+ *
+ * Pattern:
+ * - Get stableId from route params
+ * - TanStack Query cache holds all data keyed by stableId
+ * - Pre-populate cache before navigation for instant loads
+ * - Back navigation works because each stableId has separate cache entry
  *
  * Features:
- * - Parallax hero with gradient overlay
- * - Progressive data loading (IDs → Metadata → Progress → Seasons)
- * - Season selector for series
- * - Episode list with watch progress
+ * - Parallax hero with gradient overlay and backdrop
+ * - Comprehensive data loading via GetMediaDetailUseCase
+ * - Action buttons (Play, Add to Watchlist, etc.)
+ * - Enhanced metadata with ratings, runtime, genres
+ * - Videos section (trailers, clips, behind-the-scenes)
+ * - Cast section with people catalogs
+ * - Season selector and episode list (series only)
+ * - Recommendations section with related media
  */
 const MediaDetailScreen = observer(() => {
   // Get route parameters
   const { stableId: encodedStableId } = useLocalSearchParams<{ stableId: string }>()
-  const stableId = encodedStableId ? decodeURIComponent(encodedStableId) : null
-
-  // Get Media object from store (set before navigation)
-  const media = mediaDetail$.media.get()
-  const catalogItem = mediaDetail$.catalogItem.get()
+  const stableId = encodedStableId ? decodeURIComponent(encodedStableId) : ''
+  const queryClient = useQueryClient()
   const { theme } = useUnistyles()
 
   const headerOptions = useMemo(
@@ -47,29 +59,56 @@ const MediaDetailScreen = observer(() => {
     [theme.colors.text]
   )
 
-  console.log('[MediaDetailScreen] Component rendered', {
-    encodedStableId,
-    stableId,
-    hasMedia: !!media,
-    mediaStableId: media?.stableId,
-    mediaTitle: media?.title,
-    stableIdMatch: media?.stableId === stableId,
-    hasCatalogItem: !!catalogItem,
-    catalogItemStableId: catalogItem?.stableId,
+  // Get all data from TanStack Query cache
+  const { data, media, isLoading, error } = useMediaDetail(stableId)
+
+  // Shared value for scroll position to drive parallax animations
+  const scrollY = useSharedValue(0)
+
+  // Animated scroll handler for smooth 60fps parallax
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollY.value = event.contentOffset.y
+    },
   })
 
-  // Clear store on unmount
-  useEffect(() => {
-    console.log('[MediaDetailScreen] Component mounted')
-    return () => {
-      console.log('[MediaDetailScreen] Component unmounting, clearing store')
-      clearMediaDetail()
-    }
+  // Extract enriched data from use case response
+  const enrichedData = data?.enrichedMedia
+  const videos = data?.videos
+  const peopleCatalogs = data?.peopleCatalogs
+  const seasons = data?.seasons
+  const recommendationCatalogs = data?.recommendationCatalogs
+  const watchProgress = data?.watchProgress
+
+  // Event handlers
+  const handlePlay = useCallback(() => {
+    // TODO: Implement play functionality
+    console.log('Play pressed', media?.stableId)
+  }, [media?.stableId])
+
+  const handlePressVideo = useCallback((video: MediaVideo) => {
+    // TODO: Open video player
+    console.log('Video pressed', video.id)
   }, [])
 
-  // Progressive loading hook
-  const { enrichedData, watchProgress, seasons, isLoading, isLoadingSeasons, error } =
-    useMediaDetail(media!)
+  const handlePressPerson = useCallback((person: Person) => {
+    // Navigate to person detail (future)
+    console.log('Person pressed', person.stableId, person.name)
+  }, [])
+
+  const handlePressRecommendation = useCallback((recommendedMedia: Media) => {
+    // Pre-populate cache with Media object before navigation
+    queryClient.setQueryData<MediaDetailData>(['media-detail', recommendedMedia.stableId], {
+      media: recommendedMedia,
+      externalIds: recommendedMedia.externalIds,
+      // Other fields will be fetched by use case
+      providersUsed: {},
+      errors: {},
+    })
+
+    // Navigate to new media detail
+    router.push(`/media/${encodeURIComponent(recommendedMedia.stableId)}`)
+  }, [queryClient])
 
   // Loading state
   if (!media || isLoading) {
@@ -106,38 +145,65 @@ const MediaDetailScreen = observer(() => {
       {/* Configure Stack Screen */}
       <Stack.Screen options={headerOptions} />
 
-      {/* Scrollable Content */}
-      <ScrollView
+      {/* Scrollable Content with Animated Scroll Handler */}
+      <Animated.ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        onScroll={scrollHandler}
+        scrollEventThrottle={16}
       >
-        {/* Parallax Hero */}
-        <ParallaxHero media={media} height={500} />
+        {/* Parallax Hero with Backdrop and Cinematic Zoom-out */}
+        <ParallaxHero media={media} height={500} scrollY={scrollY} />
 
-        {/* Metadata Section */}
+        {/* Action Buttons */}
+        <ActionButtonRow media={media} onPlay={handlePlay} />
+
+        {/* Enhanced Metadata Section */}
         {enrichedData && <MetadataSection enrichedData={enrichedData} />}
+
+        {/* Videos Section (Trailers, Clips, etc.) */}
+        {videos && videos.length > 0 && (
+          <VideosSection videos={videos} onPressVideo={handlePressVideo} />
+        )}
+
+        {/* Cast Section */}
+        {peopleCatalogs && peopleCatalogs.length > 0 && (
+          <CastSection catalogs={peopleCatalogs} onPressPerson={handlePressPerson} />
+        )}
 
         {/* Season Selector (Series only) */}
         {media.isSeries() && seasons && seasons.length > 0 && <SeasonSelector seasons={seasons} />}
 
-        {/* Episode List (Series only) */}
+        {/* Episode Carousel (Series only) */}
         {media.isSeries() && seasons && seasons.length > 0 && (
           <>
-            {isLoadingSeasons ? (
+            {isLoading ? (
               <View style={styles.episodesLoadingContainer}>
                 <ActivityIndicator size="small" color={styles.primaryColor.color} />
                 <Text style={styles.loadingText}>{t('media_detail.loading')}</Text>
               </View>
             ) : (
-              <EpisodeList seasons={seasons} watchProgress={watchProgress?.series} />
+              <EpisodeCarousel
+                seasons={seasons}
+                watchProgress={watchProgress?.series}
+                onPressEpisode={() => {}}
+              />
             )}
           </>
         )}
 
+        {/* Recommendations Section */}
+        {recommendationCatalogs && recommendationCatalogs.length > 0 && (
+          <RecommendationsSection
+            catalogs={recommendationCatalogs}
+            onPressMedia={handlePressRecommendation}
+          />
+        )}
+
         {/* Bottom Spacing */}
         <View style={styles.bottomSpacer} />
-      </ScrollView>
+      </Animated.ScrollView>
     </View>
   )
 })

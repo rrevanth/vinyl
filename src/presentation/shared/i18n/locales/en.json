@@ -42,6 +42,24 @@
   "library": {
     "title": "Library"
   },
+  "media": {
+    "video": {
+      "play": "Play video",
+      "play_hint": "Tap to watch this video"
+    },
+    "cast": {
+      "as": "as",
+      "view_details_hint": "Tap to view actor details"
+    },
+    "actions": {
+      "play": "Play",
+      "play_hint": "Start watching this content",
+      "add_to_library": "Add to Library",
+      "add_to_library_hint": "Save this to your library",
+      "share": "Share",
+      "share_hint": "Share this with others"
+    }
+  },
   "media_detail": {
     "loading": "Loading...",
     "error_loading": "Failed to load media details",
@@ -54,9 +72,13 @@
     "release_date": "Released",
     "genres": "Genres",
     "cast": "Cast",
+    "trailers": "Trailers",
+    "more_like_this": "More Like This",
+    "see_all": "See All",
     "seasons": "Seasons",
     "episodes": "Episodes",
     "season": "Season {number}",
+    "season_short": "S{number}",
     "episode": "Episode {number}",
     "episode_title": "S{season}E{episode} - {title}",
     "watch_progress": "Resume",
@@ -102,7 +124,10 @@
     "not_watched": "Not Watched",
     "plays": "{count} plays",
     "last_watched": "Last watched {date}",
-    "progress_percent": "{percent}% complete"
+    "progress_percent": "{percent}% complete",
+    "episode_badge": "E{number}",
+    "episode_number_title": "Season {season} Episode {episode}: {title}",
+    "no_episodes": "No episodes available"
   },
   "provider_priorities": {
     "title": "Provider Priorities",

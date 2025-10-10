@@ -1,0 +1,1 @@
+export { StremioCapabilityFactory } from './StremioCapabilityFactory'

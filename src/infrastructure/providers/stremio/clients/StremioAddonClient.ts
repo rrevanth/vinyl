@@ -1,5 +1,7 @@
 import { HttpClient } from '../../../http/HttpClient'
 import { InfrastructureError } from '../../../errors/InfrastructureError'
+import { StremioUrlHelper } from '../utils/StremioUrlHelper'
+import type { ILoggingService } from '@/src/domain/services/ILoggingService'
 import type {
   StremioManifest,
   StremioTransportUrl,
@@ -13,19 +15,23 @@ import type {
 /**
  * HTTP client for Stremio addon API endpoints
  * Uses HttpClient with empty baseURL for absolute URL support
+ *
+ * Automatically upgrades HTTP URLs to HTTPS for iOS App Transport Security compliance.
  */
 export class StremioAddonClient {
   private readonly baseUrl: string
 
   constructor(
-    private readonly transportUrl: StremioTransportUrl,
-    private readonly httpClient: HttpClient
+    private transportUrl: StremioTransportUrl,
+    private readonly httpClient: HttpClient,
+    private readonly logger?: ILoggingService
   ) {
-    // transportUrl is the full manifest URL (e.g., https://example.com/manifest.json)
+    // Auto-upgrade HTTP → HTTPS for iOS App Transport Security
+    const upgradedUrl = StremioUrlHelper.upgradeToHttps(transportUrl, logger)
+    this.transportUrl = upgradedUrl as StremioTransportUrl
+
     // Derive base URL by removing /manifest.json
-    this.baseUrl = transportUrl.endsWith('/manifest.json')
-      ? transportUrl.replace('/manifest.json', '')
-      : transportUrl
+    this.baseUrl = StremioUrlHelper.extractBaseUrl(upgradedUrl)
   }
 
   /**
@@ -54,7 +60,18 @@ export class StremioAddonClient {
   ): Promise<StremioCatalogResponse> {
     try {
       const url = this.buildUrl('catalog', type, id, extra)
+      this.logger?.info('🌐 STREMIO CATALOG API CALL', {
+        transportUrl: this.transportUrl,
+        type,
+        id,
+        extra,
+        constructedUrl: url,
+      })
       const response = await this.httpClient.get<StremioCatalogResponse>(url)
+      this.logger?.info('📦 STREMIO CATALOG API RESPONSE', {
+        url,
+        metasCount: response.metas?.length ?? 0,
+      })
       return response
     } catch (error) {
       throw new InfrastructureError(
@@ -186,7 +203,7 @@ export class StremioAddonClient {
       Object.entries(extra).forEach(([key, value]) => {
         params.append(key, value)
       })
-      url += `.json?${params.toString()}`
+      url += `/${params.toString()}.json`
     } else {
       url += '.json'
     }

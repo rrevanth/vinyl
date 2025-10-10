@@ -1,17 +1,16 @@
-import type { Catalog, CatalogItem } from '@/src/domain/entities/Catalog'
-import type { Media } from '@/src/domain/entities/Media'
-import { setCatalogItem } from '@/src/presentation/features/media/stores/mediaDetail.store'
-import { t } from '@/src/presentation/shared/i18n'
-import { mediaLibrary$ } from '@/src/presentation/shared/stores/mediaLibrary.store'
-import { LegendList } from '@legendapp/list'
-import { useSelector } from '@legendapp/state/react'
-import { router } from 'expo-router'
 import type { FC } from 'react'
-import { memo, useCallback, useEffect, useState } from 'react'
+import { memo, useMemo, useCallback, useState } from 'react'
 import { ActivityIndicator, Pressable, Text, View } from 'react-native'
 import { StyleSheet } from 'react-native-unistyles'
+import type { Catalog, CatalogItem } from '@/src/domain/entities/Catalog'
+import type { Media } from '@/src/domain/entities/Media'
+import { t } from '@/src/presentation/shared/i18n'
+import { LegendList } from '@legendapp/list'
+import { router } from 'expo-router'
 import { useInfiniteCatalogItemsQuery } from '../queries/useInfiniteCatalogItemsQuery'
 import { MediaPosterCard } from './MediaPosterCard'
+import { useQueryClient } from '@tanstack/react-query'
+import type { MediaDetailData } from '@/src/domain/use-cases/media/GetMediaDetailUseCase'
 
 interface CatalogRowProps {
   readonly catalog: Catalog
@@ -20,16 +19,17 @@ interface CatalogRowProps {
 
 const CatalogRowComponent: FC<CatalogRowProps> = ({ catalog, onPressItem: onPressItemProp }) => {
   const [isLoadingMore, setIsLoadingMore] = useState(false)
+  const queryClient = useQueryClient()
 
-  // Get the latest catalog from the store to ensure we have the most up-to-date data
-  const latestCatalog = useSelector(() => {
-    const displayedCatalogs = mediaLibrary$.catalogs.displayed.get()
-    return displayedCatalogs.find(c => c.stableId === catalog.stableId) ?? catalog
-  })
+  // Use infinite query hook for pagination (TanStack Query as single source of truth)
+  const infiniteQuery = useInfiniteCatalogItemsQuery(catalog)
 
-  // Use infinite query hook for pagination with the latest catalog
-  // Force re-initialization when catalog changes by using a key
-  const infiniteQuery = useInfiniteCatalogItemsQuery(latestCatalog)
+  // Get the latest catalog from query pages (last page has accumulated items)
+  const latestCatalog = useMemo(() => {
+    const pages = infiniteQuery.data?.pages
+    if (!pages || pages.length === 0) return catalog
+    return pages[pages.length - 1]
+  }, [infiniteQuery.data?.pages, catalog])
 
   // Get provider name from addon name if available, otherwise use providerId
   const providerName = latestCatalog.sourceInfo?.addonName || latestCatalog.providerId.toUpperCase()
@@ -37,7 +37,7 @@ const CatalogRowComponent: FC<CatalogRowProps> = ({ catalog, onPressItem: onPres
   // Format display name: "Provider - Catalog Name"
   const displayName = `${providerName} - ${latestCatalog.name}`
 
-  // Default navigation handler - store catalog item before navigating
+  // Default navigation handler - pre-populate cache before navigating
   const handlePressItem = useCallback(
     (item: CatalogItem) => {
       const media = item.media
@@ -62,12 +62,18 @@ const CatalogRowComponent: FC<CatalogRowProps> = ({ catalog, onPressItem: onPres
         return
       }
 
-      console.log('[CatalogRow] Storing catalog item in store and navigating')
+      console.log('[CatalogRow] Pre-populating cache and navigating')
 
       try {
-        // Store catalog item before navigation so detail screen has full context
-        setCatalogItem(item)
-        console.log('[CatalogRow] Catalog item stored in store successfully')
+        // Pre-populate TanStack Query cache with Media object before navigation
+        queryClient.setQueryData<MediaDetailData>(['media-detail', media.stableId], {
+          media,
+          externalIds: media.externalIds,
+          // Other fields will be fetched by use case
+          providersUsed: {},
+          errors: {},
+        })
+        console.log('[CatalogRow] Media cached successfully')
 
         // Navigate with stableId only (Expo Router params only support primitives)
         // Encode the stableId to handle special characters like colons
@@ -83,12 +89,13 @@ const CatalogRowComponent: FC<CatalogRowProps> = ({ catalog, onPressItem: onPres
         console.error('[CatalogRow] Navigation failed:', error)
       }
     },
-    [latestCatalog.stableId, onPressItemProp]
+    [latestCatalog.stableId, onPressItemProp, queryClient]
   )
 
-  // Always use the latest catalog from the store to ensure we have the most up-to-date data
-  // The infinite query is used for triggering loadMore, but the store has the accumulated data
-  const catalogItems = latestCatalog.items.filter(item => !!item.media)
+  // Get catalog items with media from latest catalog (directly from query, no store)
+  const catalogItems = useMemo(() => {
+    return latestCatalog.items.filter(item => !!item.media)
+  }, [latestCatalog.items])
 
   // Debug logging for catalog items
   console.log('[CatalogRow] Rendering catalog items', {
@@ -101,7 +108,7 @@ const CatalogRowComponent: FC<CatalogRowProps> = ({ catalog, onPressItem: onPres
       itemCount: page.items.length,
       canLoadMore: page.canLoadMore()
     })),
-    usingStoreData: true
+    usingQueryData: true,
   })
 
   // Handle end reached for infinite scroll
@@ -135,30 +142,6 @@ const CatalogRowComponent: FC<CatalogRowProps> = ({ catalog, onPressItem: onPres
       setIsLoadingMore(false)
     }
   }, [latestCatalog, isLoadingMore, infiniteQuery])
-
-  // Update store when new data arrives
-  useEffect(() => {
-    if (infiniteQuery.data?.pages) {
-      const latestPage = infiniteQuery.data.pages[infiniteQuery.data.pages.length - 1]
-      if (latestPage && latestPage.stableId === latestCatalog.stableId) {
-        // Update the catalog in the displayed store
-        const displayedCatalogs = mediaLibrary$.catalogs.displayed.get()
-        const catalogIndex = displayedCatalogs.findIndex(c => c.stableId === latestCatalog.stableId)
-
-        if (catalogIndex !== -1) {
-          const updatedCatalogs = [...displayedCatalogs]
-          updatedCatalogs[catalogIndex] = latestPage
-          mediaLibrary$.catalogs.displayed.set(updatedCatalogs)
-          
-          console.log('[CatalogRow] Updated store with new catalog data', {
-            catalogId: latestPage.stableId,
-            itemCount: latestPage.getItemCount(),
-            canLoadMore: latestPage.canLoadMore(),
-          })
-        }
-      }
-    }
-  }, [infiniteQuery.data, latestCatalog.stableId])
 
   if (catalogItems.length === 0) {
     return null

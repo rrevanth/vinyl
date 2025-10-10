@@ -5,8 +5,8 @@
  * Development: Formatted console output
  * Production: Error tracking via Sentry
  */
-import * as Sentry from '@sentry/react-native'
 import { ILoggingService } from '@/src/domain/services/ILoggingService'
+import * as Sentry from '@sentry/react-native'
 
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error'
 

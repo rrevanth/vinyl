@@ -1,6 +1,7 @@
 import { Media, MediaImages } from '../../../domain/entities/Media'
-import { ExternalIds, ExternalIdHelpers } from '../../../domain/entities/ExternalIds'
+import { ExternalIds, StremioExternalId } from '../../../domain/entities/ExternalIds'
 import type { StremioMetaPreview, StremioMeta } from '../../providers/stremio/types/responses'
+import { StremioExternalIdParser } from '../../providers/stremio/utils/StremioExternalIdParser'
 
 /**
  * Mapper for converting Stremio meta objects to domain Media entities
@@ -9,8 +10,34 @@ export class StremioMediaMapper {
   /**
    * Convert Stremio meta preview to Media entity (for catalog responses)
    */
-  static fromMetaPreview(stremioMeta: StremioMetaPreview, addonId: string): Media {
-    const externalIds = this.createExternalIds(stremioMeta.id, addonId)
+  static fromMetaPreview(
+    stremioMeta: StremioMetaPreview,
+    addonId: string,
+    addonName: string,
+    catalogId: string,
+    catalogType: string,
+    manifestUrl: string
+  ): Media {
+    // Create StremioExternalId with complete context
+    const stremioId = new StremioExternalId(
+      addonId,
+      addonName,
+      catalogId,
+      catalogType,
+      stremioMeta.type, // Original Stremio type preserved
+      stremioMeta.id,
+      `stremio:${addonId}`,
+      manifestUrl
+    )
+
+    // Parse external IDs from Stremio ID
+    const parsedIds = StremioExternalIdParser.parseExternalIds(stremioMeta.id, addonId)
+
+    // Merge parsed IDs with Stremio ID
+    let externalIds = new ExternalIds({ ...parsedIds, stremio: stremioId })
+
+    // Normalize type for Media entity
+    const normalizedType = this.normalizeType(stremioMeta.type)
     const year = this.extractYear(stremioMeta.releaseInfo)
 
     const images = new MediaImages({
@@ -20,7 +47,7 @@ export class StremioMediaMapper {
 
     return new Media({
       externalIds,
-      type: stremioMeta.type as 'movie' | 'series',
+      type: normalizedType,
       title: stremioMeta.name,
       year,
       images,
@@ -30,8 +57,34 @@ export class StremioMediaMapper {
   /**
    * Convert full Stremio meta to enriched Media entity (for meta responses)
    */
-  static fromMeta(stremioMeta: StremioMeta, addonId: string): Media {
-    const externalIds = this.createExternalIds(stremioMeta.id, addonId)
+  static fromMeta(
+    stremioMeta: StremioMeta,
+    addonId: string,
+    addonName: string,
+    catalogId: string,
+    catalogType: string,
+    manifestUrl: string
+  ): Media {
+    // Create StremioExternalId with complete context
+    const stremioId = new StremioExternalId(
+      addonId,
+      addonName,
+      catalogId,
+      catalogType,
+      stremioMeta.type, // Original Stremio type preserved
+      stremioMeta.id,
+      `stremio:${addonId}`,
+      manifestUrl
+    )
+
+    // Parse external IDs from Stremio ID
+    const parsedIds = StremioExternalIdParser.parseExternalIds(stremioMeta.id, addonId)
+
+    // Merge parsed IDs with Stremio ID
+    let externalIds = new ExternalIds({ ...parsedIds, stremio: stremioId })
+
+    // Normalize type for Media entity
+    const normalizedType = this.normalizeType(stremioMeta.type)
     const year = this.extractYear(stremioMeta.released || stremioMeta.releaseInfo)
 
     const images = new MediaImages({
@@ -44,7 +97,7 @@ export class StremioMediaMapper {
 
     return new Media({
       externalIds,
-      type: stremioMeta.type as 'movie' | 'series',
+      type: normalizedType,
       title: stremioMeta.name,
       year,
       images,
@@ -54,28 +107,35 @@ export class StremioMediaMapper {
   /**
    * Convert array of Stremio meta previews to Media entities
    */
-  static fromMetaPreviewArray(stremioMetas: StremioMetaPreview[], addonId: string): Media[] {
-    return stremioMetas.map((meta) => this.fromMetaPreview(meta, addonId))
+  static fromMetaPreviewArray(
+    stremioMetas: StremioMetaPreview[],
+    addonId: string,
+    addonName: string,
+    catalogId: string,
+    catalogType: string,
+    manifestUrl: string
+  ): Media[] {
+    return stremioMetas.map((meta) =>
+      this.fromMetaPreview(meta, addonId, addonName, catalogId, catalogType, manifestUrl)
+    )
   }
 
   /**
-   * Create ExternalIds from Stremio meta ID
-   * Prioritizes IMDB ID if detected, falls back to Stremio-specific ID
+   * Normalize Stremio type to Media type
    */
-  private static createExternalIds(stremioId: string, addonId: string): ExternalIds {
-    // Check if it's an IMDB ID
-    if (stremioId.startsWith('tt')) {
-      return ExternalIdHelpers.fromImdb(stremioId)
+  private static normalizeType(stremioType: string): 'movie' | 'series' {
+    const lower = stremioType.toLowerCase()
+
+    if (['movie', 'movies', 'film', 'cinema'].includes(lower)) {
+      return 'movie'
     }
 
-    // Otherwise create Stremio-specific external ID
-    return ExternalIdHelpers.fromStremio(
-      addonId,
-      'catalog', // Default catalog name
-      'movie', // Default type, will be corrected by actual type
-      stremioId,
-      `stremio:${addonId}`
-    )
+    if (['series', 'show', 'shows', 'tv', 'channel', 'channels', 'anime'].includes(lower)) {
+      return 'series'
+    }
+
+    // Default fallback
+    return 'movie'
   }
 
   /**

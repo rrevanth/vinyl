@@ -4,7 +4,7 @@ import { ObservablePersistAsyncStorage } from '@legendapp/state/persist-plugins/
 import { Appearance } from 'react-native'
 import { UnistylesRuntime } from 'react-native-unistyles'
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import type { User } from '../../../domain/entities'
+import type { User, Catalog, Media } from '../../../domain/entities'
 import {
   createDefaultUserPreferences,
   addUserHelpers,
@@ -71,6 +71,22 @@ export const userPreferences$ = persistObservable(createDefaultUserPreferences, 
   pluginLocal: ObservablePersistAsyncStorage,
   local: {
     name: 'userPreferences',
+  },
+})
+
+// Catalog cache (for homescreen and browse)
+export const catalogCache$ = persistObservable<Catalog[]>([], {
+  pluginLocal: ObservablePersistAsyncStorage,
+  local: {
+    name: 'catalogCache',
+  },
+})
+
+// Media cache (for quick access to media details)
+export const mediaCache$ = persistObservable<Record<string, Media>>({}, {
+  pluginLocal: ObservablePersistAsyncStorage,
+  local: {
+    name: 'mediaCache',
   },
 })
 

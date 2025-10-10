@@ -41,6 +41,93 @@ interface Translations {
   library: {
     title: string
   }
+  media: {
+    video: {
+      play: string
+      play_hint: string
+    }
+    cast: {
+      as: string
+      view_details_hint: string
+    }
+    actions: {
+      play: string
+      play_hint: string
+      add_to_library: string
+      add_to_library_hint: string
+      share: string
+      share_hint: string
+    }
+  }
+  media_detail: {
+    loading: string
+    error_loading: string
+    retry: string
+    synopsis: string
+    no_synopsis: string
+    rating: string
+    runtime: string
+    runtime_minutes: string
+    release_date: string
+    genres: string
+    cast: string
+    trailers: string
+    more_like_this: string
+    see_all: string
+    seasons: string
+    episodes: string
+    season: string
+    season_short: string
+    episode: string
+    episode_title: string
+    watch_progress: string
+    continue_watching: string
+    mark_as_watched: string
+    mark_as_unwatched: string
+    watch_now: string
+    play: string
+    trailer: string
+    overview: string
+    details: string
+    year: string
+    status: string
+    production_companies: string
+    original_title: string
+    original_language: string
+    budget: string
+    revenue: string
+    homepage: string
+    adult_content: string
+    certification: string
+    vote_average: string
+    vote_count: string
+    popularity: string
+    tagline: string
+    keywords: string
+    collection: string
+    networks: string
+    first_air_date: string
+    last_air_date: string
+    next_episode: string
+    last_episode: string
+    in_production: string
+    number_of_seasons: string
+    number_of_episodes: string
+    episode_count: string
+    season_overview: string
+    episode_overview: string
+    air_date: string
+    still_image: string
+    episode_runtime: string
+    watched: string
+    not_watched: string
+    plays: string
+    last_watched: string
+    progress_percent: string
+    episode_badge: string
+    episode_number_title: string
+    no_episodes: string
+  }
   settings: {
     title: string
     appearance: {

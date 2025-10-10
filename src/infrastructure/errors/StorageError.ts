@@ -1,6 +1,12 @@
-// Error for storage operation failures
 import { InfrastructureError } from './InfrastructureError'
 
+/**
+ * Error for storage operation failures
+ * Captures operation type and key for debugging
+ *
+ * @example
+ * throw new StorageError('Failed to read user data', 'read', 'user:123', ioError)
+ */
 export class StorageError extends InfrastructureError {
   constructor(
     message: string,

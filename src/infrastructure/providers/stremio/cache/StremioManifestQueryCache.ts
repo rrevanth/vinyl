@@ -163,7 +163,8 @@ export class StremioManifestQueryCache {
   private async fetchManifest(transportUrl: StremioTransportUrl): Promise<CachedManifest> {
     this.logger.debug(`Fetching fresh manifest from ${transportUrl}`)
 
-    const addonClient = new StremioAddonClient(transportUrl, this.httpClient)
+    // Pass logger for HTTP→HTTPS upgrade tracking
+    const addonClient = new StremioAddonClient(transportUrl, this.httpClient, this.logger)
     const manifest = await addonClient.getManifest()
 
     const cachedManifest: CachedManifest = {

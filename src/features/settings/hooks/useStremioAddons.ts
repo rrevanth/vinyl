@@ -108,8 +108,7 @@ export const useStremioAddons = () => {
           throw new Error(result.error || 'Failed to install addon')
         }
 
-        // Reload installed addons
-        await loadInstalledAddons()
+        // Global invalidation will refresh data automatically
 
         logger.info('Addon installed successfully', { userId: currentUser.id, manifestUrl })
       } catch (error) {
@@ -121,7 +120,7 @@ export const useStremioAddons = () => {
         stremioAddons$.isLoading.set(false)
       }
     },
-    [addonsUseCase, currentUser.id, logger, loadInstalledAddons]
+    [addonsUseCase, currentUser.id, logger]
   )
 
   /**
@@ -141,8 +140,7 @@ export const useStremioAddons = () => {
           throw new Error(result.error || 'Failed to uninstall addon')
         }
 
-        // Reload installed addons
-        await loadInstalledAddons()
+        // Global invalidation will refresh data automatically
 
         logger.info('Addon uninstalled successfully', { userId: currentUser.id, addonId })
       } catch (error) {
@@ -154,7 +152,7 @@ export const useStremioAddons = () => {
         stremioAddons$.isLoading.set(false)
       }
     },
-    [addonsUseCase, currentUser.id, logger, loadInstalledAddons]
+    [addonsUseCase, currentUser.id, logger]
   )
 
   /**
@@ -174,8 +172,7 @@ export const useStremioAddons = () => {
           throw new Error(result.error || 'Failed to toggle addon')
         }
 
-        // Reload installed addons
-        await loadInstalledAddons()
+        // Global invalidation will refresh data automatically
 
         logger.info('Addon toggled successfully', { userId: currentUser.id, addonId, isEnabled })
       } catch (error) {
@@ -187,7 +184,7 @@ export const useStremioAddons = () => {
         stremioAddons$.isLoading.set(false)
       }
     },
-    [addonsUseCase, currentUser.id, logger, loadInstalledAddons]
+    [addonsUseCase, currentUser.id, logger]
   )
 
   /**
@@ -207,8 +204,7 @@ export const useStremioAddons = () => {
           throw new Error(result.error || 'Failed to refresh addon')
         }
 
-        // Reload installed addons
-        await loadInstalledAddons()
+        // Global invalidation will refresh data automatically
 
         logger.info('Addon refreshed successfully', { userId: currentUser.id, addonId })
       } catch (error) {
@@ -220,7 +216,7 @@ export const useStremioAddons = () => {
         stremioAddons$.isLoading.set(false)
       }
     },
-    [addonsUseCase, currentUser.id, logger, loadInstalledAddons]
+    [addonsUseCase, currentUser.id, logger]
   )
 
   /**

@@ -234,7 +234,7 @@ const styles = StyleSheet.create((theme) => ({
     borderRadius: theme.borderRadius.md,
     padding: theme.spacing.md,
     marginBottom: theme.spacing.sm,
-    shadowColor: '#000',
+    shadowColor: theme.colors.overlay,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -320,6 +320,7 @@ const styles = StyleSheet.create((theme) => ({
     alignItems: 'center',
     paddingHorizontal: theme.spacing.xl,
     gap: theme.spacing.md,
+    backgroundColor: theme.colors.background,
   },
   iconColor: {
     color: theme.colors.textSecondary,

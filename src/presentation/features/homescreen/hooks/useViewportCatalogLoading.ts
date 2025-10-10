@@ -2,7 +2,6 @@ import type { GetHomescreenDataUseCase } from '@/src/domain/use-cases/homescreen
 import { TOKENS } from '@/src/infrastructure/di/tokens'
 import { useService } from '@/src/infrastructure/di/useService'
 import { userPreferences$ } from '@/src/presentation/shared/stores/app.store'
-import { mediaLibrary$ } from '@/src/presentation/shared/stores/mediaLibrary.store'
 import { useSelector } from '@legendapp/state/react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useCallback, useState } from 'react'
@@ -15,13 +14,17 @@ interface ViewportCatalogLoadingResult {
 }
 
 /**
- * Hook for managing viewport-based catalog loading
+ * Hook for managing viewport-based catalog loading with TanStack Query
  *
  * Features:
  * - Only loads catalog data for visible catalogs
  * - Tracks loading state per catalog
- * - Caches loaded catalog data
+ * - Caches loaded catalog data in TanStack Query
  * - Optimizes performance by avoiding unnecessary API calls
+ *
+ * Pattern (same as media detail):
+ * - TanStack Query cache is the single source of truth
+ * - No store syncing
  *
  * Usage:
  * ```typescript
@@ -37,10 +40,10 @@ export const useViewportCatalogLoading = (): ViewportCatalogLoadingResult => {
   const getHomescreenDataUseCase = useService<GetHomescreenDataUseCase>(
     TOKENS.GetHomescreenDataUseCase
   )
-  
+
   const [visibleCatalogIds, setVisibleCatalogIds] = useState<string[]>([])
   const [loadingCatalogs, setLoadingCatalogs] = useState<Set<string>>(new Set())
-  
+
   const catalogPreferences = useSelector(() => userPreferences$.catalogPreferences.get())
 
   // Load catalog data for a specific catalog
@@ -64,38 +67,19 @@ export const useViewportCatalogLoading = (): ViewportCatalogLoadingResult => {
       const catalogData = await getHomescreenDataUseCase.execute({
         heroLimit: 0, // Don't load hero items
         continueWatchingLimit: 0, // Don't load continue watching
-        itemsPerCatalog: 20, // Load items for this catalog
         specificCatalogIds: [catalogId] // Only load this catalog
       })
 
-      // Cache the catalog data
+      // Cache the catalog data (TanStack Query as single source of truth)
       queryClient.setQueryData(cacheKey, catalogData)
-      
-      // Update the store with the loaded catalog data
-      if (catalogData.catalogs.length > 0) {
-        const loadedCatalog = catalogData.catalogs[0]
-        const displayedCatalogs = mediaLibrary$.catalogs.displayed.get()
-        const catalogIndex = displayedCatalogs.findIndex(c => c.stableId === loadedCatalog.stableId)
-        
-        if (catalogIndex !== -1) {
-          // Update existing catalog
-          const updatedCatalogs = [...displayedCatalogs]
-          updatedCatalogs[catalogIndex] = loadedCatalog
-          mediaLibrary$.catalogs.displayed.set(updatedCatalogs)
-        } else {
-          // Add new catalog
-          mediaLibrary$.catalogs.displayed.set([...displayedCatalogs, loadedCatalog])
-        }
-        
-        console.log('[useViewportCatalogLoading] Updated store with catalog data', {
-          catalogId: loadedCatalog.stableId,
-          itemCount: loadedCatalog.getItemCount(),
-          canLoadMore: loadedCatalog.canLoadMore(),
-          paginationInfo: loadedCatalog.paginationInfo,
-        })
-      }
+
+      console.log('[useViewportCatalogLoading] Cached catalog data', {
+        catalogId,
+        itemCount: catalogData.catalogs[0]?.getItemCount(),
+        canLoadMore: catalogData.catalogs[0]?.canLoadMore(),
+      })
     } catch (error) {
-      console.error(`Failed to load catalog ${catalogId}:`, error)
+      console.error(`[useViewportCatalogLoading] Failed to load catalog ${catalogId}:`, error)
     } finally {
       setLoadingCatalogs(prev => {
         const newSet = new Set(prev)
@@ -113,7 +97,7 @@ export const useViewportCatalogLoading = (): ViewportCatalogLoadingResult => {
   // Update visible catalog IDs when viewport changes
   const updateVisibleCatalogs = useCallback((catalogIds: string[]) => {
     setVisibleCatalogIds(catalogIds)
-    
+
     // Load data for newly visible catalogs
     catalogIds.forEach(catalogId => {
       if (catalogPreferences[catalogId]) {

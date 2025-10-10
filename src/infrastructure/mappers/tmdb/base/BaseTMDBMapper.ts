@@ -1,12 +1,7 @@
 import { ExternalIds, ExternalId } from '../../../../domain/entities/ExternalIds'
 import { MediaStatus } from '../../../../domain/entities/EnrichedMedia'
-import { InfrastructureError } from '../../../errors/InfrastructureError'
+import { MapperError } from '../../../errors/MapperError'
 import type { TMDBMovieResponse, TMDBTVResponse, TMDBDateString } from '../../../api/tmdb/types'
-
-/**
- * Validation error for mapping operations
- */
-export class MapperError extends InfrastructureError {}
 
 /**
  * Base mapper class providing common utilities for TMDB data transformation

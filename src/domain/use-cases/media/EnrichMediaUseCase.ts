@@ -15,6 +15,8 @@ import type { IMediaRecommendationsCapability } from '@/src/domain/capabilities/
 import type { Catalog } from '@/src/domain/entities/Catalog'
 import { CapabilityType } from '@/src/domain/capabilities/CapabilityType'
 import type { GetEnabledProvidersForCapabilityUseCase } from '@/src/domain/use-cases/providers/GetEnabledProvidersForCapabilityUseCase'
+import type { Result } from '@/src/domain/types/Result'
+import { ok } from '@/src/domain/types/Result'
 
 /**
  * Enriched data structure returned by EnrichMediaUseCase
@@ -53,9 +55,9 @@ export class EnrichMediaUseCase {
    * Execute the use case to enrich media
    * @param media - The media to enrich (must have resolved external IDs)
    * @param externalIds - Complete external IDs from ResolveExternalIdsUseCase
-   * @returns Enriched media data from all capabilities
+   * @returns Result containing enriched media data from all capabilities
    */
-  async execute(media: Media, externalIds: ExternalIds): Promise<EnrichedMediaData> {
+  async execute(media: Media, externalIds: ExternalIds): Promise<Result<EnrichedMediaData>> {
     this.logger.info('Enriching media with detailed information', {
       mediaId: media.stableId,
       title: media.title,
@@ -174,18 +176,25 @@ export class EnrichMediaUseCase {
       }
     }
 
-    return {
-      enrichedMedia: enrichedMedia.data,
-      videos: videos.data,
-      peopleCatalogs: peopleCatalogs.data,
-      seasons: seasons.data,
-      ratings: ratings.data,
-      reviews: reviews.data,
-      images: images.data,
-      recommendationCatalogs: recommendationCatalogs.data,
-      providersUsed,
-      errors,
-    }
+    return ok(
+      {
+        enrichedMedia: enrichedMedia.data,
+        videos: videos.data,
+        peopleCatalogs: peopleCatalogs.data,
+        seasons: seasons.data,
+        ratings: ratings.data,
+        reviews: reviews.data,
+        images: images.data,
+        recommendationCatalogs: recommendationCatalogs.data,
+        providersUsed,
+        errors,
+      },
+      'system',
+      {
+        capabilitiesUsed: Object.keys(providersUsed).length,
+        successRate: Object.keys(providersUsed).length / 8,
+      }
+    )
   }
 
   /**

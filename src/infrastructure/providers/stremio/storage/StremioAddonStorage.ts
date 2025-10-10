@@ -1,4 +1,5 @@
-import type { IStorageService } from '../../../../domain/services/IStorageService'
+import type { IUserPreferencesRepository } from '../../../../domain/repositories/IUserPreferencesRepository'
+import type { ILoggingService } from '../../../../domain/services/ILoggingService'
 import type {
   StremioUserPreferences,
   UserInstalledAddon,
@@ -12,19 +13,20 @@ import type { StremioManifest, StremioTransportUrl } from '../types'
  * Handles user-specific addon installations, configurations, and preferences
  */
 export class StremioAddonStorage {
-  private readonly USER_STORAGE_KEY = 'stremio_user_preferences'
-
-  constructor(private storage: IStorageService) {}
+  constructor(
+    private userPreferencesRepo: IUserPreferencesRepository,
+    private logger: ILoggingService
+  ) {}
 
   /**
    * Get user's Stremio preferences (installed addons, settings, customizations)
    */
   async getUserPreferences(userId: string): Promise<StremioUserPreferences> {
     try {
-      const key = `${this.USER_STORAGE_KEY}_${userId}`
-      const data = await this.storage.get<string>(key)
+      const userPreferences = await this.userPreferencesRepo.getUserPreferences(userId)
+      const stremioPreferences = userPreferences.accounts.stremio
 
-      if (!data) {
+      if (!stremioPreferences) {
         // Return default preferences for new users
         const { getDefaultStremioPreferences } = await import(
           '../../../../domain/preferences/StremioPreferences'
@@ -32,17 +34,15 @@ export class StremioAddonStorage {
         return getDefaultStremioPreferences()
       }
 
-      const parsed = JSON.parse(data) as StremioUserPreferences
-
       // Convert date strings back to Date objects for installed addons
-      Object.values(parsed.installedAddons).forEach((addon: UserInstalledAddon) => {
+      Object.values(stremioPreferences.installedAddons).forEach((addon: UserInstalledAddon) => {
         addon.installedAt = new Date(addon.installedAt)
         addon.lastUpdated = new Date(addon.lastUpdated)
       })
 
-      return parsed
+      return stremioPreferences
     } catch (error) {
-      console.warn('Failed to get user Stremio preferences:', error)
+      this.logger.warn('Failed to get user Stremio preferences', { error, userId })
       const { getDefaultStremioPreferences } = await import(
         '../../../../domain/preferences/StremioPreferences'
       )
@@ -55,10 +55,13 @@ export class StremioAddonStorage {
    */
   async setUserPreferences(userId: string, preferences: StremioUserPreferences): Promise<void> {
     try {
-      const key = `${this.USER_STORAGE_KEY}_${userId}`
-      await this.storage.set(key, JSON.stringify(preferences))
+      await this.userPreferencesRepo.updateUserPreferencesForUser(userId, {
+        accounts: {
+          stremio: preferences,
+        },
+      })
     } catch (error) {
-      console.warn('Failed to save user Stremio preferences:', error)
+      this.logger.warn('Failed to save user Stremio preferences', { error, userId })
       throw error
     }
   }
@@ -175,19 +178,6 @@ export class StremioAddonStorage {
   }
 
   /**
-   * Clear all user data (for privacy compliance)
-   */
-  async clearUserData(userId: string): Promise<void> {
-    try {
-      const key = `${this.USER_STORAGE_KEY}_${userId}`
-      await this.storage.remove(key)
-    } catch (error) {
-      console.warn('Failed to clear user Stremio data:', error)
-      throw error
-    }
-  }
-
-  /**
    * Clean up invalid addons (localhost URLs, missing fields, etc.)
    * Should be called on app initialization to remove stale/invalid data
    */
@@ -204,14 +194,14 @@ export class StremioAddonStorage {
           addon.transportUrl.includes('localhost') ||
           addon.transportUrl.includes('0.0.0.0')
         ) {
-          console.warn('Removing invalid addon with localhost URL', { addonId, transportUrl: addon.transportUrl })
+          this.logger.warn('Removing invalid addon with localhost URL', { addonId, transportUrl: addon.transportUrl })
           removedCount++
           continue
         }
 
         // Validate has required fields
         if (!addon.addonId || !addon.transportUrl || !addon.name) {
-          console.warn('Removing invalid addon with missing fields', { addonId, addon })
+          this.logger.warn('Removing invalid addon with missing fields', { addonId, addon })
           removedCount++
           continue
         }
@@ -220,7 +210,7 @@ export class StremioAddonStorage {
         try {
           new URL(addon.transportUrl)
         } catch {
-          console.warn('Removing addon with invalid URL format', { addonId, transportUrl: addon.transportUrl })
+          this.logger.warn('Removing addon with invalid URL format', { addonId, transportUrl: addon.transportUrl })
           removedCount++
           continue
         }
@@ -232,12 +222,12 @@ export class StremioAddonStorage {
       if (removedCount > 0) {
         preferences.installedAddons = validAddons
         await this.setUserPreferences(userId, preferences)
-        console.info(`Cleaned up ${removedCount} invalid addon(s) for user ${userId}`)
+        this.logger.info(`Cleaned up ${removedCount} invalid addon(s) for user ${userId}`)
       }
 
       return removedCount
     } catch (error) {
-      console.warn('Failed to cleanup invalid addons:', error)
+      this.logger.warn('Failed to cleanup invalid addons', { error })
       return 0 // Non-critical, return 0 on error
     }
   }

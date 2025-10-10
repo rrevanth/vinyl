@@ -6,6 +6,8 @@ import type { IUserService } from '@/src/domain/services/IUserService'
 import type { IMediaExternalIdsCapability } from '@/src/domain/capabilities/IMediaExternalIdsCapability'
 import { CapabilityType } from '@/src/domain/capabilities/CapabilityType'
 import type { GetEnabledProvidersForCapabilityUseCase } from '@/src/domain/use-cases/providers/GetEnabledProvidersForCapabilityUseCase'
+import type { Result } from '@/src/domain/types/Result'
+import { ok } from '@/src/domain/types/Result'
 
 /**
  * Use case for resolving external IDs from all enabled providers
@@ -22,9 +24,9 @@ export class ResolveExternalIdsUseCase {
   /**
    * Execute the use case to resolve external IDs
    * @param media - The media to resolve external IDs for
-   * @returns Merged ExternalIds from all providers
+   * @returns Result containing merged ExternalIds from all providers
    */
-  async execute(media: Media): Promise<ExternalIds> {
+  async execute(media: Media): Promise<Result<ExternalIds>> {
     this.logger.info('Resolving external IDs for media', {
       mediaId: media.stableId,
       title: media.title,
@@ -45,7 +47,7 @@ export class ResolveExternalIdsUseCase {
       this.logger.warn('No providers support MEDIA_EXTERNAL_IDS capability', {
         mediaId: media.stableId,
       })
-      return media.externalIds
+      return ok(media.externalIds, 'system', { reason: 'no_providers' })
     }
 
     this.logger.info('Fetching external IDs from providers', {
@@ -94,6 +96,9 @@ export class ResolveExternalIdsUseCase {
       hasStremio: !!mergedIds.stremio,
     })
 
-    return mergedIds
+    return ok(mergedIds, 'system', {
+      providersUsed: results.filter(r => r.success).map(r => r.providerId),
+      earlyExit: mergedIds.imdb && mergedIds.tmdb && mergedIds.trakt,
+    })
   }
 }

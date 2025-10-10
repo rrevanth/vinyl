@@ -304,7 +304,7 @@ export class StremioAddonCatalogUseCase {
   }> {
     try {
       // Create client and fetch addon catalog
-      const client = new StremioAddonClient(addonTransportUrl, this.httpClient)
+      const client = new StremioAddonClient(addonTransportUrl, this.httpClient, this.logger)
       const response = await client.getAddonCatalog(type, id)
 
       // Convert addon manifests to StremioAddon entities

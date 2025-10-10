@@ -28,7 +28,6 @@ export interface HomescreenData {
 export interface GetHomescreenDataParams {
   readonly heroLimit?: number
   readonly continueWatchingLimit?: number
-  readonly itemsPerCatalog?: number
   readonly specificCatalogIds?: string[]
 }
 
@@ -51,7 +50,7 @@ export class GetHomescreenDataUseCase {
     const [heroItems, continueWatching, catalogs] = await Promise.all([
       this.fetchHeroItems(preferences, params.heroLimit),
       this.fetchContinueWatching(params.continueWatchingLimit),
-      this.fetchCatalogs(preferences, params.itemsPerCatalog, params.specificCatalogIds),
+      this.fetchCatalogs(preferences, params.specificCatalogIds),
     ])
 
     return {
@@ -163,11 +162,9 @@ export class GetHomescreenDataUseCase {
 
   private async fetchCatalogs(
     preferences: UserPreferences,
-    itemsPerCatalog?: number,
     specificCatalogIds?: string[]
   ): Promise<Catalog[]> {
     this.loggingService.info('=== START: fetchCatalogs ===', {
-      itemsPerCatalog,
       catalogPreferences: Object.keys(preferences.catalogPreferences),
     })
 
@@ -188,8 +185,6 @@ export class GetHomescreenDataUseCase {
       this.loggingService.warn('No catalog capabilities available')
       return []
     }
-
-    const limit = itemsPerCatalog ?? 20
 
     // Step 1: Fetch metadata for ALL catalogs (page 0 - fast, no items)
     this.loggingService.info('STEP 1: Fetching metadata for all catalogs (page 0)')
@@ -300,7 +295,6 @@ export class GetHomescreenDataUseCase {
     // Step 4: Fetch items (page 1) ONLY for final catalogs
     this.loggingService.info('STEP 4: Fetching items for final catalogs (page 1)', {
       finalCatalogCount: finalMetadata.length,
-      limit,
     })
     const catalogsWithItems: Catalog[] = []
     const seenStableIds = new Set<string>()
@@ -324,7 +318,7 @@ export class GetHomescreenDataUseCase {
       }
 
       // Use Result pattern - check result.success
-      const result = await capability.getCatalogs({ page: 1, limit })
+      const result = await capability.getCatalogs({ page: 1 })
 
       if (!result.success) {
         this.loggingService.error('Failed to load catalog items for homescreen', result.error, {
@@ -387,7 +381,7 @@ export class GetHomescreenDataUseCase {
         category: catalogWithItems.category,
         name: customName ?? catalogWithItems.name,
         description: catalogWithItems.description,
-        items: catalogWithItems.items.slice(0, limit),
+        items: catalogWithItems.items,
         sourceInfo: catalogWithItems.sourceInfo,
         paginationInfo: catalogWithItems.paginationInfo,
         contextMedia: catalogWithItems.contextMedia,

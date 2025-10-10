@@ -133,10 +133,21 @@ export class HttpClient {
 
   /**
    * Map Axios errors to domain errors
+   * Detects iOS HTTP blocking and provides actionable error messages
    */
   private mapError(error: AxiosError): Error {
     const status = error.response?.status
     const url = error.config?.url || 'unknown'
+
+    // Detect iOS HTTP blocking (no response, no status, HTTP URL)
+    if (!error.response && !status && url.startsWith('http://')) {
+      return new NetworkError(
+        `HTTP request blocked by iOS App Transport Security. The app automatically upgraded this to HTTPS. If the issue persists, the server may not support HTTPS.`,
+        undefined,
+        url,
+        error as Error
+      )
+    }
 
     // Map specific HTTP status codes to domain errors
     if (status === 401) {
@@ -148,7 +159,12 @@ export class HttpClient {
     }
 
     // Wrap all other errors as NetworkError
-    return new NetworkError(error.message || 'Network request failed', status, url)
+    return new NetworkError(
+      error.message || 'Network request failed',
+      status,
+      url,
+      error as Error
+    )
   }
 
   /**

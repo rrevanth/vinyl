@@ -19,6 +19,8 @@ import { TMDBPeopleImagesCapability } from './capabilities/TMDBPeopleImagesCapab
 import { TMDBPeopleExternalIdsCapability } from './capabilities/TMDBPeopleExternalIdsCapability'
 import { TMDBPeopleCatalogsCapability } from './capabilities/TMDBPeopleCatalogsCapability'
 import { TMDBMediaPeopleCapability } from './capabilities/TMDBMediaPeopleCapability'
+// Import media external IDs capability
+import { TMDBMediaExternalIdsCapability } from './capabilities/TMDBMediaExternalIdsCapability'
 
 /**
  * Central registry for TMDB capability implementations
@@ -122,6 +124,17 @@ export class TMDBCapabilityRegistry {
         new TMDBMediaRecommendationsCapability(this.tmdbClient, this.logger)
       )
 
+      // Register media external IDs capability (fresh data)
+      this.capabilities.set(
+        CapabilityType.MEDIA_EXTERNAL_IDS,
+        new TMDBMediaExternalIdsCapability(
+          this.tmdbClient.search,
+          this.tmdbClient.movies,
+          this.tmdbClient.tv,
+          this.logger
+        )
+      )
+
       this.isInitialized = true
       this.logger.info(
         `TMDBCapabilityRegistry initialized with ${this.capabilities.size} capabilities`,
@@ -167,7 +180,17 @@ export class TMDBCapabilityRegistry {
   }
 
   getCapability<T>(capability: CapabilityType): T | null {
-    return this.capabilities.get(capability) || null
+    const result = this.capabilities.get(capability) || null
+
+    this.logger.debug('TMDBCapabilityRegistry.getCapability called', {
+      capability,
+      isInitialized: this.isInitialized,
+      hasCapability: result !== null,
+      totalCapabilities: this.capabilities.size,
+      allCapabilities: Array.from(this.capabilities.keys()),
+    })
+
+    return result
   }
 
   async getHealthStatus(): Promise<{

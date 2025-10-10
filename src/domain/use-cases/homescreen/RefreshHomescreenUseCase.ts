@@ -43,7 +43,6 @@ export class RefreshHomescreenUseCase {
       const data = await this.getHomescreenDataUseCase.execute({
         heroLimit: 10,
         continueWatchingLimit: 20,
-        itemsPerCatalog: 20,
       })
 
       const endTime = new Date()

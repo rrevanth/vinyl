@@ -32,11 +32,12 @@ export class StremioAddonRegistry {
     private readonly configFactory: StremioConfigFactory,
     private readonly providerRegistry: IProviderRegistry,
     private readonly httpClient: HttpClient,
+    addonStorage: StremioAddonStorage,
     private readonly storageService: IStorageService,
     private readonly queryClient: QueryClient,
     private readonly logger: ILoggingService
   ) {
-    this.addonStorage = new StremioAddonStorage(storageService)
+    this.addonStorage = addonStorage
     this.manifestCache = new StremioManifestQueryCache(queryClient, httpClient, logger)
     this.processedAddonCache = new StremioProcessedAddonCache(
       queryClient,

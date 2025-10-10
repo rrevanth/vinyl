@@ -8,10 +8,7 @@ import type { HttpClient } from '../../http/HttpClient'
 import type { IStorageService } from '../../../domain/services/IStorageService'
 import type { ILoggingService } from '../../../domain/services/ILoggingService'
 import { InfrastructureError } from '../../errors/InfrastructureError'
-import { StremioMediaCatalogCapability } from './capabilities/StremioMediaCatalogCapability'
-import { StremioMediaMetadataCapability } from './capabilities/StremioMediaMetadataCapability'
-import { StremioMediaStreamsCapability } from './capabilities/StremioMediaStreamsCapability'
-import { StremioMediaSubtitlesCapability } from './capabilities/StremioMediaSubtitlesCapability'
+import { StremioCapabilityFactory } from './factories'
 
 /**
  * Stremio provider implementation - one provider per addon
@@ -58,8 +55,8 @@ export class StremioProvider implements IProvider {
       installedAt: addon.installedAt || new Date(),
     }
 
-    // Initialize addon client
-    this.addonClient = new StremioAddonClient(addon.transportUrl, httpClient)
+    // Initialize addon client with logger for HTTP→HTTPS upgrade tracking
+    this.addonClient = new StremioAddonClient(addon.transportUrl, httpClient, logger)
 
     // Set capabilities from the processed addon data (already validated by registry)
     this.capabilities = addon.capabilities
@@ -159,33 +156,32 @@ export class StremioProvider implements IProvider {
     return `Stremio addon: ${this.addon.name} (${this.capabilities.length} capabilities)`
   }
 
+  /**
+   * Register capabilities using factory pattern
+   * Automatically creates capability instances based on addon capabilities
+   */
   private registerCapabilities(): void {
-    if (this.capabilities.includes(CapabilityType.MEDIA_CATALOG)) {
-      this.capabilityInstances.set(
-        CapabilityType.MEDIA_CATALOG,
-        new StremioMediaCatalogCapability(this.addon, this.addonClient, this.logger)
+    for (const capabilityType of this.capabilities) {
+      const capability = StremioCapabilityFactory.createCapability(
+        capabilityType,
+        this.addon,
+        this.addonClient,
+        this.logger
       )
+
+      if (capability) {
+        this.capabilityInstances.set(capabilityType, capability)
+        this.logger.debug('Registered capability', {
+          addonId: this.addon.id,
+          capabilityType,
+        })
+      }
     }
 
-    if (this.capabilities.includes(CapabilityType.MEDIA_METADATA)) {
-      this.capabilityInstances.set(
-        CapabilityType.MEDIA_METADATA,
-        new StremioMediaMetadataCapability(this.addon, this.addonClient, this.logger)
-      )
-    }
-
-    if (this.capabilities.includes(CapabilityType.MEDIA_STREAMS)) {
-      this.capabilityInstances.set(
-        CapabilityType.MEDIA_STREAMS,
-        new StremioMediaStreamsCapability(this.addon, this.addonClient, this.logger)
-      )
-    }
-
-    if (this.capabilities.includes(CapabilityType.MEDIA_SUBTITLES)) {
-      this.capabilityInstances.set(
-        CapabilityType.MEDIA_SUBTITLES,
-        new StremioMediaSubtitlesCapability(this.addon, this.addonClient, this.logger)
-      )
-    }
+    this.logger.info('Capability registration complete', {
+      addonId: this.addon.id,
+      totalCapabilities: this.capabilities.length,
+      registeredCapabilities: this.capabilityInstances.size,
+    })
   }
 }

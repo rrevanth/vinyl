@@ -1,8 +1,7 @@
 import type { Catalog } from '@/src/domain/entities/Catalog'
 import { userPreferences$ } from '@/src/presentation/shared/stores/app.store'
-import { mediaLibrary$ } from '@/src/presentation/shared/stores/mediaLibrary.store'
 import { useSelector } from '@legendapp/state/react'
-import { useCallback, useEffect } from 'react'
+import { useCallback } from 'react'
 import { useToggleCatalogMutation } from '../queries/mutations'
 import { useCatalogsQuery } from '../queries/useCatalogsQuery'
 
@@ -16,13 +15,17 @@ interface UseCatalogManagementResult {
 }
 
 /**
- * Hook for managing catalog selection with TanStack Query caching
+ * Hook for managing catalog selection with TanStack Query as single source of truth
  *
  * Features:
- * - Automatic caching with background refetching
+ * - TanStack Query cache is the single source of truth for catalog data
+ * - No data duplication in Legend State stores
  * - Optimistic updates for catalog toggles
- * - Syncs query data to Legend State stores
  * - Proper error handling with mutations
+ *
+ * Pattern (same as media detail):
+ * - Query data returned directly from cache
+ * - No store syncing
  *
  * Usage:
  * ```typescript
@@ -38,7 +41,7 @@ export const useCatalogManagement = (): UseCatalogManagementResult => {
 
   const selectedIds = useSelector(() => Object.keys(userPreferences$.catalogPreferences.get()))
 
-  // Use TanStack Query for data fetching with caching
+  // Use TanStack Query for data fetching with caching (single source of truth)
   const {
     data: catalogs,
     isLoading,
@@ -49,20 +52,13 @@ export const useCatalogManagement = (): UseCatalogManagementResult => {
   // Use mutation for catalog toggle
   const toggleMutation = useToggleCatalogMutation()
 
-  // Sync query data to Legend State stores
-  useEffect(() => {
-    if (catalogs) {
-      mediaLibrary$.catalogs.available.set(catalogs)
-    }
-  }, [catalogs])
-
   const toggleCatalog = useCallback(
     async (catalogId: string) => {
       try {
         // Execute mutation (automatically invalidates queries)
         await toggleMutation.mutateAsync(catalogId)
       } catch (toggleError) {
-        console.error('Failed to toggle catalog', toggleError)
+        console.error('[useCatalogManagement] Failed to toggle catalog', toggleError)
         throw toggleError
       }
     },

@@ -61,13 +61,10 @@ export {
   previousHeroItem,
   getCurrentHeroItem,
   setHeroAutoRotation,
-  // Catalogs
-  setAvailableCatalogs,
-  setDisplayedCatalogs,
+  // Catalogs (UI state only - data lives in TanStack Query)
   addCatalogLoading,
   removeCatalogLoading,
   isCatalogLoading,
-  findCatalogById,
   // UI state
   setRefreshing,
   setError,

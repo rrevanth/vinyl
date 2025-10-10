@@ -5,7 +5,7 @@ import { StyleSheet } from 'react-native-unistyles'
 import { observer } from '@legendapp/state/react'
 import type { Episode, Season } from '@/src/domain/capabilities/IMediaSeasonsCapability'
 import type { SeriesWatchProgress } from '@/src/domain/capabilities/IMediaWatchProgressCapability'
-import { mediaDetail$ } from '../stores/mediaDetail.store'
+import { selectedSeason$ } from '../stores/mediaUI.store'
 import { t } from '@/src/presentation/shared/i18n'
 
 interface EpisodeListProps {
@@ -23,7 +23,7 @@ const EpisodeListComponent: FC<EpisodeListProps> = observer(({
   watchProgress,
   onPressEpisode,
 }) => {
-  const selectedSeasonNumber = mediaDetail$.selectedSeason.get()
+  const selectedSeasonNumber = selectedSeason$.get()
 
   // Find selected season
   const selectedSeason = useMemo(

@@ -4,7 +4,8 @@ import { Image, View } from 'react-native'
 import Animated, {
   interpolate,
   useAnimatedStyle,
-  useSharedValue,
+  Extrapolate,
+  type SharedValue,
 } from 'react-native-reanimated'
 import { LinearGradient } from 'expo-linear-gradient'
 import { StyleSheet } from 'react-native-unistyles'
@@ -13,60 +14,85 @@ import type { Media } from '@/src/domain/entities/Media'
 interface ParallaxHeroProps {
   readonly media: Media
   readonly height?: number
-  readonly onScroll?: (scrollY: number) => void
+  readonly scrollY?: SharedValue<number>
 }
 
-const PARALLAX_FACTOR = 0.5 // How much the image moves relative to scroll
+// Animation constants inspired by Nuvio implementation
+const SCALE_ZOOM_IN = 1.0
+const SCALE_ZOOM_OUT = 0.85
+const OPACITY_VISIBLE = 1.0
+const OPACITY_FADED = 0.3
+const FADE_THRESHOLD = 200
+const PARALLAX_DISTANCE = 50
 
 /**
- * Parallax hero component with gradient overlay
+ * Parallax hero component with cinematic zoom-out effect
  * Uses React Native Reanimated for smooth 60fps animations
+ *
+ * Features:
+ * - Zoom-out effect: Scale from 1.0 to 0.85 as user scrolls
+ * - Fade effect: Opacity from 1.0 to 0.3 for smooth transition
+ * - Parallax translateY: Image moves up slower than scroll
+ * - Gradient overlay: Always visible for text readability
  */
 const ParallaxHeroComponent: FC<ParallaxHeroProps> = ({
   media,
   height = 500,
-  onScroll,
+  scrollY,
 }) => {
-  const scrollY = useSharedValue(0)
-
   // Get best available backdrop image
   const backdropUrl = media.images.getBestBackdrop()
 
-  // Animated style for parallax effect
+  // Cinematic animated style for zoom-out parallax effect
   const animatedImageStyle = useAnimatedStyle(() => {
-    // Interpolate scroll position to image transform
-    const translateY = interpolate(
-      scrollY.value,
-      [0, height],
-      [0, height * PARALLAX_FACTOR],
-      'clamp'
-    )
+    'worklet'
 
-    // Scale up slightly for a more dramatic effect
+    // If no scrollY provided, return static style
+    if (!scrollY) {
+      return {
+        transform: [{ scale: SCALE_ZOOM_IN }],
+        opacity: OPACITY_VISIBLE,
+      }
+    }
+
+    // Zoom-out effect: Scale from 1.0 to 0.85 (300px range)
     const scale = interpolate(
       scrollY.value,
-      [-height, 0, height],
-      [1.3, 1, 0.85],
-      'clamp'
+      [0, 300],
+      [SCALE_ZOOM_IN, SCALE_ZOOM_OUT],
+      Extrapolate.CLAMP
+    )
+
+    // Fade effect: Opacity from 1.0 to 0.3 (200px range)
+    const opacity = interpolate(
+      scrollY.value,
+      [0, FADE_THRESHOLD],
+      [OPACITY_VISIBLE, OPACITY_FADED],
+      Extrapolate.CLAMP
+    )
+
+    // Parallax translateY: Move up slower than scroll
+    const translateY = interpolate(
+      scrollY.value,
+      [0, 300],
+      [0, -PARALLAX_DISTANCE],
+      Extrapolate.CLAMP
     )
 
     return {
-      transform: [{ translateY }, { scale }],
-    }
-  })
-
-  // Animated style for gradient overlay opacity
-  const animatedGradientStyle = useAnimatedStyle(() => {
-    const opacity = interpolate(scrollY.value, [0, height * 0.5], [1, 0.7], 'clamp')
-
-    return {
+      transform: [{ scale }, { translateY }],
       opacity,
     }
   })
 
+  // Gradient overlay remains visible at constant opacity
+  const gradientStyle = useAnimatedStyle(() => ({
+    opacity: 1, // Always visible for text contrast
+  }))
+
   return (
     <View style={[styles.container, { height }]}>
-      {/* Parallax Image */}
+      {/* Parallax Image with Cinematic Zoom-out */}
       <Animated.View style={[styles.imageContainer, animatedImageStyle]}>
         {backdropUrl ? (
           <Image
@@ -80,8 +106,8 @@ const ParallaxHeroComponent: FC<ParallaxHeroProps> = ({
         )}
       </Animated.View>
 
-      {/* Gradient Overlay */}
-      <Animated.View style={[styles.gradientContainer, animatedGradientStyle]}>
+      {/* Gradient Overlay - Always Visible */}
+      <Animated.View style={[styles.gradientContainer, gradientStyle]}>
         <LinearGradient
           colors={['transparent', 'rgba(0, 0, 0, 0.3)', 'rgba(0, 0, 0, 0.9)']}
           locations={[0, 0.5, 1]}

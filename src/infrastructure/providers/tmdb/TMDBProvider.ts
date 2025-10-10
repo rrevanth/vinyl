@@ -132,7 +132,16 @@ export class TMDBProvider implements IProvider {
   }
 
   getCapability<T>(capability: CapabilityType): T | null {
-    return this.capabilityRegistry.getCapability<T>(capability)
+    const result = this.capabilityRegistry.getCapability<T>(capability)
+
+    this.logger.debug('TMDBProvider.getCapability called', {
+      capability,
+      isInitialized: this.isInitialized,
+      hasResult: result !== null,
+      status: this.metadata.status,
+    })
+
+    return result
   }
 
   getSupportedCapabilities(): CapabilityType[] {

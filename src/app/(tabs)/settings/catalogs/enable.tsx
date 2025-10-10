@@ -328,6 +328,7 @@ const styles = StyleSheet.create((theme) => ({
     alignItems: 'center',
     paddingHorizontal: theme.spacing.xl,
     gap: theme.spacing.md,
+    backgroundColor: theme.colors.background,
   },
   iconColor: {
     color: theme.colors.textSecondary,

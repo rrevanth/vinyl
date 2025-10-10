@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react'
+import { useCallback } from 'react'
 import { useSelector } from '@legendapp/state/react'
 import { mediaLibrary$ } from '@/src/presentation/shared/stores/mediaLibrary.store'
 import { userPreferences$ } from '@/src/presentation/shared/stores/app.store'
@@ -10,6 +10,7 @@ import type { ContinueWatchingItem } from '@/src/domain/capabilities/IMediaConti
 import type { Catalog } from '@/src/domain/entities/Catalog'
 import type { HomescreenPreferences } from '@/src/domain/entities/UserPreferences'
 import { useHomescreenDataQuery } from '../queries/useHomescreenDataQuery'
+import { useQueryClient } from '@tanstack/react-query'
 
 interface UseHomescreenDataResult {
   readonly heroItems: Media[]
@@ -23,13 +24,18 @@ interface UseHomescreenDataResult {
 }
 
 /**
- * Hook for managing homescreen data with TanStack Query caching
+ * Hook for managing homescreen data with TanStack Query as single source of truth
  *
  * Features:
- * - Automatic caching with background refetching
- * - Syncs query data to Legend State stores for reactive UI
- * - Manual refresh capability
+ * - TanStack Query cache is the single source of truth for data
+ * - No data duplication in Legend State stores
+ * - Legend State only used for UI preferences
  * - Proper error handling
+ *
+ * Pattern (same as media detail):
+ * - Query data returned directly from cache
+ * - No store syncing
+ * - Components consume directly from query result
  *
  * Usage:
  * ```typescript
@@ -46,8 +52,9 @@ export const useHomescreenData = (): UseHomescreenDataResult => {
   const refreshHomescreenUseCase = useService<RefreshHomescreenUseCase>(
     TOKENS.RefreshHomescreenUseCase
   )
+  const queryClient = useQueryClient()
 
-  // Use TanStack Query for data fetching with caching
+  // Use TanStack Query for data fetching with caching (single source of truth)
   const {
     data: queryData,
     isLoading,
@@ -56,40 +63,42 @@ export const useHomescreenData = (): UseHomescreenDataResult => {
     refetch,
   } = useHomescreenDataQuery()
 
-  // Read from Legend State stores for reactive UI
-  const heroItems = useSelector(() => mediaLibrary$.hero.items.get())
-  const continueWatching = useSelector(() => mediaLibrary$.continueWatching.items.get())
-  const catalogs = useSelector(() => mediaLibrary$.catalogs.displayed.get())
+  // Read preferences from Legend State (UI state only)
   const preferences = useSelector(() => userPreferences$.homescreen.get())
 
-  // Sync query data to Legend State stores
-  useEffect(() => {
-    if (queryData) {
-      mediaLibrary$.hero.items.set(queryData.heroItems)
-      mediaLibrary$.continueWatching.items.set(queryData.continueWatching)
-      mediaLibrary$.catalogs.available.set(queryData.catalogs)
-      mediaLibrary$.catalogs.displayed.set(queryData.catalogs)
-      mediaLibrary$.ui.lastRefresh.set(queryData.cacheStatus.lastRefreshed)
-    }
-  }, [queryData])
+  // Extract data from query result (directly from cache, no store sync)
+  const heroItems = queryData?.heroItems ?? []
+  const continueWatching = queryData?.continueWatching ?? []
+  const catalogs = queryData?.catalogs ?? []
 
-  // Manual refresh with force refetch
+  // Manual refresh with query invalidation
   const refresh = useCallback(async () => {
     try {
-      const result = await refreshHomescreenUseCase.execute()
-      mediaLibrary$.hero.items.set(result.data.heroItems)
-      mediaLibrary$.continueWatching.items.set(result.data.continueWatching)
-      mediaLibrary$.catalogs.available.set(result.data.catalogs)
-      mediaLibrary$.catalogs.displayed.set(result.data.catalogs)
-      mediaLibrary$.ui.lastRefresh.set(result.data.cacheStatus.lastRefreshed)
+      mediaLibrary$.ui.refreshing.set(true)
 
-      // Invalidate query cache to reflect new data
+      // Execute use case for fresh data
+      const result = await refreshHomescreenUseCase.execute()
+
+      // Update query cache directly (single source of truth)
+      queryClient.setQueryData(
+        ['homescreen', 'data', {
+          selectedCatalogIds: Object.keys(userPreferences$.catalogPreferences.get()),
+          itemsPerRow: preferences.itemsPerRow,
+        }],
+        result.data
+      )
+
+      // Invalidate to trigger background refetch
       await refetch()
+
+      mediaLibrary$.ui.lastRefresh.set(result.data.cacheStatus.lastRefreshed)
     } catch (refreshError) {
-      console.error('Failed to refresh homescreen data', refreshError)
+      console.error('[useHomescreenData] Failed to refresh homescreen data', refreshError)
       throw refreshError
+    } finally {
+      mediaLibrary$.ui.refreshing.set(false)
     }
-  }, [refreshHomescreenUseCase, refetch])
+  }, [refreshHomescreenUseCase, refetch, queryClient, preferences.itemsPerRow])
 
   return {
     heroItems,
