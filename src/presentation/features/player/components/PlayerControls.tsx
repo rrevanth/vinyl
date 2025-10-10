@@ -48,10 +48,10 @@ export const PlayerControls: React.FC<PlayerControlsProps> = observer(({
 
   // Build title string
   const getTitle = (): string => {
-    if (media.isSeries() && seasonNumber !== undefined && episodeNumber !== undefined) {
+    if (media.type === 'series' && seasonNumber !== undefined && episodeNumber !== undefined) {
       return `${media.title} - S${seasonNumber}E${episodeNumber}`
     }
-    return media.getDisplayName()
+    return media.year ? `${media.title} (${media.year})` : media.title
   }
 
   // Get resize mode icon
