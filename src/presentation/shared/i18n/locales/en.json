@@ -214,6 +214,14 @@
       "grid_cozy": "Cozy",
       "autoplay_trailers": "Autoplay Trailers"
     },
+    "playback": {
+      "title": "Playback",
+      "video_player": "Video Player",
+      "video_player_description": "Choose your preferred video player",
+      "video_player_options": "Select video player with codec support",
+      "player_expo_video": "Expo Video (Default)",
+      "player_rn_vlc": "React Native VLC (Universal Codecs)"
+    },
     "accounts": {
       "title": "Accounts",
       "tmdb": {
@@ -452,5 +460,33 @@
       "move_down_accessibility": "Move {name} down in order",
       "drag_to_reorder_accessibility": "Drag to reorder {name}"
     }
+  },
+  "player": {
+    "loading": "Loading video...",
+    "error": "Failed to load video",
+    "error_details": "Unable to play this stream. Please try another source.",
+    "audio_tracks": "Audio Tracks",
+    "subtitle_tracks": "Subtitles",
+    "no_audio_tracks": "No audio tracks available",
+    "no_subtitle_tracks": "No subtitle tracks available",
+    "off": "Off",
+    "default": "Default",
+    "resize_contain": "Contain",
+    "resize_cover": "Cover",
+    "resize_stretch": "Stretch",
+    "close": "Close",
+    "quality": "Quality",
+    "buffering": "Buffering..."
+  },
+  "streams": {
+    "title": "Select Stream",
+    "all_providers": "All Providers",
+    "no_streams": "No streams available",
+    "loading": "Loading streams...",
+    "error_loading": "Failed to load streams",
+    "error_no_media": "Media not found in cache",
+    "provider": "Provider",
+    "file_size": "Size",
+    "quality": "Quality"
   }
 }

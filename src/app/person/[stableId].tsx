@@ -51,19 +51,22 @@ const PersonDetailScreen = observer(() => {
   const { person, metadata, filmography, isLoading, error } = usePersonDetail(stableId)
 
   // Event handlers
-  const handlePressMedia = useCallback((media: Media) => {
-    // Pre-populate cache with Media object before navigation
-    queryClient.setQueryData<MediaDetailData>(['media-detail', media.stableId], {
-      media: media,
-      externalIds: media.externalIds,
-      // Other fields will be fetched by use case
-      providersUsed: {},
-      errors: {},
-    })
+  const handlePressMedia = useCallback(
+    (media: Media) => {
+      // Pre-populate cache with Media object before navigation
+      queryClient.setQueryData<MediaDetailData>(['media-detail', media.stableId], {
+        media: media,
+        externalIds: media.externalIds,
+        // Other fields will be fetched by use case
+        providersUsed: {},
+        errors: {},
+      })
 
-    // Navigate to media detail
-    router.push(`/media/${encodeURIComponent(media.stableId)}`)
-  }, [queryClient])
+      // Navigate to media detail
+      router.push(`/media/${encodeURIComponent(media.stableId)}`)
+    },
+    [queryClient]
+  )
 
   // Loading state
   if (!person || isLoading) {
@@ -120,9 +123,7 @@ const PersonDetailScreen = observer(() => {
             />
           ) : (
             <View style={styles.profilePlaceholder}>
-              <Text style={styles.profileInitial}>
-                {person.name.charAt(0).toUpperCase()}
-              </Text>
+              <Text style={styles.profileInitial}>{person.name.charAt(0).toUpperCase()}</Text>
             </View>
           )}
 
@@ -149,7 +150,9 @@ const PersonDetailScreen = observer(() => {
         {metadata && <BiographySection metadata={metadata} />}
 
         {/* Filmography Section */}
-        {filmography && <FilmographySection filmography={filmography} onPressMedia={handlePressMedia} />}
+        {filmography && (
+          <FilmographySection filmography={filmography} onPressMedia={handlePressMedia} />
+        )}
 
         {/* Bottom Spacing */}
         <View style={styles.bottomSpacer} />

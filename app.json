@@ -43,6 +43,17 @@
             "backgroundColor": "#000000"
           }
         }
+      ],
+      [
+        "./plugins/react-native-vlc-media-player.js",
+        {
+          "ios": {
+            "includeVLCKit": false
+          },
+          "android": {
+            "legacyJetifier": false
+          }
+        }
       ]
     ],
     "experiments": {

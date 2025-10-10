@@ -214,6 +214,14 @@
       "grid_cozy": "Acogedor",
       "autoplay_trailers": "Reproducir Tráilers Automáticamente"
     },
+    "playback": {
+      "title": "Reproducción",
+      "video_player": "Reproductor de Video",
+      "video_player_description": "Elige tu reproductor de video preferido",
+      "video_player_options": "Selecciona el reproductor con soporte de códecs",
+      "player_expo_video": "Expo Video (Predeterminado)",
+      "player_rn_vlc": "React Native VLC (Códecs Universales)"
+    },
     "accounts": {
       "title": "Cuentas",
       "tmdb": {
@@ -452,5 +460,33 @@
       "move_down_accessibility": "Mover {name} hacia abajo en el orden",
       "drag_to_reorder_accessibility": "Arrastra para reordenar {name}"
     }
+  },
+  "player": {
+    "loading": "Cargando video...",
+    "error": "Error al cargar el video",
+    "error_details": "No se puede reproducir esta transmisión. Intente con otra fuente.",
+    "audio_tracks": "Pistas de Audio",
+    "subtitle_tracks": "Subtítulos",
+    "no_audio_tracks": "No hay pistas de audio disponibles",
+    "no_subtitle_tracks": "No hay subtítulos disponibles",
+    "off": "Desactivado",
+    "default": "Predeterminado",
+    "resize_contain": "Contener",
+    "resize_cover": "Cubrir",
+    "resize_stretch": "Estirar",
+    "close": "Cerrar",
+    "quality": "Calidad",
+    "buffering": "Cargando..."
+  },
+  "streams": {
+    "title": "Seleccionar Transmisión",
+    "all_providers": "Todos los Proveedores",
+    "no_streams": "No hay transmisiones disponibles",
+    "loading": "Cargando transmisiones...",
+    "error_loading": "Error al cargar transmisiones",
+    "error_no_media": "Medio no encontrado en caché",
+    "provider": "Proveedor",
+    "file_size": "Tamaño",
+    "quality": "Calidad"
   }
 }

@@ -81,28 +81,30 @@ const MediaDetailScreen = observer(() => {
 
   // Event handlers
   const handlePlay = useCallback(() => {
-    // TODO: Implement play functionality
-    console.log('Play pressed', media?.stableId)
-  }, [media?.stableId])
+    router.push(`/streams/${encodeURIComponent(media!.stableId)}`)
+  }, [media])
 
   const handlePressVideo = useCallback((video: MediaVideo) => {
     // TODO: Open video player
     console.log('Video pressed', video.id)
   }, [])
 
-  const handlePressRecommendation = useCallback((recommendedMedia: Media) => {
-    // Pre-populate cache with Media object before navigation
-    queryClient.setQueryData<MediaDetailData>(['media-detail', recommendedMedia.stableId], {
-      media: recommendedMedia,
-      externalIds: recommendedMedia.externalIds,
-      // Other fields will be fetched by use case
-      providersUsed: {},
-      errors: {},
-    })
+  const handlePressRecommendation = useCallback(
+    (recommendedMedia: Media) => {
+      // Pre-populate cache with Media object before navigation
+      queryClient.setQueryData<MediaDetailData>(['media-detail', recommendedMedia.stableId], {
+        media: recommendedMedia,
+        externalIds: recommendedMedia.externalIds,
+        // Other fields will be fetched by use case
+        providersUsed: {},
+        errors: {},
+      })
 
-    // Navigate to new media detail
-    router.push(`/media/${encodeURIComponent(recommendedMedia.stableId)}`)
-  }, [queryClient])
+      // Navigate to new media detail
+      router.push(`/media/${encodeURIComponent(recommendedMedia.stableId)}`)
+    },
+    [queryClient]
+  )
 
   // Loading state
   if (!media || isLoading) {
@@ -162,9 +164,7 @@ const MediaDetailScreen = observer(() => {
         )}
 
         {/* Cast Section */}
-        {peopleCatalogs && peopleCatalogs.length > 0 && (
-          <CastSection catalogs={peopleCatalogs} />
-        )}
+        {peopleCatalogs && peopleCatalogs.length > 0 && <CastSection catalogs={peopleCatalogs} />}
 
         {/* Season Selector (Series only) */}
         {media.isSeries() && seasons && seasons.length > 0 && <SeasonSelector seasons={seasons} />}
@@ -181,7 +181,11 @@ const MediaDetailScreen = observer(() => {
               <EpisodeCarousel
                 seasons={seasons}
                 watchProgress={watchProgress?.series}
-                onPressEpisode={() => {}}
+                onPressEpisode={(episode) => {
+                  router.push(
+                    `/streams/${encodeURIComponent(media.stableId)}?season=${episode.seasonNumber}&episode=${episode.episodeNumber}`
+                  )
+                }}
               />
             )}
           </>

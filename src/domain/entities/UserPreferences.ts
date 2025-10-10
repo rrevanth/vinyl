@@ -1,6 +1,7 @@
 import { CapabilityType } from '@/src/domain/capabilities/CapabilityType'
 import type { StremioUserPreferences } from '@/src/domain/preferences/StremioPreferences'
 import { getDefaultStremioPreferences } from '@/src/domain/preferences/StremioPreferences'
+import { VideoPlayerType } from '@/src/domain/entities/VideoPlayerType'
 
 // ============================================================================
 // Merged Account Interfaces (Auth + Settings)
@@ -129,6 +130,7 @@ export interface PlaybackPreferences {
   readonly subtitleSize: 'small' | 'medium' | 'large'
   readonly playbackQuality: 'auto' | '720p' | '1080p' | '4k'
   readonly skipIntroEnabled: boolean
+  readonly preferredVideoPlayer: VideoPlayerType
 }
 
 export interface HomescreenPreferences {
@@ -273,6 +275,7 @@ export const createDefaultPlaybackPreferences = (): PlaybackPreferences => ({
   subtitleSize: 'medium',
   playbackQuality: 'auto',
   skipIntroEnabled: true,
+  preferredVideoPlayer: VideoPlayerType.EXPO_VIDEO,
 })
 
 export const createDefaultHomescreenPreferences = (): HomescreenPreferences => ({

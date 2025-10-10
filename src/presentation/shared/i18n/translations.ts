@@ -161,6 +161,14 @@ interface Translations {
       grid_cozy: string
       autoplay_trailers: string
     }
+    playback: {
+      title: string
+      video_player: string
+      video_player_description: string
+      video_player_options: string
+      player_expo_video: string
+      player_rn_vlc: string
+    }
     accounts: {
       title: string
       tmdb: {
@@ -398,6 +406,34 @@ interface Translations {
       empty_state_subtitle: string
       toggle_all: string
     }
+  }
+  player: {
+    loading: string
+    error: string
+    error_details: string
+    audio_tracks: string
+    subtitle_tracks: string
+    no_audio_tracks: string
+    no_subtitle_tracks: string
+    off: string
+    default: string
+    resize_contain: string
+    resize_cover: string
+    resize_stretch: string
+    close: string
+    quality: string
+    buffering: string
+  }
+  streams: {
+    title: string
+    all_providers: string
+    no_streams: string
+    loading: string
+    error_loading: string
+    error_no_media: string
+    provider: string
+    file_size: string
+    quality: string
   }
 }
 

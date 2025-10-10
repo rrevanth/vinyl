@@ -9,8 +9,11 @@ import { UpdateCatalogPreferencesUseCase } from '@/src/domain/use-cases/homescre
 import { UpdateHomescreenPreferencesUseCase } from '@/src/domain/use-cases/homescreen/UpdateHomescreenPreferencesUseCase'
 import { EnrichMediaUseCase } from '@/src/domain/use-cases/media/EnrichMediaUseCase'
 import { GetMediaDetailUseCase } from '@/src/domain/use-cases/media/GetMediaDetailUseCase'
+import { GetMediaStreamsUseCase } from '@/src/domain/use-cases/media/GetMediaStreamsUseCase'
 import { GetWatchProgressUseCase } from '@/src/domain/use-cases/media/GetWatchProgressUseCase'
 import { ResolveExternalIdsUseCase } from '@/src/domain/use-cases/media/ResolveExternalIdsUseCase'
+import { GetVideoPlayerUseCase } from '@/src/domain/use-cases/player/GetVideoPlayerUseCase'
+import { ScrobbleMediaUseCase } from '@/src/domain/use-cases/media/ScrobbleMediaUseCase'
 import { GetPersonDetailUseCase } from '@/src/domain/use-cases/people/GetPersonDetailUseCase'
 import { ResolvePersonExternalIdsUseCase } from '@/src/domain/use-cases/people/ResolvePersonExternalIdsUseCase'
 import { GetAllProvidersWithCapabilitiesUseCase } from '@/src/domain/use-cases/providers/GetAllProvidersWithCapabilitiesUseCase'
@@ -22,6 +25,7 @@ import { QueryClient } from '@tanstack/react-query'
 import type { IProviderRegistry } from '../../domain/providers/IProviderRegistry'
 import type { IEnvironmentService } from '../../domain/services/IEnvironmentService'
 import type { ILoggingService } from '../../domain/services/ILoggingService'
+import type { IPreferencesService } from '../../domain/services/IPreferencesService'
 import type { IStorageService } from '../../domain/services/IStorageService'
 import type { IUserService } from '../../domain/services/IUserService'
 import { TMDBClient } from '../api/tmdb/TMDBClient'
@@ -40,6 +44,7 @@ import { MediaRepository } from '../repositories/MediaRepository'
 import { UserPreferencesRepository } from '../repositories/UserPreferencesRepository'
 import { EnvironmentService } from '../services/EnvironmentService'
 import { LoggingService } from '../services/LoggingService'
+import { PreferencesService } from '../services/PreferencesService'
 import { StorageService } from '../services/StorageService'
 import { StremioInitializationService } from '../services/StremioInitializationService'
 import { UserService } from '../services/UserService'
@@ -51,6 +56,7 @@ export async function initializeContainer(): Promise<void> {
   container.register(TOKENS.StorageService, () => new StorageService())
   container.register(TOKENS.LoggingService, () => new LoggingService())
   container.register(TOKENS.EnvironmentService, () => new EnvironmentService())
+  container.register(TOKENS.PreferencesService, () => new PreferencesService())
 
   // Register repositories
   container.register(TOKENS.UserPreferencesRepository, () => new UserPreferencesRepository())
@@ -75,7 +81,9 @@ export async function initializeContainer(): Promise<void> {
       new HttpClient(
         undefined, // No baseURL - allows absolute URLs to work correctly
         () => null, // Stremio addons don't use auth
-        logger
+        logger,
+        undefined, // No additional headers
+        60000 // 60 second timeout for slow addons
       )
   )
 
@@ -273,6 +281,14 @@ export async function initializeContainer(): Promise<void> {
     )
   })
 
+  // GetMediaStreamsUseCase aggregates streams from all enabled providers
+  container.register(TOKENS.GetMediaStreamsUseCase, () => {
+    const getEnabledProvidersUseCase = container.resolve<GetEnabledProvidersForCapabilityUseCase>(
+      TOKENS.GetEnabledProvidersForCapabilityUseCase
+    )
+    return new GetMediaStreamsUseCase(getEnabledProvidersUseCase, logger)
+  })
+
   // People detail use cases
   container.register(TOKENS.ResolvePersonExternalIdsUseCase, () => {
     const getEnabledProvidersUseCase = container.resolve<GetEnabledProvidersForCapabilityUseCase>(
@@ -289,6 +305,19 @@ export async function initializeContainer(): Promise<void> {
       TOKENS.GetEnabledProvidersForCapabilityUseCase
     )
     return new GetPersonDetailUseCase(resolvePersonExternalIdsUseCase, getEnabledProvidersUseCase, logger)
+  })
+
+  // Player use cases
+  container.register(TOKENS.GetVideoPlayerUseCase, () => {
+    const preferencesService = container.resolve<IPreferencesService>(TOKENS.PreferencesService)
+    return new GetVideoPlayerUseCase(preferencesService, logger)
+  })
+
+  container.register(TOKENS.ScrobbleMediaUseCase, () => {
+    const getEnabledProvidersUseCase = container.resolve<GetEnabledProvidersForCapabilityUseCase>(
+      TOKENS.GetEnabledProvidersForCapabilityUseCase
+    )
+    return new ScrobbleMediaUseCase(getEnabledProvidersUseCase, logger)
   })
 
   // Mark container and providers initialization complete

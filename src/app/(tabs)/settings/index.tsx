@@ -15,6 +15,10 @@ const SettingsScreen = observer(() => {
     router.push('/settings/display')
   }
 
+  const navigateToPlayback = () => {
+    router.push('/settings/playback')
+  }
+
   const navigateToAccounts = () => {
     router.push('/settings/accounts')
   }
@@ -57,6 +61,12 @@ const SettingsScreen = observer(() => {
           title={t('settings.display.title')}
           description="Language, content, and layout options"
           onPress={navigateToDisplay}
+        />
+        <SettingsNavigationRow
+          iconName="play-circle-outline"
+          title={t('settings.playback.title')}
+          description="Video player and playback preferences"
+          onPress={navigateToPlayback}
         />
         <SettingsNavigationRow
           iconName="person-circle-outline"

@@ -7,6 +7,10 @@ export interface Stream {
   quality: string // '1080p', '720p', 'CAM', etc.
   source: string // 'torrent', 'direct', 'debrid'
 
+  // Display metadata
+  name?: string // Stream name/title from provider
+  description?: string // Stream description (may include formatting like \n)
+
   // Torrent specific
   infoHash?: string
   fileIndex?: number

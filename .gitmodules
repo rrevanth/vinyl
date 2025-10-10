@@ -10,3 +10,9 @@
 [submodule "repos/stremio-ios"]
 	path = repos/stremio-ios
 	url = https://github.com/rcastriotta/Stremio-iOS.git
+[submodule "repos/multi-tv-app"]
+	path = repos/multi-tv-app
+	url = https://github.com/AmazonAppDev/react-native-multi-tv-app-sample.git
+[submodule "repos/rn-vlc"]
+	path = repos/rn-vlc
+	url = https://github.com/razorRun/react-native-vlc-media-player

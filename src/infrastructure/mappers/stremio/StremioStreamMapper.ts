@@ -77,6 +77,8 @@ export class StremioStreamMapper {
       source: streamSource,
       quality,
       provider: addonId,
+      name: stremioStream.name,
+      description: stremioStream.description || stremioStream.title,
       size: stremioStream.behaviorHints?.videoSize,
       language: language || 'en',
       infoHash: stremioStream.infoHash,

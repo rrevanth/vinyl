@@ -5,6 +5,7 @@ export const TOKENS = {
   LoggingService: Symbol('LoggingService'),
   UserService: Symbol('UserService'),
   EnvironmentService: Symbol('EnvironmentService'),
+  PreferencesService: Symbol('PreferencesService'),
 
   // Repositories
   UserPreferencesRepository: Symbol('UserPreferencesRepository'),
@@ -52,6 +53,7 @@ export const TOKENS = {
   EnrichMediaUseCase: Symbol('EnrichMediaUseCase'),
   GetWatchProgressUseCase: Symbol('GetWatchProgressUseCase'),
   GetMediaDetailUseCase: Symbol('GetMediaDetailUseCase'),
+  GetMediaStreamsUseCase: Symbol('GetMediaStreamsUseCase'),
 
   // People detail use cases
   ResolvePersonExternalIdsUseCase: Symbol('ResolvePersonExternalIdsUseCase'),
@@ -62,6 +64,10 @@ export const TOKENS = {
   SaveProviderPrioritiesUseCase: Symbol('SaveProviderPrioritiesUseCase'),
   GetAllProvidersWithCapabilitiesUseCase: Symbol('GetAllProvidersWithCapabilitiesUseCase'),
   UpdateProviderCapabilitiesUseCase: Symbol('UpdateProviderCapabilitiesUseCase'),
+
+  // Player use cases
+  GetVideoPlayerUseCase: Symbol('GetVideoPlayerUseCase'),
+  ScrobbleMediaUseCase: Symbol('ScrobbleMediaUseCase'),
 
   // Add more as needed
 } as const
