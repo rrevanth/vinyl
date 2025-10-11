@@ -217,10 +217,12 @@
     "playback": {
       "title": "Reproducción",
       "video_player": "Reproductor de Video",
-      "video_player_description": "Elige tu reproductor de video preferido",
-      "video_player_options": "Selecciona el reproductor con soporte de códecs",
-      "player_expo_video": "Expo Video (Predeterminado)",
-      "player_rn_vlc": "React Native VLC (Códecs Universales)"
+      "video_player_description": "VLC Player usa configuración mínima para máxima compatibilidad con TrueHD, DTS-HD y transmisiones de alta calidad. El reproductor externo abre transmisiones en su reproductor de video predeterminado o preferido.",
+      "video_player_options": "VLC integrado o reproductor externo",
+      "player_rn_vlc": "VLC Player (Recomendado)",
+      "player_rn_vlc_description": "Reproductor VLC integrado con soporte universal de códecs. Usa configuración mínima para máxima compatibilidad con TrueHD, DTS-HD y transmisiones de alta calidad.",
+      "player_external": "Reproductor Externo (Sistema/Terceros)",
+      "player_external_description": "Abre transmisiones en el reproductor de video externo predeterminado o preferido de su dispositivo (VLC, Infuse, MX Player, etc.)"
     },
     "accounts": {
       "title": "Cuentas",

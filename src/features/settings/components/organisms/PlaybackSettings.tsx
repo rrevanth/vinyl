@@ -17,14 +17,16 @@ export const PlaybackSettings = observer(() => {
   // Define player options with platform availability
   const PLAYER_OPTIONS = [
     {
-      label: t('settings.playback.player_expo_video'),
-      value: VideoPlayerType.EXPO_VIDEO,
-      available: true,
-    },
-    {
       label: t('settings.playback.player_rn_vlc'),
       value: VideoPlayerType.RN_VLC,
       available: true,
+      recommended: true,
+    },
+    {
+      label: t('settings.playback.player_external'),
+      value: VideoPlayerType.EXTERNAL,
+      available: true,
+      recommended: false,
     },
   ]
 

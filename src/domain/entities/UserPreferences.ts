@@ -275,7 +275,7 @@ export const createDefaultPlaybackPreferences = (): PlaybackPreferences => ({
   subtitleSize: 'medium',
   playbackQuality: 'auto',
   skipIntroEnabled: true,
-  preferredVideoPlayer: VideoPlayerType.EXPO_VIDEO,
+  preferredVideoPlayer: VideoPlayerType.RN_VLC,
 })
 
 export const createDefaultHomescreenPreferences = (): HomescreenPreferences => ({

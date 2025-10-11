@@ -6,7 +6,7 @@ import type { ILoggingService } from '@/src/domain/services/ILoggingService'
 
 /**
  * Use case for determining which video player to use
- * Returns the user's preferred player (all players available on all platforms)
+ * Returns the user's preferred player with fallback to VLC
  */
 export class GetVideoPlayerUseCase {
   constructor(
@@ -17,7 +17,7 @@ export class GetVideoPlayerUseCase {
   /**
    * Execute the use case to get the video player type
    *
-   * Returns the user's preferred player with fallback to EXPO_VIDEO
+   * Returns the user's preferred player with fallback to RN_VLC
    *
    * @returns The video player type to use
    */
@@ -30,6 +30,6 @@ export class GetVideoPlayerUseCase {
       platform,
     })
 
-    return preference || PlayerType.EXPO_VIDEO
+    return preference || PlayerType.RN_VLC
   }
 }

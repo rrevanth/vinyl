@@ -22,7 +22,78 @@ interface RNVlcPlayerProps {
   onClose: () => void
 }
 
-export const RNVlcPlayer: React.FC<RNVlcPlayerProps> = ({
+// Helper function to create VLC source following Stremio iOS approach
+// Uses MINIMAL configuration to avoid codec conflicts with TrueHD/DTS-HD streams
+// Philosophy: Let VLC use its battle-tested defaults instead of over-configuring
+const createVlcSource = (streamUrl: string, streamHeaders?: Record<string, string>) => {
+  // Determine URI and network status following VLC library logic
+  let uri = streamUrl
+  if (uri && uri.match(/^\//)) {
+    uri = `file://${uri}`
+  }
+
+  let isNetwork = !!(uri && uri.match(/^https?:/))
+  const isAsset = !!(uri && uri.match(/^(assets-library|file|content|ms-appx|ms-appdata):/))
+  
+  if (!isAsset) {
+    isNetwork = true
+  }
+  if (uri && uri.match(/^\//)) {
+    isNetwork = false
+  }
+
+  // MINIMAL CONFIGURATION (Stremio iOS approach)
+  // Let VLC use its defaults which work better for TrueHD/DTS-HD
+  const initOptions = [
+    '--network-caching=2000',      // Balanced caching (Nuvio uses 2000ms)
+    '--http-reconnect',            // Auto-reconnect on network issues
+  ]
+
+  // Add custom headers (same as before)
+  if (streamHeaders) {
+    Object.entries(streamHeaders).forEach(([key, value]) => {
+      if (key.toLowerCase() === 'user-agent') {
+        initOptions.push(`--http-user-agent=${value}`)
+      } else if (key.toLowerCase() === 'referer') {
+        initOptions.push(`--http-referrer=${value}`)
+      }
+    })
+  }
+
+  // Return mutable object - VLC may mutate this internally
+  // CRITICAL: Must not be frozen by Legend State observer
+  return {
+    uri,
+    initType: 2 as const, // Required for custom initOptions
+    initOptions,
+    autoplay: true,
+    isNetwork, // VLC may overwrite this property
+  }
+}
+
+/**
+ * VLC Configuration Philosophy
+ * 
+ * This implementation follows the Stremio iOS approach: MINIMAL configuration.
+ * 
+ * Comparison:
+ * - Stremio iOS (v1.0.67): 0 init options → plays everything
+ * - Nuvio (expo-libvlc): 4 init options → reliable playback
+ * - Previous VNYL: 14+ init options → codec conflicts
+ * - Current VNYL: 2 init options → maximum compatibility
+ * 
+ * Removed options that caused issues:
+ * - --avcodec-fast, --avcodec-skiploopfilter, --avcodec-skip-frame, --avcodec-skip-idct
+ * - --no-audio-time-stretch, --audio-desync=0
+ * - --file-caching, --live-caching
+ * - --avcodec-hw=any, --codec=avcodec (let VLC decide)
+ * - --adaptive-logic=highest
+ * 
+ * Result: Let VLC's battle-tested defaults handle codec selection and decoding.
+ */
+
+// Component WITHOUT observer wrapper to prevent object freezing
+const RNVlcPlayerComponent: React.FC<RNVlcPlayerProps> = ({
   media,
   stream,
   seasonNumber,
@@ -33,13 +104,13 @@ export const RNVlcPlayer: React.FC<RNVlcPlayerProps> = ({
   const [error, setError] = useState<string | null>(null)
   const [isLoaded, setIsLoaded] = useState(false)
   const [paused, setPaused] = useState(false)
-  const [seekPosition, setSeekPosition] = useState<number>(0)
   const [audioTracks, setAudioTracks] = useState<AudioTrack[]>([])
   const [subtitleTracks, setSubtitleTracks] = useState<SubtitleTrack[]>([])
   const [selectedAudioTrack, setSelectedAudioTrack] = useState<number | null>(null)
   const [selectedSubtitleTrack, setSelectedSubtitleTrack] = useState<number | null>(null)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
+  const lastLoggedTime = useRef(0)
 
   // Scrobbling hook (Trakt integration)
   const { handleProgressUpdate, handleStop } = usePlayerScrobbling(
@@ -74,38 +145,85 @@ export const RNVlcPlayer: React.FC<RNVlcPlayerProps> = ({
   useEffect(() => {
     const resumeProgress = async () => {
       const savedTime = await loadProgress()
-      if (savedTime && playerRef.current && isLoaded) {
+      if (savedTime && playerRef.current && isLoaded && duration > 0) {
         console.log('[RNVlcPlayer] Resuming from:', savedTime, 'seconds')
-        // VLC seek expects position as fraction (0-1)
-        // We'll use the onLoad callback to seek after getting duration
+        const position = savedTime / duration
+        // Use proper resume + seek pattern
+        playerRef.current.resume()
+        setTimeout(() => {
+          playerRef.current?.seek(position)
+        }, 100) // Small delay to ensure player is ready
       }
     }
 
-    resumeProgress()
-  }, [loadProgress, isLoaded])
+    if (isLoaded && duration > 0) {
+      resumeProgress()
+    }
+  }, [loadProgress, isLoaded, duration])
 
   // Debug logging on mount
   useEffect(() => {
     console.log('[RNVlcPlayer] Component mounted')
     console.log('[RNVlcPlayer] Stream URL:', stream.url)
     console.log('[RNVlcPlayer] Stream source:', stream.source)
-    console.log('[RNVlcPlayer] Stream headers:', stream.headers || 'none')
 
-    // Cleanup: VLC player handles cleanup automatically on unmount
-    // No manual stopPlayer() call needed as it causes unmounted component errors
+    // Capture ref in closure for cleanup
+    const playerRefCurrent = playerRef.current
+    const finalCurrentTime = currentTime
+    const finalDuration = duration
+
     return () => {
       console.log('[RNVlcPlayer] Component unmounting')
+      // Call stop on unmount to clean up VLC resources
+      if (playerRefCurrent) {
+        try {
+          playerRefCurrent.stopPlayer()
+        } catch (err) {
+          console.log('[RNVlcPlayer] Error stopping player on unmount:', err)
+        }
+      }
+      // Final scrobble (use captured values from closure)
+      handleStop(finalCurrentTime, finalDuration).catch((err) => {
+        console.log('[RNVlcPlayer] Error in final scrobble:', err)
+      })
     }
-  }, [stream])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stream.url, stream.source]) // Only re-run if stream changes
 
   const handleError = (event: SimpleCallbackEventProps) => {
     console.error('[RNVlcPlayer] Playback error:', event)
-    setError('Failed to play video. The stream may be unavailable or incompatible.')
+    
+    const errorMessage = typeof event === 'string' ? event : JSON.stringify(event)
+    const isCodecError = errorMessage.toLowerCase().includes('codec') || 
+                         errorMessage.toLowerCase().includes('decode')
+    
+    if (isCodecError) {
+      // Try switching audio track if multiple tracks exist
+      if (audioTracks.length > 1 && selectedAudioTrack !== 1) {
+        console.log('[RNVlcPlayer] Codec error detected. Switching to audio track 1...')
+        setSelectedAudioTrack(1)
+        setTimeout(() => {
+          if (error) {
+            setError(
+              'This stream has an incompatible audio codec. VLC tried switching to track 1 (AC3/AAC). If playback still fails, try selecting a different audio track manually or use a different stream.'
+            )
+          }
+        }, 2000)
+        return
+      }
+      
+      setError(
+        'Audio codec incompatibility detected. VLC is configured for maximum compatibility but this stream requires specific codec support. Try selecting a different audio track or use a different stream source.'
+      )
+    } else {
+      setError('Failed to play video. The stream may be unavailable, expired, or incompatible.')
+    }
   }
 
   const handleProgress = (event: OnProgressEventProps) => {
-    const eventCurrentTime = event.currentTime
-    const eventDuration = event.duration
+    // VLC returns time in milliseconds, convert to seconds
+    const eventCurrentTime = event.currentTime / 1000
+    const eventDuration = event.duration / 1000
 
     // Update local state
     setCurrentTime(eventCurrentTime)
@@ -114,19 +232,18 @@ export const RNVlcPlayer: React.FC<RNVlcPlayerProps> = ({
     // Scrobble to services (Trakt if authenticated)
     handleProgressUpdate(eventCurrentTime, eventDuration)
 
-    // Save local watch progress
+    // Save local watch progress (throttled internally)
     saveProgress(eventCurrentTime, eventDuration)
 
-    // Log playback progress periodically (every 30 seconds)
+    // Only log if values actually changed (reduce console spam)
+    // Log every 30 seconds
     const currentTimeRounded = Math.floor(eventCurrentTime)
-    if (currentTimeRounded % 30 === 0) {
+    if (currentTimeRounded % 30 === 0 && currentTimeRounded !== lastLoggedTime.current) {
+      lastLoggedTime.current = currentTimeRounded
       console.log('[RNVlcPlayer] Playback progress:', {
         positionSeconds: currentTimeRounded,
         duration: Math.floor(eventDuration),
         progressPercent: eventDuration > 0 ? Math.round((eventCurrentTime / eventDuration) * 100) : 0,
-        currentTime: event.currentTime,
-        remainingTime: event.remainingTime,
-        positionFraction: event.position,
       })
     }
   }
@@ -151,6 +268,14 @@ export const RNVlcPlayer: React.FC<RNVlcPlayerProps> = ({
     }))
     setAudioTracks(mappedAudioTracks)
 
+    // Auto-select compatible audio track (Stremio approach)
+    // Always prefer track 1 over track 0 to avoid TrueHD issues
+    if (mappedAudioTracks.length > 0) {
+      const defaultTrack = mappedAudioTracks.length > 1 ? 1 : 0
+      console.log(`[RNVlcPlayer] Auto-selecting audio track ${defaultTrack} (total tracks: ${mappedAudioTracks.length})`)
+      setSelectedAudioTrack(defaultTrack)
+    }
+
     // Map VLC subtitle tracks to domain entities
     const mappedSubtitleTracks: SubtitleTrack[] = (event.textTracks ?? []).map((track) => ({
       id: track.id,
@@ -160,26 +285,20 @@ export const RNVlcPlayer: React.FC<RNVlcPlayerProps> = ({
     }))
     setSubtitleTracks(mappedSubtitleTracks)
 
-    // Resume from saved progress after load
-    const savedTime = await loadProgress()
-    if (savedTime && playerRef.current && event.duration > 0) {
-      // Calculate position as fraction (0-1)
-      const position = savedTime / event.duration
-      console.log('[RNVlcPlayer] Seeking to saved position:', position)
-      setSeekPosition(position)
-    }
+    // Resume will be handled by separate useEffect
+    // This ensures tracks are available before seeking
   }
 
   const handleStopped = async (event: SimpleCallbackEventProps) => {
     console.log('[RNVlcPlayer] Playback stopped:', event)
-    // Final scrobble on stop
-    await handleStop(0, 0)
+    setPaused(true) // Update paused state
+    await handleStop(currentTime, duration)
   }
 
   const handleEnd = async (event: SimpleCallbackEventProps) => {
     console.log('[RNVlcPlayer] Playback ended:', event)
-    // Final scrobble on completion
-    await handleStop(0, 0)
+    setPaused(true) // Update paused state
+    await handleStop(currentTime, duration)
   }
 
   const handleBuffering = (event: SimpleCallbackEventProps) => {
@@ -194,6 +313,7 @@ export const RNVlcPlayer: React.FC<RNVlcPlayerProps> = ({
   const handlePlaying = (event: { duration: number; target: number; seekable: boolean }) => {
     console.log('[RNVlcPlayer] Playing:', event)
     setPaused(false)
+    setIsLoaded(true) // Set loaded when playing starts
   }
 
   // Control handlers
@@ -201,7 +321,9 @@ export const RNVlcPlayer: React.FC<RNVlcPlayerProps> = ({
     if (playerRef.current && duration > 0) {
       const newTime = Math.max(0, Math.min(currentTime + seconds, duration))
       const position = newTime / duration
-      setSeekPosition(position)
+      // Use ref method instead of state
+      playerRef.current.seek(position)
+      setCurrentTime(newTime)
       setControlsVisible(true)
     }
   }
@@ -209,7 +331,8 @@ export const RNVlcPlayer: React.FC<RNVlcPlayerProps> = ({
   const handleSeek = (time: number) => {
     if (playerRef.current && duration > 0) {
       const position = time / duration
-      setSeekPosition(position)
+      // Use ref method instead of state
+      playerRef.current.seek(position)
       setCurrentTime(time)
     }
   }
@@ -220,45 +343,73 @@ export const RNVlcPlayer: React.FC<RNVlcPlayerProps> = ({
 
   const handleAudioTrackSelect = (trackId: number | null) => {
     setSelectedAudioTrack(trackId)
+    // VLC accepts -1 for disable, or track id
+    // No need to call setNativeProps, state change triggers prop update
   }
 
   const handleSubtitleTrackSelect = (trackId: number | null) => {
     setSelectedSubtitleTrack(trackId)
+    // VLC accepts -1 for disable, or track id
+    // No need to call setNativeProps, state change triggers prop update
   }
 
-  // Build VLC source with headers
-  const vlcSource = {
-    uri: stream.url,
-    initOptions: [
-      '--network-caching=1500', // 1.5s cache for network streams
-      '--no-audio-time-stretch', // Disable audio time stretching
-      '--avcodec-fast', // Enable fast decoding
-    ],
-  }
+  // Create VLC source on each render - must be mutable
+  // Do NOT use useState or useMemo as Legend State can still freeze
+  // Create fresh object every render
+  const vlcSource = createVlcSource(stream.url, stream.headers)
 
-  // Add custom headers if present
-  if (stream.headers) {
-    // VLC expects headers in the format: :http-user-agent=...
-    Object.entries(stream.headers).forEach(([key, value]) => {
-      if (key.toLowerCase() === 'user-agent') {
-        vlcSource.initOptions?.push(`--http-user-agent=${value}`)
-      } else if (key.toLowerCase() === 'referer') {
-        vlcSource.initOptions?.push(`--http-referrer=${value}`)
-      }
-      // VLC has limited header support, other headers may not work
+  // Log configuration once on mount
+  useEffect(() => {
+    console.log('[RNVlcPlayer] VLC source configuration:', {
+      uri: stream.url.substring(0, 100) + '...',
+      initType: vlcSource.initType,
+      initOptionsCount: vlcSource.initOptions.length,
+      hasHeaders: !!stream.headers,
     })
-  }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stream.url, stream.headers]) // Only log on stream change
 
   if (error) {
+    const isCodecError = error.toLowerCase().includes('codec') || error.toLowerCase().includes('truehd') || error.toLowerCase().includes('dts')
+    const isLoadError = error.toLowerCase().includes('unavailable') || error.toLowerCase().includes('load')
+    
     return (
       <View style={styles.container}>
         <View style={styles.errorContainer}>
-          <Ionicons name="alert-circle" size={48} color="#FF3B30" />
-          <Text style={styles.errorText}>Playback Error</Text>
+          <Ionicons 
+            name={isLoadError ? 'cloud-offline' : 'alert-circle'} 
+            size={48} 
+            color="#FF3B30" 
+          />
+          <Text style={styles.errorText}>
+            {isCodecError ? 'Audio Codec Not Supported' : 
+             isLoadError ? 'Stream Unavailable' : 'Playback Error'}
+          </Text>
           <Text style={styles.errorDetails}>{error}</Text>
-          <Pressable style={styles.closeButton} onPress={onClose}>
-            <Text style={styles.closeButtonText}>Close</Text>
-          </Pressable>
+          
+          <View style={styles.suggestionBox}>
+            <Ionicons name="information-circle" size={24} color="#007AFF" />
+            <Text style={styles.suggestionText}>
+              {isCodecError && audioTracks.length > 1 ? (
+                `This stream has ${audioTracks.length} audio tracks. Try:\n• Selecting a different audio track\n• Using a different stream`
+              ) : isLoadError ? (
+                'The stream may have expired or requires re-authentication. Try:\n• Going back and selecting the stream again\n• Trying a different stream source'
+              ) : (
+                'VLC encountered an error playing this stream. Try:\n• Going back and selecting the stream again\n• Using a different stream\n• Restarting the app'
+              )}
+            </Text>
+          </View>
+          
+          <View style={styles.buttonRow}>
+            <Pressable 
+              style={[styles.closeButton, styles.secondaryButton]} 
+              onPress={onClose}
+            >
+              <Text style={[styles.closeButtonText, styles.secondaryButtonText]}>
+                Go Back
+              </Text>
+            </Pressable>
+          </View>
         </View>
       </View>
     )
@@ -272,9 +423,7 @@ export const RNVlcPlayer: React.FC<RNVlcPlayerProps> = ({
           ref={playerRef}
           source={vlcSource}
           style={styles.player}
-          autoplay={true}
           paused={paused}
-          seek={seekPosition}
           audioTrack={selectedAudioTrack ?? -1}
           textTrack={selectedSubtitleTrack ?? -1}
           playInBackground={true}
@@ -345,9 +494,31 @@ const styles = RNStyleSheet.create({
     color: 'white',
     fontSize: 14,
     textAlign: 'center',
+    lineHeight: 20,
+  },
+  suggestionBox: {
+    marginTop: 20,
+    padding: 16,
+    backgroundColor: 'rgba(0, 122, 255, 0.1)',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 122, 255, 0.3)',
+    flexDirection: 'row',
+    gap: 12,
+    alignItems: 'flex-start',
+  },
+  suggestionText: {
+    flex: 1,
+    color: '#E0E0E0',
+    fontSize: 13,
+    lineHeight: 20,
+  },
+  buttonRow: {
+    marginTop: 20,
+    flexDirection: 'row',
+    gap: 12,
   },
   closeButton: {
-    marginTop: 20,
     paddingVertical: 12,
     paddingHorizontal: 24,
     backgroundColor: '#007AFF',
@@ -358,4 +529,17 @@ const styles = RNStyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
+  secondaryButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  secondaryButtonText: {
+    color: 'white',
+  },
 })
+
+// Export WITHOUT observer wrapper to prevent object freezing
+// VLC library needs mutable source object
+// Controls components can still use observer for their own state
+export const RNVlcPlayer: React.FC<RNVlcPlayerProps> = RNVlcPlayerComponent

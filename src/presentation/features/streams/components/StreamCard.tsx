@@ -1,11 +1,13 @@
 import React from 'react'
 import { View, Text, Pressable } from 'react-native'
 import { StyleSheet } from 'react-native-unistyles'
+import { Ionicons } from '@expo/vector-icons'
 import { observer } from '@legendapp/state/react'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import { useQueryClient } from '@tanstack/react-query'
 import type { Stream } from '@/src/domain/entities/Stream'
 import type { Media } from '@/src/domain/entities/Media'
+import { Badge } from '@/src/presentation/shared/ui'
 
 interface StreamCardProps {
   stream: Stream
@@ -74,6 +76,16 @@ export const StreamCard: React.FC<StreamCardProps> = observer(({ stream }) => {
   const displayName = stream.name || stream.quality || 'Stream'
   const providerName = extractProviderName(stream.provider)
   const formattedDescription = formatDescription(stream.description)
+  
+  // Check for problematic audio codecs in stream name/description
+  const hasProblematicAudio = (
+    displayName.toLowerCase().includes('truehd') ||
+    displayName.toLowerCase().includes('dts-hd') ||
+    displayName.toLowerCase().includes('dts:x') ||
+    displayName.toLowerCase().includes('atmos') ||
+    formattedDescription.toLowerCase().includes('truehd') ||
+    formattedDescription.toLowerCase().includes('dts-hd')
+  )
 
   return (
     <Pressable
@@ -84,17 +96,37 @@ export const StreamCard: React.FC<StreamCardProps> = observer(({ stream }) => {
     >
       <View style={styles.content}>
         <View style={styles.header}>
-          <Text style={styles.title} numberOfLines={2}>
-            {displayName}
-          </Text>
-          <View style={styles.providerBadge}>
-            <Text style={styles.providerBadgeText} numberOfLines={1}>
-              {providerName}
+          <View style={styles.titleRow}>
+            <Ionicons name="play-circle" size={24} color={styles.playIcon.color} />
+            <Text style={styles.title} numberOfLines={2}>
+              {displayName}
             </Text>
           </View>
+          <Badge label={providerName} variant="primary" size="sm" />
         </View>
+        {(stream.quality || hasProblematicAudio) && (
+          <View style={styles.metadataRow}>
+            {stream.quality && (
+              <Badge label={stream.quality} variant="info" size="sm" />
+            )}
+            {stream.source && (
+              <Badge
+                label={stream.source.toUpperCase()}
+                variant="secondary"
+                size="sm"
+              />
+            )}
+            {hasProblematicAudio && (
+              <Badge
+                label="⚠️ HD AUDIO"
+                variant="warning"
+                size="sm"
+              />
+            )}
+          </View>
+        )}
         {formattedDescription && (
-          <Text style={styles.description} numberOfLines={4}>
+          <Text style={styles.description} numberOfLines={3}>
             {formattedDescription}
           </Text>
         )}
@@ -106,19 +138,22 @@ export const StreamCard: React.FC<StreamCardProps> = observer(({ stream }) => {
 const styles = StyleSheet.create((theme) => ({
   card: {
     backgroundColor: theme.colors.surface,
-    borderRadius: theme.borderRadius.md,
+    borderRadius: theme.borderRadius.lg,
     padding: theme.spacing.md,
     marginVertical: theme.spacing.xs,
     marginHorizontal: theme.spacing.md,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 4,
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
   },
   pressed: {
-    opacity: 0.8,
-    transform: [{ scale: 0.98 }],
+    opacity: 0.9,
+    transform: [{ scale: 0.99 }],
+    borderColor: theme.colors.primary,
   },
   content: {
     gap: theme.spacing.sm,
@@ -129,26 +164,30 @@ const styles = StyleSheet.create((theme) => ({
     alignItems: 'flex-start' as const,
     gap: theme.spacing.sm,
   },
+  titleRow: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center' as const,
+    gap: theme.spacing.sm,
+  },
   title: {
     flex: 1,
-    fontSize: theme.fontSize.lg,
-    fontWeight: '700' as const,
-    color: theme.colors.text,
-  },
-  providerBadge: {
-    backgroundColor: theme.colors.primary,
-    borderRadius: theme.borderRadius.sm,
-    paddingVertical: theme.spacing.xs,
-    paddingHorizontal: theme.spacing.sm,
-  },
-  providerBadgeText: {
-    fontSize: theme.fontSize.xs,
+    fontSize: theme.fontSize.base,
     fontWeight: '600' as const,
-    color: theme.colors.background,
+    color: theme.colors.text,
+    lineHeight: theme.fontSize.base * 1.4,
+  },
+  playIcon: {
+    color: theme.colors.primary,
+  },
+  metadataRow: {
+    flexDirection: 'row',
+    gap: theme.spacing.xs,
+    flexWrap: 'wrap' as const,
   },
   description: {
     fontSize: theme.fontSize.sm,
-    lineHeight: theme.fontSize.sm * 1.4,
+    lineHeight: theme.fontSize.sm * 1.5,
     color: theme.colors.textSecondary,
   },
 }))

@@ -217,10 +217,12 @@
     "playback": {
       "title": "Playback",
       "video_player": "Video Player",
-      "video_player_description": "Choose your preferred video player",
-      "video_player_options": "Select video player with codec support",
-      "player_expo_video": "Expo Video (Default)",
-      "player_rn_vlc": "React Native VLC (Universal Codecs)"
+      "video_player_description": "VLC Player uses minimal configuration for maximum compatibility with TrueHD, DTS-HD, and high-quality streams. External player opens streams in your device's default or preferred video player.",
+      "video_player_options": "Built-in VLC or external player",
+      "player_rn_vlc": "VLC Player (Recommended)",
+      "player_rn_vlc_description": "Built-in VLC player with universal codec support. Uses minimal configuration for maximum compatibility with TrueHD, DTS-HD, and high-quality streams.",
+      "player_external": "External Player (System/Third-party)",
+      "player_external_description": "Open streams in your device's default or preferred external video player (VLC, Infuse, MX Player, etc.)"
     },
     "accounts": {
       "title": "Accounts",

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo } from 'react'
-import { View } from 'react-native'
+import { View, Linking } from 'react-native'
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import { StyleSheet } from 'react-native-unistyles'
@@ -7,10 +7,9 @@ import { useQueryClient } from '@tanstack/react-query'
 import type { Stream } from '@/src/domain/entities/Stream'
 import { useService } from '@/src/infrastructure/di/useService'
 import { TOKENS } from '@/src/infrastructure/di/tokens'
-import type { GetVideoPlayerUseCase } from '@/src/domain/use-cases/player/GetVideoPlayerUseCase'
+import type { IPreferencesService } from '@/src/domain/services/IPreferencesService'
 import type { MediaDetailData } from '@/src/domain/use-cases/media/GetMediaDetailUseCase'
 import { VideoPlayerType } from '@/src/domain/entities/VideoPlayerType'
-import { ExpoVideoPlayer } from '@/src/presentation/features/player/components/ExpoVideoPlayer'
 import { RNVlcPlayer } from '@/src/presentation/features/player/components/RNVlcPlayer'
 import { resetPlayerState, player$ } from '@/src/presentation/features/player/stores/player.store'
 
@@ -25,7 +24,7 @@ export default function PlayerScreen() {
     episode?: string
   }>()
 
-  const getVideoPlayerUseCase = useService<GetVideoPlayerUseCase>(TOKENS.GetVideoPlayerUseCase)
+  const preferencesService = useService<IPreferencesService>(TOKENS.PreferencesService)
 
   // Parse stream from params
   const stream: Stream = useMemo(() => {
@@ -63,12 +62,34 @@ export default function PlayerScreen() {
   const seasonNumber = params.season ? parseInt(params.season, 10) : undefined
   const episodeNumber = params.episode ? parseInt(params.episode, 10) : undefined
 
-  // Determine which player to use
-  const playerType = useMemo(() => {
-    const player = getVideoPlayerUseCase.execute()
-    console.log('[PlayerScreen] Selected player:', player)
-    return player
-  }, [getVideoPlayerUseCase])
+  // Check if user wants external player and handle it
+  useEffect(() => {
+    const handleExternalPlayer = async () => {
+      const playerType = preferencesService.getVideoPlayerPreference()
+      
+      if (playerType === VideoPlayerType.EXTERNAL) {
+        console.log('[PlayerScreen] Opening stream in external player:', stream.url)
+        try {
+          const canOpen = await Linking.canOpenURL(stream.url)
+          if (canOpen) {
+            await Linking.openURL(stream.url)
+            console.log('[PlayerScreen] Successfully opened external player')
+          } else {
+            console.error('[PlayerScreen] Cannot open URL in external player:', stream.url)
+          }
+          // Close player screen after opening external
+          router.back()
+        } catch (error) {
+          console.error('[PlayerScreen] Failed to open external player:', error)
+          // Fallback: stay on screen, user can try again or go back
+        }
+      }
+    }
+    
+    if (stream) {
+      handleExternalPlayer()
+    }
+  }, [stream, router, preferencesService])
 
   // Store stream and media in player store for UI state management
   useEffect(() => {
@@ -98,43 +119,19 @@ export default function PlayerScreen() {
     return null // Could add error screen
   }
 
-  // Render appropriate player based on user preference
-  const renderPlayer = () => {
-    if (playerType === VideoPlayerType.EXPO_VIDEO) {
-      return (
-        <ExpoVideoPlayer
-          stream={stream}
-          media={media}
-          seasonNumber={seasonNumber}
-          episodeNumber={episodeNumber}
-          onClose={handleClose}
-        />
-      )
-    }
-
-    if (playerType === VideoPlayerType.RN_VLC) {
-      return (
-        <RNVlcPlayer
-          stream={stream}
-          media={media}
-          seasonNumber={seasonNumber}
-          episodeNumber={episodeNumber}
-          onClose={handleClose}
-        />
-      )
-    }
-
-    // Unsupported player type fallback
-    console.error('[PlayerScreen] Unsupported player type:', playerType)
-    return null
-  }
-
+  // Always render VLC player (external player handled in useEffect above)
   return (
     <View style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
       <StatusBar hidden />
 
-      {renderPlayer()}
+      <RNVlcPlayer
+        stream={stream}
+        media={media}
+        seasonNumber={seasonNumber}
+        episodeNumber={episodeNumber}
+        onClose={handleClose}
+      />
     </View>
   )
 }

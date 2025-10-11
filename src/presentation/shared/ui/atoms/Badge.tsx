@@ -1,0 +1,46 @@
+import React from 'react'
+import { View, Text } from 'react-native'
+import { StyleSheet } from 'react-native-unistyles'
+import { observer } from '@legendapp/state/react'
+
+interface BadgeProps {
+  label: string
+  variant?: 'primary' | 'secondary' | 'success' | 'warning' | 'error' | 'info'
+  size?: 'sm' | 'md' | 'lg'
+}
+
+export const Badge: React.FC<BadgeProps> = observer(({
+  label,
+  variant = 'primary',
+  size = 'md',
+}) => {
+
+  return (
+    <View style={stylesheet.badge(variant, size)}>
+      <Text style={stylesheet.text(size)} numberOfLines={1}>
+        {label}
+      </Text>
+    </View>
+  )
+})
+
+const stylesheet = StyleSheet.create((theme) => ({
+  badge: (variant: string, size: string) => ({
+    backgroundColor:
+      variant === 'primary' ? theme.colors.primary :
+      variant === 'secondary' ? theme.colors.textSecondary :
+      variant === 'success' ? '#34C759' :
+      variant === 'warning' ? '#FF9500' :
+      variant === 'error' ? theme.colors.error :
+      theme.colors.primary,
+    borderRadius: theme.borderRadius.sm,
+    paddingVertical: size === 'sm' ? 2 : size === 'lg' ? 6 : 4,
+    paddingHorizontal: size === 'sm' ? theme.spacing.xs : size === 'lg' ? theme.spacing.md : theme.spacing.sm,
+    alignSelf: 'flex-start',
+  }),
+  text: (size: string) => ({
+    color: '#FFFFFF',
+    fontSize: size === 'sm' ? theme.fontSize.xs : size === 'lg' ? theme.fontSize.base : theme.fontSize.sm,
+    fontWeight: '600',
+  }),
+}))

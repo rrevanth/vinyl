@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react'
-import { View, Text, ActivityIndicator, ScrollView } from 'react-native'
+import { View, ScrollView, Text } from 'react-native'
 import { Stack, useLocalSearchParams } from 'expo-router'
 import { StyleSheet, useUnistyles } from 'react-native-unistyles'
 import { observer } from '@legendapp/state/react'
@@ -10,6 +10,7 @@ import { StreamList } from '@/src/presentation/features/streams/components/Strea
 import { ProviderFilterChips } from '@/src/presentation/features/streams/components/ProviderFilterChips'
 import { streamUI$ } from '@/src/presentation/features/streams/stores/streamUI.store'
 import { useTranslations } from '@/src/presentation/shared/i18n'
+import { LoadingSpinner, ErrorMessage } from '@/src/presentation/shared/ui'
 
 export default observer(function StreamScreen() {
   const { theme } = useUnistyles()
@@ -63,9 +64,11 @@ export default observer(function StreamScreen() {
     return (
       <View style={styles.container}>
         <Stack.Screen options={headerOptions} />
-        <View style={styles.centerContainer}>
-          <Text style={styles.errorText}>{t.streams.error_no_media}</Text>
-        </View>
+        <ErrorMessage
+          title={t.streams.error_no_media}
+          message="Please go back and try again."
+          fullScreen
+        />
       </View>
     )
   }
@@ -75,10 +78,10 @@ export default observer(function StreamScreen() {
     return (
       <View style={styles.container}>
         <Stack.Screen options={headerOptions} />
-        <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color={theme.colors.primary} />
-          <Text style={styles.loadingText}>{t.streams.loading}</Text>
-        </View>
+        <LoadingSpinner
+          message={t.streams.loading}
+          fullScreen
+        />
       </View>
     )
   }
@@ -86,8 +89,28 @@ export default observer(function StreamScreen() {
   return (
     <View style={styles.container}>
       <Stack.Screen options={headerOptions} />
+      
+      {/* Media Info Header */}
+      <View style={styles.mediaHeader}>
+        <Text style={styles.mediaTitle} numberOfLines={2}>
+          {media.title}
+        </Text>
+        {(seasonNumber !== undefined && episodeNumber !== undefined) && (
+          <Text style={styles.episodeInfo}>
+            Season {seasonNumber} · Episode {episodeNumber}
+          </Text>
+        )}
+      </View>
+
+      {/* Provider Filter */}
       <ProviderFilterChips providers={providers} />
-      <ScrollView style={styles.scrollView}>
+
+      {/* Stream List */}
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         <StreamList streams={filteredStreams} />
       </ScrollView>
     </View>
@@ -99,30 +122,26 @@ const styles = StyleSheet.create((theme) => ({
     flex: 1,
     backgroundColor: theme.colors.background,
   },
+  mediaHeader: {
+    paddingHorizontal: theme.spacing.md,
+    paddingTop: 80, // Account for transparent header
+    paddingBottom: theme.spacing.md,
+    gap: theme.spacing.xs,
+  },
+  mediaTitle: {
+    fontSize: theme.fontSize.xl * 1.2,
+    fontWeight: '700' as const,
+    color: theme.colors.text,
+  },
+  episodeInfo: {
+    fontSize: theme.fontSize.base,
+    color: theme.colors.textSecondary,
+    fontWeight: '500' as const,
+  },
   scrollView: {
     flex: 1,
   },
-  centerContainer: {
-    flex: 1,
-    justifyContent: 'center' as const,
-    alignItems: 'center' as const,
-    padding: theme.spacing.xl,
-    gap: theme.spacing.md,
-  },
-  loadingText: {
-    fontSize: theme.fontSize.base,
-    color: theme.colors.textSecondary,
-    textAlign: 'center' as const,
-  },
-  errorText: {
-    fontSize: theme.fontSize.base,
-    color: theme.colors.error,
-    textAlign: 'center' as const,
-    fontWeight: '600' as const,
-  },
-  errorDetails: {
-    fontSize: theme.fontSize.sm,
-    color: theme.colors.textSecondary,
-    textAlign: 'center' as const,
+  scrollContent: {
+    paddingBottom: theme.spacing.xl,
   },
 }))

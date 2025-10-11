@@ -166,8 +166,8 @@ interface Translations {
       video_player: string
       video_player_description: string
       video_player_options: string
-      player_expo_video: string
       player_rn_vlc: string
+      player_external: string
     }
     accounts: {
       title: string
