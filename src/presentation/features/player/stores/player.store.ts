@@ -9,19 +9,29 @@ interface PlayerState {
   currentStream: Stream | null
   currentMedia: Media | null
 
+  // Player backend selection
+  playerBackend: 'react-native-video' | 'expo-libvlc'
+
   // Playback state
   isPlaying: boolean
   currentTime: number
   duration: number
   buffering: boolean
+  isInitializing: boolean
+  isBuffering: boolean
 
   // UI state
   showControls: boolean
   controlsTimeout: NodeJS.Timeout | null
 
-  // Volume
+  // Volume and brightness
   volume: number
   muted: boolean
+  brightness: number
+
+  // Overlay visibility
+  showVolumeOverlay: boolean
+  showBrightnessOverlay: boolean
 
   // Tracks
   audioTracks: AudioTrack[]
@@ -31,6 +41,7 @@ interface PlayerState {
 
   // Display
   resizeMode: 'contain' | 'cover' | 'stretch'
+  zoomScale: number
 
   // Modals
   showAudioModal: boolean
@@ -38,6 +49,9 @@ interface PlayerState {
 
   // Error state
   error: string | null
+
+  // Control visibility timeout
+  controlsTimeoutId: NodeJS.Timeout | null
 }
 
 export const player$ = observable<PlayerState>({
@@ -45,19 +59,29 @@ export const player$ = observable<PlayerState>({
   currentStream: null,
   currentMedia: null,
 
+  // Player backend selection
+  playerBackend: 'react-native-video',
+
   // Playback state
   isPlaying: false,
   currentTime: 0,
   duration: 0,
   buffering: false,
+  isInitializing: true,
+  isBuffering: false,
 
   // UI state
   showControls: true,
   controlsTimeout: null,
 
-  // Volume
+  // Volume and brightness
   volume: 1.0,
   muted: false,
+  brightness: 1.0,
+
+  // Overlay visibility
+  showVolumeOverlay: false,
+  showBrightnessOverlay: false,
 
   // Tracks
   audioTracks: [],
@@ -67,6 +91,7 @@ export const player$ = observable<PlayerState>({
 
   // Display
   resizeMode: 'contain',
+  zoomScale: 1.0,
 
   // Modals
   showAudioModal: false,
@@ -74,6 +99,9 @@ export const player$ = observable<PlayerState>({
 
   // Error state
   error: null,
+
+  // Control visibility timeout
+  controlsTimeoutId: null,
 })
 
 // Helper functions for state updates
@@ -125,4 +153,63 @@ export function cycleResizeMode(): void {
   const currentIndex = modes.indexOf(current)
   const nextIndex = (currentIndex + 1) % modes.length
   player$.resizeMode.set(modes[nextIndex])
+}
+
+// Volume control
+export function setVolume(volume: number): void {
+  player$.volume.set(Math.max(0, Math.min(1, volume)))
+  player$.showVolumeOverlay.set(true)
+}
+
+export function hideVolumeOverlay(): void {
+  player$.showVolumeOverlay.set(false)
+}
+
+// Brightness control
+export function setBrightness(brightness: number): void {
+  player$.brightness.set(Math.max(0, Math.min(1, brightness)))
+  player$.showBrightnessOverlay.set(true)
+}
+
+export function hideBrightnessOverlay(): void {
+  player$.showBrightnessOverlay.set(false)
+}
+
+// Player backend
+export function setPlayerBackend(backend: 'react-native-video' | 'expo-libvlc'): void {
+  player$.playerBackend.set(backend)
+}
+
+// Initialization state
+export function setInitializing(isInitializing: boolean): void {
+  player$.isInitializing.set(isInitializing)
+}
+
+export function setBuffering(isBuffering: boolean): void {
+  player$.isBuffering.set(isBuffering)
+}
+
+// Zoom scale
+export function setZoomScale(scale: number): void {
+  player$.zoomScale.set(scale)
+}
+
+// Controls visibility with auto-hide
+export function setControlsVisibleWithTimeout(): void {
+  // Clear existing timeout
+  const existingTimeout = player$.controlsTimeoutId.get()
+  if (existingTimeout) {
+    clearTimeout(existingTimeout)
+  }
+
+  // Show controls
+  player$.showControls.set(true)
+
+  // Set new timeout to hide after 5 seconds
+  const timeoutId = setTimeout(() => {
+    player$.showControls.set(false)
+    player$.controlsTimeoutId.set(null)
+  }, 5000)
+
+  player$.controlsTimeoutId.set(timeoutId)
 }

@@ -44,11 +44,7 @@ export default observer(function StreamScreen() {
   const media = queryClient.getQueryData<Media>(['media-detail', stableId])
 
   // Fetch streams
-  const { streams, providers, isLoading } = useMediaStreams(
-    media!,
-    seasonNumber,
-    episodeNumber
-  )
+  const { streams, providers, isLoading } = useMediaStreams(media!, seasonNumber, episodeNumber)
 
   // Get selected provider outside of useMemo to avoid complex dependency
   const selectedProvider = streamUI$.selectedProvider.get()
@@ -78,10 +74,7 @@ export default observer(function StreamScreen() {
     return (
       <View style={styles.container}>
         <Stack.Screen options={headerOptions} />
-        <LoadingSpinner
-          message={t.streams.loading}
-          fullScreen
-        />
+        <LoadingSpinner message={t.streams.loading} fullScreen />
       </View>
     )
   }
@@ -89,13 +82,13 @@ export default observer(function StreamScreen() {
   return (
     <View style={styles.container}>
       <Stack.Screen options={headerOptions} />
-      
+
       {/* Media Info Header */}
       <View style={styles.mediaHeader}>
         <Text style={styles.mediaTitle} numberOfLines={2}>
           {media.title}
         </Text>
-        {(seasonNumber !== undefined && episodeNumber !== undefined) && (
+        {seasonNumber !== undefined && episodeNumber !== undefined && (
           <Text style={styles.episodeInfo}>
             Season {seasonNumber} · Episode {episodeNumber}
           </Text>

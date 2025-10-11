@@ -22,6 +22,8 @@ export default function PlayerScreen() {
     mediaStableId: string
     season?: string
     episode?: string
+    backdrop?: string
+    logo?: string
   }>()
 
   const preferencesService = useService<IPreferencesService>(TOKENS.PreferencesService)
@@ -40,7 +42,9 @@ export default function PlayerScreen() {
     })
 
     if (parsed.source === 'torrent' || parsed.infoHash) {
-      console.warn('[PlayerScreen] ⚠️ Torrent stream detected - expo-av cannot play torrent/magnet links')
+      console.warn(
+        '[PlayerScreen] ⚠️ Torrent stream detected - expo-av cannot play torrent/magnet links'
+      )
     }
 
     return parsed
@@ -48,7 +52,10 @@ export default function PlayerScreen() {
 
   // Get media from cache (should be available from useMediaStreams)
   // Cache stores MediaDetailData objects, not raw Media objects
-  const cachedData = queryClient.getQueryData<MediaDetailData>(['media-detail', params.mediaStableId])
+  const cachedData = queryClient.getQueryData<MediaDetailData>([
+    'media-detail',
+    params.mediaStableId,
+  ])
   const media = cachedData?.media
 
   console.log('[PlayerScreen] Media from cache:', {
@@ -66,7 +73,7 @@ export default function PlayerScreen() {
   useEffect(() => {
     const handleExternalPlayer = async () => {
       const playerType = preferencesService.getVideoPlayerPreference()
-      
+
       if (playerType === VideoPlayerType.EXTERNAL) {
         console.log('[PlayerScreen] Opening stream in external player:', stream.url)
         try {
@@ -85,7 +92,7 @@ export default function PlayerScreen() {
         }
       }
     }
-    
+
     if (stream) {
       handleExternalPlayer()
     }
@@ -119,15 +126,15 @@ export default function PlayerScreen() {
     return null // Could add error screen
   }
 
-  // Always render VLC player (external player handled in useEffect above)
+  // Render VLC player (external player handled in useEffect above)
   return (
     <View style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
       <StatusBar hidden />
 
       <RNVlcPlayer
-        stream={stream}
         media={media}
+        stream={stream}
         seasonNumber={seasonNumber}
         episodeNumber={episodeNumber}
         onClose={handleClose}

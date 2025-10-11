@@ -1,8 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react'
 import { View, Pressable, Text, StyleSheet as RNStyleSheet } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
-import { VLCPlayer } from 'react-native-vlc-media-player'
-import type { OnProgressEventProps, VideoInfo, SimpleCallbackEventProps } from 'react-native-vlc-media-player'
+import { LibVlcPlayerView } from 'expo-libvlc-player'
 import type { Media } from '@/src/domain/entities/Media'
 import type { Stream } from '@/src/domain/entities/Stream'
 import type { AudioTrack } from '@/src/domain/entities/AudioTrack'
@@ -22,34 +21,20 @@ interface RNVlcPlayerProps {
   onClose: () => void
 }
 
-// Helper function to create VLC source following Stremio iOS approach
+// Helper function to create VLC options following Nuvio approach
 // Uses MINIMAL configuration to avoid codec conflicts with TrueHD/DTS-HD streams
 // Philosophy: Let VLC use its battle-tested defaults instead of over-configuring
-const createVlcSource = (streamUrl: string, streamHeaders?: Record<string, string>) => {
-  // Determine URI and network status following VLC library logic
-  let uri = streamUrl
-  if (uri && uri.match(/^\//)) {
-    uri = `file://${uri}`
-  }
-
-  let isNetwork = !!(uri && uri.match(/^https?:/))
-  const isAsset = !!(uri && uri.match(/^(assets-library|file|content|ms-appx|ms-appdata):/))
-  
-  if (!isAsset) {
-    isNetwork = true
-  }
-  if (uri && uri.match(/^\//)) {
-    isNetwork = false
-  }
-
-  // MINIMAL CONFIGURATION (Stremio iOS approach)
+const createVlcOptions = (streamHeaders?: Record<string, string>) => {
+  // MINIMAL CONFIGURATION (Nuvio approach)
   // Let VLC use its defaults which work better for TrueHD/DTS-HD
   const initOptions = [
-    '--network-caching=2000',      // Balanced caching (Nuvio uses 2000ms)
-    '--http-reconnect',            // Auto-reconnect on network issues
+    '--network-caching=2000', // Balanced caching (Nuvio uses 2000ms)
+    '--http-reconnect', // Auto-reconnect on network issues
+    '--clock-jitter=0', // Stable clock timing
+    '--sout-mux-caching=2000', // Stream output mux caching
   ]
 
-  // Add custom headers (same as before)
+  // Add custom headers if provided
   if (streamHeaders) {
     Object.entries(streamHeaders).forEach(([key, value]) => {
       if (key.toLowerCase() === 'user-agent') {
@@ -60,35 +45,27 @@ const createVlcSource = (streamUrl: string, streamHeaders?: Record<string, strin
     })
   }
 
-  // Return mutable object - VLC may mutate this internally
-  // CRITICAL: Must not be frozen by Legend State observer
-  return {
-    uri,
-    initType: 2 as const, // Required for custom initOptions
-    initOptions,
-    autoplay: true,
-    isNetwork, // VLC may overwrite this property
-  }
+  return initOptions
 }
 
 /**
  * VLC Configuration Philosophy
- * 
- * This implementation follows the Stremio iOS approach: MINIMAL configuration.
- * 
+ *
+ * This implementation follows the Nuvio approach: MINIMAL configuration with expo-libvlc-player.
+ *
  * Comparison:
  * - Stremio iOS (v1.0.67): 0 init options → plays everything
  * - Nuvio (expo-libvlc): 4 init options → reliable playback
  * - Previous VNYL: 14+ init options → codec conflicts
- * - Current VNYL: 2 init options → maximum compatibility
- * 
+ * - Current VNYL: 4 init options → maximum compatibility
+ *
  * Removed options that caused issues:
  * - --avcodec-fast, --avcodec-skiploopfilter, --avcodec-skip-frame, --avcodec-skip-idct
  * - --no-audio-time-stretch, --audio-desync=0
  * - --file-caching, --live-caching
  * - --avcodec-hw=any, --codec=avcodec (let VLC decide)
  * - --adaptive-logic=highest
- * 
+ *
  * Result: Let VLC's battle-tested defaults handle codec selection and decoding.
  */
 
@@ -100,7 +77,7 @@ const RNVlcPlayerComponent: React.FC<RNVlcPlayerProps> = ({
   episodeNumber,
   onClose,
 }) => {
-  const playerRef = useRef<VLCPlayer>(null)
+  const playerRef = useRef<any>(null) // expo-libvlc-player ref type
   const [error, setError] = useState<string | null>(null)
   const [isLoaded, setIsLoaded] = useState(false)
   const [paused, setPaused] = useState(false)
@@ -137,6 +114,14 @@ const RNVlcPlayerComponent: React.FC<RNVlcPlayerProps> = ({
   useEffect(() => {
     const unsubscribe = player$.isPlaying.onChange((value) => {
       setPaused(!value)
+      // Control VLC player via ref methods
+      if (playerRef.current) {
+        if (value) {
+          playerRef.current.play?.()
+        } else {
+          playerRef.current.pause?.()
+        }
+      }
     })
     return unsubscribe
   }, [])
@@ -147,11 +132,11 @@ const RNVlcPlayerComponent: React.FC<RNVlcPlayerProps> = ({
       const savedTime = await loadProgress()
       if (savedTime && playerRef.current && isLoaded && duration > 0) {
         console.log('[RNVlcPlayer] Resuming from:', savedTime, 'seconds')
-        const position = savedTime / duration
-        // Use proper resume + seek pattern
-        playerRef.current.resume()
+        const position = savedTime / duration // expo-libvlc-player uses 0.0 to 1.0
+        // Use proper play + seek pattern
+        playerRef.current.play?.()
         setTimeout(() => {
-          playerRef.current?.seek(position)
+          playerRef.current?.seek?.(position)
         }, 100) // Small delay to ensure player is ready
       }
     }
@@ -167,21 +152,13 @@ const RNVlcPlayerComponent: React.FC<RNVlcPlayerProps> = ({
     console.log('[RNVlcPlayer] Stream URL:', stream.url)
     console.log('[RNVlcPlayer] Stream source:', stream.source)
 
-    // Capture ref in closure for cleanup
-    const playerRefCurrent = playerRef.current
+    // Capture values in closure for cleanup
     const finalCurrentTime = currentTime
     const finalDuration = duration
 
     return () => {
       console.log('[RNVlcPlayer] Component unmounting')
-      // Call stop on unmount to clean up VLC resources
-      if (playerRefCurrent) {
-        try {
-          playerRefCurrent.stopPlayer()
-        } catch (err) {
-          console.log('[RNVlcPlayer] Error stopping player on unmount:', err)
-        }
-      }
+      // expo-libvlc-player handles cleanup automatically
       // Final scrobble (use captured values from closure)
       handleStop(finalCurrentTime, finalDuration).catch((err) => {
         console.log('[RNVlcPlayer] Error in final scrobble:', err)
@@ -190,13 +167,13 @@ const RNVlcPlayerComponent: React.FC<RNVlcPlayerProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stream.url, stream.source]) // Only re-run if stream changes
 
-  const handleError = (event: SimpleCallbackEventProps) => {
+  const handleError = (event: any) => {
     console.error('[RNVlcPlayer] Playback error:', event)
-    
+
     const errorMessage = typeof event === 'string' ? event : JSON.stringify(event)
-    const isCodecError = errorMessage.toLowerCase().includes('codec') || 
-                         errorMessage.toLowerCase().includes('decode')
-    
+    const isCodecError =
+      errorMessage.toLowerCase().includes('codec') || errorMessage.toLowerCase().includes('decode')
+
     if (isCodecError) {
       // Try switching audio track if multiple tracks exist
       if (audioTracks.length > 1 && selectedAudioTrack !== 1) {
@@ -211,7 +188,7 @@ const RNVlcPlayerComponent: React.FC<RNVlcPlayerProps> = ({
         }, 2000)
         return
       }
-      
+
       setError(
         'Audio codec incompatibility detected. VLC is configured for maximum compatibility but this stream requires specific codec support. Try selecting a different audio track or use a different stream source.'
       )
@@ -220,14 +197,14 @@ const RNVlcPlayerComponent: React.FC<RNVlcPlayerProps> = ({
     }
   }
 
-  const handleProgress = (event: OnProgressEventProps) => {
-    // VLC returns time in milliseconds, convert to seconds
-    const eventCurrentTime = event.currentTime / 1000
-    const eventDuration = event.duration / 1000
+  const handleProgress = (event: { position: number }) => {
+    // expo-libvlc-player returns position as fraction (0.0 to 1.0)
+    const position = event.position
+    const eventCurrentTime = position * duration
+    const eventDuration = duration
 
     // Update local state
     setCurrentTime(eventCurrentTime)
-    setDuration(eventDuration)
 
     // Scrobble to services (Trakt if authenticated)
     handleProgressUpdate(eventCurrentTime, eventDuration)
@@ -248,19 +225,23 @@ const RNVlcPlayerComponent: React.FC<RNVlcPlayerProps> = ({
     }
   }
 
-  const handleLoad = async (event: VideoInfo) => {
-    console.log('[RNVlcPlayer] ✅ Video loaded successfully')
+  const handleLoad = async (event: any) => {
+    console.log('[RNVlcPlayer] ✅ Video loaded successfully (onFirstPlay)')
     console.log('[RNVlcPlayer] Video info:', {
-      duration: event.duration,
-      videoSize: event.videoSize,
-      audioTracks: event.audioTracks?.length ?? 0,
-      textTracks: event.textTracks?.length ?? 0,
+      length: event.length,
+      width: event.width,
+      height: event.height,
+      tracks: event.tracks,
     })
     setIsLoaded(true)
-    setDuration(event.duration)
 
-    // Map VLC audio tracks to domain entities
-    const mappedAudioTracks: AudioTrack[] = (event.audioTracks ?? []).map((track) => ({
+    // expo-libvlc-player returns length in milliseconds
+    const durationSeconds = (event.length ?? 0) / 1000
+    setDuration(durationSeconds)
+
+    // Map VLC audio tracks to domain entities (from tracks.audio)
+    const vlcAudioTracks = event.tracks?.audio ?? []
+    const mappedAudioTracks: AudioTrack[] = vlcAudioTracks.map((track: any) => ({
       id: track.id,
       name: track.name || `Track ${track.id}`,
       language: undefined, // VLC doesn't expose language in track info
@@ -268,16 +249,19 @@ const RNVlcPlayerComponent: React.FC<RNVlcPlayerProps> = ({
     }))
     setAudioTracks(mappedAudioTracks)
 
-    // Auto-select compatible audio track (Stremio approach)
+    // Auto-select compatible audio track (Nuvio approach)
     // Always prefer track 1 over track 0 to avoid TrueHD issues
     if (mappedAudioTracks.length > 0) {
       const defaultTrack = mappedAudioTracks.length > 1 ? 1 : 0
-      console.log(`[RNVlcPlayer] Auto-selecting audio track ${defaultTrack} (total tracks: ${mappedAudioTracks.length})`)
+      console.log(
+        `[RNVlcPlayer] Auto-selecting audio track ${defaultTrack} (total tracks: ${mappedAudioTracks.length})`
+      )
       setSelectedAudioTrack(defaultTrack)
     }
 
-    // Map VLC subtitle tracks to domain entities
-    const mappedSubtitleTracks: SubtitleTrack[] = (event.textTracks ?? []).map((track) => ({
+    // Map VLC subtitle tracks to domain entities (from tracks.subtitle)
+    const vlcSubtitleTracks = event.tracks?.subtitle ?? []
+    const mappedSubtitleTracks: SubtitleTrack[] = vlcSubtitleTracks.map((track: any) => ({
       id: track.id,
       name: track.name || `Subtitle ${track.id}`,
       language: undefined, // VLC doesn't expose language in track info
@@ -289,29 +273,19 @@ const RNVlcPlayerComponent: React.FC<RNVlcPlayerProps> = ({
     // This ensures tracks are available before seeking
   }
 
-  const handleStopped = async (event: SimpleCallbackEventProps) => {
-    console.log('[RNVlcPlayer] Playback stopped:', event)
+  const handleEnd = async () => {
+    console.log('[RNVlcPlayer] Playback ended (onEndReached)')
     setPaused(true) // Update paused state
     await handleStop(currentTime, duration)
   }
 
-  const handleEnd = async (event: SimpleCallbackEventProps) => {
-    console.log('[RNVlcPlayer] Playback ended:', event)
-    setPaused(true) // Update paused state
-    await handleStop(currentTime, duration)
-  }
-
-  const handleBuffering = (event: SimpleCallbackEventProps) => {
-    console.log('[RNVlcPlayer] Buffering...', event)
-  }
-
-  const handlePaused = (event: SimpleCallbackEventProps) => {
-    console.log('[RNVlcPlayer] Paused:', event)
+  const handlePaused = () => {
+    console.log('[RNVlcPlayer] Paused')
     setPaused(true)
   }
 
-  const handlePlaying = (event: { duration: number; target: number; seekable: boolean }) => {
-    console.log('[RNVlcPlayer] Playing:', event)
+  const handlePlaying = () => {
+    console.log('[RNVlcPlayer] Playing')
     setPaused(false)
     setIsLoaded(true) // Set loaded when playing starts
   }
@@ -320,9 +294,8 @@ const RNVlcPlayerComponent: React.FC<RNVlcPlayerProps> = ({
   const handleSkip = (seconds: number) => {
     if (playerRef.current && duration > 0) {
       const newTime = Math.max(0, Math.min(currentTime + seconds, duration))
-      const position = newTime / duration
-      // Use ref method instead of state
-      playerRef.current.seek(position)
+      const position = newTime / duration // expo-libvlc-player uses 0.0 to 1.0
+      playerRef.current.seek?.(position)
       setCurrentTime(newTime)
       setControlsVisible(true)
     }
@@ -330,9 +303,8 @@ const RNVlcPlayerComponent: React.FC<RNVlcPlayerProps> = ({
 
   const handleSeek = (time: number) => {
     if (playerRef.current && duration > 0) {
-      const position = time / duration
-      // Use ref method instead of state
-      playerRef.current.seek(position)
+      const position = time / duration // expo-libvlc-player uses 0.0 to 1.0
+      playerRef.current.seek?.(position)
       setCurrentTime(time)
     }
   }
@@ -353,17 +325,14 @@ const RNVlcPlayerComponent: React.FC<RNVlcPlayerProps> = ({
     // No need to call setNativeProps, state change triggers prop update
   }
 
-  // Create VLC source on each render - must be mutable
-  // Do NOT use useState or useMemo as Legend State can still freeze
-  // Create fresh object every render
-  const vlcSource = createVlcSource(stream.url, stream.headers)
+  // Create VLC options - must be created fresh each render
+  const vlcOptions = createVlcOptions(stream.headers)
 
   // Log configuration once on mount
   useEffect(() => {
     console.log('[RNVlcPlayer] VLC source configuration:', {
       uri: stream.url.substring(0, 100) + '...',
-      initType: vlcSource.initType,
-      initOptionsCount: vlcSource.initOptions.length,
+      optionsCount: vlcOptions.length,
       hasHeaders: !!stream.headers,
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -419,23 +388,22 @@ const RNVlcPlayerComponent: React.FC<RNVlcPlayerProps> = ({
     <View style={styles.container}>
       {/* VLC Player with tap gesture */}
       <Pressable style={styles.playerContainer} onPress={handleVideoPress}>
-        <VLCPlayer
+        <LibVlcPlayerView
           ref={playerRef}
-          source={vlcSource}
           style={styles.player}
-          paused={paused}
-          audioTrack={selectedAudioTrack ?? -1}
-          textTrack={selectedSubtitleTrack ?? -1}
-          playInBackground={true}
-          resizeMode="contain"
-          onProgress={handleProgress}
-          onLoad={handleLoad}
-          onError={handleError}
-          onStopped={handleStopped}
-          onEnd={handleEnd}
-          onBuffering={handleBuffering}
-          onPaused={handlePaused}
+          source={stream.url}
+          options={vlcOptions}
+          autoplay={true}
+          tracks={{
+            audio: selectedAudioTrack ?? -1,
+            subtitle: selectedSubtitleTrack ?? -1,
+          }}
+          onFirstPlay={handleLoad}
           onPlaying={handlePlaying}
+          onPaused={handlePaused}
+          onPositionChanged={handleProgress}
+          onEndReached={handleEnd}
+          onEncounteredError={handleError}
         />
       </Pressable>
 

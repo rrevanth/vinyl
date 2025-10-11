@@ -55,6 +55,8 @@ export const StreamCard: React.FC<StreamCardProps> = observer(({ stream }) => {
         mediaStableId: media.stableId, // Use media.stableId directly
         ...(params.season && { season: params.season }),
         ...(params.episode && { episode: params.episode }),
+        ...(media.images.backdrop && { backdrop: media.images.backdrop }),
+        ...(media.images.logo && { logo: media.images.logo }),
       },
     })
   }
