@@ -2,6 +2,8 @@ import { CapabilityType } from '@/src/domain/capabilities/CapabilityType'
 import type { StremioUserPreferences } from '@/src/domain/preferences/StremioPreferences'
 import { getDefaultStremioPreferences } from '@/src/domain/preferences/StremioPreferences'
 import { VideoPlayerType } from '@/src/domain/entities/VideoPlayerType'
+import type { UICustomizationPreferences } from '@/src/domain/entities/UICustomizationPreferences'
+import { createDefaultUICustomizationPreferences } from '@/src/domain/entities/UICustomizationPreferences'
 
 // ============================================================================
 // Merged Account Interfaces (Auth + Settings)
@@ -174,6 +176,7 @@ export interface UserPreferences {
   }
   readonly providers: ProviderSettings
   readonly ui: UIPreferences
+  readonly uiCustomization: UICustomizationPreferences
   readonly playback: PlaybackPreferences
   readonly homescreen: HomescreenPreferences
   readonly catalogPreferences: Readonly<Record<string, CatalogPreferences>>
@@ -319,6 +322,7 @@ export const createDefaultUserPreferences = (): UserPreferences => ({
   },
   providers: createDefaultProviderSettings(),
   ui: createDefaultUIPreferences(),
+  uiCustomization: createDefaultUICustomizationPreferences(),
   playback: createDefaultPlaybackPreferences(),
   homescreen: createDefaultHomescreenPreferences(),
   catalogPreferences: {},

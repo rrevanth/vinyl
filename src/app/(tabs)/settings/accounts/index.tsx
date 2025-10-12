@@ -19,11 +19,11 @@ const AccountsScreen = observer(() => {
   }
 
   const navigateToMDBList = () => {
-    router.push('./mdblist')
+    router.push('/settings/accounts/mdblist')
   }
 
   const navigateToFanart = () => {
-    router.push('./fanart')
+    router.push('/settings/accounts/fanart')
   }
 
   const traktDescription = isConnected ? `Connected as @${account?.username}` : 'Not connected'

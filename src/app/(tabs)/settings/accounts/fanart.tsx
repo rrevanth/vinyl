@@ -1,5 +1,13 @@
 import { useState } from 'react'
-import { ScrollView, Pressable, Text, View, Alert, ActivityIndicator, TextInput } from 'react-native'
+import {
+  ScrollView,
+  Pressable,
+  Text,
+  View,
+  Alert,
+  ActivityIndicator,
+  TextInput,
+} from 'react-native'
 import { StyleSheet, UnistylesRuntime } from 'react-native-unistyles'
 import { observer } from '@legendapp/state/react'
 import { Ionicons } from '@expo/vector-icons'
@@ -33,17 +41,21 @@ const FanartAccountScreen = observer(() => {
 
     try {
       // Import the FanartClient and test connection
-      const { FanartClient } = await import(
-        '@/src/infrastructure/api/fanart/FanartClient'
-      )
+      const { FanartClient } = await import('@/src/infrastructure/api/fanart/FanartClient')
       const { FanartConfigFactory } = await import(
         '@/src/infrastructure/factories/FanartConfigFactory'
       )
       const { container } = await import('@/src/infrastructure/di/Container')
       const { TOKENS } = await import('@/src/infrastructure/di/tokens')
-      const envService = container.resolve<import('@/src/domain/services/IEnvironmentService').IEnvironmentService>(TOKENS.EnvironmentService)
-      const logger = container.resolve<import('@/src/domain/services/ILoggingService').ILoggingService>(TOKENS.LoggingService)
-      const queueService = container.resolve<import('@/src/infrastructure/services/RequestQueueService').RequestQueueService>(TOKENS.RequestQueueService)
+      const envService = container.resolve<
+        import('@/src/domain/services/IEnvironmentService').IEnvironmentService
+      >(TOKENS.EnvironmentService)
+      const logger = container.resolve<
+        import('@/src/domain/services/ILoggingService').ILoggingService
+      >(TOKENS.LoggingService)
+      const queueService = container.resolve<
+        import('@/src/infrastructure/services/RequestQueueService').RequestQueueService
+      >(TOKENS.RequestQueueService)
 
       const configFactory = new FanartConfigFactory(envService)
       const client = new FanartClient(configFactory, logger, queueService)
@@ -141,9 +153,7 @@ const FanartAccountScreen = observer(() => {
         />
       )}
 
-      {isConnected && (
-        <ConnectionStatus status="connected" message="API Key configured" />
-      )}
+      {isConnected && <ConnectionStatus status="connected" message="API Key configured" />}
 
       <SettingsSection
         title="API Configuration"
@@ -227,9 +237,7 @@ const FanartAccountScreen = observer(() => {
           ) : (
             <Ionicons name="save-outline" size={24} color="#FFFFFF" />
           )}
-          <Text style={styles.saveButtonText}>
-            {isLoading ? 'Saving...' : 'Save Settings'}
-          </Text>
+          <Text style={styles.saveButtonText}>{isLoading ? 'Saving...' : 'Save Settings'}</Text>
         </Pressable>
       </SettingsSection>
 
@@ -245,19 +253,9 @@ const FanartAccountScreen = observer(() => {
       )}
 
       <SettingsSection title="About Fanart.tv">
-        <SettingsInfoRow
-          title="Service"
-          value="High-quality images provider"
-        />
-        <SettingsInfoRow
-          title="API Version"
-          value="v3"
-        />
-        <SettingsInfoRow
-          title="Image Types"
-          value="HD Logos, Clearart, Backgrounds"
-          isLast
-        />
+        <SettingsInfoRow title="Service" value="High-quality images provider" />
+        <SettingsInfoRow title="API Version" value="v3" />
+        <SettingsInfoRow title="Image Types" value="HD Logos, Clearart, Backgrounds" isLast />
       </SettingsSection>
     </ScrollView>
   )

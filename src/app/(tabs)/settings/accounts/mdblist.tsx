@@ -1,5 +1,13 @@
 import { useState } from 'react'
-import { ScrollView, Pressable, Text, View, Alert, ActivityIndicator, TextInput } from 'react-native'
+import {
+  ScrollView,
+  Pressable,
+  Text,
+  View,
+  Alert,
+  ActivityIndicator,
+  TextInput,
+} from 'react-native'
 import { StyleSheet, UnistylesRuntime } from 'react-native-unistyles'
 import { observer } from '@legendapp/state/react'
 import { Ionicons } from '@expo/vector-icons'
@@ -38,17 +46,21 @@ const MDBListAccountScreen = observer(() => {
 
     try {
       // Import the MDBListClient and test connection
-      const { MDBListClient } = await import(
-        '@/src/infrastructure/api/mdblist/MDBListClient'
-      )
+      const { MDBListClient } = await import('@/src/infrastructure/api/mdblist/MDBListClient')
       const { MDBListConfigFactory } = await import(
         '@/src/infrastructure/factories/MDBListConfigFactory'
       )
       const { container } = await import('@/src/infrastructure/di/Container')
       const { TOKENS } = await import('@/src/infrastructure/di/tokens')
-      const envService = container.resolve<import('@/src/domain/services/IEnvironmentService').IEnvironmentService>(TOKENS.EnvironmentService)
-      const logger = container.resolve<import('@/src/domain/services/ILoggingService').ILoggingService>(TOKENS.LoggingService)
-      const queueService = container.resolve<import('@/src/infrastructure/services/RequestQueueService').RequestQueueService>(TOKENS.RequestQueueService)
+      const envService = container.resolve<
+        import('@/src/domain/services/IEnvironmentService').IEnvironmentService
+      >(TOKENS.EnvironmentService)
+      const logger = container.resolve<
+        import('@/src/domain/services/ILoggingService').ILoggingService
+      >(TOKENS.LoggingService)
+      const queueService = container.resolve<
+        import('@/src/infrastructure/services/RequestQueueService').RequestQueueService
+      >(TOKENS.RequestQueueService)
 
       const configFactory = new MDBListConfigFactory(envService)
       const client = new MDBListClient(configFactory, logger, queueService)
@@ -164,9 +176,7 @@ const MDBListAccountScreen = observer(() => {
         />
       )}
 
-      {isConnected && (
-        <ConnectionStatus status="connected" message="API Key configured" />
-      )}
+      {isConnected && <ConnectionStatus status="connected" message="API Key configured" />}
 
       <SettingsSection
         title="API Configuration"
@@ -194,11 +204,7 @@ const MDBListAccountScreen = observer(() => {
             title="API Requests Used"
             value={`${apiLimits.api_requests_count} / ${apiLimits.api_requests}`}
           />
-          <SettingsInfoRow
-            title="Patron Status"
-            value={apiLimits.patron_status}
-            isLast
-          />
+          <SettingsInfoRow title="Patron Status" value={apiLimits.patron_status} isLast />
         </SettingsSection>
       )}
 
@@ -246,9 +252,7 @@ const MDBListAccountScreen = observer(() => {
           ) : (
             <Ionicons name="save-outline" size={24} color="#FFFFFF" />
           )}
-          <Text style={styles.saveButtonText}>
-            {isLoading ? 'Saving...' : 'Save Settings'}
-          </Text>
+          <Text style={styles.saveButtonText}>{isLoading ? 'Saving...' : 'Save Settings'}</Text>
         </Pressable>
       </SettingsSection>
 
@@ -264,14 +268,8 @@ const MDBListAccountScreen = observer(() => {
       )}
 
       <SettingsSection title="About MDBList">
-        <SettingsInfoRow
-          title="Service"
-          value="Aggregated ratings provider"
-        />
-        <SettingsInfoRow
-          title="API Version"
-          value="v1"
-        />
+        <SettingsInfoRow title="Service" value="Aggregated ratings provider" />
+        <SettingsInfoRow title="API Version" value="v1" />
         <SettingsInfoRow
           title="Rating Sources"
           value="IMDb, TMDB, Trakt, Letterboxd, RT, Metacritic"

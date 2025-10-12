@@ -161,6 +161,79 @@ interface Translations {
       grid_cozy: string
       autoplay_trailers: string
     }
+    ui_customization: {
+      title: string
+      subtitle: string
+      preview_title: string
+      preview_desc: string
+      preview_sample_title: string
+      preview_sample_body: string
+      theme_colors_title: string
+      theme_colors_desc: string
+      theme_label: string
+      theme_light: string
+      theme_dark: string
+      theme_system: string
+      theme_accessibility: string
+      color_scheme_label: string
+      color_default: string
+      color_purple: string
+      color_blue: string
+      color_green: string
+      color_orange: string
+      color_scheme_accessibility: string
+      layout_spacing_title: string
+      layout_spacing_desc: string
+      layout_density_label: string
+      density_compact: string
+      density_compact_desc: string
+      density_comfortable: string
+      density_comfortable_desc: string
+      density_spacious: string
+      density_spacious_desc: string
+      layout_density_accessibility: string
+      typography_title: string
+      typography_desc: string
+      font_size_label: string
+      font_small: string
+      font_medium: string
+      font_large: string
+      font_xlarge: string
+      font_size_accessibility: string
+      font_family_label: string
+      font_system: string
+      font_system_desc: string
+      font_inter: string
+      font_inter_desc: string
+      font_roboto: string
+      font_roboto_desc: string
+      font_family_accessibility: string
+      visual_effects_title: string
+      visual_effects_desc: string
+      animations_label: string
+      animations_desc: string
+      animations_accessibility: string
+      border_radius_label: string
+      radius_none: string
+      radius_none_desc: string
+      radius_small: string
+      radius_small_desc: string
+      radius_medium: string
+      radius_medium_desc: string
+      radius_large: string
+      radius_large_desc: string
+      border_radius_accessibility: string
+      card_styles_title: string
+      card_styles_desc: string
+      card_style_label: string
+      card_flat: string
+      card_flat_desc: string
+      card_elevated: string
+      card_elevated_desc: string
+      card_outlined: string
+      card_outlined_desc: string
+      card_style_accessibility: string
+    }
     playback: {
       title: string
       video_player: string
