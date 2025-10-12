@@ -19,7 +19,7 @@ export interface Failure<E = Error> {
   success: false
   error: E
   providerId: string
-  reason: 'missing_id' | 'api_error' | 'network_error' | 'not_found' | 'unsupported'
+  reason: 'missing_id' | 'api_error' | 'network_error' | 'not_found' | 'unsupported' | 'missing_credentials' | 'invalid_input'
 }
 
 // Helper functions

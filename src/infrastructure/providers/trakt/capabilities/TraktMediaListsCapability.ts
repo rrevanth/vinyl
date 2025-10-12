@@ -21,7 +21,11 @@ export class TraktMediaListsCapability implements IMediaListsCapability {
       // Extract Trakt ID
       const traktId = media.externalIds.trakt?.id
       if (!traktId) {
-        throw new Error(`No Trakt ID found for ${media.type} media: ${media.title}`)
+        return fail(
+          new Error(`No Trakt ID found for ${media.type} media: ${media.title}`),
+          'trakt',
+          'missing_id'
+        )
       }
 
       // Get lists containing this media
@@ -37,7 +41,11 @@ export class TraktMediaListsCapability implements IMediaListsCapability {
           limit: 20,
         })
       } else {
-        throw new Error(`Unsupported media type: ${media.type}`)
+        return fail(
+          new Error(`Lists only available for movies and series, got: ${media.type}`),
+          'trakt',
+          'unsupported'
+        )
       }
 
       // Map lists to catalog format

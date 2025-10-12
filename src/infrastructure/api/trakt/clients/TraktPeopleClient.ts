@@ -1,6 +1,7 @@
 import { TraktBaseClient } from '../TraktBaseClient'
 import type { ILoggingService } from '@/src/domain/services/ILoggingService'
 import type { TraktConfigFactory } from '@/src/infrastructure/factories/TraktConfigFactory'
+import type { RequestQueueService } from '@/src/infrastructure/services/RequestQueueService'
 import type {
   TraktPerson,
   TraktPersonCredits,
@@ -18,8 +19,12 @@ import type {
  */
 export class TraktPeopleClient extends TraktBaseClient {
   // eslint-disable-next-line @typescript-eslint/no-useless-constructor
-  constructor(configFactory: TraktConfigFactory, logger: ILoggingService) {
-    super(configFactory, logger)
+  constructor(
+    configFactory: TraktConfigFactory,
+    logger: ILoggingService,
+    queueService: RequestQueueService
+  ) {
+    super(configFactory, logger, queueService)
   }
 
   /**

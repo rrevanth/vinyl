@@ -1,5 +1,6 @@
 import type { ILoggingService } from '../../../../domain/services/ILoggingService'
 import type { TraktConfigFactory } from '../../../factories/TraktConfigFactory'
+import type { RequestQueueService } from '../../../services/RequestQueueService'
 import { TraktBaseClient } from '../TraktBaseClient'
 import type {
   TraktComment,
@@ -21,10 +22,14 @@ import type {
  * - Movie translations and aliases
  */
 export class TraktMoviesClient extends TraktBaseClient {
-   
+
   // eslint-disable-next-line @typescript-eslint/no-useless-constructor
-  constructor(configFactory: TraktConfigFactory, logger: ILoggingService) {
-    super(configFactory, logger)
+  constructor(
+    configFactory: TraktConfigFactory,
+    logger: ILoggingService,
+    queueService: RequestQueueService
+  ) {
+    super(configFactory, logger, queueService)
   }
 
   /**

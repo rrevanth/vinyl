@@ -19,7 +19,7 @@ const LOG_LEVELS: Record<LogLevel, number> = {
 
 export class LoggingService implements ILoggingService {
   private readonly isDevelopment = __DEV__
-  private logLevel: LogLevel = __DEV__ ? 'debug' : 'error' // Debug in dev, error-only in prod
+  private logLevel: LogLevel = __DEV__ ? 'error' : 'error' // Debug in dev, error-only in prod
 
   /**
    * Set the minimum log level to display

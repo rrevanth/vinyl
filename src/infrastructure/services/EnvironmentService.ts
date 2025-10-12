@@ -63,6 +63,26 @@ export class EnvironmentService implements IEnvironmentService {
     return this.get('TRAKT_CLIENT_SECRET', '')
   }
 
+  getFanartApiKey(): string {
+    return this.get('FANART_API_KEY', '')
+  }
+
+  getFanartClientKey(): string {
+    return this.get('FANART_CLIENT_KEY', '')
+  }
+
+  getFanartBaseURL(): string {
+    return this.get('FANART_BASE_URL', 'http://webservice.fanart.tv/v3')
+  }
+
+  getMDBListApiKey(): string {
+    return this.get('MDBLIST_API_KEY', '')
+  }
+
+  getMDBListBaseURL(): string {
+    return this.get('MDBLIST_BASE_URL', 'https://api.mdblist.com')
+  }
+
   isDevelopment(): boolean {
     return __DEV__ || process.env.NODE_ENV === 'development'
   }

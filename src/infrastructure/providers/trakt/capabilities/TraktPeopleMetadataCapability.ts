@@ -25,7 +25,11 @@ export class TraktPeopleMetadataCapability implements IPeopleMetadataCapability 
       // Extract Trakt person ID from external IDs
       const traktId = this.extractTraktId(person)
       if (!traktId) {
-        throw new Error(`No Trakt ID found for person: ${person.name}`)
+        return fail(
+          new Error(`No Trakt ID found for person: ${person.name}`),
+          'trakt',
+          'missing_id'
+        )
       }
 
       // Get person details from cache (uses search API internally)

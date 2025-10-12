@@ -17,13 +17,21 @@ export class TraktMediaSeasonsCapability implements IMediaSeasonsCapability {
   async getSeasons(media: Media, seasonNumber?: number): Promise<Result<Season[]>> {
     try {
       if (media.type !== 'series') {
-        throw new Error(`Cannot get seasons for non-series media: ${media.type}`)
+        return fail(
+          new Error(`Season data only available for series, got: ${media.type}`),
+          'trakt',
+          'unsupported'
+        )
       }
 
       // Extract Trakt ID
       const traktId = media.externalIds.trakt?.id
       if (!traktId) {
-        throw new Error(`No Trakt ID found for series: ${media.title}`)
+        return fail(
+          new Error(`No Trakt ID found for series: ${media.title}`),
+          'trakt',
+          'missing_id'
+        )
       }
 
       // Get seasons with extended data
@@ -60,13 +68,21 @@ export class TraktMediaSeasonsCapability implements IMediaSeasonsCapability {
   async getEpisode(media: Media, seasonNumber: number, episodeNumber: number): Promise<Result<Episode>> {
     try {
       if (media.type !== 'series') {
-        throw new Error(`Cannot get episode for non-series media: ${media.type}`)
+        return fail(
+          new Error(`Episode data only available for series, got: ${media.type}`),
+          'trakt',
+          'unsupported'
+        )
       }
 
       // Extract Trakt ID
       const traktId = media.externalIds.trakt?.id
       if (!traktId) {
-        throw new Error(`No Trakt ID found for series: ${media.title}`)
+        return fail(
+          new Error(`No Trakt ID found for series: ${media.title}`),
+          'trakt',
+          'missing_id'
+        )
       }
 
       // Get specific episode with extended data

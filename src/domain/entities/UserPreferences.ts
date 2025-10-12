@@ -74,6 +74,22 @@ export interface TMDBAccount {
  */
 export type StremioAccount = StremioUserPreferences
 
+/**
+ * MDBList account (simple API key authentication)
+ */
+export interface MDBListAccount {
+  readonly apiKey: string
+  readonly baseURL?: string
+}
+
+/**
+ * Fanart.tv account (API key authentication with optional client key)
+ */
+export interface FanartAccount {
+  readonly apiKey: string
+  readonly clientKey?: string
+}
+
 // ============================================================================
 // User Preferences
 // ============================================================================
@@ -153,6 +169,8 @@ export interface UserPreferences {
     readonly trakt?: TraktAccount
     readonly tmdb?: TMDBAccount
     readonly stremio?: StremioAccount
+    readonly mdblist?: MDBListAccount
+    readonly fanart?: FanartAccount
   }
   readonly providers: ProviderSettings
   readonly ui: UIPreferences

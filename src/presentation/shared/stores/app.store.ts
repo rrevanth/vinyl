@@ -120,6 +120,7 @@ export const effectiveTheme$ = computed(() => {
 export const tmdbConfig$ = computed(() => userPreferences$.accounts.tmdb.get())
 export const traktConfig$ = computed(() => userPreferences$.accounts.trakt.get())
 export const stremioConfig$ = computed(() => userPreferences$.accounts.stremio.get())
+export const mdblistConfig$ = computed(() => userPreferences$.accounts.mdblist.get())
 
 // === ACTIONS ===
 

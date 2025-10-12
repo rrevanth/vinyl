@@ -24,7 +24,11 @@ export class TraktMediaReviewsCapability implements IMediaReviewsCapability {
       // Extract Trakt ID
       const traktId = media.externalIds.trakt?.id
       if (!traktId) {
-        throw new Error(`No Trakt ID found for ${media.type} media: ${media.title}`)
+        return fail(
+          new Error(`No Trakt ID found for ${media.type} media: ${media.title}`),
+          'trakt',
+          'missing_id'
+        )
       }
 
       // Get comments from Trakt (Trakt calls them comments, not reviews)
@@ -38,7 +42,11 @@ export class TraktMediaReviewsCapability implements IMediaReviewsCapability {
           sort: 'newest',
         })
       } else {
-        throw new Error(`Unsupported media type: ${media.type}`)
+        return fail(
+          new Error(`Reviews only available for movies and series, got: ${media.type}`),
+          'trakt',
+          'unsupported'
+        )
       }
 
       // Map comments to reviews
@@ -62,7 +70,11 @@ export class TraktMediaReviewsCapability implements IMediaReviewsCapability {
       // Extract Trakt ID
       const traktId = media.externalIds.trakt?.id
       if (!traktId) {
-        throw new Error(`No Trakt ID found for ${media.type} media: ${media.title}`)
+        return fail(
+          new Error(`No Trakt ID found for ${media.type} media: ${media.title}`),
+          'trakt',
+          'missing_id'
+        )
       }
 
       // Get paginated comments from Trakt
@@ -80,7 +92,11 @@ export class TraktMediaReviewsCapability implements IMediaReviewsCapability {
           limit: 20,
         })
       } else {
-        throw new Error(`Unsupported media type: ${media.type}`)
+        return fail(
+          new Error(`Reviews only available for movies and series, got: ${media.type}`),
+          'trakt',
+          'unsupported'
+        )
       }
 
       // Map comments to reviews

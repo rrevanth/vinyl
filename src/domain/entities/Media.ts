@@ -1,4 +1,4 @@
-import type { ExternalIds } from './ExternalIds'
+import { ExternalIds } from './ExternalIds'
 import { StableIdGenerator } from './StableIdGenerator'
 
 /**
@@ -73,6 +73,30 @@ export class MediaImages {
       this.posterThumbnail ||
       this.backdropThumbnail
     )
+  }
+
+  /**
+   * Serialize to JSON for cache persistence
+   */
+  toJSON() {
+    return {
+      poster: this.poster,
+      backdrop: this.backdrop,
+      logo: this.logo,
+      posterAlternatives: this.posterAlternatives,
+      backdropAlternatives: this.backdropAlternatives,
+      posterThumbnail: this.posterThumbnail,
+      backdropThumbnail: this.backdropThumbnail,
+      posterQuality: this.posterQuality,
+      backdropQuality: this.backdropQuality,
+    }
+  }
+
+  /**
+   * Deserialize from JSON to restore class instance with methods
+   */
+  static fromJSON(data: any): MediaImages {
+    return new MediaImages(data)
   }
 }
 
@@ -163,5 +187,38 @@ export class Media {
    */
   isSeries(): boolean {
     return this.type === 'series'
+  }
+
+  /**
+   * Serialize to JSON for cache persistence
+   * Converts nested entities and Dates to JSON-safe format
+   */
+  toJSON() {
+    return {
+      stableId: this.stableId,
+      externalIds: this.externalIds.toJSON(),
+      type: this.type,
+      title: this.title,
+      year: this.year,
+      images: this.images.toJSON(),
+      createdAt: this.createdAt.toISOString(),
+      updatedAt: this.updatedAt.toISOString(),
+    }
+  }
+
+  /**
+   * Deserialize from JSON to restore class instance with methods
+   * Reconstructs nested ExternalIds and MediaImages instances
+   */
+  static fromJSON(data: any): Media {
+    return new Media({
+      externalIds: ExternalIds.fromJSON(data.externalIds),
+      type: data.type,
+      title: data.title,
+      year: data.year,
+      images: MediaImages.fromJSON(data.images),
+      createdAt: new Date(data.createdAt),
+      updatedAt: new Date(data.updatedAt),
+    })
   }
 }

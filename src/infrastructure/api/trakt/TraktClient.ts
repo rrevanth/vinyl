@@ -1,5 +1,7 @@
 import type { ILoggingService } from '../../../domain/services/ILoggingService'
 import type { EffectiveTraktConfig, TraktConfigFactory } from '../../factories/TraktConfigFactory'
+import type { RequestQueueService } from '../../services/RequestQueueService'
+import type { TraktAPICache } from '../../cache/TraktAPICache'
 import { TraktBaseClient } from './TraktBaseClient'
 import { TraktCalendarClient } from './clients/TraktCalendarClient'
 import { TraktMoviesClient } from './clients/TraktMoviesClient'
@@ -35,19 +37,32 @@ export class TraktClient {
   // Base client for direct access to authentication methods
   readonly base: TraktBaseClient
 
-  constructor(configFactory: TraktConfigFactory, logger: ILoggingService) {
+  constructor(
+    configFactory: TraktConfigFactory,
+    logger: ILoggingService,
+    queueService: RequestQueueService
+  ) {
     // Initialize base client with shared configuration
-    this.base = new TraktBaseClient(configFactory, logger)
+    this.base = new TraktBaseClient(configFactory, logger, queueService)
 
     // Initialize all specialized clients
     // Each client inherits the OAuth authentication from base client
-    this.movies = new TraktMoviesClient(configFactory, logger)
-    this.shows = new TraktShowsClient(configFactory, logger)
-    this.calendar = new TraktCalendarClient(configFactory, logger)
-    this.search = new TraktSearchClient(configFactory, logger)
-    this.users = new TraktUsersClient(configFactory, logger)
-    this.sync = new TraktSyncClient(configFactory, logger)
-    this.people = new TraktPeopleClient(configFactory, logger)
+    this.movies = new TraktMoviesClient(configFactory, logger, queueService)
+    this.shows = new TraktShowsClient(configFactory, logger, queueService)
+    this.calendar = new TraktCalendarClient(configFactory, logger, queueService)
+    this.search = new TraktSearchClient(configFactory, logger, queueService)
+    this.users = new TraktUsersClient(configFactory, logger, queueService)
+    this.sync = new TraktSyncClient(configFactory, logger, queueService)
+    this.people = new TraktPeopleClient(configFactory, logger, queueService)
+  }
+
+  /**
+   * Set the API cache after construction
+   * Propagates cache to base client to enable cache-first pattern
+   */
+  setCache(cache: TraktAPICache): void {
+    this.base.setCache(cache)
+    // TODO: Propagate to specialized clients if they also need direct cache access
   }
 
   /**

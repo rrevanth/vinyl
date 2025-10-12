@@ -1,9 +1,11 @@
-import { HttpClient } from '../../http/HttpClient'
-import type { ILoggingService } from '../../../domain/services/ILoggingService'
-import type { TraktConfigFactory, EffectiveTraktConfig } from '../../factories/TraktConfigFactory'
-import { userPreferences$ } from '../../../presentation/shared/stores/app.store'
-import { NotFoundError, UnauthorizedError } from '../../../domain/errors'
-import { NetworkError } from '../../errors'
+import { HttpClient } from '@/src/infrastructure/http/HttpClient'
+import type { ILoggingService } from '@/src/domain/services/ILoggingService'
+import type { TraktConfigFactory, EffectiveTraktConfig } from '@/src/infrastructure/factories/TraktConfigFactory'
+import { userPreferences$ } from '@/src/presentation/shared/stores/app.store'
+import { NotFoundError, UnauthorizedError } from '@/src/domain/errors'
+import { NetworkError } from '@/src/infrastructure/errors'
+import { RequestQueueService } from '@/src/infrastructure/services/RequestQueueService'
+import type { TraktAPICache } from '@/src/infrastructure/cache/TraktAPICache'
 import type {
   TraktTokenResponse,
   TraktTokenRequest,
@@ -31,16 +33,28 @@ export class TraktBaseClient {
   private tokenRefreshPromise?: Promise<void>
   private currentAccessToken: string | null = null
   private static configLoaded = false
+  private readonly apiCache?: TraktAPICache
 
   constructor(
     private readonly configFactory: TraktConfigFactory,
-    private readonly logger: ILoggingService
+    private readonly logger: ILoggingService,
+    private readonly queueService: RequestQueueService
   ) {
     // Initialize configuration
     this.reloadConfiguration()
 
     // Set up reactive configuration watching
     this.setupConfigurationWatcher()
+  }
+
+  /**
+   * Set the API cache after construction
+   * Used to break circular dependency between TraktClient and TraktAPICache
+   */
+  setCache(cache: TraktAPICache): void {
+    // @ts-expect-error - We're setting a readonly property after construction to break circular dependency
+    this.apiCache = cache
+    this.logger.debug('Trakt cache injected into base client')
   }
 
   /**
@@ -316,6 +330,7 @@ export class TraktBaseClient {
 
   /**
    * Make authenticated GET request
+   * Cache-first pattern: Check cache before entering queue
    */
   async get<T>(endpoint: string, params?: Record<string, any>): Promise<T> {
     const queryParams = new URLSearchParams()
@@ -331,44 +346,139 @@ export class TraktBaseClient {
 
     const url = queryParams.toString() ? `${endpoint}?${queryParams}` : endpoint
 
-    try {
-      return await this.httpClient.get<T>(url)
-    } catch (error) {
-      throw this.mapTraktError(error)
+    // Build cache key
+    const cacheKey = ['trakt', endpoint, params]
+
+    // Try cache first - NO QUEUE if cache hit!
+    if (this.apiCache) {
+      const cached = await this.apiCache.tryGetFromCache<T>(cacheKey)
+      if (cached) {
+        this.logger.debug('Cache HIT - instant return, bypassing queue', { endpoint })
+        return cached
+      }
+      this.logger.debug('Cache MISS - entering queue', { endpoint })
     }
+
+    // Cache miss - enter queue and fetch
+    return this.queueService.enqueue('trakt', async () => {
+      try {
+        const result = await this.httpClient.get<T>(url)
+
+        // Store in cache after successful fetch
+        if (this.apiCache) {
+          await this.apiCache.setInCache(cacheKey, result, 'media-details')
+        }
+
+        return result
+      } catch (error) {
+        throw this.mapTraktError(error)
+      }
+    })
   }
 
   /**
    * Make authenticated POST request
+   * Cache-first pattern: Check cache before entering queue
    */
   async post<T>(endpoint: string, data?: any): Promise<T> {
-    try {
-      return await this.httpClient.post<T>(endpoint, data)
-    } catch (error) {
-      throw this.mapTraktError(error)
+    // Build cache key (include data for uniqueness)
+    const cacheKey = ['trakt', endpoint, data]
+
+    // Try cache first - NO QUEUE if cache hit!
+    if (this.apiCache) {
+      const cached = await this.apiCache.tryGetFromCache<T>(cacheKey)
+      if (cached) {
+        this.logger.debug('Cache HIT - instant return, bypassing queue', { endpoint })
+        return cached
+      }
+      this.logger.debug('Cache MISS - entering queue', { endpoint })
     }
+
+    // Cache miss - enter queue and fetch
+    return this.queueService.enqueue('trakt', async () => {
+      try {
+        const result = await this.httpClient.post<T>(endpoint, data)
+
+        // Store in cache after successful fetch
+        if (this.apiCache) {
+          await this.apiCache.setInCache(cacheKey, result, 'media-details')
+        }
+
+        return result
+      } catch (error) {
+        throw this.mapTraktError(error)
+      }
+    })
   }
 
   /**
    * Make authenticated PUT request
+   * Cache-first pattern: Check cache before entering queue
    */
   async put<T>(endpoint: string, data?: any): Promise<T> {
-    try {
-      return await this.httpClient.put<T>(endpoint, data)
-    } catch (error) {
-      throw this.mapTraktError(error)
+    // Build cache key (include data for uniqueness)
+    const cacheKey = ['trakt', endpoint, data]
+
+    // Try cache first - NO QUEUE if cache hit!
+    if (this.apiCache) {
+      const cached = await this.apiCache.tryGetFromCache<T>(cacheKey)
+      if (cached) {
+        this.logger.debug('Cache HIT - instant return, bypassing queue', { endpoint })
+        return cached
+      }
+      this.logger.debug('Cache MISS - entering queue', { endpoint })
     }
+
+    // Cache miss - enter queue and fetch
+    return this.queueService.enqueue('trakt', async () => {
+      try {
+        const result = await this.httpClient.put<T>(endpoint, data)
+
+        // Store in cache after successful fetch
+        if (this.apiCache) {
+          await this.apiCache.setInCache(cacheKey, result, 'media-details')
+        }
+
+        return result
+      } catch (error) {
+        throw this.mapTraktError(error)
+      }
+    })
   }
 
   /**
    * Make authenticated DELETE request
+   * Cache-first pattern: Check cache before entering queue
    */
   async delete<T>(endpoint: string): Promise<T> {
-    try {
-      return await this.httpClient.delete<T>(endpoint)
-    } catch (error) {
-      throw this.mapTraktError(error)
+    // Build cache key
+    const cacheKey = ['trakt', endpoint]
+
+    // Try cache first - NO QUEUE if cache hit!
+    if (this.apiCache) {
+      const cached = await this.apiCache.tryGetFromCache<T>(cacheKey)
+      if (cached) {
+        this.logger.debug('Cache HIT - instant return, bypassing queue', { endpoint })
+        return cached
+      }
+      this.logger.debug('Cache MISS - entering queue', { endpoint })
     }
+
+    // Cache miss - enter queue and fetch
+    return this.queueService.enqueue('trakt', async () => {
+      try {
+        const result = await this.httpClient.delete<T>(endpoint)
+
+        // Store in cache after successful fetch
+        if (this.apiCache) {
+          await this.apiCache.setInCache(cacheKey, result, 'media-details')
+        }
+
+        return result
+      } catch (error) {
+        throw this.mapTraktError(error)
+      }
+    })
   }
 
   /**

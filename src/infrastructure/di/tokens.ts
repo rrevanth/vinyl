@@ -6,6 +6,7 @@ export const TOKENS = {
   UserService: Symbol('UserService'),
   EnvironmentService: Symbol('EnvironmentService'),
   PreferencesService: Symbol('PreferencesService'),
+  RequestQueueService: Symbol('RequestQueueService'),
 
   // Repositories
   UserPreferencesRepository: Symbol('UserPreferencesRepository'),
@@ -18,6 +19,13 @@ export const TOKENS = {
 
   // Query Client
   QueryClient: Symbol('QueryClient'),
+  QueryPersister: Symbol('QueryPersister'),
+
+  // API Cache Services
+  TMDBAPICache: Symbol('TMDBAPICache'),
+  TraktAPICache: Symbol('TraktAPICache'),
+  MDBListAPICache: Symbol('MDBListAPICache'),
+  FanartAPICache: Symbol('FanartAPICache'),
 
   // TMDB Services
   TMDBConfigFactory: Symbol('TMDBConfigFactory'),
@@ -28,6 +36,16 @@ export const TOKENS = {
   TraktConfigFactory: Symbol('TraktConfigFactory'),
   TraktClient: Symbol('TraktClient'),
   TraktProvider: Symbol('TraktProvider'),
+
+  // MDBList Services
+  MDBListConfigFactory: Symbol('MDBListConfigFactory'),
+  MDBListClient: Symbol('MDBListClient'),
+  MDBListProvider: Symbol('MDBListProvider'),
+
+  // Fanart Services
+  FanartConfigFactory: Symbol('FanartConfigFactory'),
+  FanartClient: Symbol('FanartClient'),
+  FanartProvider: Symbol('FanartProvider'),
 
   // Stremio Services
   StremioConfigFactory: Symbol('StremioConfigFactory'),

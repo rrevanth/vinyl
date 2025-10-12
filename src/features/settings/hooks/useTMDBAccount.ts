@@ -6,6 +6,7 @@ import { TOKENS } from '@/src/infrastructure/di/tokens'
 import type { TMDBClient } from '@/src/infrastructure/api/tmdb/TMDBClient'
 import type { ILoggingService } from '@/src/domain/services/ILoggingService'
 import type { IEnvironmentService } from '@/src/domain/services/IEnvironmentService'
+import type { RequestQueueService } from '@/src/infrastructure/services/RequestQueueService'
 import type { TMDBAccount } from '@/src/domain/entities/UserPreferences'
 
 /**
@@ -33,11 +34,12 @@ export const useTMDBAccount = () => {
   const tmdbClient = useService<TMDBClient>(TOKENS.TMDBClient)
   const logger = useService<ILoggingService>(TOKENS.LoggingService)
   const environment = useService<IEnvironmentService>(TOKENS.EnvironmentService)
+  const queueService = useService<RequestQueueService>(TOKENS.RequestQueueService)
 
   // Create use case instance
   const tmdbUseCase = useMemo(
-    () => new TMDBAccountUseCase(tmdbClient, logger, environment),
-    [tmdbClient, logger, environment]
+    () => new TMDBAccountUseCase(tmdbClient, logger, environment, queueService),
+    [tmdbClient, logger, environment, queueService]
   )
 
   // Reactive TMDB config from Legend State

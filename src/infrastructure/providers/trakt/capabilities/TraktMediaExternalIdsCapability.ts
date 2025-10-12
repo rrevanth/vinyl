@@ -34,7 +34,11 @@ export class TraktMediaExternalIdsCapability implements IMediaExternalIdsCapabil
       } else if (media.type === 'series') {
         extendedData = await this.cache.getOrFetchShowDetails(traktId)
       } else {
-        throw new Error(`Unsupported media type: ${media.type}`)
+        return fail(
+          new Error(`External IDs only available for movies and series, got: ${media.type}`),
+          'trakt',
+          'unsupported'
+        )
       }
 
       // Extract IDs from cached response

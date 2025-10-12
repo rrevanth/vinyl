@@ -41,7 +41,11 @@ export class TraktMediaScrobblingCapability implements IMediaScrobblingCapabilit
       // Extract Trakt ID
       const traktId = media.externalIds.trakt?.id
       if (!traktId) {
-        throw new Error(`Missing Trakt ID for media: ${media.stableId}`)
+        return fail(
+          new Error(`Missing Trakt ID for media: ${media.stableId}`),
+          'trakt',
+          'missing_id'
+        )
       }
 
       if (media.type === 'movie') {
@@ -60,7 +64,11 @@ export class TraktMediaScrobblingCapability implements IMediaScrobblingCapabilit
         )
       } else {
         if (!episodeInfo) {
-          throw new Error('Episode info required for series scrobbling')
+          return fail(
+            new Error('Episode info required for series scrobbling'),
+            'trakt',
+            'unsupported'
+          )
         }
 
         await this.traktClient.sync.startScrobbleEpisode(
@@ -116,7 +124,11 @@ export class TraktMediaScrobblingCapability implements IMediaScrobblingCapabilit
       // Extract Trakt ID
       const traktId = media.externalIds.trakt?.id
       if (!traktId) {
-        throw new Error(`Missing Trakt ID for media: ${media.stableId}`)
+        return fail(
+          new Error(`Missing Trakt ID for media: ${media.stableId}`),
+          'trakt',
+          'missing_id'
+        )
       }
 
       const scrobbleData =
@@ -155,7 +167,11 @@ export class TraktMediaScrobblingCapability implements IMediaScrobblingCapabilit
             : null
 
       if (!scrobbleData) {
-        throw new Error('Episode info required for series scrobbling')
+        return fail(
+          new Error('Episode info required for series scrobbling'),
+          'trakt',
+          'unsupported'
+        )
       }
 
       await this.traktClient.sync.pauseScrobble(scrobbleData, progress)
@@ -192,7 +208,11 @@ export class TraktMediaScrobblingCapability implements IMediaScrobblingCapabilit
       // Extract Trakt ID
       const traktId = media.externalIds.trakt?.id
       if (!traktId) {
-        throw new Error(`Missing Trakt ID for media: ${media.stableId}`)
+        return fail(
+          new Error(`Missing Trakt ID for media: ${media.stableId}`),
+          'trakt',
+          'missing_id'
+        )
       }
 
       const scrobbleData =
@@ -231,7 +251,11 @@ export class TraktMediaScrobblingCapability implements IMediaScrobblingCapabilit
             : null
 
       if (!scrobbleData) {
-        throw new Error('Episode info required for series scrobbling')
+        return fail(
+          new Error('Episode info required for series scrobbling'),
+          'trakt',
+          'unsupported'
+        )
       }
 
       await this.traktClient.sync.stopScrobble(scrobbleData, progress)
@@ -267,7 +291,11 @@ export class TraktMediaScrobblingCapability implements IMediaScrobblingCapabilit
       // Extract Trakt ID
       const traktId = media.externalIds.trakt?.id
       if (!traktId) {
-        throw new Error(`Missing Trakt ID for media: ${media.stableId}`)
+        return fail(
+          new Error(`Missing Trakt ID for media: ${media.stableId}`),
+          'trakt',
+          'missing_id'
+        )
       }
 
       if (media.type === 'movie') {
@@ -286,7 +314,11 @@ export class TraktMediaScrobblingCapability implements IMediaScrobblingCapabilit
         )
       } else {
         if (!episodeInfo) {
-          throw new Error('Episode info required for series check-in')
+          return fail(
+            new Error('Episode info required for series check-in'),
+            'trakt',
+            'unsupported'
+          )
         }
 
         await this.traktClient.sync.checkinEpisode(

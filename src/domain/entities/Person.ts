@@ -1,4 +1,4 @@
-import type { ExternalIds } from './ExternalIds'
+import { ExternalIds } from './ExternalIds'
 import { StableIdGenerator } from './StableIdGenerator'
 
 /**
@@ -51,6 +51,26 @@ export class PersonImages {
       this.profileAlternatives?.length ||
       this.profileThumbnail
     )
+  }
+
+  /**
+   * Serialize to JSON for cache persistence
+   */
+  toJSON() {
+    return {
+      profile: this.profile,
+      headshot: this.headshot,
+      profileAlternatives: this.profileAlternatives,
+      profileThumbnail: this.profileThumbnail,
+      profileQuality: this.profileQuality,
+    }
+  }
+
+  /**
+   * Deserialize from JSON to restore class instance with methods
+   */
+  static fromJSON(data: any): PersonImages {
+    return new PersonImages(data)
   }
 }
 
@@ -146,5 +166,36 @@ export class Person {
    */
   isWriter(): boolean {
     return this.knownForDepartment === 'Writing'
+  }
+
+  /**
+   * Serialize to JSON for cache persistence
+   * Converts nested entities and Dates to JSON-safe format
+   */
+  toJSON() {
+    return {
+      stableId: this.stableId,
+      externalIds: this.externalIds.toJSON(),
+      name: this.name,
+      images: this.images.toJSON(),
+      knownForDepartment: this.knownForDepartment,
+      createdAt: this.createdAt.toISOString(),
+      updatedAt: this.updatedAt.toISOString(),
+    }
+  }
+
+  /**
+   * Deserialize from JSON to restore class instance with methods
+   * Reconstructs nested PersonImages and ExternalIds instances
+   */
+  static fromJSON(data: any): Person {
+    return new Person({
+      externalIds: ExternalIds.fromJSON(data.externalIds),
+      name: data.name,
+      images: PersonImages.fromJSON(data.images),
+      knownForDepartment: data.knownForDepartment,
+      createdAt: new Date(data.createdAt),
+      updatedAt: new Date(data.updatedAt),
+    })
   }
 }

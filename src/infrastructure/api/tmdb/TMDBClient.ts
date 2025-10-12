@@ -1,5 +1,7 @@
 import type { ILoggingService } from '../../../domain/services/ILoggingService'
 import type { TMDBConfigFactory } from '../../factories/TMDBConfigFactory'
+import type { RequestQueueService } from '../../services/RequestQueueService'
+import type { TMDBAPICache } from '../../cache/TMDBAPICache'
 import { TMDBBaseClient } from './TMDBBaseClient'
 import { TMDBMovieClient } from './clients/TMDBMovieClient'
 import { TMDBTVClient } from './clients/TMDBTVClient'
@@ -35,19 +37,23 @@ export class TMDBClient {
   // Direct access to base client for advanced usage
   readonly base: TMDBBaseClient
 
-  constructor(configFactory: TMDBConfigFactory, logger: ILoggingService) {
+  constructor(
+    configFactory: TMDBConfigFactory,
+    logger: ILoggingService,
+    queueService: RequestQueueService
+  ) {
     // Initialize base client with shared configuration
-    this.base = new TMDBBaseClient(configFactory, logger)
+    this.base = new TMDBBaseClient(configFactory, logger, queueService)
 
     // Initialize all specialized clients
     // Each client inherits the reactive configuration from base client
-    this.movies = new TMDBMovieClient(configFactory, logger)
-    this.tv = new TMDBTVClient(configFactory, logger)
-    this.search = new TMDBSearchClient(configFactory, logger)
-    this.people = new TMDBPersonClient(configFactory, logger)
-    this.discover = new TMDBDiscoverClient(configFactory, logger)
-    this.configuration = new TMDBConfigurationClient(configFactory, logger)
-    this.images = new TMDBImageClient(configFactory, logger)
+    this.movies = new TMDBMovieClient(configFactory, logger, queueService)
+    this.tv = new TMDBTVClient(configFactory, logger, queueService)
+    this.search = new TMDBSearchClient(configFactory, logger, queueService)
+    this.people = new TMDBPersonClient(configFactory, logger, queueService)
+    this.discover = new TMDBDiscoverClient(configFactory, logger, queueService)
+    this.configuration = new TMDBConfigurationClient(configFactory, logger, queueService)
+    this.images = new TMDBImageClient(configFactory, logger, queueService)
   }
 
   /**
@@ -56,6 +62,21 @@ export class TMDBClient {
    */
   getCurrentConfig() {
     return this.base.getCurrentConfig()
+  }
+
+  /**
+   * Set the API cache for all TMDB clients
+   * Used to break circular dependency between TMDBClient and TMDBAPICache
+   */
+  setCache(cache: TMDBAPICache): void {
+    this.base.setCache(cache)
+    this.movies.setCache(cache)
+    this.tv.setCache(cache)
+    this.search.setCache(cache)
+    this.people.setCache(cache)
+    this.discover.setCache(cache)
+    this.configuration.setCache(cache)
+    this.images.setCache(cache)
   }
 
   /**

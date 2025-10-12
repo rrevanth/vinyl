@@ -11,6 +11,24 @@ export class ExternalId {
   toString(): string {
     return this.id
   }
+
+  /**
+   * Serialize to JSON for cache persistence
+   */
+  toJSON() {
+    return {
+      id: this.id,
+      providerId: this.providerId,
+      url: this.url,
+    }
+  }
+
+  /**
+   * Deserialize from JSON to restore class instance with methods
+   */
+  static fromJSON(data: any): ExternalId {
+    return new ExternalId(data.id, data.providerId, data.url)
+  }
 }
 
 /**
@@ -47,6 +65,38 @@ export class StremioExternalId {
   getStreamUrl(): string {
     const baseUrl = this.manifestUrl?.replace('/manifest.json', '') || ''
     return `${baseUrl}/stream/${this.mediaType}/${this.mediaId}.json`
+  }
+
+  /**
+   * Serialize to JSON for cache persistence
+   */
+  toJSON() {
+    return {
+      addonId: this.addonId,
+      addonName: this.addonName,
+      catalogId: this.catalogId,
+      catalogType: this.catalogType,
+      mediaType: this.mediaType,
+      mediaId: this.mediaId,
+      providerId: this.providerId,
+      manifestUrl: this.manifestUrl,
+    }
+  }
+
+  /**
+   * Deserialize from JSON to restore class instance with methods
+   */
+  static fromJSON(data: any): StremioExternalId {
+    return new StremioExternalId(
+      data.addonId,
+      data.addonName,
+      data.catalogId,
+      data.catalogType,
+      data.mediaType,
+      data.mediaId,
+      data.providerId,
+      data.manifestUrl
+    )
   }
 }
 
@@ -136,6 +186,40 @@ export class ExternalIds {
       stremio: this.stremio || other.stremio,
       mal: this.mal || other.mal,
       kitsu: this.kitsu || other.kitsu,
+    })
+  }
+
+  /**
+   * Serialize to JSON for cache persistence
+   * Calls toJSON() on nested ExternalId/StremioExternalId instances
+   */
+  toJSON() {
+    return {
+      imdb: this.imdb?.toJSON(),
+      tmdb: this.tmdb?.toJSON(),
+      trakt: this.trakt?.toJSON(),
+      tvdb: this.tvdb?.toJSON(),
+      fanart: this.fanart?.toJSON(),
+      mal: this.mal?.toJSON(),
+      kitsu: this.kitsu?.toJSON(),
+      stremio: this.stremio?.toJSON(),
+    }
+  }
+
+  /**
+   * Deserialize from JSON to restore class instance with methods
+   * Reconstructs nested ExternalId/StremioExternalId instances
+   */
+  static fromJSON(data: any): ExternalIds {
+    return new ExternalIds({
+      imdb: data.imdb ? ExternalId.fromJSON(data.imdb) : undefined,
+      tmdb: data.tmdb ? ExternalId.fromJSON(data.tmdb) : undefined,
+      trakt: data.trakt ? ExternalId.fromJSON(data.trakt) : undefined,
+      tvdb: data.tvdb ? ExternalId.fromJSON(data.tvdb) : undefined,
+      fanart: data.fanart ? ExternalId.fromJSON(data.fanart) : undefined,
+      mal: data.mal ? ExternalId.fromJSON(data.mal) : undefined,
+      kitsu: data.kitsu ? ExternalId.fromJSON(data.kitsu) : undefined,
+      stremio: data.stremio ? StremioExternalId.fromJSON(data.stremio) : undefined,
     })
   }
 }

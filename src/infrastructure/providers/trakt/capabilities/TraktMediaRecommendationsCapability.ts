@@ -23,7 +23,11 @@ export class TraktMediaRecommendationsCapability implements IMediaRecommendation
       // Extract Trakt ID
       const traktId = media.externalIds.trakt?.id
       if (!traktId) {
-        throw new Error(`No Trakt ID found for ${media.type} media: ${media.title}`)
+        return fail(
+          new Error(`No Trakt ID found for ${media.type} media: ${media.title}`),
+          'trakt',
+          'missing_id'
+        )
       }
 
       const catalogs: Catalog[] = []

@@ -1,5 +1,5 @@
-import type { Media } from './Media'
-import type { Person } from './Person'
+import { Media } from './Media'
+import { Person } from './Person'
 import type { CatalogFilters } from './StableIdGenerator'
 import { StableIdGenerator } from './StableIdGenerator'
 
@@ -247,5 +247,74 @@ export class Catalog {
       return `${this.name} - ${this.contextPerson.name}`
     }
     return this.name
+  }
+
+  /**
+   * Serialize to JSON for cache persistence
+   * Converts nested entities and Dates to JSON-safe format
+   */
+  toJSON() {
+    return {
+      stableId: this.stableId,
+      id: this.id,
+      providerId: this.providerId,
+      type: this.type,
+      category: this.category,
+      name: this.name,
+      description: this.description,
+      items: this.items.map((item) => ({
+        stableId: item.stableId,
+        media: item.media?.toJSON(),
+        person: item.person?.toJSON(),
+        position: item.position,
+        role: item.role,
+        department: item.department,
+        order: item.order,
+      })),
+      sourceInfo: {
+        ...this.sourceInfo,
+        lastUpdated: this.sourceInfo.lastUpdated?.toISOString(),
+      },
+      paginationInfo: this.paginationInfo,
+      contextMedia: this.contextMedia?.toJSON(),
+      contextPerson: this.contextPerson?.toJSON(),
+      filters: this.filters,
+      createdAt: this.createdAt.toISOString(),
+      expiresAt: this.expiresAt?.toISOString(),
+    }
+  }
+
+  /**
+   * Deserialize from JSON to restore class instance with methods
+   * Reconstructs nested Media and Person instances in items and context
+   */
+  static fromJSON(data: any): Catalog {
+    return new Catalog({
+      id: data.id,
+      providerId: data.providerId,
+      type: data.type,
+      category: data.category,
+      name: data.name,
+      description: data.description,
+      items: data.items.map((item: any) => ({
+        stableId: item.stableId,
+        media: item.media ? Media.fromJSON(item.media) : undefined,
+        person: item.person ? Person.fromJSON(item.person) : undefined,
+        position: item.position,
+        role: item.role,
+        department: item.department,
+        order: item.order,
+      })),
+      sourceInfo: {
+        ...data.sourceInfo,
+        lastUpdated: data.sourceInfo.lastUpdated ? new Date(data.sourceInfo.lastUpdated) : undefined,
+      },
+      paginationInfo: data.paginationInfo,
+      contextMedia: data.contextMedia ? Media.fromJSON(data.contextMedia) : undefined,
+      contextPerson: data.contextPerson ? Person.fromJSON(data.contextPerson) : undefined,
+      filters: data.filters,
+      createdAt: new Date(data.createdAt),
+      expiresAt: data.expiresAt ? new Date(data.expiresAt) : undefined,
+    })
   }
 }

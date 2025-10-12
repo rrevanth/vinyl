@@ -25,7 +25,11 @@ export class TraktMediaPeopleCapability implements IMediaPeopleCapability {
       // Extract Trakt ID
       const traktId = media.externalIds.trakt?.id
       if (!traktId) {
-        throw new Error(`No Trakt ID found for ${media.type} media: ${media.title}`)
+        return fail(
+          new Error(`No Trakt ID found for ${media.type} media: ${media.title}`),
+          'trakt',
+          'missing_id'
+        )
       }
 
       // Get people (cast & crew) from Trakt
@@ -39,7 +43,11 @@ export class TraktMediaPeopleCapability implements IMediaPeopleCapability {
           extended: 'full,images' as any,
         })
       } else {
-        throw new Error(`Unsupported media type: ${media.type}`)
+        return fail(
+          new Error(`People data only available for movies and series, got: ${media.type}`),
+          'trakt',
+          'unsupported'
+        )
       }
 
       const catalogs: Catalog[] = []

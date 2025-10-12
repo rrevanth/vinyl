@@ -18,6 +18,14 @@ const AccountsScreen = observer(() => {
     router.push('/settings/accounts/trakt')
   }
 
+  const navigateToMDBList = () => {
+    router.push('./mdblist')
+  }
+
+  const navigateToFanart = () => {
+    router.push('./fanart')
+  }
+
   const traktDescription = isConnected ? `Connected as @${account?.username}` : 'Not connected'
 
   return (
@@ -38,6 +46,18 @@ const AccountsScreen = observer(() => {
           title={t('settings.accounts.trakt.title')}
           description={traktDescription}
           onPress={navigateToTrakt}
+        />
+        <SettingsNavigationRow
+          iconName="star-outline"
+          title="MDBList"
+          description="Aggregated ratings from multiple sources"
+          onPress={navigateToMDBList}
+        />
+        <SettingsNavigationRow
+          iconName="image-outline"
+          title="Fanart.tv"
+          description="High-quality images and artwork"
+          onPress={navigateToFanart}
           isLast
         />
       </SettingsSection>

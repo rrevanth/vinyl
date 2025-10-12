@@ -76,8 +76,26 @@ export class TMDBCatalogCapability implements IMediaCatalogCapability {
         const timeWindow = catalog.sourceInfo.period || 'week'
         response = await this.tmdbClient.discover.getTrendingAll(timeWindow as any, nextPage)
       } else {
-        // Regular catalog
-        const [mediaType, catalogType] = this.parseCatalogId(catalog.id)
+        // Regular catalog - validate catalog ID format
+        const parsedId = this.parseCatalogId(catalog.id)
+        if (!parsedId) {
+          return fail(
+            new Error(`Invalid catalog ID format: ${catalog.id}`),
+            'tmdb',
+            'invalid_input'
+          )
+        }
+        const [mediaType, catalogType] = parsedId
+
+        // Validate catalog type before fetching
+        if (!this.isValidCatalogType(mediaType as 'movie' | 'tv', catalogType)) {
+          return fail(
+            new Error(`Unsupported ${mediaType} catalog type: ${catalogType}`),
+            'tmdb',
+            'unsupported'
+          )
+        }
+
         response = await this.fetchCatalogData(mediaType as 'movie' | 'tv', catalogType, nextPage)
       }
 
@@ -220,6 +238,7 @@ export class TMDBCatalogCapability implements IMediaCatalogCapability {
         case 'upcoming':
           return this.tmdbClient.movies.getUpcomingMovies(page)
         default:
+          // Should never reach here due to validation in caller
           throw new Error(`Unsupported movie catalog type: ${catalogType}`)
       }
     } else {
@@ -233,19 +252,32 @@ export class TMDBCatalogCapability implements IMediaCatalogCapability {
         case 'on_the_air':
           return this.tmdbClient.tv.getTVOnTheAir(page)
         default:
+          // Should never reach here due to validation in caller
           throw new Error(`Unsupported TV catalog type: ${catalogType}`)
       }
     }
   }
 
   /**
-   * Parse catalog ID to extract media type and catalog type
+   * Validate if a catalog type is supported for the given media type
    */
-  private parseCatalogId(catalogId: string): [string, string] {
+  private isValidCatalogType(mediaType: 'movie' | 'tv', catalogType: string): boolean {
+    if (mediaType === 'movie') {
+      return ['popular', 'top_rated', 'now_playing', 'upcoming'].includes(catalogType)
+    } else {
+      return ['popular', 'top_rated', 'airing_today', 'on_the_air'].includes(catalogType)
+    }
+  }
+
+  /**
+   * Parse catalog ID to extract media type and catalog type
+   * Returns null if format is invalid
+   */
+  private parseCatalogId(catalogId: string): [string, string] | null {
     const parts = catalogId.replace('tmdb-', '').split('-')
     if (parts.length >= 2) {
       return [parts[0], parts[1]]
     }
-    throw new Error(`Invalid catalog ID format: ${catalogId}`)
+    return null
   }
 }

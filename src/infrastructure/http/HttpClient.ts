@@ -12,6 +12,7 @@ import axiosRetry from 'axios-retry'
  * - Request/response logging (dev mode)
  * - HTTP error mapping to domain errors
  * - Automatic retry with exponential backoff
+ * - 429 Rate Limit handling with Retry-After header support
  * - Configurable timeout (default 10 seconds)
  */
 export class HttpClient {
@@ -86,6 +87,18 @@ export class HttpClient {
         return response
       },
       (error: AxiosError) => {
+        // Handle 429 Rate Limit - let axios-retry handle it
+        if (error.response?.status === 429) {
+          if (this.logger) {
+            this.logger.warn('Rate limit hit (429)', {
+              url: error.config?.url,
+              retryAfter: error.response.headers['retry-after'],
+            })
+          }
+          // Return error for axios-retry to handle
+          return Promise.reject(error)
+        }
+
         // Map HTTP errors to domain errors
         const mappedError = this.mapError(error)
 
@@ -105,12 +118,30 @@ export class HttpClient {
     // Configure retry logic
     axiosRetry(this.client, {
       retries: 3,
-      // eslint-disable-next-line import/no-named-as-default-member
-      retryDelay: axiosRetry.exponentialDelay, // Exponential backoff
+      // Custom retry delay with 429 Rate Limit handling
+      retryDelay: (retryCount, error) => {
+        // Handle 429 Rate Limit with Retry-After header
+        if (error.response?.status === 429) {
+          const retryAfter = error.response.headers['retry-after']
+          if (retryAfter) {
+            // Use Retry-After header value (in seconds)
+            return parseInt(retryAfter, 10) * 1000
+          }
+          // Fallback: exponential backoff with 10s max
+          return Math.min(1000 * Math.pow(2, retryCount - 1), 10000)
+        }
+        // Default exponential backoff for other errors
+        // eslint-disable-next-line import/no-named-as-default-member
+        return axiosRetry.exponentialDelay(retryCount, error)
+      },
       retryCondition: (error) => {
-        // Retry on network errors and 5xx server errors
-        // Don't retry 4xx client errors
+        // Retry on:
+        // - 429 Rate Limit (with backoff)
+        // - Network errors
+        // - 5xx server errors
+        // Don't retry other 4xx client errors
         return (
+          error.response?.status === 429 ||
           // eslint-disable-next-line import/no-named-as-default-member
           axiosRetry.isNetworkError(error) ||
           // eslint-disable-next-line import/no-named-as-default-member
@@ -120,12 +151,19 @@ export class HttpClient {
       },
       onRetry: (retryCount, error, requestConfig) => {
         if (this.logger) {
-          this.logger.warn('Retrying HTTP request', {
+          const context: Record<string, any> = {
             retryCount,
             url: requestConfig.url,
             method: requestConfig.method?.toUpperCase(),
             error: error.message,
-          })
+          }
+
+          // Add rate limit context if applicable
+          if (error.response?.status === 429) {
+            context.rateLimitRetryAfter = error.response.headers['retry-after']
+          }
+
+          this.logger.warn('Retrying HTTP request', context)
         }
       },
     })

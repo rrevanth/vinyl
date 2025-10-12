@@ -54,6 +54,21 @@ export interface IEnvironmentService {
   getTraktClientSecret(): string
 
   /**
+   * Get Fanart.tv API key from environment
+   */
+  getFanartApiKey(): string
+
+  /**
+   * Get Fanart.tv client key from environment (optional personal API key)
+   */
+  getFanartClientKey(): string
+
+  /**
+   * Get Fanart.tv base URL from environment or default
+   */
+  getFanartBaseURL(): string
+
+  /**
    * Check if running in development mode
    */
   isDevelopment(): boolean

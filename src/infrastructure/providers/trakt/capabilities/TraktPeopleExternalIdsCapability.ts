@@ -26,7 +26,11 @@ export class TraktPeopleExternalIdsCapability implements IPeopleExternalIdsCapab
     try {
       const traktId = this.extractTraktId(person)
       if (!traktId) {
-        throw new Error(`No Trakt ID found for person: ${person.name}`)
+        return fail(
+          new Error(`No Trakt ID found for person: ${person.name}`),
+          'trakt',
+          'missing_id'
+        )
       }
 
       // Get person details from cache (includes all external IDs)

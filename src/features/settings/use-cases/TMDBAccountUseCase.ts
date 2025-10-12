@@ -2,6 +2,7 @@ import type { ILoggingService } from '@/src/domain/services/ILoggingService'
 import type { TMDBAccount } from '@/src/domain/entities/UserPreferences'
 import type { TMDBClient } from '@/src/infrastructure/api/tmdb/TMDBClient'
 import type { IEnvironmentService } from '@/src/domain/services/IEnvironmentService'
+import type { RequestQueueService } from '@/src/infrastructure/services/RequestQueueService'
 import { userPreferences$ } from '@/src/presentation/shared/stores/app.store'
 import { TMDBConfigFactory } from '@/src/infrastructure/factories/TMDBConfigFactory'
 import { TMDBClient as TMDBClientClass } from '@/src/infrastructure/api/tmdb/TMDBClient'
@@ -36,7 +37,8 @@ export class TMDBAccountUseCase {
   constructor(
     private readonly tmdbClient: TMDBClient,
     private readonly logger: ILoggingService,
-    private readonly envService: IEnvironmentService
+    private readonly envService: IEnvironmentService,
+    private readonly queueService: RequestQueueService
   ) {}
 
   /**
@@ -232,7 +234,7 @@ export class TMDBAccountUseCase {
       try {
         // Create temporary client to test the custom configuration
         const tempFactory = new TMDBConfigFactory(this.envService)
-        const tempClient = new TMDBClientClass(tempFactory, this.logger)
+        const tempClient = new TMDBClientClass(tempFactory, this.logger, this.queueService)
 
         // Test connection
         const testResult = await tempClient.testConnection()

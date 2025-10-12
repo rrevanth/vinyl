@@ -4,7 +4,7 @@ import type { ProviderStatus, ProviderHealth } from './ProviderStatus'
  * Source information for providers (clean and extensible)
  */
 export interface ProviderSourceInfo {
-  type: 'tmdb' | 'trakt' | 'stremio' // Provider source type
+  type: 'tmdb' | 'trakt' | 'stremio' | 'fanart' | 'mdblist' // Provider source type
   url?: string // For Stremio addons: manifest URL, for others: base URL
 
   // Stremio-specific

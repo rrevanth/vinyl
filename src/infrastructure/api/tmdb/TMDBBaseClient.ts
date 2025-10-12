@@ -1,10 +1,12 @@
-import { HttpClient } from '../../http/HttpClient'
-import type { ILoggingService } from '../../../domain/services/ILoggingService'
-import type { TMDBConfigFactory, EffectiveTMDBConfig } from '../../factories/TMDBConfigFactory'
-import { tmdbConfig$ } from '../../../presentation/shared/stores/app.store'
-import { NotFoundError, UnauthorizedError } from '../../../domain/errors'
-import { NetworkError } from '../../errors'
+import { HttpClient } from '@/src/infrastructure/http/HttpClient'
+import type { ILoggingService } from '@/src/domain/services/ILoggingService'
+import type { TMDBConfigFactory, EffectiveTMDBConfig } from '@/src/infrastructure/factories/TMDBConfigFactory'
+import { tmdbConfig$ } from '@/src/presentation/shared/stores/app.store'
+import { NotFoundError, UnauthorizedError } from '@/src/domain/errors'
+import { NetworkError } from '@/src/infrastructure/errors'
 import type { TMDBImageSize } from './types'
+import { RequestQueueService } from '@/src/infrastructure/services/RequestQueueService'
+import type { TMDBAPICache } from '@/src/infrastructure/cache/TMDBAPICache'
 
 /**
  * Base TMDB API client with reactive configuration and error handling
@@ -21,16 +23,28 @@ export class TMDBBaseClient {
   protected currentConfig!: EffectiveTMDBConfig
   private configSubscription?: () => void
   private static configLoaded = false
+  private readonly apiCache?: TMDBAPICache
 
   constructor(
     private readonly configFactory: TMDBConfigFactory,
-    private readonly logger: ILoggingService
+    private readonly logger: ILoggingService,
+    private readonly queueService: RequestQueueService
   ) {
     // Initialize configuration
     this.reloadConfiguration()
 
     // Set up reactive configuration watching
     this.setupConfigurationWatcher()
+  }
+
+  /**
+   * Set the API cache after construction
+   * Used to break circular dependency between TMDBClient and TMDBAPICache
+   */
+  setCache(cache: TMDBAPICache): void {
+    // @ts-expect-error - We're setting a readonly property after construction to break circular dependency
+    this.apiCache = cache
+    this.logger.debug('TMDB cache injected into base client')
   }
 
   /**
@@ -131,24 +145,72 @@ export class TMDBBaseClient {
 
   /**
    * Make HTTP GET request with TMDB error handling
+   * Cache-first pattern: Check cache before entering queue
    */
   protected async get<T>(endpoint: string, params?: Record<string, any>): Promise<T> {
-    try {
-      return await this.httpClient.get<T>(endpoint, { params })
-    } catch (error) {
-      throw this.mapTMDBError(error)
+    // Build cache key
+    const cacheKey = ['tmdb', endpoint, params]
+
+    // Try cache first - NO QUEUE if cache hit!
+    if (this.apiCache) {
+      const cached = await this.apiCache.tryGetFromCache<T>(cacheKey)
+      if (cached) {
+        this.logger.debug('Cache HIT - instant return, bypassing queue', { endpoint })
+        return cached
+      }
+      this.logger.debug('Cache MISS - entering queue', { endpoint })
     }
+
+    // Cache miss - enter queue and fetch
+    return this.queueService.enqueue('tmdb', async () => {
+      try {
+        const result = await this.httpClient.get<T>(endpoint, { params })
+
+        // Store in cache after successful fetch
+        if (this.apiCache) {
+          await this.apiCache.setInCache(cacheKey, result, 'media-details')
+        }
+
+        return result
+      } catch (error) {
+        throw this.mapTMDBError(error)
+      }
+    })
   }
 
   /**
    * Make HTTP POST request with TMDB error handling
+   * Cache-first pattern: Check cache before entering queue
    */
   protected async post<T>(endpoint: string, data?: any, params?: Record<string, any>): Promise<T> {
-    try {
-      return await this.httpClient.post<T>(endpoint, data, { params })
-    } catch (error) {
-      throw this.mapTMDBError(error)
+    // Build cache key (include data and params for uniqueness)
+    const cacheKey = ['tmdb', endpoint, data, params]
+
+    // Try cache first - NO QUEUE if cache hit!
+    if (this.apiCache) {
+      const cached = await this.apiCache.tryGetFromCache<T>(cacheKey)
+      if (cached) {
+        this.logger.debug('Cache HIT - instant return, bypassing queue', { endpoint })
+        return cached
+      }
+      this.logger.debug('Cache MISS - entering queue', { endpoint })
     }
+
+    // Cache miss - enter queue and fetch
+    return this.queueService.enqueue('tmdb', async () => {
+      try {
+        const result = await this.httpClient.post<T>(endpoint, data, { params })
+
+        // Store in cache after successful fetch
+        if (this.apiCache) {
+          await this.apiCache.setInCache(cacheKey, result, 'media-details')
+        }
+
+        return result
+      } catch (error) {
+        throw this.mapTMDBError(error)
+      }
+    })
   }
 
   /**

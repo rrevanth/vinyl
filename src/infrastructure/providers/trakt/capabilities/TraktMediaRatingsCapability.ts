@@ -19,7 +19,11 @@ export class TraktMediaRatingsCapability implements IMediaRatingsCapability {
       // Extract Trakt ID
       const traktId = media.externalIds.trakt?.id
       if (!traktId) {
-        throw new Error(`No Trakt ID found for ${media.type} media: ${media.title}`)
+        return fail(
+          new Error(`No Trakt ID found for ${media.type} media: ${media.title}`),
+          'trakt',
+          'missing_id'
+        )
       }
 
       // Get ratings from Trakt
@@ -29,7 +33,11 @@ export class TraktMediaRatingsCapability implements IMediaRatingsCapability {
       } else if (media.type === 'series') {
         ratingsData = await this.traktClient.shows.getRatings(traktId)
       } else {
-        throw new Error(`Unsupported media type: ${media.type}`)
+        return fail(
+          new Error(`Ratings only available for movies and series, got: ${media.type}`),
+          'trakt',
+          'unsupported'
+        )
       }
 
       // Map to MediaRatings format

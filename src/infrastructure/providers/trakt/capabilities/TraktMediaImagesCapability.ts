@@ -26,7 +26,11 @@ export class TraktMediaImagesCapability implements IMediaImagesCapability {
       // Extract Trakt ID from media's external IDs
       const traktId = media.externalIds.trakt?.id
       if (!traktId) {
-        throw new Error(`No Trakt ID found for ${media.type} media: ${media.title}`)
+        return fail(
+          new Error(`No Trakt ID found for ${media.type} media: ${media.title}`),
+          'trakt',
+          'missing_id'
+        )
       }
 
       // Get cached extended data (should already be populated by metadata capability)
@@ -36,7 +40,11 @@ export class TraktMediaImagesCapability implements IMediaImagesCapability {
       } else if (media.type === 'series') {
         extendedData = await this.cache.getOrFetchShowDetails(traktId)
       } else {
-        throw new Error(`Unsupported media type: ${media.type}`)
+        return fail(
+          new Error(`Images only available for movies and series, got: ${media.type}`),
+          'trakt',
+          'unsupported'
+        )
       }
 
       // Extract images from the cached response
