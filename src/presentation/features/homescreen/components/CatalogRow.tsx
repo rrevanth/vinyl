@@ -2,6 +2,7 @@ import type { FC } from 'react'
 import { memo, useMemo, useCallback, useState } from 'react'
 import { ActivityIndicator, Pressable, Text, View } from 'react-native'
 import { StyleSheet } from 'react-native-unistyles'
+import { Ionicons } from '@expo/vector-icons'
 import type { Catalog, CatalogItem } from '@/src/domain/entities/Catalog'
 import type { Media } from '@/src/domain/entities/Media'
 import { t } from '@/src/presentation/shared/i18n'
@@ -36,6 +37,25 @@ const CatalogRowComponent: FC<CatalogRowProps> = ({ catalog, onPressItem: onPres
 
   // Format display name: "Provider - Catalog Name"
   const displayName = `${providerName} - ${latestCatalog.name}`
+
+  // Handle title press - navigate to grid view
+  const handlePressTitle = useCallback(() => {
+    console.log('[CatalogRow] Title pressed, navigating to grid view')
+
+    try {
+      // Pre-populate cache with catalog data
+      queryClient.setQueryData(['catalog-grid', latestCatalog.stableId], {
+        catalog: latestCatalog,
+      })
+
+      // Navigate to grid view
+      const encodedCatalogId = encodeURIComponent(latestCatalog.stableId)
+      const encodedName = encodeURIComponent(displayName)
+      router.push(`/grids/catalog/${encodedCatalogId}?name=${encodedName}` as any)
+    } catch (error) {
+      console.error('[CatalogRow] Failed to navigate to grid view:', error)
+    }
+  }, [latestCatalog, displayName, queryClient])
 
   // Default navigation handler - pre-populate cache before navigating
   const handlePressItem = useCallback(
@@ -150,18 +170,14 @@ const CatalogRowComponent: FC<CatalogRowProps> = ({ catalog, onPressItem: onPres
   return (
     <View style={styles.container}>
       <View style={styles.headerRow}>
-        <Text style={styles.title} numberOfLines={1}>
-          {displayName}
-        </Text>
         <Pressable
+          style={({ pressed }) => [styles.titlePressable, pressed && styles.titlePressed]}
+          onPress={handlePressTitle}
           accessibilityRole="button"
-          accessibilityLabel={t('home.catalog_customize_accessibility').replace(
-            '{name}',
-            displayName
-          )}
-          style={({ pressed }) => [styles.actionButton, pressed && styles.actionPressed]}
+          accessibilityLabel={t('home.catalog_view_all_accessibility').replace('{name}', displayName)}
         >
-          <Text style={styles.actionLabel}>{t('home.catalog_customize')}</Text>
+          <Text style={styles.title}>{displayName}</Text>
+          <Ionicons name="chevron-forward" size={20} style={styles.chevronIcon} />
         </Pressable>
       </View>
 
@@ -213,38 +229,32 @@ export const CatalogRow = memo(CatalogRowComponent)
 
 const styles = StyleSheet.create((theme) => ({
   container: {
-    marginBottom: theme.spacing.xl,
+    marginBottom: theme.spacing.rowSpacing,
   },
   headerRow: {
-    paddingHorizontal: theme.spacing.lg,
+    paddingHorizontal: theme.spacing.gutter,
     marginBottom: theme.spacing.md,
+  },
+  titlePressable: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    gap: theme.spacing.xs,
+    alignSelf: 'flex-start',
+  },
+  titlePressed: {
+    opacity: 0.7,
   },
   title: {
     color: theme.colors.text,
-    fontSize: theme.fontSize.lg,
+    fontSize: theme.fontSize.xl,
     fontFamily: theme.fontFamily.heading,
-    fontWeight: theme.fontWeight.semibold,
-    flex: 1,
-    marginRight: theme.spacing.md,
+    fontWeight: theme.fontWeight.bold,
   },
-  actionButton: {
-    paddingVertical: theme.spacing.xs,
-    paddingHorizontal: theme.spacing.sm,
-    borderRadius: theme.borderRadius.full,
-    backgroundColor: theme.colors.surface,
-  },
-  actionPressed: {
-    opacity: 0.85,
-  },
-  actionLabel: {
+  chevronIcon: {
     color: theme.colors.textSecondary,
-    fontSize: theme.fontSize.xs,
   },
   listContent: {
-    paddingHorizontal: theme.spacing.lg,
+    paddingHorizontal: theme.spacing.gutter,
   },
   spinnerColor: {
     color: theme.colors.primary,

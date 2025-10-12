@@ -28,19 +28,27 @@ const stylesheet = StyleSheet.create((theme) => ({
   badge: (variant: string, size: string) => ({
     backgroundColor:
       variant === 'primary' ? theme.colors.primary :
-      variant === 'secondary' ? theme.colors.textSecondary :
-      variant === 'success' ? '#34C759' :
-      variant === 'warning' ? '#FF9500' :
+      variant === 'secondary' ? theme.colors.secondary :
+      variant === 'success' ? theme.colors.success :
+      variant === 'warning' ? theme.colors.warning :
       variant === 'error' ? theme.colors.error :
+      variant === 'info' ? theme.colors.info :
       theme.colors.primary,
-    borderRadius: theme.borderRadius.sm,
-    paddingVertical: size === 'sm' ? 2 : size === 'lg' ? 6 : 4,
-    paddingHorizontal: size === 'sm' ? theme.spacing.xs : size === 'lg' ? theme.spacing.md : theme.spacing.sm,
+    borderRadius: theme.borderRadius.md,
+    paddingVertical: size === 'sm' ? 4 : size === 'lg' ? 8 : 6,
+    paddingHorizontal: size === 'sm' ? theme.spacing.sm : size === 'lg' ? theme.spacing.lg : theme.spacing.md,
     alignSelf: 'flex-start',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 2,
   }),
   text: (size: string) => ({
     color: '#FFFFFF',
     fontSize: size === 'sm' ? theme.fontSize.xs : size === 'lg' ? theme.fontSize.base : theme.fontSize.sm,
-    fontWeight: '600',
+    fontWeight: theme.fontWeight.bold,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   }),
 }))

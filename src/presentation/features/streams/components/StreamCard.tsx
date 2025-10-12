@@ -139,26 +139,31 @@ export const StreamCard: React.FC<StreamCardProps> = observer(({ stream }) => {
 
 const styles = StyleSheet.create((theme) => ({
   card: {
-    backgroundColor: theme.colors.surface,
-    borderRadius: theme.borderRadius.lg,
-    padding: theme.spacing.md,
-    marginVertical: theme.spacing.xs,
-    marginHorizontal: theme.spacing.md,
+    backgroundColor: theme.colors.backgroundTertiary,
+    borderRadius: theme.borderRadius.xl,
+    padding: theme.spacing.lg,
+    marginVertical: theme.spacing.sm,
+    marginHorizontal: theme.spacing.gutter,
     borderWidth: 1,
     borderColor: theme.colors.border,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
   },
   pressed: {
-    opacity: 0.9,
-    transform: [{ scale: 0.99 }],
+    opacity: 1,
+    transform: [{ scale: 0.98 }],
     borderColor: theme.colors.primary,
+    borderWidth: 2,
+    shadowColor: theme.colors.primary,
+    shadowOpacity: 0.5,
+    shadowRadius: 16,
+    elevation: 12,
   },
   content: {
-    gap: theme.spacing.sm,
+    gap: theme.spacing.md,
   },
   header: {
     flexDirection: 'row',
@@ -177,7 +182,7 @@ const styles = StyleSheet.create((theme) => ({
     fontSize: theme.fontSize.base,
     fontWeight: '600' as const,
     color: theme.colors.text,
-    lineHeight: theme.fontSize.base * 1.4,
+    lineHeight: theme.fontSize.base * 1.5,
   },
   playIcon: {
     color: theme.colors.primary,
@@ -189,7 +194,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   description: {
     fontSize: theme.fontSize.sm,
-    lineHeight: theme.fontSize.sm * 1.5,
+    lineHeight: theme.fontSize.sm * 1.6,
     color: theme.colors.textSecondary,
   },
 }))

@@ -57,15 +57,15 @@ export type FontSize = {
 };
 
 export const fontSize: FontSize = {
-  xs: 12,
-  sm: 14,
-  base: 16,
-  lg: 18,
+  xs: 11,
+  sm: 13,
+  base: 15,
+  lg: 17,
   xl: 20,
   '2xl': 24,
-  '3xl': 30,
-  '4xl': 36,
-  '5xl': 48,
+  '3xl': 32,
+  '4xl': 40,
+  '5xl': 56,
 };
 
 /**
@@ -121,11 +121,20 @@ export type TypographyVariant = {
 };
 
 export type TypographyVariants = {
+  // Display headings (for hero sections)
+  display: TypographyVariant;
+  
   // Headings
   h1: TypographyVariant;
   h2: TypographyVariant;
   h3: TypographyVariant;
   h4: TypographyVariant;
+  
+  // Card titles
+  cardTitle: TypographyVariant;
+  
+  // Metadata text
+  metadata: TypographyVariant;
 
   // Body text
   body: TypographyVariant;
@@ -140,34 +149,63 @@ export type TypographyVariants = {
 };
 
 export const typography: TypographyVariants = {
-  // Headings - Using heading font with tight line height
-  h1: {
+  // Display headings (for hero sections)
+  display: {
     fontFamily: fontFamily.heading,
     fontSize: fontSize['5xl'],
     fontWeight: fontWeight.bold,
-    lineHeight: lineHeight.tight,
-    letterSpacing: letterSpacing.tight,
+    lineHeight: 1.1,
+    letterSpacing: -0.02,
   },
-  h2: {
+  
+  // Section titles
+  h1: {
     fontFamily: fontFamily.heading,
     fontSize: fontSize['4xl'],
     fontWeight: fontWeight.bold,
-    lineHeight: lineHeight.tight,
-    letterSpacing: letterSpacing.tight,
+    lineHeight: 1.2,
+    letterSpacing: -0.01,
+  },
+  h2: {
+    fontFamily: fontFamily.heading,
+    fontSize: fontSize['3xl'],
+    fontWeight: fontWeight.bold,
+    lineHeight: 1.2,
+    letterSpacing: -0.01,
   },
   h3: {
     fontFamily: fontFamily.heading,
-    fontSize: fontSize['3xl'],
-    fontWeight: fontWeight.semibold,
-    lineHeight: lineHeight.tight,
-    letterSpacing: letterSpacing.normal,
-  },
-  h4: {
-    fontFamily: fontFamily.heading,
     fontSize: fontSize['2xl'],
     fontWeight: fontWeight.semibold,
-    lineHeight: lineHeight.normal,
-    letterSpacing: letterSpacing.normal,
+    lineHeight: 1.3,
+    letterSpacing: 0,
+  },
+  
+  // Row titles
+  h4: {
+    fontFamily: fontFamily.heading,
+    fontSize: fontSize.lg,
+    fontWeight: fontWeight.semibold,
+    lineHeight: 1.4,
+    letterSpacing: 0,
+  },
+  
+  // Card titles
+  cardTitle: {
+    fontFamily: fontFamily.primary,
+    fontSize: fontSize.base,
+    fontWeight: fontWeight.semibold,
+    lineHeight: 1.4,
+    letterSpacing: 0,
+  },
+  
+  // Metadata text
+  metadata: {
+    fontFamily: fontFamily.primary,
+    fontSize: fontSize.xs,
+    fontWeight: fontWeight.medium,
+    lineHeight: 1.5,
+    letterSpacing: 0.02,
   },
 
   // Body text - Using primary font with comfortable line height
@@ -175,22 +213,22 @@ export const typography: TypographyVariants = {
     fontFamily: fontFamily.primary,
     fontSize: fontSize.base,
     fontWeight: fontWeight.regular,
-    lineHeight: lineHeight.normal,
-    letterSpacing: letterSpacing.normal,
+    lineHeight: 1.6,
+    letterSpacing: 0,
   },
   bodyLarge: {
     fontFamily: fontFamily.primary,
     fontSize: fontSize.lg,
     fontWeight: fontWeight.regular,
-    lineHeight: lineHeight.relaxed,
-    letterSpacing: letterSpacing.normal,
+    lineHeight: 1.6,
+    letterSpacing: 0,
   },
   bodySmall: {
     fontFamily: fontFamily.primary,
     fontSize: fontSize.sm,
     fontWeight: fontWeight.regular,
-    lineHeight: lineHeight.normal,
-    letterSpacing: letterSpacing.normal,
+    lineHeight: 1.5,
+    letterSpacing: 0,
   },
 
   // UI elements - Optimized for specific use cases
@@ -198,28 +236,28 @@ export const typography: TypographyVariants = {
     fontFamily: fontFamily.primary,
     fontSize: fontSize.base,
     fontWeight: fontWeight.semibold,
-    lineHeight: lineHeight.tight,
-    letterSpacing: letterSpacing.wide,
+    lineHeight: 1.2,
+    letterSpacing: 0.02,
   },
   caption: {
     fontFamily: fontFamily.primary,
     fontSize: fontSize.xs,
     fontWeight: fontWeight.regular,
-    lineHeight: lineHeight.normal,
-    letterSpacing: letterSpacing.normal,
+    lineHeight: 1.4,
+    letterSpacing: 0,
   },
   label: {
     fontFamily: fontFamily.primary,
     fontSize: fontSize.sm,
     fontWeight: fontWeight.medium,
-    lineHeight: lineHeight.normal,
-    letterSpacing: letterSpacing.wide,
+    lineHeight: 1.4,
+    letterSpacing: 0.01,
   },
   overline: {
     fontFamily: fontFamily.primary,
     fontSize: fontSize.xs,
     fontWeight: fontWeight.semibold,
-    lineHeight: lineHeight.tight,
-    letterSpacing: letterSpacing.widest,
+    lineHeight: 1.2,
+    letterSpacing: 0.08,
   },
 };

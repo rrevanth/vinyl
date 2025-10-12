@@ -89,9 +89,10 @@ export const ActionButtonRow = memo(ActionButtonRowComponent)
 
 const styles = StyleSheet.create((theme) => ({
   container: {
-    gap: theme.spacing.sm,
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.md,
+    gap: theme.spacing.md,
+    paddingHorizontal: theme.spacing.gutter,
+    paddingVertical: theme.spacing.lg,
+    backgroundColor: theme.colors.background,
   },
   button: {
     flexDirection: 'row',
@@ -100,20 +101,26 @@ const styles = StyleSheet.create((theme) => ({
     gap: theme.spacing.sm,
     paddingVertical: theme.spacing.md,
     paddingHorizontal: theme.spacing.lg,
-    borderRadius: theme.borderRadius.md,
-    minHeight: 48, // Accessibility: minimum touch target
+    borderRadius: theme.borderRadius.lg,
+    minHeight: 52,
   },
   buttonPressed: {
-    opacity: 0.7,
+    opacity: 0.85,
+    transform: [{ scale: 0.98 }],
   },
   primaryButton: {
     backgroundColor: theme.colors.primary,
     width: '100%',
+    shadowColor: theme.colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
   primaryButtonText: {
     color: '#FFFFFF',
     fontSize: theme.fontSize.base,
-    fontWeight: theme.fontWeight.semibold,
+    fontWeight: theme.fontWeight.bold,
     fontFamily: theme.fontFamily.primary,
   },
   secondaryRow: {
@@ -122,14 +129,14 @@ const styles = StyleSheet.create((theme) => ({
   },
   secondaryButton: {
     flex: 1,
-    backgroundColor: theme.colors.surface,
-    borderWidth: 1,
+    backgroundColor: theme.colors.backgroundTertiary,
+    borderWidth: 1.5,
     borderColor: theme.colors.border,
   },
   secondaryButtonText: {
     color: theme.colors.text,
     fontSize: theme.fontSize.sm,
-    fontWeight: theme.fontWeight.medium,
+    fontWeight: theme.fontWeight.semibold,
     fontFamily: theme.fontFamily.primary,
   },
 }))

@@ -11,9 +11,11 @@ import {
   spacing,
   borderRadius,
   elevation,
+  shadows,
   type SpacingScale,
   type BorderRadiusScale,
-  type ElevationScale
+  type ElevationScale,
+  type ShadowScale,
 } from './spacing';
 import {
   fontFamily,
@@ -38,6 +40,7 @@ export type Theme = {
   spacing: SpacingScale;
   borderRadius: BorderRadiusScale;
   elevation: ElevationScale;
+  shadows: ShadowScale;
   fontFamily: FontFamily;
   fontWeight: FontWeight;
   fontSize: FontSize;
@@ -55,6 +58,7 @@ export const lightTheme: Theme = {
   spacing,
   borderRadius,
   elevation,
+  shadows,
   fontFamily,
   fontWeight,
   fontSize,
@@ -72,6 +76,7 @@ export const darkTheme: Theme = {
   spacing,
   borderRadius,
   elevation,
+  shadows,
   fontFamily,
   fontWeight,
   fontSize,
@@ -93,9 +98,11 @@ export {
   spacing,
   borderRadius,
   elevation,
+  shadows,
   type SpacingScale,
   type BorderRadiusScale,
   type ElevationScale,
+  type ShadowScale,
 
   // Typography
   fontFamily,

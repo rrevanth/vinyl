@@ -290,10 +290,10 @@ const styles = StyleSheet.create((theme) => ({
     marginVertical: theme.spacing.md,
   },
   listContent: {
-    paddingHorizontal: theme.spacing.lg,
+    paddingHorizontal: theme.spacing.gutter,
   },
   emptyContainer: {
-    paddingHorizontal: theme.spacing.lg,
+    paddingHorizontal: theme.spacing.gutter,
     paddingVertical: theme.spacing.xl,
     alignItems: 'center',
   },

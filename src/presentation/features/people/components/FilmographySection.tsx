@@ -1,15 +1,19 @@
 import type { FC } from 'react'
-import { memo, useMemo } from 'react'
+import { memo, useMemo, useCallback } from 'react'
 import { Image, Pressable, Text, View } from 'react-native'
 import { StyleSheet } from 'react-native-unistyles'
+import { Ionicons } from '@expo/vector-icons'
 import { LegendList } from '@legendapp/list'
 import { observer } from '@legendapp/state/react'
+import { router } from 'expo-router'
+import { useQueryClient } from '@tanstack/react-query'
 import type { Catalog } from '@/src/domain/entities/Catalog'
 import type { Media } from '@/src/domain/entities/Media'
 import { t } from '@/src/presentation/shared/i18n'
 import { personUI$ } from '../stores/personUI.store'
 
 interface FilmographySectionProps {
+  readonly personStableId: string
   readonly filmography: Catalog[]
   readonly onPressMedia?: (media: Media) => void
 }
@@ -28,8 +32,49 @@ interface FilmographyItem {
  *
  * Note: filmography is an array of Catalog entities containing media items
  */
-const FilmographySectionComponent: FC<FilmographySectionProps> = observer(({ filmography, onPressMedia }) => {
+const FilmographySectionComponent: FC<FilmographySectionProps> = observer(({
+  personStableId,
+  filmography,
+  onPressMedia,
+}) => {
   const selectedTab = personUI$.selectedFilmographyTab.get()
+  const queryClient = useQueryClient()
+
+  // All filmography items for grid view (no filter)
+  const allFilmographyItems = useMemo<{ media: Media; role?: string }[]>(() => {
+    const items: { media: Media; role?: string }[] = []
+
+    for (const catalog of filmography) {
+      for (const item of catalog.items) {
+        if (item.media) {
+          items.push({
+            media: item.media,
+            role: item.role,
+          })
+        }
+      }
+    }
+
+    return items
+  }, [filmography])
+
+  // Handle title press - navigate to filmography grid view
+  const handlePressTitle = useCallback(() => {
+    console.log('[FilmographySection] Title pressed, navigating to filmography grid view')
+
+    try {
+      // Pre-populate cache with all filmography items
+      queryClient.setQueryData(['filmography-grid', personStableId], {
+        filmography: allFilmographyItems,
+      })
+
+      // Navigate to filmography grid view
+      const encodedPersonStableId = encodeURIComponent(personStableId)
+      router.push(`/grids/filmography/${encodedPersonStableId}` as any)
+    } catch (error) {
+      console.error('[FilmographySection] Failed to navigate to filmography grid view:', error)
+    }
+  }, [personStableId, allFilmographyItems, queryClient])
 
   // Extract media items from catalogs and filter based on selected tab
   const items = useMemo<FilmographyItem[]>(() => {
@@ -89,7 +134,15 @@ const FilmographySectionComponent: FC<FilmographySectionProps> = observer(({ fil
   return (
     <View style={styles.section}>
       <View style={styles.header}>
-        <Text style={styles.title}>{t('person_detail.known_for')}</Text>
+        <Pressable
+          style={({ pressed }) => [styles.titlePressable, pressed && styles.titlePressed]}
+          onPress={handlePressTitle}
+          accessibilityRole="button"
+          accessibilityLabel={t('person_detail.see_all_filmography')}
+        >
+          <Text style={styles.title}>{t('person_detail.known_for')}</Text>
+          <Ionicons name="chevron-forward" size={20} style={styles.chevronIcon} />
+        </Pressable>
 
         {/* Tab selector */}
         <View style={styles.tabs}>
@@ -205,12 +258,24 @@ const styles = StyleSheet.create((theme) => ({
     paddingHorizontal: theme.spacing.lg,
     marginBottom: theme.spacing.md,
   },
+  titlePressable: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs,
+    marginBottom: theme.spacing.md,
+    alignSelf: 'flex-start',
+  },
+  titlePressed: {
+    opacity: 0.7,
+  },
   title: {
     color: theme.colors.text,
     fontSize: theme.fontSize.lg,
     fontFamily: theme.fontFamily.heading,
     fontWeight: theme.fontWeight.semibold,
-    marginBottom: theme.spacing.md,
+  },
+  chevronIcon: {
+    color: theme.colors.textSecondary,
   },
   tabs: {
     flexDirection: 'row',

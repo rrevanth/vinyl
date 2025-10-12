@@ -102,19 +102,22 @@ export const CastCard = memo(CastCardComponent)
 const styles = StyleSheet.create((theme) => ({
   container: {
     alignItems: 'center',
-    width: 100,
+    width: 110,
     marginRight: theme.spacing.md,
   },
   pressed: {
-    opacity: 0.7,
+    opacity: 0.8,
+    transform: [{ scale: 0.95 }],
   },
   imageContainer: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 110,
+    height: 110,
+    borderRadius: 55,
     overflow: 'hidden',
-    backgroundColor: theme.colors.surfaceElevated,
+    backgroundColor: theme.colors.backgroundTertiary,
     marginBottom: theme.spacing.sm,
+    borderWidth: 2,
+    borderColor: theme.colors.border,
   },
   image: {
     width: '100%',
@@ -125,7 +128,7 @@ const styles = StyleSheet.create((theme) => ({
     height: '100%',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: theme.colors.surfaceElevated,
+    backgroundColor: theme.colors.backgroundTertiary,
   },
   placeholderIcon: {
     color: theme.colors.textTertiary,
@@ -133,6 +136,7 @@ const styles = StyleSheet.create((theme) => ({
   textContainer: {
     alignItems: 'center',
     gap: theme.spacing.xs,
+    paddingHorizontal: theme.spacing.xs,
   },
   name: {
     color: theme.colors.text,
@@ -142,7 +146,7 @@ const styles = StyleSheet.create((theme) => ({
     textAlign: 'center',
   },
   character: {
-    color: theme.colors.textSecondary,
+    color: theme.colors.textTertiary,
     fontSize: theme.fontSize.xs,
     textAlign: 'center',
   },

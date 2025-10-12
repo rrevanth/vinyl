@@ -100,7 +100,7 @@ export const MetadataSection = memo(MetadataSectionComponent)
 
 const styles = StyleSheet.create((theme) => ({
   container: {
-    paddingHorizontal: theme.spacing.lg,
+    paddingHorizontal: theme.spacing.gutter,
     paddingVertical: theme.spacing.xl,
   },
   title: {

@@ -25,6 +25,8 @@ interface Translations {
     continue_watching_progress: string
     catalog_customize: string
     catalog_customize_accessibility: string
+    catalog_view_all_accessibility: string
+    catalog_default_name: string
     catalog_load_error: string
     catalog_retry: string
     catalog_loading_more: string
@@ -71,8 +73,13 @@ interface Translations {
     release_date: string
     genres: string
     cast: string
+    no_cast: string
+    see_all_cast: string
     trailers: string
     more_like_this: string
+    recommendations: string
+    no_recommendations: string
+    see_all_recommendations: string
     see_all: string
     seasons: string
     episodes: string
@@ -139,6 +146,8 @@ interface Translations {
     birthplace: string
     department: string
     filmography: string
+    no_filmography: string
+    see_all_filmography: string
     all: string
     movies: string
     tv: string

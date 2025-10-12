@@ -109,8 +109,8 @@ const ParallaxHeroComponent: FC<ParallaxHeroProps> = ({
       {/* Gradient Overlay - Always Visible */}
       <Animated.View style={[styles.gradientContainer, gradientStyle]}>
         <LinearGradient
-          colors={['transparent', 'rgba(0, 0, 0, 0.3)', 'rgba(0, 0, 0, 0.9)']}
-          locations={[0, 0.5, 1]}
+          colors={['transparent', 'rgba(0, 0, 0, 0.5)', 'rgba(0, 0, 0, 0.95)']}
+          locations={[0, 0.4, 1]}
           style={styles.gradient}
         />
       </Animated.View>
@@ -125,6 +125,7 @@ const styles = StyleSheet.create((theme) => ({
     position: 'relative',
     width: '100%',
     overflow: 'hidden',
+    backgroundColor: theme.colors.background,
   },
   imageContainer: {
     position: 'absolute',
@@ -140,14 +141,14 @@ const styles = StyleSheet.create((theme) => ({
   placeholder: {
     width: '100%',
     height: '100%',
-    backgroundColor: theme.colors.surface,
+    backgroundColor: theme.colors.backgroundTertiary,
   },
   gradientContainer: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    height: '80%',
+    height: '90%',
   },
   gradient: {
     flex: 1,

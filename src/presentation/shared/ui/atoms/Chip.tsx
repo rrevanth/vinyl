@@ -37,23 +37,32 @@ export const Chip: React.FC<ChipProps> = observer(({
 
 const stylesheet = StyleSheet.create((theme) => ({
   chip: (selected: boolean) => ({
-    backgroundColor: selected ? theme.colors.primary : theme.colors.surface,
+    backgroundColor: selected ? theme.colors.primary : theme.colors.backgroundTertiary,
     borderRadius: theme.borderRadius.full,
-    paddingVertical: theme.spacing.xs,
-    paddingHorizontal: theme.spacing.md,
-    borderWidth: selected ? 0 : 1,
+    paddingVertical: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.lg,
+    borderWidth: selected ? 0 : 1.5,
     borderColor: theme.colors.border,
+    minHeight: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: selected ? theme.colors.primary : '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: selected ? 0.3 : 0.1,
+    shadowRadius: selected ? 6 : 4,
+    elevation: selected ? 4 : 2,
   }),
   chipPressed: {
-    opacity: 0.7,
-    transform: [{ scale: 0.98 }],
+    opacity: 0.8,
+    transform: [{ scale: 0.95 }],
   },
   chipDisabled: {
     opacity: 0.5,
   },
   text: (selected: boolean) => ({
     fontSize: theme.fontSize.sm,
-    fontWeight: '600',
-    color: selected ? theme.colors.background : theme.colors.text,
+    fontWeight: theme.fontWeight.bold,
+    color: selected ? '#FFFFFF' : theme.colors.text,
+    letterSpacing: 0.3,
   }),
 }))

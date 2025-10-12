@@ -151,7 +151,11 @@ const PersonDetailScreen = observer(() => {
 
         {/* Filmography Section */}
         {filmography && (
-          <FilmographySection filmography={filmography} onPressMedia={handlePressMedia} />
+          <FilmographySection
+            personStableId={stableId}
+            filmography={filmography}
+            onPressMedia={handlePressMedia}
+          />
         )}
 
         {/* Bottom Spacing */}

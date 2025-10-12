@@ -164,7 +164,9 @@ const MediaDetailScreen = observer(() => {
         )}
 
         {/* Cast Section */}
-        {peopleCatalogs && peopleCatalogs.length > 0 && <CastSection catalogs={peopleCatalogs} />}
+        {peopleCatalogs && peopleCatalogs.length > 0 && (
+          <CastSection mediaStableId={stableId} catalogs={peopleCatalogs} />
+        )}
 
         {/* Season Selector (Series only) */}
         {media.isSeries() && seasons && seasons.length > 0 && <SeasonSelector seasons={seasons} />}
@@ -194,6 +196,7 @@ const MediaDetailScreen = observer(() => {
         {/* Recommendations Section */}
         {recommendationCatalogs && recommendationCatalogs.length > 0 && (
           <RecommendationsSection
+            mediaStableId={stableId}
             catalogs={recommendationCatalogs}
             onPressMedia={handlePressRecommendation}
           />

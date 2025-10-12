@@ -109,54 +109,54 @@ export const lightColors: ColorPalette = {
 
 /**
  * Dark theme color palette
- * OLED-friendly with high contrast
+ * Modern streaming aesthetic - OLED-friendly with cinematic contrast
  */
 export const darkColors: ColorPalette = {
-  // Primary - Brighter for dark backgrounds
-  primary: '#8B5CF6', // violet-500
-  primaryDark: '#6D28D9', // violet-700
-  primaryLight: '#A78BFA', // violet-400
+  // Primary - Rich purple/violet (cinematic accent)
+  primary: '#9333EA', // Vibrant purple
+  primaryDark: '#7C3AED', // Darker purple
+  primaryLight: '#A855F7', // Lighter purple
 
-  // Secondary - Vibrant accent
-  secondary: '#F87171', // red-400
-  secondaryDark: '#DC2626', // red-600
-  secondaryLight: '#FCA5A5', // red-300
+  // Secondary - Warm accent
+  secondary: '#F59E0B', // Amber/gold accent
+  secondaryDark: '#D97706',
+  secondaryLight: '#FBBF24',
 
-  // Background - True black to dark gray
-  background: '#000000',
-  backgroundSecondary: '#0F0F0F',
-  backgroundTertiary: '#1A1A1A',
+  // Background - True blacks for OLED
+  background: '#000000', // Pure black for OLED
+  backgroundSecondary: '#0A0A0A', // Slightly elevated
+  backgroundTertiary: '#141414', // Card backgrounds
 
   // Surface - Elevated elements
-  surface: '#1A1A1A',
-  surfaceElevated: '#262626',
+  surface: '#1A1A1A', // Cards, modals
+  surfaceElevated: '#232323', // Elevated cards
 
-  // Text - High contrast for dark mode
-  text: '#F9FAFB', // gray-50
-  textSecondary: '#D1D5DB', // gray-300
-  textTertiary: '#6B7280', // gray-500
-  textDisabled: '#4B5563', // gray-600
+  // Text - High contrast for readability
+  text: '#FFFFFF', // Pure white
+  textSecondary: '#A1A1A1', // Gray-400
+  textTertiary: '#737373', // Gray-500
+  textDisabled: '#525252', // Gray-600
 
-  // Borders - Visible but not harsh
-  border: '#262626',
-  borderLight: '#1A1A1A',
-  borderFocus: '#8B5CF6',
+  // Borders - Subtle but visible
+  border: '#292929', // Subtle borders
+  borderLight: '#1F1F1F', // Even more subtle
+  borderFocus: '#9333EA', // Primary color
 
-  // Status colors - Adjusted for dark backgrounds
-  error: '#F87171', // red-400
-  errorLight: '#7F1D1D', // red-900
-  success: '#4ADE80', // green-400
-  successLight: '#14532D', // green-900
-  warning: '#FB923C', // orange-400
-  warningLight: '#7C2D12', // orange-900
-  info: '#60A5FA', // blue-400
-  infoLight: '#1E3A8A', // blue-900
+  // Status colors
+  error: '#EF4444',
+  errorLight: '#7F1D1D',
+  success: '#10B981',
+  successLight: '#064E3B',
+  warning: '#F59E0B',
+  warningLight: '#78350F',
+  info: '#3B82F6',
+  infoLight: '#1E3A8A',
 
   // Interactive states
-  overlay: 'rgba(0, 0, 0, 0.7)',
+  overlay: 'rgba(0, 0, 0, 0.85)', // Darker overlay
   disabled: '#1A1A1A',
 
   // Special colors
-  accent: '#F472B6', // pink-400
-  highlight: '#78350F', // amber-900
+  accent: '#EC4899', // Pink accent
+  highlight: '#FBBF24', // Amber highlight
 };

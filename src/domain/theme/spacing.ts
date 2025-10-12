@@ -16,7 +16,7 @@ export type SpacingScale = {
   xl: number; // 32px
   '2xl': number; // 48px
   '3xl': number; // 64px
-  '4xl': number; // 80px
+  '4xl': number; // 96px
 
   // Special spacing
   gutter: number; // Page margins
@@ -24,6 +24,11 @@ export type SpacingScale = {
   cardPadding: number; // Card internal padding
   inputHeight: number; // Standard input height
   touchTarget: number; // Minimum touch target (44px iOS, 48px Android)
+  
+  // Content-specific spacing
+  rowSpacing: number; // Space between horizontal content rows
+  sectionSpacing: number; // Space between major sections
+  heroBottomPadding: number; // Space below hero sections
 };
 
 /**
@@ -43,14 +48,19 @@ export const spacing: SpacingScale = {
   xl: 32,
   '2xl': 48,
   '3xl': 64,
-  '4xl': 80,
+  '4xl': 96,
 
   // Special spacing for common use cases
-  gutter: 16, // Default page margins
+  gutter: 20, // Increased page margins
   containerPadding: 20, // Container padding
   cardPadding: 16, // Card internal padding
   inputHeight: 48, // Standard input height
   touchTarget: 44, // Minimum touch target size (iOS guideline)
+  
+  // Content-specific spacing
+  rowSpacing: 24, // Space between horizontal content rows
+  sectionSpacing: 32, // Space between major sections
+  heroBottomPadding: 24, // Space below hero sections
 };
 
 /**
@@ -94,4 +104,46 @@ export const elevation: ElevationScale = {
   md: 4,
   lg: 8,
   xl: 16,
+};
+
+/**
+ * Shadow configurations for different UI elements
+ * Provides consistent depth and elevation across the app
+ */
+export type ShadowConfig = {
+  shadowColor: string;
+  shadowOffset: { width: number; height: number };
+  shadowOpacity: number;
+  shadowRadius: number;
+  elevation: number;
+};
+
+export type ShadowScale = {
+  card: ShadowConfig;
+  cardHover: ShadowConfig;
+  hero: ShadowConfig;
+};
+
+export const shadows: ShadowScale = {
+  card: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  cardHover: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.4,
+    shadowRadius: 16,
+    elevation: 12,
+  },
+  hero: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.5,
+    shadowRadius: 20,
+    elevation: 16,
+  },
 };

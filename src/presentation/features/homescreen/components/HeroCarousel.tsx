@@ -69,25 +69,31 @@ export const HeroCarousel = memo(HeroCarouselComponent)
 
 const styles = StyleSheet.create((theme) => ({
   container: {
-    marginBottom: theme.spacing.xl,
+    marginBottom: theme.spacing.sectionSpacing,
   },
   listContent: {
-    paddingHorizontal: theme.spacing.lg,
+    paddingHorizontal: theme.spacing.gutter,
     gap: theme.spacing.lg,
   },
   card: {
-    width: 320,
-    height: 180,
-    borderRadius: theme.borderRadius.xl,
+    width: 360,
+    height: 200,
+    borderRadius: theme.borderRadius['2xl'],
     overflow: 'hidden',
-    backgroundColor: theme.colors.surface,
+    backgroundColor: theme.colors.backgroundTertiary,
+    // Hero shadow
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.5,
+    shadowRadius: 20,
+    elevation: 16,
   },
   backdrop: {
     flex: 1,
     justifyContent: 'flex-end',
   },
   backdropImage: {
-    borderRadius: theme.borderRadius.xl,
+    borderRadius: theme.borderRadius['2xl'],
   },
   overlay: {
     position: 'absolute',
@@ -95,27 +101,30 @@ const styles = StyleSheet.create((theme) => ({
     right: 0,
     bottom: 0,
     left: 0,
-    backgroundColor: theme.colors.overlay,
-    borderRadius: theme.borderRadius.xl,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    borderRadius: theme.borderRadius['2xl'],
   },
   metaContainer: {
     padding: theme.spacing.lg,
-    gap: theme.spacing.xs,
+    gap: theme.spacing.sm,
   },
   heroLabel: {
     color: theme.colors.primary,
     fontSize: theme.fontSize.xs,
+    fontWeight: theme.fontWeight.bold,
     textTransform: 'uppercase',
-    letterSpacing: 1,
+    letterSpacing: 1.5,
   },
   title: {
     color: theme.colors.text,
     fontFamily: theme.fontFamily.heading,
     fontWeight: theme.fontWeight.bold,
-    fontSize: theme.fontSize['2xl'],
+    fontSize: theme.fontSize['3xl'],
+    lineHeight: theme.fontSize['3xl'] * 1.2,
   },
   subtitle: {
     color: theme.colors.textSecondary,
     fontSize: theme.fontSize.base,
+    fontWeight: theme.fontWeight.medium,
   },
 }))

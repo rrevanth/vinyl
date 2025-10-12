@@ -1,14 +1,18 @@
 import type { FC } from 'react'
-import { memo, useMemo } from 'react'
-import { Text, View } from 'react-native'
+import { memo, useMemo, useCallback } from 'react'
+import { Text, View, Pressable } from 'react-native'
 import { StyleSheet } from 'react-native-unistyles'
+import { Ionicons } from '@expo/vector-icons'
 import { LegendList } from '@legendapp/list'
+import { router } from 'expo-router'
+import { useQueryClient } from '@tanstack/react-query'
 import type { Catalog } from '@/src/domain/entities/Catalog'
 import type { Person } from '@/src/domain/entities/Person'
 import { t } from '@/src/presentation/shared/i18n'
 import { CastCard } from '../atoms/CastCard'
 
 interface CastSectionProps {
+  readonly mediaStableId: string
   readonly catalogs: Catalog[]
   readonly onPressPerson?: (person: Person) => void
 }
@@ -19,7 +23,13 @@ interface CastMember {
   readonly character?: string
 }
 
-const CastSectionComponent: FC<CastSectionProps> = ({ catalogs, onPressPerson }) => {
+const CastSectionComponent: FC<CastSectionProps> = ({
+  mediaStableId,
+  catalogs,
+  onPressPerson,
+}) => {
+  const queryClient = useQueryClient()
+
   // Extract Person entities from catalog items and character information
   const castMembers = useMemo<CastMember[]>(() => {
     const members: CastMember[] = []
@@ -49,9 +59,51 @@ const CastSectionComponent: FC<CastSectionProps> = ({ catalogs, onPressPerson })
       }
     }
 
-    // Limit to top 10 cast members
+    // Limit to top 10 cast members for horizontal row
     return members.slice(0, 10)
   }, [catalogs])
+
+  // All cast members for grid view (no limit)
+  const allCastMembers = useMemo<{ person: Person; character?: string }[]>(() => {
+    const members: { person: Person; character?: string }[] = []
+
+    for (const catalog of catalogs) {
+      for (const item of catalog.items) {
+        if (item.person) {
+          members.push({
+            person: item.person,
+            character: item.role,
+          })
+        }
+      }
+    }
+
+    return members
+  }, [catalogs])
+
+  // Get media title from first catalog's context
+  const mediaTitle = useMemo(() => {
+    return catalogs[0]?.contextMedia?.title || ''
+  }, [catalogs])
+
+  // Handle title press - navigate to cast grid view
+  const handlePressTitle = useCallback(() => {
+    console.log('[CastSection] Title pressed, navigating to cast grid view')
+
+    try {
+      // Pre-populate cache with all cast members and media title
+      queryClient.setQueryData(['cast-grid', mediaStableId], {
+        castMembers: allCastMembers,
+        mediaTitle,
+      })
+
+      // Navigate to cast grid view
+      const encodedMediaStableId = encodeURIComponent(mediaStableId)
+      router.push(`/grids/cast/${encodedMediaStableId}` as any)
+    } catch (error) {
+      console.error('[CastSection] Failed to navigate to cast grid view:', error)
+    }
+  }, [mediaStableId, allCastMembers, mediaTitle, queryClient])
 
   // Hide section if no cast members
   if (castMembers.length === 0) {
@@ -68,7 +120,15 @@ const CastSectionComponent: FC<CastSectionProps> = ({ catalogs, onPressPerson })
   return (
     <View style={styles.section}>
       <View style={styles.header}>
-        <Text style={styles.title}>{t('media_detail.cast')}</Text>
+        <Pressable
+          style={({ pressed }) => [styles.titlePressable, pressed && styles.titlePressed]}
+          onPress={handlePressTitle}
+          accessibilityRole="button"
+          accessibilityLabel={t('media_detail.see_all_cast')}
+        >
+          <Text style={styles.title}>{t('media_detail.cast')}</Text>
+          <Ionicons name="chevron-forward" size={20} style={styles.chevronIcon} />
+        </Pressable>
       </View>
 
       <LegendList
@@ -100,11 +160,23 @@ const styles = StyleSheet.create((theme) => ({
     paddingHorizontal: theme.spacing.lg,
     marginBottom: theme.spacing.md,
   },
+  titlePressable: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs,
+    alignSelf: 'flex-start',
+  },
+  titlePressed: {
+    opacity: 0.7,
+  },
   title: {
     color: theme.colors.text,
     fontSize: theme.fontSize.lg,
     fontFamily: theme.fontFamily.heading,
     fontWeight: theme.fontWeight.semibold,
+  },
+  chevronIcon: {
+    color: theme.colors.textSecondary,
   },
   listContent: {
     paddingHorizontal: theme.spacing.lg,
