@@ -1,14 +1,14 @@
-import type { FC } from 'react'
-import { memo, useMemo, useCallback } from 'react'
-import { Text, View, Pressable } from 'react-native'
-import { StyleSheet } from 'react-native-unistyles'
-import { Ionicons } from '@expo/vector-icons'
-import { LegendList } from '@legendapp/list'
-import { router } from 'expo-router'
-import { useQueryClient } from '@tanstack/react-query'
 import type { Catalog } from '@/src/domain/entities/Catalog'
 import type { Person } from '@/src/domain/entities/Person'
 import { t } from '@/src/presentation/shared/i18n'
+import { Ionicons } from '@expo/vector-icons'
+import { LegendList } from '@legendapp/list'
+import { useQueryClient } from '@tanstack/react-query'
+import { router } from 'expo-router'
+import type { FC } from 'react'
+import { memo, useCallback, useMemo } from 'react'
+import { Pressable, Text, View } from 'react-native'
+import { StyleSheet } from 'react-native-unistyles'
 import { CastCard } from '../atoms/CastCard'
 
 interface CastSectionProps {
@@ -171,7 +171,8 @@ const styles = StyleSheet.create((theme) => ({
   },
   title: {
     color: theme.colors.text,
-    fontSize: theme.fontSize.lg,
+    fontSize: theme.fontSize['2xl'],
+    margin: theme.spacing.xs,
     fontFamily: theme.fontFamily.heading,
     fontWeight: theme.fontWeight.semibold,
   },

@@ -15,6 +15,7 @@ import { useGlobalQueryInvalidation } from '@/src/presentation/shared/hooks/useG
 import { observer, useSelector } from '@legendapp/state/react'
 import { Stack } from 'expo-router'
 import { useEffect, useState } from 'react'
+import { ActionSheetProvider } from '@expo/react-native-action-sheet'
 
 const RootLayout = observer(() => {
   const [containerReady, setContainerReady] = useState(false)
@@ -69,16 +70,18 @@ const RootLayout = observer(() => {
 
   // App is ready - render main navigation with QueryClient context and cache persistence
   return (
-    <PersistQueryClientProvider
-      client={queryClient}
-      persistOptions={{ persister }}
-      onSuccess={() => {
-        // Cache has been restored from AsyncStorage
-        console.log('[CACHE] Persisted cache restored from AsyncStorage')
-      }}
-    >
-      <AppContent />
-    </PersistQueryClientProvider>
+    <ActionSheetProvider>
+      <PersistQueryClientProvider
+        client={queryClient}
+        persistOptions={{ persister }}
+        onSuccess={() => {
+          // Cache has been restored from AsyncStorage
+          console.log('[CACHE] Persisted cache restored from AsyncStorage')
+        }}
+      >
+        <AppContent />
+      </PersistQueryClientProvider>
+    </ActionSheetProvider>
   )
 })
 

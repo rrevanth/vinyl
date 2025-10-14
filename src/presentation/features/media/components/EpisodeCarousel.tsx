@@ -1,15 +1,15 @@
-import type { FC } from 'react'
-import { memo, useMemo, useRef, useCallback, useEffect } from 'react'
-import { FlatList, Image, Pressable, Text, View } from 'react-native'
-import type { ViewToken } from 'react-native'
-import { LinearGradient } from 'expo-linear-gradient'
-import { StyleSheet } from 'react-native-unistyles'
-import { observer } from '@legendapp/state/react'
-import { Ionicons } from '@expo/vector-icons'
 import type { Episode, Season } from '@/src/domain/capabilities/IMediaSeasonsCapability'
 import type { SeriesWatchProgress } from '@/src/domain/capabilities/IMediaWatchProgressCapability'
-import { selectedSeason$, setSelectedSeason } from '../stores/mediaUI.store'
 import { t } from '@/src/presentation/shared/i18n'
+import { Ionicons } from '@expo/vector-icons'
+import { observer } from '@legendapp/state/react'
+import { BlurView } from 'expo-blur'
+import type { FC } from 'react'
+import { memo, useCallback, useEffect, useMemo, useRef } from 'react'
+import type { ViewToken } from 'react-native'
+import { FlatList, Image, Pressable, Text, View } from 'react-native'
+import { StyleSheet } from 'react-native-unistyles'
+import { selectedSeason$, setSelectedSeason } from '../stores/mediaUI.store'
 
 interface EpisodeCarouselProps {
   readonly seasons: Season[]
@@ -34,14 +34,9 @@ interface EpisodeCardProps {
 
 /**
  * Episode card for horizontal carousel
- * Netflix-style large cards with 16:9 aspect ratio
+ * Apple TV+ style large cards with blur overlay
  */
 const EpisodeCard: FC<EpisodeCardProps> = memo(({ episode, isWatched, onPress, onPressMore }) => {
-  const durationText = useMemo(() => {
-    if (!episode.runtime) return null
-    return t('media_detail.episode_runtime').replace('{minutes}', episode.runtime.toString())
-  }, [episode.runtime])
-
   return (
     <Pressable
       onPress={onPress}
@@ -56,7 +51,7 @@ const EpisodeCard: FC<EpisodeCardProps> = memo(({ episode, isWatched, onPress, o
         .replace('{title}', episode.name)}
       accessibilityState={{ checked: isWatched }}
     >
-      {/* Episode Thumbnail with Gradient Overlay */}
+      {/* Episode Thumbnail with Blur Overlay */}
       <View style={styles.thumbnailWrapper}>
         {episode.stillPath ? (
           <Image
@@ -73,25 +68,10 @@ const EpisodeCard: FC<EpisodeCardProps> = memo(({ episode, isWatched, onPress, o
           </View>
         )}
 
-        {/* Blur gradient overlay for text readability */}
-        <LinearGradient
-          colors={['transparent', 'rgba(0, 0, 0, 0.6)']}
-          style={styles.gradient}
-        />
-
-        {/* Episode Number Badge */}
-        <View style={styles.episodeNumberBadge}>
-          <Text style={styles.episodeNumberBadgeText}>
-            {t('media_detail.episode_badge').replace('{number}', episode.episodeNumber.toString())}
-          </Text>
-        </View>
-
-        {/* Duration Badge */}
-        {durationText && (
-          <View style={styles.durationBadge}>
-            <Text style={styles.durationBadgeText}>{durationText}</Text>
-          </View>
-        )}
+        {/* Gradient blur overlay - layered for fade effect (strong bottom → transparent top) */}
+        <BlurView intensity={80} tint="dark" style={styles.blurOverlayBottom} />
+        <BlurView intensity={60} tint="dark" style={styles.blurOverlayMiddle} />
+        <BlurView intensity={40} tint="dark" style={styles.blurOverlayTop} />
 
         {/* Watched Badge */}
         {isWatched && (
@@ -102,7 +82,10 @@ const EpisodeCard: FC<EpisodeCardProps> = memo(({ episode, isWatched, onPress, o
 
         {/* Episode Info Overlay */}
         <View style={styles.infoOverlay}>
-          <Text style={styles.episodeTitle} numberOfLines={2}>
+          <Text style={styles.episodeNumber}>
+            EPISODE {episode.episodeNumber}
+          </Text>
+          <Text style={styles.episodeTitle} numberOfLines={1}>
             {episode.name}
           </Text>
           {episode.overview && (
@@ -309,9 +292,9 @@ const EpisodeCarouselComponent: FC<EpisodeCarouselProps> = observer(({
 
 export const EpisodeCarousel = memo(EpisodeCarouselComponent)
 
-// Card dimensions (16:9 aspect ratio)
+// Card dimensions
 const CARD_WIDTH = 300
-const CARD_HEIGHT = 169
+const CARD_HEIGHT = 220
 const CARD_SPACING = 16
 
 const styles = StyleSheet.create((theme) => ({
@@ -362,41 +345,29 @@ const styles = StyleSheet.create((theme) => ({
     fontSize: theme.fontSize['3xl'],
     fontWeight: theme.fontWeight.bold,
   },
-  gradient: {
+  blurOverlayBottom: {
     position: 'absolute',
     left: 0,
     right: 0,
     bottom: 0,
-    height: '50%',
+    height: '30%',
+    opacity: 0.6,
   },
-  episodeNumberBadge: {
+  blurOverlayMiddle: {
     position: 'absolute',
-    top: theme.spacing.sm,
-    left: theme.spacing.sm,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    borderRadius: theme.borderRadius.sm,
-    paddingHorizontal: theme.spacing.sm,
-    paddingVertical: theme.spacing.xs,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: '60%',
+    opacity: 0.2,
   },
-  episodeNumberBadgeText: {
-    color: theme.colors.text,
-    fontSize: theme.fontSize.xs,
-    fontWeight: theme.fontWeight.bold,
-    textTransform: 'uppercase',
-  },
-  durationBadge: {
+  blurOverlayTop: {
     position: 'absolute',
-    top: theme.spacing.sm,
-    right: theme.spacing.sm,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    borderRadius: theme.borderRadius.sm,
-    paddingHorizontal: theme.spacing.sm,
-    paddingVertical: theme.spacing.xs,
-  },
-  durationBadgeText: {
-    color: theme.colors.text,
-    fontSize: theme.fontSize.xs,
-    fontWeight: theme.fontWeight.semibold,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: '90%',
+    opacity: 0.2,
   },
   watchedBadge: {
     position: 'absolute',
@@ -421,6 +392,17 @@ const styles = StyleSheet.create((theme) => ({
     right: 0,
     padding: theme.spacing.md,
   },
+  episodeNumber: {
+    color: theme.colors.text,
+    fontSize: 11,
+    fontWeight: theme.fontWeight.bold,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: theme.spacing.xs,
+    textShadowColor: 'rgba(0, 0, 0, 0.8)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
+  },
   episodeTitle: {
     color: theme.colors.text,
     fontSize: theme.fontSize.base,
@@ -437,7 +419,7 @@ const styles = StyleSheet.create((theme) => ({
     textShadowColor: 'rgba(0, 0, 0, 0.8)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 4,
-    marginBottom: theme.spacing.md,
+    marginBottom: theme.spacing.lg,
   },
   playRow: {
     position: 'absolute',

@@ -35,14 +35,8 @@ export default function RecommendationsGridScreen() {
   const catalog = cachedData?.catalog
 
   // Use infinite query hook
-  const {
-    items,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    isLoading,
-    isError,
-  } = useInfiniteRecommendationsCatalogQuery(catalog!)
+  const { items, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError } =
+    useInfiniteRecommendationsCatalogQuery(catalog!)
 
   const headerTitle = catalogName || catalog?.name || t('media_detail.recommendations')
 

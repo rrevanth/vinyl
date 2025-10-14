@@ -88,6 +88,7 @@
     "episodes": "Episodes",
     "season": "Season {number}",
     "season_short": "S{number}",
+    "select_season": "Select Season",
     "episode": "Episode {number}",
     "episode_title": "S{season}E{episode} - {title}",
     "watch_progress": "Resume",

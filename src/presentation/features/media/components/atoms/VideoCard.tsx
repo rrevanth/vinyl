@@ -1,10 +1,10 @@
+import type { MediaVideo } from '@/src/domain/capabilities/IMediaVideosCapability'
+import { t } from '@/src/presentation/shared/i18n'
+import { BlurView } from 'expo-blur'
 import type { FC } from 'react'
 import { memo } from 'react'
 import { Image, Pressable, Text, View } from 'react-native'
-import { LinearGradient } from 'expo-linear-gradient'
 import { StyleSheet } from 'react-native-unistyles'
-import type { MediaVideo } from '@/src/domain/capabilities/IMediaVideosCapability'
-import { t } from '@/src/presentation/shared/i18n'
 
 type VideoCardSize = 'standard' | 'large'
 
@@ -47,47 +47,38 @@ const VideoCardComponent: FC<VideoCardProps> = ({ video, onPress, size = 'standa
       accessibilityHint={t('media.video.play_hint')}
       onPress={onPress}
       style={({ pressed }) => [
-        styles.container,
-        isLarge ? styles.containerLarge : styles.containerStandard,
+        styles.cardWrapper,
+        isLarge ? styles.cardWrapperLarge : styles.cardWrapperStandard,
         pressed && styles.pressed,
       ]}
     >
-      <View style={[styles.thumbnailContainer, isLarge ? styles.thumbnailLarge : styles.thumbnailStandard]}>
-        {thumbnail ? (
-          <Image source={{ uri: thumbnail }} style={styles.thumbnail} resizeMode="cover" />
-        ) : (
-          <View style={styles.placeholderThumbnail} />
-        )}
+      <View style={styles.container}>
+        {/* Thumbnail with overlay (play icon + runtime only) */}
+        <View style={[styles.thumbnailContainer, isLarge ? styles.thumbnailLarge : styles.thumbnailStandard]}>
+          {thumbnail ? (
+            <Image source={{ uri: thumbnail }} style={styles.thumbnail} resizeMode="cover" />
+          ) : (
+            <View style={styles.placeholderThumbnail} />
+          )}
 
-        {/* Dark gradient overlay at bottom */}
-        <LinearGradient
-          colors={['rgba(0, 0, 0, 0)', 'rgba(0, 0, 0, 1.0)']}
-          style={styles.gradient}
-          locations={[0.4, 1]}
-        />
+          {/* Gradient blur overlay - layered for fade effect (strong bottom → transparent top) */}
+          <BlurView intensity={80} tint="dark" style={styles.blurOverlayBottom} />
+          <BlurView intensity={60} tint="dark" style={styles.blurOverlayMiddle} />
+          <BlurView intensity={40} tint="dark" style={styles.blurOverlayTop} />
 
-        {/* Bottom overlay with title, play icon and runtime */}
-        <View style={styles.overlay}>
-          <Text style={styles.title} numberOfLines={2}>
-            {video.name}
-          </Text>
-
-          <View style={styles.controlsRow}>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Play"
-              onPress={onPress}
-              style={styles.playButton}
-            >
-              <View style={styles.playIconCircle}>
-                <Text style={styles.playIcon}>▶</Text>
-              </View>
-            </Pressable>
-            {video.size && (
+          {/* Play button with runtime (bottom left, matching episode cards) */}
+          {video.size && (
+            <View style={styles.playRow}>
+              <Text style={styles.playIcon}>▶</Text>
               <Text style={styles.runtimeText}>{formatDuration(video.size)}</Text>
-            )}
-          </View>
+            </View>
+          )}
         </View>
+
+        {/* Title below card */}
+        <Text style={styles.titleBelow} numberOfLines={2}>
+          {video.name}
+        </Text>
       </View>
     </Pressable>
   )
@@ -96,25 +87,29 @@ const VideoCardComponent: FC<VideoCardProps> = ({ video, onPress, size = 'standa
 export const VideoCard = memo(VideoCardComponent)
 
 const styles = StyleSheet.create((theme) => ({
-  container: {
+  cardWrapper: {
     borderRadius: theme.borderRadius.md,
     overflow: 'hidden',
-    backgroundColor: theme.colors.surface,
   },
-  containerStandard: {
+  cardWrapperStandard: {
     width: 280,
     marginRight: theme.spacing.md,
   },
-  containerLarge: {
+  cardWrapperLarge: {
     width: 320,
     marginRight: theme.spacing.lg,
   },
   pressed: {
     opacity: 0.8,
   },
+  container: {
+    flex: 1,
+  },
   thumbnailContainer: {
     position: 'relative',
     backgroundColor: theme.colors.surfaceElevated,
+    borderRadius: theme.borderRadius.md,
+    overflow: 'hidden',
   },
   thumbnailStandard: {
     width: 280,
@@ -133,57 +128,44 @@ const styles = StyleSheet.create((theme) => ({
     height: '100%',
     backgroundColor: theme.colors.surfaceElevated,
   },
-  gradient: {
+  blurOverlayBottom: {
     position: 'absolute',
     left: 0,
     right: 0,
     bottom: 0,
-    height: '40%',
+    height: '20%',
+    opacity: 0.4,
   },
-  overlay: {
+  blurOverlayMiddle: {
     position: 'absolute',
     left: 0,
     right: 0,
     bottom: 0,
-    paddingHorizontal: 12,
-    paddingBottom: 12,
-    paddingTop: 60, // Space for title
+    height: '50%',
+    opacity: 0.3,
   },
-  title: {
-    color: theme.colors.imageText,
-    fontSize: theme.fontSize.base,
-    fontWeight: theme.fontWeight.semibold,
-    textShadowColor: 'rgba(0, 0, 0, 0.9)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 8,
-    marginBottom: theme.spacing.sm,
+  blurOverlayTop: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: '80%',
+    opacity: 0.2,
   },
-  controlsRow: {
+  playRow: {
+    position: 'absolute',
+    bottom: 12,
+    left: 12,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-  },
-  playButton: {
-    width: 44,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  playIconCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'transparent',
-    alignItems: 'center',
-    justifyContent: 'center',
+    gap: theme.spacing.xs,
   },
   playIcon: {
     color: theme.colors.imageText,
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '700',
     textShadowColor: 'rgba(0, 0, 0, 0.8)',
     textShadowRadius: 6,
-    marginLeft: 2, // Optical alignment for play triangle
   },
   runtimeText: {
     color: theme.colors.imageText,
@@ -191,5 +173,12 @@ const styles = StyleSheet.create((theme) => ({
     fontWeight: '600',
     textShadowColor: 'rgba(0, 0, 0, 0.8)',
     textShadowRadius: 6,
+  },
+  titleBelow: {
+    color: theme.colors.text,
+    fontSize: theme.fontSize.base,
+    fontWeight: theme.fontWeight.semibold,
+    marginTop: theme.spacing.sm,
+    paddingHorizontal: 4,
   },
 }))

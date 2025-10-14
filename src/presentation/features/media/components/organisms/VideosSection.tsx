@@ -1,11 +1,11 @@
+import type { MediaVideo } from '@/src/domain/capabilities/IMediaVideosCapability'
+import { t } from '@/src/presentation/shared/i18n'
+import { Ionicons } from '@expo/vector-icons'
+import { LegendList } from '@legendapp/list'
 import type { FC } from 'react'
 import { memo } from 'react'
 import { Pressable, Text, View } from 'react-native'
 import { StyleSheet } from 'react-native-unistyles'
-import { Ionicons } from '@expo/vector-icons'
-import { LegendList } from '@legendapp/list'
-import type { MediaVideo } from '@/src/domain/capabilities/IMediaVideosCapability'
-import { t } from '@/src/presentation/shared/i18n'
 import { VideoCard } from '../atoms/VideoCard'
 
 interface VideosSectionProps {
@@ -82,7 +82,8 @@ const styles = StyleSheet.create((theme) => ({
   },
   title: {
     color: theme.colors.text,
-    fontSize: theme.fontSize.lg,
+    fontSize: theme.fontSize['2xl'],
+    margin: theme.spacing.xs,
     fontFamily: theme.fontFamily.heading,
     fontWeight: theme.fontWeight.semibold,
   },

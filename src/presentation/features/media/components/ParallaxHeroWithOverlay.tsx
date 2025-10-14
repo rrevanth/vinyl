@@ -8,6 +8,7 @@ import Animated, {
   type SharedValue,
 } from 'react-native-reanimated'
 import { LinearGradient } from 'expo-linear-gradient'
+import { BlurView } from 'expo-blur'
 import { StyleSheet } from 'react-native-unistyles'
 import { Ionicons } from '@expo/vector-icons'
 import type { Media } from '@/src/domain/entities/Media'
@@ -108,20 +109,20 @@ const ParallaxHeroWithOverlayComponent: FC<ParallaxHeroWithOverlayProps> = ({
     ? t('media_detail.runtime_minutes').replace('{minutes}', enrichedData.runtime.toString())
     : null
 
-  // Format rating(s)
-  const ratings = []
-  if (enrichedData?.voteAverage) {
-    ratings.push({ value: enrichedData.voteAverage.toFixed(1) })
-  }
-
   // Get synopsis
   const synopsis = enrichedData?.overview || enrichedData?.tagline
 
-  // Format current episode badge for series
-  const currentEpisodeBadge =
-    media.type === 'series' && enrichedData?.lastEpisodeToAir
-      ? `${t('media_detail.season_short').replace('{number}', enrichedData.lastEpisodeToAir.seasonNumber.toString())}, ${t('media_detail.episode_badge').replace('{number}', enrichedData.lastEpisodeToAir.episodeNumber.toString())} · ${enrichedData.lastEpisodeToAir.name}`
+  // Determine subtext (show tagline if different from overview)
+  const subtext =
+    enrichedData?.tagline && enrichedData.tagline !== enrichedData.overview
+      ? enrichedData.tagline
       : null
+
+  // Format type and genres
+  const typeLabel = media.type === 'series' ? 'TV Show' : 'Movie'
+  const genres = enrichedData?.genres?.map((g) => g.name) || []
+  const typeGenresText =
+    genres.length > 0 ? `${typeLabel} · ${genres.join(', ')}` : typeLabel
 
   return (
     <View style={[styles.container, { height }]}>
@@ -146,12 +147,17 @@ const ParallaxHeroWithOverlayComponent: FC<ParallaxHeroWithOverlayProps> = ({
         style={styles.gradient}
       />
 
+      {/* Top Blur for Subtext Readability */}
+      {subtext && (
+        <BlurView intensity={40} tint="dark" style={styles.topBlur} />
+      )}
+
       {/* Overlay Content */}
       <View style={styles.overlayContent}>
-        {/* Current Episode Badge (Series Only) */}
-        {currentEpisodeBadge && (
-          <Text style={styles.episodeBadge} numberOfLines={1}>
-            {currentEpisodeBadge.toUpperCase()}
+        {/* Optional Subtext (Tagline if different from overview) */}
+        {subtext && (
+          <Text style={styles.subtext} numberOfLines={1}>
+            {subtext.toUpperCase()}
           </Text>
         )}
 
@@ -160,43 +166,30 @@ const ParallaxHeroWithOverlayComponent: FC<ParallaxHeroWithOverlayProps> = ({
           {media.title}
         </Text>
 
-        {/* Metadata Row (Year · Runtime · Certification) */}
-        <View style={styles.metadataRow}>
-          {media.year && <Text style={styles.metadata}>{media.year}</Text>}
-          {runtime && (
-            <>
-              <Text style={styles.separator}>·</Text>
-              <Text style={styles.metadata}>{runtime}</Text>
-            </>
-          )}
-          {enrichedData?.certification && (
-            <>
-              <Text style={styles.separator}>·</Text>
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>{enrichedData.certification}</Text>
-              </View>
-            </>
+        {/* Type · Genres Row */}
+        <View style={styles.typeGenresRow}>
+          <Text style={styles.typeGenreText}>{typeGenresText}</Text>
+        </View>
+
+        {/* Action Buttons - Play Button (moved before synopsis) */}
+        <View style={styles.actionsContainer}>
+          {onPlay && (
+            <PillButton
+              title={t('media.actions.play')}
+              onPress={onPlay}
+              variant="primary"
+              size="md"
+              icon={<Ionicons name="play" size={20} color={styles.pillButtonIconColor.color} />}
+            />
           )}
         </View>
 
-        {/* Ratings Row */}
-        {ratings.length > 0 && (
-          <View style={styles.ratingsRow}>
-            {ratings.map((rating, index) => (
-              <View key={index} style={styles.ratingItem}>
-                <Ionicons name="star" size={14} color="#FFFFFF" />
-                <Text style={styles.rating}>{rating.value}</Text>
-              </View>
-            ))}
-          </View>
-        )}
-
-        {/* Synopsis with More Button */}
+        {/* Synopsis with More Button (2 lines instead of 3) */}
         {synopsis && (
           <View style={styles.synopsisContainer}>
             <Text
               style={styles.synopsis}
-              numberOfLines={synopsisExpanded ? undefined : 3}
+              numberOfLines={synopsisExpanded ? undefined : 2}
               ellipsizeMode="tail"
             >
               {synopsis}
@@ -226,17 +219,22 @@ const ParallaxHeroWithOverlayComponent: FC<ParallaxHeroWithOverlayProps> = ({
           </View>
         )}
 
-        {/* Action Buttons */}
-        <View style={styles.actionsContainer}>
-          {/* Primary Play Button */}
-          {onPlay && (
-            <PillButton
-              title={t('media.actions.play')}
-              onPress={onPlay}
-              variant="primary"
-              size="md"
-              icon={<Ionicons name="play" size={20} color={styles.pillButtonIconColor.color} />}
-            />
+        {/* Metadata Row (moved to bottom) */}
+        <View style={styles.metadataRow}>
+          {media.year && <Text style={styles.metadata}>{media.year}</Text>}
+          {runtime && (
+            <>
+              <Text style={styles.separator}>·</Text>
+              <Text style={styles.metadata}>{runtime}</Text>
+            </>
+          )}
+          {enrichedData?.certification && (
+            <>
+              <Text style={styles.separator}>·</Text>
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>{enrichedData.certification}</Text>
+              </View>
+            </>
           )}
         </View>
       </View>
@@ -277,6 +275,13 @@ const styles = StyleSheet.create((theme) => ({
     right: 0,
     height: '70%',
   },
+  topBlur: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: '30%',
+  },
   overlayContent: {
     position: 'absolute',
     bottom: 0,
@@ -287,14 +292,16 @@ const styles = StyleSheet.create((theme) => ({
     paddingTop: theme.spacing.lg,
     gap: theme.spacing.md,
   },
-  episodeBadge: {
+  subtext: {
     fontSize: theme.fontSize.xs,
-    fontWeight: theme.fontWeight.semibold,
+    fontWeight: theme.fontWeight.medium,
     color: '#FFFFFF',
     letterSpacing: 1.2,
+    textTransform: 'uppercase',
     textShadowColor: 'rgba(0, 0, 0, 0.9)',
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 8,
+    marginBottom: theme.spacing.xs,
   },
   title: {
     fontSize: theme.fontSize['3xl'],
@@ -304,12 +311,29 @@ const styles = StyleSheet.create((theme) => ({
     textShadowColor: 'rgba(0, 0, 0, 0.9)',
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 8,
+    marginBottom: theme.spacing.xs,
+  },
+  typeGenresRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.sm,
+    flexWrap: 'wrap',
+    marginBottom: theme.spacing.xs,
+  },
+  typeGenreText: {
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.medium,
+    color: '#FFFFFF',
+    textShadowColor: 'rgba(0, 0, 0, 0.9)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 8,
   },
   metadataRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: theme.spacing.xs,
+    gap: theme.spacing.sm,
     flexWrap: 'wrap',
+    marginVertical: theme.spacing.xs,
   },
   metadata: {
     fontSize: theme.fontSize.sm,
@@ -336,30 +360,14 @@ const styles = StyleSheet.create((theme) => ({
     fontWeight: theme.fontWeight.semibold,
     color: theme.colors.textSecondary,
   },
-  ratingsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.spacing.md,
-  },
-  ratingItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.spacing.xs,
-  },
-  rating: {
-    fontSize: theme.fontSize.sm,
-    fontWeight: theme.fontWeight.semibold,
-    color: theme.colors.text,
-    textShadowColor: 'rgba(0, 0, 0, 0.9)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
-  },
   synopsisContainer: {
     gap: theme.spacing.xs,
+    paddingHorizontal: theme.spacing.lg,
+    marginBottom: theme.spacing.md,
   },
   synopsis: {
     fontSize: theme.fontSize.sm,
-    lineHeight: theme.lineHeight.relaxed,
+    lineHeight: theme.lineHeight.loose,
     color: '#FFFFFF',
     textShadowColor: 'rgba(0, 0, 0, 0.9)',
     textShadowOffset: { width: 0, height: 2 },
@@ -382,7 +390,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   actionsContainer: {
     gap: theme.spacing.md,
-    marginTop: theme.spacing.sm,
+    marginTop: theme.spacing.md,
   },
   pillButtonIconColor: {
     color: theme.colors.buttonPrimaryText,
