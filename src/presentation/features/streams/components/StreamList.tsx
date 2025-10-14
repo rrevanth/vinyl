@@ -73,6 +73,8 @@ export const StreamList: React.FC<StreamListProps> = observer(({ streams, media,
       }}
       estimatedItemSize={120}
       contentContainerStyle={styles.listContent}
+      maintainVisibleContentPosition
+      recycleItems
     />
   )
 })

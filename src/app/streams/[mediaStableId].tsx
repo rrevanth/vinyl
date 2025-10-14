@@ -50,7 +50,17 @@ export default observer(function StreamScreen() {
   // Get selected provider
   const selectedProvider = streamUI$.selectedProvider.get()
 
-  // Filter streams by selected provider
+  // Calculate provider stream counts (memoized for performance)
+  const providerCounts = useMemo(() => {
+    const counts = new Map<string, number>()
+    streams.forEach((stream) => {
+      const current = counts.get(stream.provider) || 0
+      counts.set(stream.provider, current + 1)
+    })
+    return counts
+  }, [streams])
+
+  // Filter streams by selected provider (memoized for performance)
   const filteredStreams = useMemo(() => {
     if (selectedProvider === 'all') return streams
     return streams.filter((stream) => stream.provider === selectedProvider)
@@ -81,12 +91,18 @@ export default observer(function StreamScreen() {
           </Text>
         )}
         <Text style={styles.resourceCount}>
-          {streams.length} {streams.length === 1 ? 'Resource' : 'Resources'} Found
+          {selectedProvider === 'all' 
+            ? `${streams.length} ${streams.length === 1 ? 'Resource' : 'Resources'} Found` 
+            : `${filteredStreams.length} of ${streams.length} Resources`}
         </Text>
       </View>
 
-      {/* Provider Filter */}
-      <ProviderFilterChips providers={providers} />
+      {/* Provider Filter with counts */}
+      <ProviderFilterChips 
+        providers={providers} 
+        providerCounts={providerCounts}
+        totalCount={streams.length}
+      />
 
       {/* Stream List */}
       <ScrollView

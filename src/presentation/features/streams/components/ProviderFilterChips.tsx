@@ -9,9 +9,15 @@ import { Chip } from '@/src/presentation/shared/ui'
 
 interface ProviderFilterChipsProps {
   providers: ProviderInfo[]
+  providerCounts: Map<string, number>
+  totalCount: number
 }
 
-export const ProviderFilterChips: React.FC<ProviderFilterChipsProps> = observer(({ providers }) => {
+export const ProviderFilterChips: React.FC<ProviderFilterChipsProps> = observer(({ 
+  providers, 
+  providerCounts,
+  totalCount 
+}) => {
   const t = useTranslations()
   const selectedProvider = streamUI$.selectedProvider.get()
 
@@ -41,14 +47,15 @@ export const ProviderFilterChips: React.FC<ProviderFilterChipsProps> = observer(
         accessibilityRole="tablist"
       >
         <Chip
-          label={t.streams.all_providers}
+          label={`${t.streams.all_providers} (${totalCount})`}
           selected={selectedProvider === 'all'}
           onPress={() => handlePress('all')}
         />
 
         {uniqueProviders.map((provider) => {
           const isSelected = selectedProvider === provider.id
-          const displayName = provider.name || provider.id || 'Unknown Provider' // Triple fallback
+          const count = providerCounts.get(provider.id) || 0
+          const displayName = `${provider.name || provider.id} (${count})`
 
           return (
             <Chip
