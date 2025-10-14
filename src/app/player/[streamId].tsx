@@ -3,23 +3,21 @@ import { View, Linking } from 'react-native'
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import { StyleSheet } from 'react-native-unistyles'
-import { useQueryClient } from '@tanstack/react-query'
 import type { Stream } from '@/src/domain/entities/Stream'
 import { useService } from '@/src/infrastructure/di/useService'
 import { TOKENS } from '@/src/infrastructure/di/tokens'
 import type { IPreferencesService } from '@/src/domain/services/IPreferencesService'
-import type { MediaDetailData } from '@/src/domain/use-cases/media/GetMediaDetailUseCase'
+import { Media } from '@/src/domain/entities/Media'
 import { VideoPlayerType } from '@/src/domain/entities/VideoPlayerType'
 import { RNVlcPlayer } from '@/src/presentation/features/player/components/RNVlcPlayer'
 import { resetPlayerState, player$ } from '@/src/presentation/features/player/stores/player.store'
 
 export default function PlayerScreen() {
   const router = useRouter()
-  const queryClient = useQueryClient()
   const params = useLocalSearchParams<{
     streamId: string
     streamData: string
-    mediaStableId: string
+    mediaData: string
     season?: string
     episode?: string
     backdrop?: string
@@ -50,19 +48,14 @@ export default function PlayerScreen() {
     return parsed
   }, [params.streamData])
 
-  // Get media from cache (should be available from useMediaStreams)
-  // Cache stores MediaDetailData objects, not raw Media objects
-  const cachedData = queryClient.getQueryData<MediaDetailData>([
-    'media-detail',
-    params.mediaStableId,
-  ])
-  const media = cachedData?.media
+  // Parse media from params (NEW PATTERN: no cache lookup)
+  const media = useMemo(() => {
+    return Media.fromJSON(JSON.parse(params.mediaData))
+  }, [params.mediaData])
 
-  console.log('[PlayerScreen] Media from cache:', {
-    cacheKey: params.mediaStableId,
-    mediaFound: !!media,
-    mediaStableId: media?.stableId,
-    mediaTitle: media?.title,
+  console.log('[PlayerScreen] Media from params:', {
+    mediaStableId: media.stableId,
+    mediaTitle: media.title,
   })
 
   // Parse season/episode if present
@@ -122,7 +115,7 @@ export default function PlayerScreen() {
     router.back()
   }
 
-  if (!media || !stream) {
+  if (!stream) {
     return null // Could add error screen
   }
 

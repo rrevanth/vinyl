@@ -4,7 +4,6 @@ import { StyleSheet, withUnistyles } from 'react-native-unistyles'
 import { Ionicons } from '@expo/vector-icons'
 import { observer } from '@legendapp/state/react'
 import { useRouter, useLocalSearchParams } from 'expo-router'
-import { useQueryClient } from '@tanstack/react-query'
 import type { Stream } from '@/src/domain/entities/Stream'
 import type { Media } from '@/src/domain/entities/Media'
 
@@ -26,24 +25,18 @@ const formatBytes = (bytes: number): string => {
 
 export const StreamCard: React.FC<StreamCardProps> = observer(({ stream }) => {
   const router = useRouter()
-  const queryClient = useQueryClient()
   const params = useLocalSearchParams<{
-    mediaStableId: string
+    mediaData: string
     season?: string
     episode?: string
   }>()
 
-  // Decode stableId to match cache key
-  const decodedStableId = decodeURIComponent(params.mediaStableId)
+  // Parse media from params (NEW PATTERN: no cache lookup)
+  const media = JSON.parse(params.mediaData) as Media
 
-  // Get media from cache (should be available from useMediaStreams)
-  const media = queryClient.getQueryData<Media>(['media-detail', decodedStableId])
-
-  console.log('[StreamCard] Media lookup:', {
-    cacheKey: decodedStableId,
-    mediaFound: !!media,
-    mediaStableId: media?.stableId,
-    mediaTitle: media?.title,
+  console.log('[StreamCard] Media from params:', {
+    mediaStableId: media.stableId,
+    mediaTitle: media.title,
   })
 
   const handlePress = () => {
@@ -57,13 +50,13 @@ export const StreamCard: React.FC<StreamCardProps> = observer(({ stream }) => {
       mediaStableId: media.stableId,
     })
 
-    // Navigate with media.stableId directly (guaranteed to exist)
+    // Navigate with media data in params (NEW PATTERN)
     router.push({
       pathname: '/player/[streamId]',
       params: {
         streamId: stream.id,
         streamData: JSON.stringify(stream),
-        mediaStableId: media.stableId, // Use media.stableId directly
+        mediaData: params.mediaData, // Pass through mediaData
         ...(params.season && { season: params.season }),
         ...(params.episode && { episode: params.episode }),
         ...(media.images.backdrop && { backdrop: media.images.backdrop }),

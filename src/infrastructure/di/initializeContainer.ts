@@ -9,6 +9,7 @@ import { UpdateCatalogPreferencesUseCase } from '@/src/domain/use-cases/homescre
 import { UpdateHomescreenPreferencesUseCase } from '@/src/domain/use-cases/homescreen/UpdateHomescreenPreferencesUseCase'
 import { EnrichMediaUseCase } from '@/src/domain/use-cases/media/EnrichMediaUseCase'
 import { GetMediaDetailUseCase } from '@/src/domain/use-cases/media/GetMediaDetailUseCase'
+import { GetMediaEnrichmentsUseCase } from '@/src/domain/use-cases/media/GetMediaEnrichmentsUseCase'
 import { GetMediaStreamsUseCase } from '@/src/domain/use-cases/media/GetMediaStreamsUseCase'
 import { GetWatchProgressUseCase } from '@/src/domain/use-cases/media/GetWatchProgressUseCase'
 import { LoadMoreRecommendationsUseCase } from '@/src/domain/use-cases/media/LoadMoreRecommendationsUseCase'
@@ -514,7 +515,7 @@ export async function initializeContainer(): Promise<void> {
     return new GetWatchProgressUseCase(providerRegistry, userService, logger, getEnabledProvidersUseCase)
   })
 
-  // GetMediaDetailUseCase orchestrates the three use cases above
+  // GetMediaDetailUseCase orchestrates the three use cases above (DEPRECATED - use GetMediaEnrichmentsUseCase)
   container.register(TOKENS.GetMediaDetailUseCase, () => {
     const resolveExternalIdsUseCase = container.resolve<ResolveExternalIdsUseCase>(
       TOKENS.ResolveExternalIdsUseCase
@@ -524,6 +525,23 @@ export async function initializeContainer(): Promise<void> {
       TOKENS.GetWatchProgressUseCase
     )
     return new GetMediaDetailUseCase(
+      resolveExternalIdsUseCase,
+      enrichMediaUseCase,
+      getWatchProgressUseCase,
+      logger
+    )
+  })
+
+  // GetMediaEnrichmentsUseCase - NEW PATTERN: returns only enrichments, no Media entity
+  container.register(TOKENS.GetMediaEnrichmentsUseCase, () => {
+    const resolveExternalIdsUseCase = container.resolve<ResolveExternalIdsUseCase>(
+      TOKENS.ResolveExternalIdsUseCase
+    )
+    const enrichMediaUseCase = container.resolve<EnrichMediaUseCase>(TOKENS.EnrichMediaUseCase)
+    const getWatchProgressUseCase = container.resolve<GetWatchProgressUseCase>(
+      TOKENS.GetWatchProgressUseCase
+    )
+    return new GetMediaEnrichmentsUseCase(
       resolveExternalIdsUseCase,
       enrichMediaUseCase,
       getWatchProgressUseCase,

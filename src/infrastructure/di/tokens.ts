@@ -71,6 +71,7 @@ export const TOKENS = {
   EnrichMediaUseCase: Symbol('EnrichMediaUseCase'),
   GetWatchProgressUseCase: Symbol('GetWatchProgressUseCase'),
   GetMediaDetailUseCase: Symbol('GetMediaDetailUseCase'),
+  GetMediaEnrichmentsUseCase: Symbol('GetMediaEnrichmentsUseCase'),
   GetMediaStreamsUseCase: Symbol('GetMediaStreamsUseCase'),
   LoadMoreRecommendationsUseCase: Symbol('LoadMoreRecommendationsUseCase'),
 

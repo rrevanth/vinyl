@@ -3,24 +3,23 @@ import { View, ScrollView, Text } from 'react-native'
 import { Stack, useLocalSearchParams } from 'expo-router'
 import { StyleSheet } from 'react-native-unistyles'
 import { observer } from '@legendapp/state/react'
-import { useQueryClient } from '@tanstack/react-query'
-import type { Media } from '@/src/domain/entities/Media'
+import { Media } from '@/src/domain/entities/Media'
 import { useMediaStreams } from '@/src/presentation/features/streams/hooks/useMediaStreams'
 import { StreamList } from '@/src/presentation/features/streams/components/StreamList'
 import { ProviderFilterChips } from '@/src/presentation/features/streams/components/ProviderFilterChips'
 import { streamUI$ } from '@/src/presentation/features/streams/stores/streamUI.store'
 import { useTranslations } from '@/src/presentation/shared/i18n'
-import { LoadingSpinner, ErrorMessage } from '@/src/presentation/shared/ui'
+import { LoadingSpinner } from '@/src/presentation/shared/ui'
 import { LinearGradient } from 'expo-linear-gradient'
 
 export default observer(function StreamScreen() {
   const t = useTranslations()
   const params = useLocalSearchParams<{
     mediaStableId: string
+    mediaData: string
     season?: string
     episode?: string
   }>()
-  const queryClient = useQueryClient()
 
   // Header configuration matching media detail pattern
   const headerOptions = useMemo(
@@ -38,16 +37,15 @@ export default observer(function StreamScreen() {
     []
   )
 
-  // Decode stableId and parse optional params
-  const stableId = decodeURIComponent(params.mediaStableId)
+  // Parse Media from params and decode optional params
+  const media = useMemo(() => {
+    return Media.fromJSON(JSON.parse(params.mediaData))
+  }, [params.mediaData])
   const seasonNumber = params.season ? parseInt(params.season, 10) : undefined
   const episodeNumber = params.episode ? parseInt(params.episode, 10) : undefined
 
-  // Get media from cache
-  const media = queryClient.getQueryData<Media>(['media-detail', stableId])
-
-  // Fetch streams
-  const { streams, providers, isLoading } = useMediaStreams(media!, seasonNumber, episodeNumber)
+  // Fetch streams (Media is guaranteed from params)
+  const { streams, providers, isLoading } = useMediaStreams(media, seasonNumber, episodeNumber)
 
   // Get selected provider
   const selectedProvider = streamUI$.selectedProvider.get()
@@ -58,21 +56,7 @@ export default observer(function StreamScreen() {
     return streams.filter((stream) => stream.provider === selectedProvider)
   }, [streams, selectedProvider])
 
-  // Error state: No media in cache
-  if (!media) {
-    return (
-      <View style={styles.container}>
-        <Stack.Screen options={headerOptions} />
-        <ErrorMessage
-          title={t.streams.error_no_media}
-          message="Please go back and try again."
-          fullScreen
-        />
-      </View>
-    )
-  }
-
-  // Loading state
+  // Loading state (Media is always available from params)
   if (isLoading) {
     return (
       <View style={styles.container}>

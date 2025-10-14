@@ -4,7 +4,8 @@ import { SeasonSelector } from '@/src/presentation/features/media/components/Sea
 import { VideosSection } from '@/src/presentation/features/media/components/organisms/VideosSection'
 import { CastSection } from '@/src/presentation/features/media/components/organisms/CastSection'
 import { RecommendationsRow } from '@/src/presentation/features/media/components/RecommendationsRow'
-import { useMediaDetail } from '@/src/presentation/features/media/hooks/useMediaDetail'
+import { useMediaEnrichments } from '@/src/presentation/features/media/hooks/useMediaEnrichments'
+import { Media } from '@/src/domain/entities/Media'
 import { t } from '@/src/presentation/shared/i18n'
 import { observer } from '@legendapp/state/react'
 import { Stack, router, useLocalSearchParams } from 'expo-router'
@@ -14,24 +15,20 @@ import Animated, { useAnimatedScrollHandler, useSharedValue } from 'react-native
 import { StyleSheet } from 'react-native-unistyles'
 import type { MediaVideo } from '@/src/domain/capabilities/IMediaVideosCapability'
 import type { Episode } from '@/src/domain/capabilities/IMediaSeasonsCapability'
-import type { Media } from '@/src/domain/entities/Media'
-import { useQueryClient } from '@tanstack/react-query'
-import type { MediaDetailData } from '@/src/domain/use-cases/media/GetMediaDetailUseCase'
 import { LinearGradient } from 'expo-linear-gradient'
 
 /**
  * Media Detail Screen
  * Dynamic route: /media/[stableId]
  *
- * Pattern:
- * - Get stableId from route params
- * - TanStack Query cache holds all data keyed by stableId
- * - Pre-populate cache before navigation for instant loads
- * - Back navigation works because each stableId has separate cache entry
+ * NEW PATTERN:
+ * - Media entity passed via router params (mediaData)
+ * - Enrichments cached via TanStack Query (server state only)
+ * - No cache dependency for Media entity (navigation state)
  *
  * Features:
  * - Parallax hero with gradient overlay and backdrop
- * - Comprehensive data loading via GetMediaDetailUseCase
+ * - Comprehensive data loading via GetMediaEnrichmentsUseCase
  * - Action buttons (Play, Add to Watchlist, etc.)
  * - Enhanced metadata with ratings, runtime, genres
  * - Videos section (trailers, clips, behind-the-scenes)
@@ -40,10 +37,11 @@ import { LinearGradient } from 'expo-linear-gradient'
  * - Recommendations section with related media
  */
 const MediaDetailScreen = observer(() => {
-  // Get route parameters
-  const { stableId: encodedStableId } = useLocalSearchParams<{ stableId: string }>()
-  const stableId = encodedStableId ? decodeURIComponent(encodedStableId) : ''
-  const queryClient = useQueryClient()
+  // Get route parameters and parse Media from params
+  const params = useLocalSearchParams<{ stableId: string; mediaData: string }>()
+  const media = useMemo(() => {
+    return Media.fromJSON(JSON.parse(params.mediaData))
+  }, [params.mediaData])
 
   const headerOptions = useMemo(
     () => ({
@@ -60,8 +58,8 @@ const MediaDetailScreen = observer(() => {
     []
   )
 
-  // Get all data from TanStack Query cache
-  const { data, media, isLoading, error } = useMediaDetail(stableId)
+  // Get enrichments from TanStack Query (Media comes from params)
+  const { isLoading, error, enrichedData, videos, peopleCatalogs, seasons, recommendationCatalogs, watchProgress } = useMediaEnrichments(media)
 
   // Shared value for scroll position to drive parallax animations
   const scrollY = useSharedValue(0)
@@ -73,17 +71,17 @@ const MediaDetailScreen = observer(() => {
     },
   })
 
-  // Extract enriched data from use case response
-  const enrichedData = data?.enrichedMedia
-  const videos = data?.videos
-  const peopleCatalogs = data?.peopleCatalogs
-  const seasons = data?.seasons
-  const recommendationCatalogs = data?.recommendationCatalogs
-  const watchProgress = data?.watchProgress
+  // Enrichments are destructured from useMediaEnrichments hook above
 
   // Event handlers
   const handlePlay = useCallback(() => {
-    router.push(`/streams/${encodeURIComponent(media!.stableId)}`)
+    router.push({
+      pathname: '/streams/[mediaStableId]',
+      params: {
+        mediaStableId: media.stableId,
+        mediaData: JSON.stringify(media.toJSON())
+      }
+    })
   }, [media])
 
   const handlePressVideo = useCallback((video: MediaVideo) => {
@@ -93,19 +91,16 @@ const MediaDetailScreen = observer(() => {
 
   const handlePressRecommendation = useCallback(
     (recommendedMedia: Media) => {
-      // Pre-populate cache with Media object before navigation
-      queryClient.setQueryData<MediaDetailData>(['media-detail', recommendedMedia.stableId], {
-        media: recommendedMedia,
-        externalIds: recommendedMedia.externalIds,
-        // Other fields will be fetched by use case
-        providersUsed: {},
-        errors: {},
+      // Navigate with Media data in params (NEW PATTERN)
+      router.push({
+        pathname: '/media/[stableId]',
+        params: {
+          stableId: recommendedMedia.stableId,
+          mediaData: JSON.stringify(recommendedMedia.toJSON())
+        }
       })
-
-      // Navigate to new media detail
-      router.push(`/media/${encodeURIComponent(recommendedMedia.stableId)}`)
     },
-    [queryClient]
+    []
   )
 
   const handlePressEpisodeMore = useCallback((episode: Episode) => {
@@ -118,8 +113,8 @@ const MediaDetailScreen = observer(() => {
     })
   }, [])
 
-  // Loading state
-  if (!media || isLoading) {
+  // Loading state (Media is always available from params, only enrichments loading)
+  if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
         <Stack.Screen options={headerOptions} />
@@ -202,7 +197,7 @@ const MediaDetailScreen = observer(() => {
 
         {/* Cast Section */}
         {peopleCatalogs && peopleCatalogs.length > 0 && (
-          <CastSection mediaStableId={stableId} catalogs={peopleCatalogs} />
+          <CastSection mediaStableId={media.stableId} catalogs={peopleCatalogs} />
         )}
 
         {/* Recommendations - Use RecommendationsRow for proper pagination */}

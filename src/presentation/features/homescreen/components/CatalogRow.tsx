@@ -9,8 +9,6 @@ import { LegendList } from '@legendapp/list'
 import { router } from 'expo-router'
 import { useInfiniteCatalogItemsQuery } from '../queries/useInfiniteCatalogItemsQuery'
 import { MediaCard } from './MediaCard'
-import { useQueryClient } from '@tanstack/react-query'
-import type { MediaDetailData } from '@/src/domain/use-cases/media/GetMediaDetailUseCase'
 
 interface CatalogRowProps {
   readonly catalog: Catalog
@@ -19,7 +17,6 @@ interface CatalogRowProps {
 
 const CatalogRowComponent: FC<CatalogRowProps> = ({ catalog, onPressItem: onPressItemProp }) => {
   const [isLoadingMore, setIsLoadingMore] = useState(false)
-  const queryClient = useQueryClient()
 
   // Use infinite query hook for pagination (TanStack Query as single source of truth)
   const infiniteQuery = useInfiniteCatalogItemsQuery(catalog)
@@ -52,11 +49,6 @@ const CatalogRowComponent: FC<CatalogRowProps> = ({ catalog, onPressItem: onPres
     console.log('[CatalogRow] Title pressed, navigating to grid view')
 
     try {
-      // Pre-populate cache with catalog data
-      queryClient.setQueryData(['catalog-grid', latestCatalog.stableId], {
-        catalog: latestCatalog,
-      })
-
       // Navigate to grid view
       const encodedCatalogId = encodeURIComponent(latestCatalog.stableId)
       const encodedName = encodeURIComponent(displayName)
@@ -64,7 +56,7 @@ const CatalogRowComponent: FC<CatalogRowProps> = ({ catalog, onPressItem: onPres
     } catch (error) {
       console.error('[CatalogRow] Failed to navigate to grid view:', error)
     }
-  }, [latestCatalog, displayName, queryClient])
+  }, [latestCatalog, displayName])
 
   // Default navigation handler - pre-populate cache before navigating
   const handlePressItem = useCallback(
@@ -91,34 +83,23 @@ const CatalogRowComponent: FC<CatalogRowProps> = ({ catalog, onPressItem: onPres
         return
       }
 
-      console.log('[CatalogRow] Pre-populating cache and navigating')
+      console.log('[CatalogRow] Navigating with Media data in params (NEW PATTERN)')
 
       try {
-        // Pre-populate TanStack Query cache with Media object before navigation
-        queryClient.setQueryData<MediaDetailData>(['media-detail', media.stableId], {
-          media,
-          externalIds: media.externalIds,
-          // Other fields will be fetched by use case
-          providersUsed: {},
-          errors: {},
+        // Navigate with Media data in params (NEW PATTERN: no cache)
+        router.push({
+          pathname: '/media/[stableId]',
+          params: {
+            stableId: media.stableId,
+            mediaData: JSON.stringify(media.toJSON())
+          }
         })
-        console.log('[CatalogRow] Media cached successfully')
-
-        // Navigate with stableId only (Expo Router params only support primitives)
-        // Encode the stableId to handle special characters like colons
-        const encodedStableId = encodeURIComponent(media.stableId)
-        const route = `/media/${encodedStableId}`
-        console.log('[CatalogRow] Attempting navigation to:', route)
-        console.log('[CatalogRow] Original stableId:', media.stableId)
-        console.log('[CatalogRow] Encoded stableId:', encodedStableId)
-
-        router.push(route as any)
         console.log('[CatalogRow] Navigation command sent')
       } catch (error) {
         console.error('[CatalogRow] Navigation failed:', error)
       }
     },
-    [latestCatalog.stableId, onPressItemProp, queryClient]
+    [latestCatalog.stableId, onPressItemProp]
   )
 
   // Get catalog items with media from latest catalog (directly from query, no store)
