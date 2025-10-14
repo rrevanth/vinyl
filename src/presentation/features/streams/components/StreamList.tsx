@@ -18,7 +18,19 @@ interface StreamListProps {
 export const StreamList: React.FC<StreamListProps> = observer(({ streams, media, seasonNumber, episodeNumber }) => {
   const t = useTranslations()
 
-  if (streams.length === 0) {
+  // Safety check: ensure media is provided
+  if (!media) {
+    console.error('[StreamList] Media prop is missing!')
+    return (
+      <EmptyState
+        icon="alert-circle-outline"
+        title="Error"
+        message="Media information is missing. Please go back and try again."
+      />
+    )
+  }
+
+  if (!streams || streams.length === 0) {
     return (
       <EmptyState
         icon="film-outline"
@@ -28,18 +40,37 @@ export const StreamList: React.FC<StreamListProps> = observer(({ streams, media,
     )
   }
 
+  console.log('[StreamList] Rendering', {
+    streamCount: streams.length,
+    mediaStableId: media.stableId,
+    hasSeasonNumber: seasonNumber !== undefined,
+    hasEpisodeNumber: episodeNumber !== undefined,
+  })
+
   return (
     <LegendList
       data={streams}
-      keyExtractor={(item: Stream) => item.id || `stream-${Math.random()}`}
-      renderItem={({ item }: { item: Stream }) => (
-        <StreamCard
-          stream={item}
-          media={media}
-          seasonNumber={seasonNumber}
-          episodeNumber={episodeNumber}
-        />
-      )}
+      keyExtractor={(item: Stream) => {
+        // Ensure we always return a string key
+        if (!item) return `stream-null-${Math.random()}`
+        return item.id || `stream-${item.url?.substring(0, 20) || Math.random()}`
+      }}
+      renderItem={({ item }: { item: Stream }) => {
+        // Safety check: ensure item exists
+        if (!item) {
+          console.error('[StreamList] Null item in renderItem')
+          return null
+        }
+        
+        return (
+          <StreamCard
+            stream={item}
+            media={media}
+            seasonNumber={seasonNumber}
+            episodeNumber={episodeNumber}
+          />
+        )
+      }}
       estimatedItemSize={120}
       contentContainerStyle={styles.listContent}
     />

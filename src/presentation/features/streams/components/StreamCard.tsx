@@ -29,40 +29,71 @@ const formatBytes = (bytes: number): string => {
 export const StreamCard: React.FC<StreamCardProps> = observer(({ stream, media, seasonNumber, episodeNumber }) => {
   const router = useRouter()
 
+  // Safety check: ensure media is provided
+  if (!media) {
+    console.error('[StreamCard] Media prop is missing!')
+    return null
+  }
+
   console.log('[StreamCard] Rendering with media:', {
-    mediaStableId: media.stableId,
-    mediaTitle: media.title,
+    mediaStableId: media?.stableId,
+    mediaTitle: media?.title,
   })
 
   const handlePress = () => {
     if (!media) {
-      console.warn('[StreamCard] ⚠️ Cannot navigate - no media found in cache')
+      console.warn('[StreamCard] ⚠️ Cannot navigate - no media provided')
       return
     }
 
-    console.log('[StreamCard] Navigating to player with:', {
-      streamId: stream.id,
-      mediaStableId: media.stableId,
-    })
-
-    // Navigate with media data in params (NEW PATTERN)
-    router.push({
-      pathname: '/player/[streamId]',
-      params: {
+    try {
+      console.log('[StreamCard] Navigating to player with:', {
         streamId: stream.id,
-        streamData: JSON.stringify(stream),
-        mediaData: JSON.stringify(media.toJSON()),
-        ...(seasonNumber && { season: seasonNumber.toString() }),
-        ...(episodeNumber && { episode: episodeNumber.toString() }),
-        ...(media.images.backdrop && { backdrop: media.images.backdrop }),
-        ...(media.images.logo && { logo: media.images.logo }),
-      },
-    })
+        mediaStableId: media.stableId,
+      })
+
+      // Safely serialize media - use toJSON if available, otherwise serialize directly
+      let mediaDataString: string
+      try {
+        mediaDataString = typeof media.toJSON === 'function' 
+          ? JSON.stringify(media.toJSON()) 
+          : JSON.stringify(media)
+      } catch (jsonError) {
+        console.error('[StreamCard] Failed to serialize media:', jsonError)
+        // Fallback: create minimal serializable object
+        mediaDataString = JSON.stringify({
+          stableId: media.stableId,
+          externalIds: media.externalIds,
+          type: media.type,
+          title: media.title,
+          year: media.year,
+          images: media.images || {},
+          createdAt: media.createdAt || new Date(),
+          updatedAt: media.updatedAt || new Date(),
+        })
+      }
+
+      // Navigate with media data in params (NEW PATTERN)
+      router.push({
+        pathname: '/player/[streamId]',
+        params: {
+          streamId: stream.id,
+          streamData: JSON.stringify(stream),
+          mediaData: mediaDataString,
+          ...(seasonNumber && { season: seasonNumber.toString() }),
+          ...(episodeNumber && { episode: episodeNumber.toString() }),
+          ...(media.images?.backdrop && { backdrop: media.images.backdrop }),
+          ...(media.images?.logo && { logo: media.images.logo }),
+        },
+      })
+    } catch (error) {
+      console.error('[StreamCard] Navigation failed:', error)
+    }
   }
 
-  // Ensure we have valid string values
-  const displayName = stream.name?.trim() || 'Stream'
-  const displayDescription = stream.description?.trim() || null
+  // Ensure we have valid string values - defensively handle all potential non-string values
+  const displayName = (stream.name && typeof stream.name === 'string') ? stream.name.trim() || 'Stream' : 'Stream'
+  const displayDescription = (stream.description && typeof stream.description === 'string') ? stream.description.trim() || null : null
 
   return (
     <Pressable
@@ -86,7 +117,7 @@ export const StreamCard: React.FC<StreamCardProps> = observer(({ stream, media, 
         )}
 
         {/* File size */}
-        {stream.size && (
+        {stream.size && typeof stream.size === 'number' && (
           <Text style={styles.fileSize}>
             {formatBytes(stream.size)}
           </Text>
