@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react'
 import { View, ScrollView, Text } from 'react-native'
 import { Stack, useLocalSearchParams } from 'expo-router'
-import { StyleSheet, useUnistyles } from 'react-native-unistyles'
+import { StyleSheet } from 'react-native-unistyles'
 import { observer } from '@legendapp/state/react'
 import { useQueryClient } from '@tanstack/react-query'
 import type { Media } from '@/src/domain/entities/Media'
@@ -11,9 +11,9 @@ import { ProviderFilterChips } from '@/src/presentation/features/streams/compone
 import { streamUI$ } from '@/src/presentation/features/streams/stores/streamUI.store'
 import { useTranslations } from '@/src/presentation/shared/i18n'
 import { LoadingSpinner, ErrorMessage } from '@/src/presentation/shared/ui'
+import { LinearGradient } from 'expo-linear-gradient'
 
 export default observer(function StreamScreen() {
-  const { theme } = useUnistyles()
   const t = useTranslations()
   const params = useLocalSearchParams<{
     mediaStableId: string
@@ -29,10 +29,13 @@ export default observer(function StreamScreen() {
       headerTransparent: true,
       headerBackButtonDisplayMode: 'minimal' as const,
       headerTitle: '',
-      headerTintColor: theme.colors.text,
+      headerTintColor: '#FFFFFF',
       headerBackTitle: '',
+      headerBackground: () => (
+        <LinearGradient colors={['rgba(0, 0, 0, 0.8)', 'rgba(0, 0, 0, 0)']} style={{ flex: 1 }} />
+      ),
     }),
-    [theme.colors.text]
+    []
   )
 
   // Decode stableId and parse optional params

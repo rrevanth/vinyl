@@ -1,14 +1,15 @@
+import type { Media } from '@/src/domain/entities/Media'
+import { MediaCard } from '@/src/presentation/features/homescreen/components/MediaCard'
+import { LegendList } from '@legendapp/list'
 import type { FC } from 'react'
 import { memo, useCallback } from 'react'
-import { View, ActivityIndicator } from 'react-native'
+import { ActivityIndicator, View } from 'react-native'
 import { StyleSheet } from 'react-native-unistyles'
-import { LegendList } from '@legendapp/list'
-import type { Media } from '@/src/domain/entities/Media'
-import { MediaPosterCard } from '@/src/presentation/features/homescreen/components/MediaPosterCard'
 
 interface MediaGridProps {
   readonly items: Media[]
   readonly columns?: number
+  readonly variant?: 'poster' | 'landscape'
   readonly onPressItem?: (media: Media) => void
   readonly onEndReached?: () => void
   readonly isLoadingMore?: boolean
@@ -18,6 +19,7 @@ interface MediaGridProps {
 const MediaGridComponent: FC<MediaGridProps> = ({
   items,
   columns = 3,
+  variant = 'poster',
   onPressItem,
   onEndReached,
   isLoadingMore = false,
@@ -25,16 +27,20 @@ const MediaGridComponent: FC<MediaGridProps> = ({
 }) => {
   const renderItem = useCallback(
     ({ item }: { item: Media }) => (
-      <View style={styles.cardWrapper}>
-        <MediaPosterCard
+      <View style={styles.cardWrapperStyle(variant)}>
+        <MediaCard
           media={item}
-          size="standard"
+          variant={variant}
+          showTitle={variant === 'landscape'}
+          showMetadata={variant === 'landscape'}
+          showDescription={false}
           onPress={onPressItem ? () => onPressItem(item) : undefined}
+          style={styles.cardStyle(variant)}
           testID={`grid-${item.stableId}`}
         />
       </View>
     ),
-    [onPressItem]
+    [variant, onPressItem]
   )
 
   const keyExtractor = useCallback((item: Media, index: number) => `${item.stableId}-${index}`, [])
@@ -55,7 +61,7 @@ const MediaGridComponent: FC<MediaGridProps> = ({
       keyExtractor={keyExtractor}
       numColumns={columns}
       contentContainerStyle={styles.gridContent}
-      columnWrapperStyle={styles.row}
+      columnWrapperStyle={styles.columnWrapperStyle(variant)}
       renderItem={renderItem}
       onEndReached={onEndReached}
       onEndReachedThreshold={0.5}
@@ -71,17 +77,21 @@ const styles = StyleSheet.create((theme) => ({
     paddingHorizontal: theme.spacing.gutter,
     paddingVertical: theme.spacing.lg,
   },
-  row: {
-    justifyContent: 'space-between',
-    gap: theme.spacing.md,
-    marginBottom: theme.spacing.md,
-  },
-  cardWrapper: {
-    flex: 1,
-    maxWidth: '31%', // Ensure 3 columns with space between
-  },
   loadingFooter: {
     paddingVertical: theme.spacing.xl,
     alignItems: 'center',
   },
+  cardStyle: (variant: 'poster' | 'landscape') => ({
+    width: variant === 'landscape' ? 160 : 100,
+    height: variant === 'landscape' ? 90 : 150,
+    aspectRatio: variant === 'landscape' ? 16 / 9 : 2 / 3,
+  }),
+  cardWrapperStyle: (variant: 'poster' | 'landscape') => ({
+    flex: 1,
+  }),
+  columnWrapperStyle: (variant: 'poster' | 'landscape') => ({
+    justifyContent: 'space-between' as const,
+    gap: variant === 'landscape' ? theme.spacing.md : theme.spacing.sm,
+    marginBottom: variant === 'landscape' ? theme.spacing.md : theme.spacing.sm,
+  }),
 }))

@@ -87,7 +87,7 @@ const HomeScreen = observer(() => {
         ListHeaderComponent={renderListHeader}
         ListEmptyComponent={renderListEmpty}
         contentContainerStyle={styles.listContent}
-        contentInsetAdjustmentBehavior="automatic"
+        contentInsetAdjustmentBehavior="never"
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}
@@ -117,7 +117,8 @@ const styles = StyleSheet.create((theme) => ({
     backgroundColor: theme.colors.background,
   },
   listContent: {
-    paddingVertical: theme.spacing.xl,
+    paddingTop: 0, // No top padding for edge-to-edge hero
+    paddingBottom: theme.spacing.xl, // Keep bottom padding for tab bar
   },
   loadingContainer: {
     flex: 1,

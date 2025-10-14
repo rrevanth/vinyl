@@ -1,8 +1,9 @@
 import { useCallback, useMemo, useState } from 'react'
 import { View, Text, Pressable } from 'react-native'
 import { Stack, useLocalSearchParams, router } from 'expo-router'
-import { StyleSheet, useUnistyles } from 'react-native-unistyles'
+import { StyleSheet } from 'react-native-unistyles'
 import { useQueryClient } from '@tanstack/react-query'
+import { LinearGradient } from 'expo-linear-gradient'
 import type { Media } from '@/src/domain/entities/Media'
 import type { MediaDetailData } from '@/src/domain/use-cases/media/GetMediaDetailUseCase'
 import { MediaGrid } from '@/src/presentation/shared/ui/organisms/MediaGrid'
@@ -19,14 +20,30 @@ interface CachedFilmographyData {
 
 type FilmographyTab = 'all' | 'movies' | 'tv'
 
+/**
+ * Hash-based function to consistently assign random variant per grid screen.
+ * Same screen always gets same variant for consistency across sessions.
+ */
+const getRandomGridVariant = (seed: string): 'poster' | 'landscape' => {
+  const variants = ['poster', 'landscape'] as const
+  let hash = 0
+  for (let i = 0; i < seed.length; i++) {
+    hash = (hash << 5) - hash + seed.charCodeAt(i)
+    hash = hash & hash
+  }
+  return variants[Math.abs(hash) % 2]
+}
+
 export default function FilmographyGridScreen() {
   const params = useLocalSearchParams<{ personStableId: string }>()
   const queryClient = useQueryClient()
   const [selectedTab, setSelectedTab] = useState<FilmographyTab>('all')
-  const { theme } = useUnistyles()
 
   // Decode personStableId
   const personStableId = decodeURIComponent(params.personStableId)
+
+  // Get consistent variant for this filmography grid
+  const variant = useMemo(() => getRandomGridVariant(personStableId), [personStableId])
 
   const headerOptions = useMemo(
     () => ({
@@ -34,10 +51,13 @@ export default function FilmographyGridScreen() {
       headerTransparent: true,
       headerBackButtonDisplayMode: 'minimal' as const,
       headerTitle: t('person_detail.filmography'),
-      headerTintColor: theme.colors.text,
+      headerTintColor: '#FFFFFF',
       headerBackTitle: '',
+      headerBackground: () => (
+        <LinearGradient colors={['rgba(0, 0, 0, 0.8)', 'rgba(0, 0, 0, 0)']} style={{ flex: 1 }} />
+      ),
     }),
-    [theme.colors.text]
+    []
   )
 
   // Get cached filmography data
@@ -52,7 +72,7 @@ export default function FilmographyGridScreen() {
   // Filter items based on selected tab
   const filteredItems = useMemo(() => {
     if (!filmography) return []
-    
+
     const filtered = filmography.filter((item) => {
       if (selectedTab === 'movies') {
         return item.media.isMovie()
@@ -157,7 +177,12 @@ export default function FilmographyGridScreen() {
         </View>
       </View>
 
-      <MediaGrid items={filteredItems} columns={3} onPressItem={handlePressMedia} />
+      <MediaGrid
+        items={filteredItems}
+        variant={variant}
+        columns={variant === 'landscape' ? 2 : 3}
+        onPressItem={handlePressMedia}
+      />
     </View>
   )
 }

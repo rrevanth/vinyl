@@ -1,8 +1,9 @@
 import { useCallback, useMemo } from 'react'
 import { View, Text } from 'react-native'
 import { Stack, useLocalSearchParams, router } from 'expo-router'
-import { StyleSheet, useUnistyles } from 'react-native-unistyles'
+import { StyleSheet } from 'react-native-unistyles'
 import { useQueryClient } from '@tanstack/react-query'
+import { LinearGradient } from 'expo-linear-gradient'
 import type { Media } from '@/src/domain/entities/Media'
 import type { MediaDetailData } from '@/src/domain/use-cases/media/GetMediaDetailUseCase'
 import { MediaGrid } from '@/src/presentation/shared/ui/organisms/MediaGrid'
@@ -13,13 +14,29 @@ interface CachedRecommendationsData {
   readonly mediaTitle?: string
 }
 
+/**
+ * Hash-based function to consistently assign random variant per grid screen.
+ * Same screen always gets same variant for consistency across sessions.
+ */
+const getRandomGridVariant = (seed: string): 'poster' | 'landscape' => {
+  const variants = ['poster', 'landscape'] as const
+  let hash = 0
+  for (let i = 0; i < seed.length; i++) {
+    hash = (hash << 5) - hash + seed.charCodeAt(i)
+    hash = hash & hash
+  }
+  return variants[Math.abs(hash) % 2]
+}
+
 export default function RecommendationsGridScreen() {
   const params = useLocalSearchParams<{ mediaStableId: string }>()
   const queryClient = useQueryClient()
-  const { theme } = useUnistyles()
 
   // Decode mediaStableId
   const mediaStableId = decodeURIComponent(params.mediaStableId)
+
+  // Get consistent variant for this recommendations grid
+  const variant = useMemo(() => getRandomGridVariant(mediaStableId), [mediaStableId])
 
   // Get cached recommendations data
   const cachedData = useMemo(() => {
@@ -45,10 +62,13 @@ export default function RecommendationsGridScreen() {
       headerTransparent: true,
       headerBackButtonDisplayMode: 'minimal' as const,
       headerTitle,
-      headerTintColor: theme.colors.text,
+      headerTintColor: '#FFFFFF',
       headerBackTitle: '',
+      headerBackground: () => (
+        <LinearGradient colors={['rgba(0, 0, 0, 0.8)', 'rgba(0, 0, 0, 0)']} style={{ flex: 1 }} />
+      ),
     }),
-    [headerTitle, theme.colors.text]
+    [headerTitle]
   )
 
   // Handle media press
@@ -81,7 +101,12 @@ export default function RecommendationsGridScreen() {
   return (
     <View style={styles.container}>
       <Stack.Screen options={headerOptions} />
-      <MediaGrid items={recommendations} columns={3} onPressItem={handlePressMedia} />
+      <MediaGrid
+        items={recommendations}
+        variant={variant}
+        columns={variant === 'landscape' ? 2 : 3}
+        onPressItem={handlePressMedia}
+      />
     </View>
   )
 }

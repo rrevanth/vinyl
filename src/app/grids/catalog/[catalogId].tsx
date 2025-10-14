@@ -1,8 +1,9 @@
 import { useCallback, useMemo, useState } from 'react'
 import { View, ActivityIndicator, Text } from 'react-native'
 import { Stack, useLocalSearchParams, router } from 'expo-router'
-import { StyleSheet, useUnistyles } from 'react-native-unistyles'
+import { StyleSheet } from 'react-native-unistyles'
 import { useQueryClient } from '@tanstack/react-query'
+import { LinearGradient } from 'expo-linear-gradient'
 import type { Catalog } from '@/src/domain/entities/Catalog'
 import type { Media } from '@/src/domain/entities/Media'
 import type { MediaDetailData } from '@/src/domain/use-cases/media/GetMediaDetailUseCase'
@@ -10,15 +11,31 @@ import { MediaGrid } from '@/src/presentation/shared/ui/organisms/MediaGrid'
 import { useInfiniteCatalogItemsQuery } from '@/src/presentation/features/homescreen/queries/useInfiniteCatalogItemsQuery'
 import { t } from '@/src/presentation/shared/i18n'
 
+/**
+ * Hash-based function to consistently assign random variant per grid screen.
+ * Same screen always gets same variant for consistency across sessions.
+ */
+const getRandomGridVariant = (seed: string): 'poster' | 'landscape' => {
+  const variants = ['poster', 'landscape'] as const
+  let hash = 0
+  for (let i = 0; i < seed.length; i++) {
+    hash = (hash << 5) - hash + seed.charCodeAt(i)
+    hash = hash & hash
+  }
+  return variants[Math.abs(hash) % 2]
+}
+
 export default function CatalogGridScreen() {
   const params = useLocalSearchParams<{ catalogId: string; name?: string }>()
   const queryClient = useQueryClient()
   const [isLoadingMore, setIsLoadingMore] = useState(false)
-  const { theme } = useUnistyles()
 
   // Decode catalogId
   const catalogId = decodeURIComponent(params.catalogId)
   const displayName = params.name ? decodeURIComponent(params.name) : t('home.catalog_default_name')
+
+  // Get consistent variant for this catalog grid
+  const variant = useMemo(() => getRandomGridVariant(catalogId), [catalogId])
 
   const headerOptions = useMemo(
     () => ({
@@ -26,10 +43,13 @@ export default function CatalogGridScreen() {
       headerTransparent: true,
       headerBackButtonDisplayMode: 'minimal' as const,
       headerTitle: displayName,
-      headerTintColor: theme.colors.text,
+      headerTintColor: '#FFFFFF',
       headerBackTitle: '',
+      headerBackground: () => (
+        <LinearGradient colors={['rgba(0, 0, 0, 0.8)', 'rgba(0, 0, 0, 0)']} style={{ flex: 1 }} />
+      ),
     }),
-    [displayName, theme.colors.text]
+    [displayName]
   )
 
   // Get cached catalog data
@@ -49,9 +69,7 @@ export default function CatalogGridScreen() {
   // Extract media items
   const items = useMemo(() => {
     if (!latestCatalog) return []
-    return latestCatalog.items
-      .map((item) => item.media)
-      .filter((media): media is Media => !!media)
+    return latestCatalog.items.map((item) => item.media).filter((media): media is Media => !!media)
   }, [latestCatalog])
 
   // Handle infinite scroll
@@ -111,7 +129,8 @@ export default function CatalogGridScreen() {
       <Stack.Screen options={headerOptions} />
       <MediaGrid
         items={items}
-        columns={3}
+        variant={variant}
+        columns={variant === 'landscape' ? 2 : 3}
         onPressItem={handlePressMedia}
         onEndReached={handleEndReached}
         isLoadingMore={isLoadingMore || infiniteQuery.isFetchingNextPage}

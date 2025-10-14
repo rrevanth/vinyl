@@ -6,7 +6,8 @@ import { useQueryClient } from '@tanstack/react-query'
 import { router, Stack, useLocalSearchParams } from 'expo-router'
 import { useCallback, useMemo } from 'react'
 import { Text, View } from 'react-native'
-import { StyleSheet, useUnistyles } from 'react-native-unistyles'
+import { StyleSheet } from 'react-native-unistyles'
+import { LinearGradient } from 'expo-linear-gradient'
 
 interface CastMember {
   readonly person: Person
@@ -21,7 +22,6 @@ interface CachedCastData {
 export default function CastGridScreen() {
   const params = useLocalSearchParams<{ mediaStableId: string }>()
   const queryClient = useQueryClient()
-  const { theme } = useUnistyles()
 
   // Decode mediaStableId
   const mediaStableId = decodeURIComponent(params.mediaStableId)
@@ -47,10 +47,13 @@ export default function CastGridScreen() {
       headerTransparent: true,
       headerBackButtonDisplayMode: 'minimal' as const,
       headerTitle,
-      headerTintColor: theme.colors.text,
+      headerTintColor: '#FFFFFF',
       headerBackTitle: '',
+      headerBackground: () => (
+        <LinearGradient colors={['rgba(0, 0, 0, 0.8)', 'rgba(0, 0, 0, 0)']} style={{ flex: 1 }} />
+      ),
     }),
-    [headerTitle, theme.colors.text]
+    [headerTitle]
   )
 
   // Transform to CastGrid format

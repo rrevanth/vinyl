@@ -1,21 +1,23 @@
-import '@/src/presentation/theme/unistyles'
 import { t } from '@/src/presentation/shared/i18n'
+import '@/src/presentation/theme/unistyles'
 import { observer } from '@legendapp/state/react'
 import { Stack } from 'expo-router'
 import { withUnistyles } from 'react-native-unistyles'
+import { LinearGradient } from 'expo-linear-gradient'
 
 const ThemedStack = withUnistyles(Stack, (theme) => ({
   screenOptions: {
     headerShown: true,
-    headerLargeTitle: false,
-    headerTransparent: false,
+    headerLargeTitle: true,
+    headerTransparent: true,
     headerBackButtonDisplayMode: 'minimal' as const,
+    headerTintColor: '#FFFFFF',
     headerTitleStyle: {
-      color: theme.colors.text,
+      color: '#FFFFFF',
     },
-    headerStyle: {
-      backgroundColor: theme.colors.background,
-    },
+    headerBackground: () => (
+      <LinearGradient colors={['rgba(0, 0, 0, 0.8)', 'rgba(0, 0, 0, 0)']} style={{ flex: 1 }} />
+    ),
   },
 }))
 

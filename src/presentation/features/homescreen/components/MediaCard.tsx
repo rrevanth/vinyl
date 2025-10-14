@@ -5,6 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 import type { FC } from 'react'
 import { Fragment, memo } from 'react'
 import { Pressable, Text, View } from 'react-native'
+import type { StyleProp, ViewStyle } from 'react-native'
 import { StyleSheet } from 'react-native-unistyles'
 
 interface MediaCardProps {
@@ -17,6 +18,7 @@ interface MediaCardProps {
   readonly showDescription?: boolean
   readonly onPress?: (media: Media) => void
   readonly testID?: string
+  readonly style?: StyleProp<ViewStyle>
 }
 
 const MediaCardComponent: FC<MediaCardProps> = ({
@@ -29,6 +31,7 @@ const MediaCardComponent: FC<MediaCardProps> = ({
   showDescription = false,
   onPress,
   testID,
+  style,
 }) => {
   // Return null if no media provided
   if (!media) {
@@ -98,7 +101,7 @@ const MediaCardComponent: FC<MediaCardProps> = ({
         accessibilityRole="button"
         accessibilityLabel={accessibilityLabel}
         onPress={() => onPress?.(media)}
-        style={({ pressed }) => [styles.container, pressed && styles.pressed]}
+        style={({ pressed }) => [styles.container, style, pressed && styles.pressed]}
         testID={testID}
       >
         <Image

@@ -7,10 +7,11 @@ import { observer } from '@legendapp/state/react'
 import { Stack, router, useLocalSearchParams } from 'expo-router'
 import { useCallback, useMemo } from 'react'
 import { ActivityIndicator, Image, Pressable, ScrollView, Text, View } from 'react-native'
-import { StyleSheet, useUnistyles } from 'react-native-unistyles'
+import { StyleSheet } from 'react-native-unistyles'
 import type { Media } from '@/src/domain/entities/Media'
 import { useQueryClient } from '@tanstack/react-query'
 import type { MediaDetailData } from '@/src/domain/use-cases/media/GetMediaDetailUseCase'
+import { LinearGradient } from 'expo-linear-gradient'
 
 /**
  * Person Detail Screen
@@ -33,7 +34,6 @@ const PersonDetailScreen = observer(() => {
   const { stableId: encodedStableId } = useLocalSearchParams<{ stableId: string }>()
   const stableId = encodedStableId ? decodeURIComponent(encodedStableId) : ''
   const queryClient = useQueryClient()
-  const { theme } = useUnistyles()
 
   const headerOptions = useMemo(
     () => ({
@@ -41,10 +41,13 @@ const PersonDetailScreen = observer(() => {
       headerTransparent: true,
       headerBackButtonDisplayMode: 'minimal' as const,
       headerTitle: '',
-      headerTintColor: theme.colors.text,
+      headerTintColor: '#FFFFFF',
       headerBackTitle: '',
+      headerBackground: () => (
+        <LinearGradient colors={['rgba(0, 0, 0, 0.8)', 'rgba(0, 0, 0, 0)']} style={{ flex: 1 }} />
+      ),
     }),
-    [theme.colors.text]
+    []
   )
 
   // Get all data from TanStack Query
