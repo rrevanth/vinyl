@@ -1,16 +1,231 @@
-# Exclude development and documentation folders from EAS builds
-repos/
+# ==============================================================================
+# .easignore - Files and directories excluded from EAS builds
+# ==============================================================================
+# This file reduces build time and upload size by excluding unnecessary files
+# from being uploaded to EAS Build servers.
+#
+# Best practices:
+# - Exclude all documentation, design files, and development-only resources
+# - Exclude repository clones and examples
+# - Exclude IDE configurations and local development files
+# - Keep only source code, assets, and configuration needed for builds
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# Documentation and Design Files
+# ------------------------------------------------------------------------------
 docs/
-ai-conversations/
 designs/
-.context/
-
-# Exclude git files
-.git
-.gitignore
-.gitmodules
-
-# Exclude development tools
-.vscode/
+results/
+ai-conversations/
+*.md
+!README.md
 CLAUDE.md
 AGENTS.md
+CHANGELOG.md
+CONTRIBUTING.md
+TODO.md
+
+# ------------------------------------------------------------------------------
+# Development Resources (not needed for builds)
+# ------------------------------------------------------------------------------
+repos/
+scripts/
+.context/
+examples/
+example/
+app-example/
+
+# ------------------------------------------------------------------------------
+# Git and Version Control
+# ------------------------------------------------------------------------------
+.git/
+.gitignore
+.gitattributes
+.gitmodules
+.github/
+
+# ------------------------------------------------------------------------------
+# IDE and Editor Configurations
+# ------------------------------------------------------------------------------
+.vscode/
+.idea/
+.vs/
+*.swp
+*.swo
+*~
+.editorconfig
+.prettierrc
+.prettierignore
+.eslintcache
+
+# ------------------------------------------------------------------------------
+# Development Tools and Configurations
+# ------------------------------------------------------------------------------
+.expo/
+.serena/
+mise.toml
+.bunfig.toml
+.npmrc
+.yarnrc
+.yarnrc.yml
+.yarn/
+.pnp.*
+
+# ------------------------------------------------------------------------------
+# Environment and Secrets (should use EAS Secrets instead)
+# ------------------------------------------------------------------------------
+.env
+.env.local
+.env.*.local
+.env.development
+.env.test
+.env.staging
+*.pem
+*.key
+*.p8
+*.p12
+*.jks
+*.keystore
+
+# ------------------------------------------------------------------------------
+# Build Artifacts and Caches
+# ------------------------------------------------------------------------------
+dist/
+build/
+web-build/
+.next/
+out/
+.cache/
+.turbo/
+.metro-health-check*
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# ------------------------------------------------------------------------------
+# Testing Files
+# ------------------------------------------------------------------------------
+__tests__/
+__mocks__/
+*.test.ts
+*.test.tsx
+*.test.js
+*.test.jsx
+*.spec.ts
+*.spec.tsx
+*.spec.js
+*.spec.jsx
+coverage/
+.nyc_output/
+jest.config.*
+vitest.config.*
+
+# ------------------------------------------------------------------------------
+# Logs and Debug Files
+# ------------------------------------------------------------------------------
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.DS_Store
+*.orig
+*.orig.*
+
+# ------------------------------------------------------------------------------
+# Temporary Files
+# ------------------------------------------------------------------------------
+tmp/
+temp/
+*.tmp
+*.temp
+.kotlin/
+
+# ------------------------------------------------------------------------------
+# macOS System Files
+# ------------------------------------------------------------------------------
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.Spotlight-V100
+.Trashes
+
+# ------------------------------------------------------------------------------
+# Windows System Files
+# ------------------------------------------------------------------------------
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ------------------------------------------------------------------------------
+# Generated Native Directories (if using managed workflow)
+# ------------------------------------------------------------------------------
+# Uncomment these if you use `npx expo prebuild` locally but build on EAS:
+# ios/
+# android/
+
+# ------------------------------------------------------------------------------
+# Large Media Files (serve from CDN instead)
+# ------------------------------------------------------------------------------
+# Uncomment if you have large assets that should be served from CDN:
+# *.mp4
+# *.mov
+# *.avi
+# *.mkv
+# *.webm
+
+# ------------------------------------------------------------------------------
+# Package Manager Lock Files (optional - can speed up builds)
+# ------------------------------------------------------------------------------
+# Uncomment if you want EAS to generate fresh lock files:
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+# bun.lockb
+
+# ------------------------------------------------------------------------------
+# Additional Development Files
+# ------------------------------------------------------------------------------
+*.code-workspace
+.history/
+.gradle/
+xcuserdata/
+*.xcworkspace/
+DerivedData/
+
+# ------------------------------------------------------------------------------
+# CI/CD Configurations (if not needed for EAS)
+# ------------------------------------------------------------------------------
+.gitlab-ci.yml
+.travis.yml
+.circleci/
+.github/workflows/
+azure-pipelines.yml
+bitbucket-pipelines.yml
+
+# ------------------------------------------------------------------------------
+# Documentation Generators
+# ------------------------------------------------------------------------------
+.docusaurus/
+.storybook/
+storybook-static/
+styleguide/
+
+# ------------------------------------------------------------------------------
+# Performance and Analytics
+# ------------------------------------------------------------------------------
+.lighthouseci/
+.bundlewatch.json
+bundle-report.html
+stats.json
+
+# ------------------------------------------------------------------------------
+# Miscellaneous
+# ------------------------------------------------------------------------------
+*.bak
+*.swp
+.project
+.settings/
+.classpath
