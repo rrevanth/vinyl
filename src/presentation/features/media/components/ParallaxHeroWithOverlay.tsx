@@ -140,10 +140,15 @@ const ParallaxHeroWithOverlayComponent: FC<ParallaxHeroWithOverlayProps> = ({
         )}
       </Animated.View>
 
+      {/* Layered blur gradient - bottom (like episode cards) */}
+      <BlurView intensity={80} tint="dark" style={styles.blurOverlayBottom} />
+      <BlurView intensity={60} tint="dark" style={styles.blurOverlayMiddle} />
+      <BlurView intensity={40} tint="dark" style={styles.blurOverlayTop} />
+
       {/* Strong Gradient Overlay for Text Readability */}
       <LinearGradient
         colors={['transparent', 'rgba(0,0,0,0.3)', 'rgba(0,0,0,0.95)']}
-        locations={[0, 0.3, 1]}
+        locations={[0, 0.2, 1]}
         style={styles.gradient}
       />
 
@@ -273,7 +278,31 @@ const styles = StyleSheet.create((theme) => ({
     bottom: 0,
     left: 0,
     right: 0,
-    height: '70%',
+    height: '80%',
+  },
+  blurOverlayBottom: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: '30%',
+    opacity: 0.6,
+  },
+  blurOverlayMiddle: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: '60%',
+    opacity: 0.2,
+  },
+  blurOverlayTop: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: '90%',
+    opacity: 0.2,
   },
   topBlur: {
     position: 'absolute',
@@ -362,7 +391,6 @@ const styles = StyleSheet.create((theme) => ({
   },
   synopsisContainer: {
     gap: theme.spacing.xs,
-    paddingHorizontal: theme.spacing.lg,
     marginBottom: theme.spacing.md,
   },
   synopsis: {
