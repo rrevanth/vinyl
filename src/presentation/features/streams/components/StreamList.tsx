@@ -27,7 +27,7 @@ export const StreamList: React.FC<StreamListProps> = observer(({ streams }) => {
   return (
     <LegendList
       data={streams}
-      keyExtractor={(item: Stream) => item.id}
+      keyExtractor={(item: Stream) => item.id || `stream-${Math.random()}`}
       renderItem={({ item }: { item: Stream }) => (
         <StreamCard stream={item} />
       )}

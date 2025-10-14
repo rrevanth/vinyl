@@ -7,7 +7,10 @@ import { observer } from '@legendapp/state/react'
 import { StyleSheet } from 'react-native-unistyles'
 import type { Media } from '@/src/domain/entities/Media'
 import type { Stream } from '@/src/domain/entities/Stream'
-import { player$, togglePlayback, cycleResizeMode } from '@/src/presentation/features/player/stores/player.store'
+import { player$, togglePlayback, toggleInfoPanel, toggleSettingsMenu, setPlaybackSpeed, toggleMute } from '@/src/presentation/features/player/stores/player.store'
+import { PlayerInfoPanel } from './PlayerInfoPanel'
+import { PlayerSettingsMenu } from './PlayerSettingsMenu'
+import { PlaybackSpeedModal } from './PlaybackSpeedModal'
 
 interface PlayerControlsProps {
   media: Media
@@ -23,6 +26,8 @@ interface PlayerControlsProps {
   onSeek: (time: number) => void
   onCyclePlaybackSpeed?: () => void
   onShowSourcesModal?: () => void
+  onFromBeginning?: () => void
+  onGoToShow?: () => void
 }
 
 export const PlayerControls: React.FC<PlayerControlsProps> = observer(({
@@ -39,13 +44,15 @@ export const PlayerControls: React.FC<PlayerControlsProps> = observer(({
   onSeek,
   onCyclePlaybackSpeed,
   onShowSourcesModal,
+  onFromBeginning,
+  onGoToShow,
 }) => {
   const showControls = player$.showControls.get()
   const isPlaying = player$.isPlaying.get()
   const currentTime = player$.currentTime.get()
   const duration = player$.duration.get()
-  const resizeMode = player$.resizeMode.get()
   const isBuffering = player$.isBuffering.get()
+  const isMuted = player$.muted.get()
 
   // Format time as MM:SS or HH:MM:SS
   const formatTime = (seconds: number): string => {
@@ -73,22 +80,6 @@ export const PlayerControls: React.FC<PlayerControlsProps> = observer(({
     return null
   }
 
-  // Get player backend display name
-  const getPlayerBackendName = (): string => {
-    if (!playerBackend) return ''
-
-    switch (playerBackend) {
-      case 'expo-libvlc':
-        return 'VLC'
-      case 'react-native-video':
-        return 'ExoPlayer'
-      case 'vlc':
-        return 'VLC'
-      default:
-        return playerBackend
-    }
-  }
-
   if (!showControls) {
     return null
   }
@@ -101,43 +92,26 @@ export const PlayerControls: React.FC<PlayerControlsProps> = observer(({
         style={styles.topGradient}
       >
         <View style={styles.header}>
-          <View style={styles.titleSection}>
-            {/* Main title with year */}
-            <Text style={styles.title} numberOfLines={1}>
-              {getTitleWithYear()}
-            </Text>
-
-            {/* Episode info for series */}
-            {getEpisodeInfo() && (
-              <Text style={styles.episodeInfo} numberOfLines={1}>
-                {getEpisodeInfo()}
-              </Text>
-            )}
-
-            {/* Metadata row: stream provider and quality */}
-            <View style={styles.metadataRow}>
-              {stream.name && (
-                <Text style={styles.providerText}>via {stream.name}</Text>
-              )}
-              {stream.quality && (
-                <Text style={styles.qualityBadge}>{stream.quality}</Text>
-              )}
-            </View>
-
-            {/* Player backend indicator */}
-            {playerBackend && (
-              <Text style={styles.backendText}>{getPlayerBackendName()}</Text>
-            )}
-          </View>
-
+          {/* Close button - left */}
           <Pressable
             onPress={onClose}
-            style={styles.closeButton}
+            style={styles.topIconButton}
             accessibilityRole="button"
             accessibilityLabel="Close player"
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <Ionicons name="close" size={28} color="#FFFFFF" />
+            <Ionicons name="close" size={24} color="#FFFFFF" />
+          </Pressable>
+
+          {/* Volume button - right */}
+          <Pressable
+            onPress={toggleMute}
+            style={styles.topIconButton}
+            accessibilityRole="button"
+            accessibilityLabel={isMuted ? "Unmute" : "Mute"}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Ionicons name={isMuted ? "volume-mute" : "volume-high"} size={24} color="#FFFFFF" />
           </Pressable>
         </View>
       </LinearGradient>
@@ -188,11 +162,33 @@ export const PlayerControls: React.FC<PlayerControlsProps> = observer(({
         </Pressable>
       </View>
 
-      {/* Bottom gradient with progress and controls */}
+      {/* Bottom gradient with title, progress and controls */}
       <LinearGradient
         colors={['transparent', 'rgba(0,0,0,0.7)']}
         style={styles.bottomGradient}
       >
+        {/* Title and metadata - moved from top */}
+        <View style={styles.bottomTitleSection}>
+          <Text style={styles.bottomTitle} numberOfLines={1}>
+            {getTitleWithYear()}
+          </Text>
+
+          {getEpisodeInfo() && (
+            <Text style={styles.bottomEpisodeInfo} numberOfLines={1}>
+              {getEpisodeInfo()}
+            </Text>
+          )}
+
+          <View style={styles.metadataRow}>
+            {stream.name && (
+              <Text style={styles.providerText}>via {stream.name}</Text>
+            )}
+            {stream.quality && (
+              <Text style={styles.qualityBadge}>{stream.quality}</Text>
+            )}
+          </View>
+        </View>
+
         {/* Progress slider with buffered indicator */}
         <View style={styles.progressContainer}>
           <Text style={styles.timeText}>{formatTime(currentTime)}</Text>
@@ -226,73 +222,77 @@ export const PlayerControls: React.FC<PlayerControlsProps> = observer(({
 
         {/* Control buttons row */}
         <View style={styles.controlsRow}>
-          {/* Resize mode */}
+          {/* Info button - pill shaped */}
           <Pressable
-            onPress={cycleResizeMode}
-            style={styles.bottomButton}
+            onPress={toggleInfoPanel}
+            style={[
+              styles.infoButton,
+              player$.showInfoPanel.get() && styles.infoButtonSelected
+            ]}
             accessibilityRole="button"
-            accessibilityLabel={`Resize mode: ${resizeMode}`}
+            accessibilityLabel="Info"
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            <Ionicons name="resize" size={20} color="#FFFFFF" />
-            <Text style={styles.bottomButtonText}>
-              {resizeMode === 'contain' ? 'Fit' : resizeMode === 'cover' ? 'Fill' : 'Stretch'}
+            <Text style={[
+              styles.infoButtonText,
+              player$.showInfoPanel.get() && styles.infoButtonTextSelected
+            ]}>
+              Info
             </Text>
           </Pressable>
 
-          {/* Playback speed (hide on iOS) */}
-          {Platform.OS !== 'ios' && onCyclePlaybackSpeed && (
-            <Pressable
-              onPress={onCyclePlaybackSpeed}
-              style={styles.bottomButton}
-              accessibilityRole="button"
-              accessibilityLabel={`Playback speed: ${playbackSpeed}x`}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            >
-              <Ionicons name="speedometer" size={20} color="#FFFFFF" />
-              <Text style={styles.bottomButtonText}>{playbackSpeed}x</Text>
-            </Pressable>
-          )}
-
-          {/* Audio tracks */}
+          {/* Settings button */}
           <Pressable
-            onPress={() => player$.showAudioModal.set(true)}
-            style={styles.bottomButton}
+            onPress={toggleSettingsMenu}
+            style={styles.bottomIconButton}
             accessibilityRole="button"
-            accessibilityLabel="Audio tracks"
+            accessibilityLabel="Settings"
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            <Ionicons name="musical-notes" size={20} color="#FFFFFF" />
-            <Text style={styles.bottomButtonText}>Audio</Text>
+            <Ionicons name="options" size={20} color="#FFFFFF" />
           </Pressable>
-
-          {/* Subtitles */}
-          <Pressable
-            onPress={() => player$.showSubtitleModal.set(true)}
-            style={styles.bottomButton}
-            accessibilityRole="button"
-            accessibilityLabel="Subtitles"
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          >
-            <Ionicons name="text" size={20} color="#FFFFFF" />
-            <Text style={styles.bottomButtonText}>Subtitles</Text>
-          </Pressable>
-
-          {/* Change source (optional) */}
-          {onShowSourcesModal && (
-            <Pressable
-              onPress={onShowSourcesModal}
-              style={styles.bottomButton}
-              accessibilityRole="button"
-              accessibilityLabel="Change source"
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            >
-              <Ionicons name="ellipsis-horizontal" size={20} color="#FFFFFF" />
-              <Text style={styles.bottomButtonText}>More</Text>
-            </Pressable>
-          )}
         </View>
       </LinearGradient>
+
+      {/* Info Panel */}
+      <PlayerInfoPanel
+        enrichedMedia={{ media }}
+        visible={player$.showInfoPanel.get()}
+        seasonNumber={seasonNumber}
+        episodeNumber={episodeNumber}
+        episodeTitle={episodeTitle}
+        onFromBeginning={onFromBeginning || (() => {})}
+      />
+
+      {/* Settings Menu */}
+      <PlayerSettingsMenu
+        visible={player$.showSettingsMenu.get()}
+        onClose={toggleSettingsMenu}
+        onPlaybackSpeed={() => {
+          toggleSettingsMenu()
+          player$.showSpeedModal.set(true)
+        }}
+        onAudioTrack={() => {
+          toggleSettingsMenu()
+          player$.showAudioModal.set(true)
+        }}
+        onSubtitles={() => {
+          toggleSettingsMenu()
+          player$.showSubtitleModal.set(true)
+        }}
+      />
+
+      {/* Playback Speed Modal */}
+      <PlaybackSpeedModal
+        visible={player$.showSpeedModal.get()}
+        currentSpeed={player$.playbackSpeed.get()}
+        onClose={() => player$.showSpeedModal.set(false)}
+        onSelectSpeed={(speed) => {
+          setPlaybackSpeed(speed)
+          onCyclePlaybackSpeed?.()
+          player$.showSpeedModal.set(false)
+        }}
+      />
     </Animated.View>
   )
 })
@@ -310,24 +310,93 @@ const styles = StyleSheet.create((theme) => ({
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    gap: theme.spacing.md,
+    alignItems: 'center',
   },
-  titleSection: {
-    flex: 1,
-    gap: theme.spacing.xs,
+  topIconButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+    shadowColor: '#FFFFFF',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  title: {
-    fontSize: theme.fontSize.lg,
+  centerControls: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: theme.spacing.xl * 2,
+  },
+  skipButton: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+    shadowColor: '#FFFFFF',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  skipButtonContent: {
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  skipText: {
+    position: 'absolute',
+    fontSize: theme.fontSize.xs,
     fontWeight: '700',
     color: '#FFFFFF',
-    lineHeight: theme.fontSize.lg * 1.3,
+    top: '50%',
+    left: '50%',
+    transform: [{ translateX: -6 }, { translateY: -6 }],
   },
-  episodeInfo: {
+  playButton: {
+    padding: theme.spacing.md,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    shadowColor: '#FFFFFF',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 10,
+    borderRadius: 50,
+    minWidth: 80,
+    minHeight: 80,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bottomGradient: {
+    paddingHorizontal: theme.spacing.md,
+    paddingBottom: theme.spacing.xl + 10,
+    paddingTop: theme.spacing.xl,
+    gap: theme.spacing.md,
+  },
+  bottomTitleSection: {
+    gap: theme.spacing.xs,
+    marginBottom: theme.spacing.md,
+  },
+  bottomTitle: {
     fontSize: theme.fontSize.base,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  bottomEpisodeInfo: {
+    fontSize: theme.fontSize.sm,
     fontWeight: '500',
     color: 'rgba(255,255,255,0.9)',
-    lineHeight: theme.fontSize.base * 1.3,
   },
   metadataRow: {
     flexDirection: 'row',
@@ -348,60 +417,6 @@ const styles = StyleSheet.create((theme) => ({
     paddingVertical: theme.spacing.xs,
     backgroundColor: 'rgba(255,255,255,0.2)',
     borderRadius: theme.borderRadius.sm,
-  },
-  backendText: {
-    fontSize: 11,
-    fontWeight: '500',
-    color: 'rgba(255,255,255,0.6)',
-    marginTop: theme.spacing.xs,
-  },
-  closeButton: {
-    padding: theme.spacing.sm,
-    minWidth: 44,
-    minHeight: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  centerControls: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: theme.spacing.xl * 2,
-  },
-  skipButton: {
-    minWidth: 44,
-    minHeight: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  skipButtonContent: {
-    position: 'relative',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  skipText: {
-    position: 'absolute',
-    fontSize: theme.fontSize.xs,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    top: '50%',
-    left: '50%',
-    transform: [{ translateX: -6 }, { translateY: -6 }],
-  },
-  playButton: {
-    padding: theme.spacing.md,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    borderRadius: 50,
-    minWidth: 80,
-    minHeight: 80,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  bottomGradient: {
-    paddingHorizontal: theme.spacing.md,
-    paddingBottom: theme.spacing.xl + 10,
-    paddingTop: theme.spacing.xl,
-    gap: theme.spacing.md,
   },
   progressContainer: {
     flexDirection: 'row',
@@ -439,20 +454,46 @@ const styles = StyleSheet.create((theme) => ({
     justifyContent: 'center',
     alignItems: 'center',
     gap: theme.spacing.lg,
-    flexWrap: 'wrap',
   },
-  bottomButton: {
-    flexDirection: 'column',
+  infoButton: {
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.sm,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+    shadowColor: '#FFFFFF',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 8,
+    minHeight: 40,
+    justifyContent: 'center',
+  },
+  infoButtonSelected: {
+    backgroundColor: '#FFFFFF',
+  },
+  infoButtonText: {
+    fontSize: theme.fontSize.sm,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  infoButtonTextSelected: {
+    color: '#000000',
+  },
+  bottomIconButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+    shadowColor: '#FFFFFF',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: theme.spacing.xs,
-    minWidth: 44,
-    minHeight: 44,
-    paddingHorizontal: theme.spacing.xs,
-  },
-  bottomButtonText: {
-    fontSize: theme.fontSize.xs,
-    fontWeight: '500',
-    color: '#FFFFFF',
   },
 }))

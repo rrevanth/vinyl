@@ -1,5 +1,5 @@
 import { CapabilityType } from '@/src/domain/capabilities/CapabilityType'
-import type { IMediaStreamsCapability } from '@/src/domain/capabilities/IMediaStreamsCapability'
+import type { IMediaStreamsCapability, ProviderInfo } from '@/src/domain/capabilities/IMediaStreamsCapability'
 import type { Media } from '@/src/domain/entities/Media'
 import type { Stream } from '@/src/domain/entities/Stream'
 import type { ILoggingService } from '@/src/domain/services/ILoggingService'
@@ -8,7 +8,7 @@ import type { GetEnabledProvidersForCapabilityUseCase } from '@/src/domain/use-c
 /**
  * Callback fired when a provider completes (success or failure)
  */
-export type ProviderStreamCallback = (providerId: string, streams: Stream[], error?: Error) => void
+export type ProviderStreamCallback = (provider: ProviderInfo, streams: Stream[], error?: Error) => void
 
 /**
  * Use case for fetching media streams from all enabled providers.
@@ -26,12 +26,12 @@ export class GetMediaStreamsUseCase {
    *
    * @param media - The media entity to fetch streams for
    * @param onProviderComplete - Optional callback fired when each provider completes
-   * @returns Object containing aggregated streams and provider IDs
+   * @returns Object containing aggregated streams and provider information
    */
   async execute(
     media: Media,
     onProviderComplete?: ProviderStreamCallback
-  ): Promise<{ streams: Stream[]; providers: string[] }> {
+  ): Promise<{ streams: Stream[]; providers: ProviderInfo[] }> {
     try {
       // Get all enabled providers with MEDIA_STREAMS capability
       const providers = await this.getEnabledProvidersUseCase.execute(CapabilityType.MEDIA_STREAMS)
@@ -43,7 +43,7 @@ export class GetMediaStreamsUseCase {
       })
 
       const aggregatedStreams: Stream[] = []
-      const successfulProviders = new Set<string>()
+      const successfulProviders = new Map<string, ProviderInfo>()
 
       // Process each provider independently (don't wait for all)
       const providerPromises = providers.map(async (provider) => {
@@ -57,24 +57,28 @@ export class GetMediaStreamsUseCase {
               providerId: provider.metadata.id,
             })
             // Fire callback with empty result
-            onProviderComplete?.(provider.metadata.id, [], new Error('Missing capability'))
+            const providerInfo: ProviderInfo = {
+              id: provider.metadata.id,
+              name: provider.metadata.name || provider.metadata.id,
+            }
+            onProviderComplete?.(providerInfo, [], new Error('Missing capability'))
             return
           }
 
           const result = await capability.getStreams(media)
 
           if (result.success) {
-            const streams = result.data
+            const { streams, providerInfo } = result.data
             aggregatedStreams.push(...streams)
-            successfulProviders.add(provider.metadata.id)
+            successfulProviders.set(providerInfo.id, providerInfo)
 
             this.logger.info('Successfully fetched streams from provider', {
-              providerId: provider.metadata.id,
+              providerId: providerInfo.id,
               streamCount: streams.length,
             })
 
             // Fire callback immediately with this provider's results
-            onProviderComplete?.(provider.metadata.id, streams)
+            onProviderComplete?.(providerInfo, streams)
           } else {
             this.logger.warn('Provider returned error for getStreams', {
               providerId: provider.metadata.id,
@@ -82,7 +86,11 @@ export class GetMediaStreamsUseCase {
             })
 
             // Fire callback with error
-            onProviderComplete?.(provider.metadata.id, [], new Error(result.error?.message || 'Unknown error'))
+            const providerInfo: ProviderInfo = {
+              id: provider.metadata.id,
+              name: provider.metadata.name || provider.metadata.id,
+            }
+            onProviderComplete?.(providerInfo, [], new Error(result.error?.message || 'Unknown error'))
           }
         } catch (error) {
           const err = error instanceof Error ? error : new Error(String(error))
@@ -96,23 +104,27 @@ export class GetMediaStreamsUseCase {
           )
 
           // Fire callback with error
-          onProviderComplete?.(provider.metadata.id, [], err)
+          const providerInfo: ProviderInfo = {
+            id: provider.metadata.id,
+            name: provider.metadata.name || provider.metadata.id,
+          }
+          onProviderComplete?.(providerInfo, [], err)
         }
       })
 
       // Wait for all providers to complete (settled, not rejected)
       await Promise.allSettled(providerPromises)
 
-      const providerIds = Array.from(successfulProviders)
+      const providerInfos = Array.from(successfulProviders.values())
 
       this.logger.info('Stream aggregation complete', {
         totalStreams: aggregatedStreams.length,
-        successfulProviders: providerIds.length,
+        successfulProviders: providerInfos.length,
       })
 
       return {
         streams: aggregatedStreams,
-        providers: providerIds,
+        providers: providerInfos,
       }
     } catch (error) {
       this.logger.error(
@@ -133,14 +145,14 @@ export class GetMediaStreamsUseCase {
    * @param seasonNumber - The season number
    * @param episodeNumber - The episode number
    * @param onProviderComplete - Optional callback fired when each provider completes
-   * @returns Object containing aggregated streams and provider IDs
+   * @returns Object containing aggregated streams and provider information
    */
   async executeForEpisode(
     media: Media,
     seasonNumber: number,
     episodeNumber: number,
     onProviderComplete?: ProviderStreamCallback
-  ): Promise<{ streams: Stream[]; providers: string[] }> {
+  ): Promise<{ streams: Stream[]; providers: ProviderInfo[] }> {
     try {
       // Get all enabled providers with MEDIA_STREAMS capability
       const providers = await this.getEnabledProvidersUseCase.execute(CapabilityType.MEDIA_STREAMS)
@@ -153,7 +165,7 @@ export class GetMediaStreamsUseCase {
       })
 
       const aggregatedStreams: Stream[] = []
-      const successfulProviders = new Set<string>()
+      const successfulProviders = new Map<string, ProviderInfo>()
 
       // Process each provider independently (don't wait for all)
       const providerPromises = providers.map(async (provider) => {
@@ -167,24 +179,28 @@ export class GetMediaStreamsUseCase {
               providerId: provider.metadata.id,
             })
             // Fire callback with empty result
-            onProviderComplete?.(provider.metadata.id, [], new Error('Missing capability'))
+            const providerInfo: ProviderInfo = {
+              id: provider.metadata.id,
+              name: provider.metadata.name || provider.metadata.id,
+            }
+            onProviderComplete?.(providerInfo, [], new Error('Missing capability'))
             return
           }
 
           const result = await capability.getEpisodeStreams(media, seasonNumber, episodeNumber)
 
           if (result.success) {
-            const streams = result.data
+            const { streams, providerInfo } = result.data
             aggregatedStreams.push(...streams)
-            successfulProviders.add(provider.metadata.id)
+            successfulProviders.set(providerInfo.id, providerInfo)
 
             this.logger.info('Successfully fetched episode streams from provider', {
-              providerId: provider.metadata.id,
+              providerId: providerInfo.id,
               streamCount: streams.length,
             })
 
             // Fire callback immediately with this provider's results
-            onProviderComplete?.(provider.metadata.id, streams)
+            onProviderComplete?.(providerInfo, streams)
           } else {
             this.logger.warn('Provider returned error for getEpisodeStreams', {
               providerId: provider.metadata.id,
@@ -192,7 +208,11 @@ export class GetMediaStreamsUseCase {
             })
 
             // Fire callback with error
-            onProviderComplete?.(provider.metadata.id, [], new Error(result.error?.message || 'Unknown error'))
+            const providerInfo: ProviderInfo = {
+              id: provider.metadata.id,
+              name: provider.metadata.name || provider.metadata.id,
+            }
+            onProviderComplete?.(providerInfo, [], new Error(result.error?.message || 'Unknown error'))
           }
         } catch (error) {
           const err = error instanceof Error ? error : new Error(String(error))
@@ -208,23 +228,27 @@ export class GetMediaStreamsUseCase {
           )
 
           // Fire callback with error
-          onProviderComplete?.(provider.metadata.id, [], err)
+          const providerInfo: ProviderInfo = {
+            id: provider.metadata.id,
+            name: provider.metadata.name || provider.metadata.id,
+          }
+          onProviderComplete?.(providerInfo, [], err)
         }
       })
 
       // Wait for all providers to complete (settled, not rejected)
       await Promise.allSettled(providerPromises)
 
-      const providerIds = Array.from(successfulProviders)
+      const providerInfos = Array.from(successfulProviders.values())
 
       this.logger.info('Episode stream aggregation complete', {
         totalStreams: aggregatedStreams.length,
-        successfulProviders: providerIds.length,
+        successfulProviders: providerInfos.length,
       })
 
       return {
         streams: aggregatedStreams,
-        providers: providerIds,
+        providers: providerInfos,
       }
     } catch (error) {
       this.logger.error(

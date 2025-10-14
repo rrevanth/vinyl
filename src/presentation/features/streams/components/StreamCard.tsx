@@ -1,16 +1,27 @@
 import React from 'react'
 import { View, Text, Pressable } from 'react-native'
-import { StyleSheet } from 'react-native-unistyles'
+import { StyleSheet, withUnistyles } from 'react-native-unistyles'
 import { Ionicons } from '@expo/vector-icons'
 import { observer } from '@legendapp/state/react'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import { useQueryClient } from '@tanstack/react-query'
 import type { Stream } from '@/src/domain/entities/Stream'
 import type { Media } from '@/src/domain/entities/Media'
-import { Badge } from '@/src/presentation/shared/ui'
+
+// Create themed Ionicons component using Unistyles v3 API
+const ThemedIonicons = withUnistyles(Ionicons, (theme) => ({
+  color: theme.colors.text,
+}))
 
 interface StreamCardProps {
   stream: Stream
+}
+
+const formatBytes = (bytes: number): string => {
+  if (bytes >= 1073741824) {
+    return `${(bytes / 1073741824).toFixed(2)} GB`
+  }
+  return `${(bytes / 1048576).toFixed(2)} MB`
 }
 
 export const StreamCard: React.FC<StreamCardProps> = observer(({ stream }) => {
@@ -60,76 +71,36 @@ export const StreamCard: React.FC<StreamCardProps> = observer(({ stream }) => {
       },
     })
   }
-  const extractProviderName = (provider: string): string => {
-    // Extract readable name from provider URL or identifier
-    const parts = provider.split('|')
-    if (parts.length > 1) {
-      return parts[1] || provider
-    }
-    return provider
-  }
 
-  // Format description by replacing \n with actual line breaks
-  const formatDescription = (text?: string): string => {
-    if (!text) return ''
-    return text.replace(/\\n/g, '\n').replace(/\n/g, '\n')
-  }
-
-  const displayName = stream.name || stream.quality || 'Stream'
-  const providerName = extractProviderName(stream.provider)
-  const formattedDescription = formatDescription(stream.description)
-  
-  // Check for problematic audio codecs in stream name/description
-  const hasProblematicAudio = (
-    displayName.toLowerCase().includes('truehd') ||
-    displayName.toLowerCase().includes('dts-hd') ||
-    displayName.toLowerCase().includes('dts:x') ||
-    displayName.toLowerCase().includes('atmos') ||
-    formattedDescription.toLowerCase().includes('truehd') ||
-    formattedDescription.toLowerCase().includes('dts-hd')
-  )
+  // Ensure we have valid string values
+  const displayName = stream.name?.trim() || 'Stream'
+  const displayDescription = stream.description?.trim() || null
 
   return (
     <Pressable
       style={({ pressed }) => [styles.card, pressed && styles.pressed]}
       onPress={handlePress}
       accessibilityRole="button"
-      accessibilityLabel={`${displayName} from ${providerName}`}
+      accessibilityLabel={displayName}
     >
       <View style={styles.content}>
-        <View style={styles.header}>
-          <View style={styles.titleRow}>
-            <Ionicons name="play-circle" size={24} color={styles.playIcon.color} />
-            <Text style={styles.title} numberOfLines={2}>
-              {displayName}
-            </Text>
-          </View>
-          <Badge label={providerName} variant="primary" size="sm" />
+        {/* Title with play icon */}
+        <View style={styles.titleRow}>
+          <ThemedIonicons name="play-circle" size={20} />
+          <Text style={styles.title}>{displayName}</Text>
         </View>
-        {(stream.quality || hasProblematicAudio) && (
-          <View style={styles.metadataRow}>
-            {stream.quality && (
-              <Badge label={stream.quality} variant="info" size="sm" />
-            )}
-            {stream.source && (
-              <Badge
-                label={stream.source.toUpperCase()}
-                variant="secondary"
-                size="sm"
-              />
-            )}
-            {hasProblematicAudio && (
-              <Badge
-                label="⚠️ HD AUDIO"
-                variant="warning"
-                size="sm"
-              />
-            )}
-          </View>
+
+        {/* Description (multiline, preserve formatting) */}
+        {displayDescription && (
+          <Text style={styles.description}>
+            {displayDescription}
+          </Text>
         )}
-        {formattedDescription && (
-          <Text style={styles.description} numberOfLines={3}>
-            {formattedDescription}
+
+        {/* File size */}
+        {stream.size && (
+          <Text style={styles.fileSize}>
+            {formatBytes(stream.size)}
           </Text>
         )}
       </View>
@@ -139,40 +110,22 @@ export const StreamCard: React.FC<StreamCardProps> = observer(({ stream }) => {
 
 const styles = StyleSheet.create((theme) => ({
   card: {
-    backgroundColor: theme.colors.backgroundTertiary,
-    borderRadius: theme.borderRadius.xl,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)', // Subtle transparent tint for dark mode
+    borderRadius: theme.borderRadius.lg,
     padding: theme.spacing.lg,
     marginVertical: theme.spacing.sm,
     marginHorizontal: theme.spacing.gutter,
-    borderWidth: 1,
+    borderWidth: 2, // Increased for better visibility
     borderColor: theme.colors.border,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 8,
   },
   pressed: {
-    opacity: 1,
+    opacity: 0.85,
     transform: [{ scale: 0.98 }],
-    borderColor: theme.colors.primary,
-    borderWidth: 2,
-    shadowColor: theme.colors.primary,
-    shadowOpacity: 0.5,
-    shadowRadius: 16,
-    elevation: 12,
   },
   content: {
     gap: theme.spacing.md,
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start' as const,
-    gap: theme.spacing.sm,
-  },
   titleRow: {
-    flex: 1,
     flexDirection: 'row',
     alignItems: 'center' as const,
     gap: theme.spacing.sm,
@@ -184,17 +137,14 @@ const styles = StyleSheet.create((theme) => ({
     color: theme.colors.text,
     lineHeight: theme.fontSize.base * 1.5,
   },
-  playIcon: {
-    color: theme.colors.primary,
-  },
-  metadataRow: {
-    flexDirection: 'row',
-    gap: theme.spacing.xs,
-    flexWrap: 'wrap' as const,
-  },
   description: {
     fontSize: theme.fontSize.sm,
     lineHeight: theme.fontSize.sm * 1.6,
     color: theme.colors.textSecondary,
+  },
+  fileSize: {
+    fontSize: theme.fontSize.xs,
+    color: theme.colors.textSecondary, // Improved from textTertiary for better visibility
+    fontWeight: '600' as const, // Increased from '500' for more prominence
   },
 }))

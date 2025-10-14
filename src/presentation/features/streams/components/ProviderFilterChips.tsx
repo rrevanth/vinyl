@@ -2,25 +2,30 @@ import React from 'react'
 import { ScrollView, View, Text } from 'react-native'
 import { StyleSheet } from 'react-native-unistyles'
 import { observer } from '@legendapp/state/react'
+import type { ProviderInfo } from '@/src/domain/capabilities/IMediaStreamsCapability'
 import { streamUI$ } from '../stores/streamUI.store'
 import { useTranslations } from '@/src/presentation/shared/i18n'
 import { Chip } from '@/src/presentation/shared/ui'
 
 interface ProviderFilterChipsProps {
-  providers: string[]
+  providers: ProviderInfo[]
 }
 
 export const ProviderFilterChips: React.FC<ProviderFilterChipsProps> = observer(({ providers }) => {
   const t = useTranslations()
   const selectedProvider = streamUI$.selectedProvider.get()
 
-  const extractProviderName = (provider: string): string => {
-    const parts = provider.split('|')
-    if (parts.length > 1) {
-      return parts[1] || provider
-    }
-    return provider
-  }
+  // Deduplicate providers by ID and filter out invalid providers
+  const uniqueProviders = React.useMemo(() => {
+    const seen = new Set<string>()
+    return providers.filter((provider) => {
+      // Filter out providers with invalid data
+      if (!provider?.id || !provider?.name) return false
+      if (seen.has(provider.id)) return false
+      seen.add(provider.id)
+      return true
+    })
+  }, [providers])
 
   const handlePress = (providerId: string) => {
     streamUI$.selectedProvider.set(providerId)
@@ -41,16 +46,16 @@ export const ProviderFilterChips: React.FC<ProviderFilterChipsProps> = observer(
           onPress={() => handlePress('all')}
         />
 
-        {providers.map((provider) => {
-          const displayName = extractProviderName(provider)
-          const isSelected = selectedProvider === provider
+        {uniqueProviders.map((provider) => {
+          const isSelected = selectedProvider === provider.id
+          const displayName = provider.name || provider.id || 'Unknown Provider' // Triple fallback
 
           return (
             <Chip
-              key={provider}
+              key={provider.id}
               label={displayName}
               selected={isSelected}
-              onPress={() => handlePress(provider)}
+              onPress={() => handlePress(provider.id)}
             />
           )
         })}

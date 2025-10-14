@@ -49,7 +49,7 @@ export default observer(function StreamScreen() {
   // Fetch streams
   const { streams, providers, isLoading } = useMediaStreams(media!, seasonNumber, episodeNumber)
 
-  // Get selected provider outside of useMemo to avoid complex dependency
+  // Get selected provider
   const selectedProvider = streamUI$.selectedProvider.get()
 
   // Filter streams by selected provider
@@ -96,6 +96,9 @@ export default observer(function StreamScreen() {
             Season {seasonNumber} · Episode {episodeNumber}
           </Text>
         )}
+        <Text style={styles.resourceCount}>
+          {streams.length} {streams.length === 1 ? 'Resource' : 'Resources'} Found
+        </Text>
       </View>
 
       {/* Provider Filter */}
@@ -131,6 +134,11 @@ const styles = StyleSheet.create((theme) => ({
   },
   episodeInfo: {
     fontSize: theme.fontSize.base,
+    color: theme.colors.textSecondary,
+    fontWeight: '500' as const,
+  },
+  resourceCount: {
+    fontSize: theme.fontSize.sm,
     color: theme.colors.textSecondary,
     fontWeight: '500' as const,
   },

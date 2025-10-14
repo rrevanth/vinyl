@@ -1,12 +1,13 @@
 import { BiographySection } from '@/src/presentation/features/people/components/BiographySection'
-import { FilmographySection } from '@/src/presentation/features/people/components/FilmographySection'
 import { PersonalInfoSection } from '@/src/presentation/features/people/components/PersonalInfoSection'
+import { PersonHero } from '@/src/presentation/features/people/components/PersonHero'
+import { FilmographyCatalogRow } from '@/src/presentation/features/people/components/FilmographyCatalogRow'
 import { usePersonDetail } from '@/src/presentation/features/people/hooks/usePersonDetail'
 import { t } from '@/src/presentation/shared/i18n'
 import { observer } from '@legendapp/state/react'
 import { Stack, router, useLocalSearchParams } from 'expo-router'
 import { useCallback, useMemo } from 'react'
-import { ActivityIndicator, Image, Pressable, ScrollView, Text, View } from 'react-native'
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native'
 import { StyleSheet } from 'react-native-unistyles'
 import type { Media } from '@/src/domain/entities/Media'
 import { useQueryClient } from '@tanstack/react-query'
@@ -101,8 +102,6 @@ const PersonDetailScreen = observer(() => {
     )
   }
 
-  const profileImage = person.images.getBestProfile()
-
   return (
     <View style={styles.container}>
       {/* Configure Stack Screen */}
@@ -114,37 +113,8 @@ const PersonDetailScreen = observer(() => {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Person Header */}
-        <View style={styles.header}>
-          {profileImage ? (
-            <Image
-              source={{ uri: profileImage }}
-              style={styles.profileImage}
-              resizeMode="cover"
-              accessible
-              accessibilityLabel={person.name}
-            />
-          ) : (
-            <View style={styles.profilePlaceholder}>
-              <Text style={styles.profileInitial}>{person.name.charAt(0).toUpperCase()}</Text>
-            </View>
-          )}
-
-          <View style={styles.headerInfo}>
-            <Text
-              style={styles.name}
-              numberOfLines={2}
-              accessibilityRole="header"
-              accessibilityLabel={person.name}
-            >
-              {person.name}
-            </Text>
-
-            {person.knownForDepartment && (
-              <Text style={styles.department}>{person.knownForDepartment}</Text>
-            )}
-          </View>
-        </View>
+        {/* Person Hero with Profile Image and Strong Overlay */}
+        <PersonHero person={person} metadata={metadata} height={500} />
 
         {/* Personal Information Section */}
         {metadata && <PersonalInfoSection metadata={metadata} />}
@@ -152,14 +122,15 @@ const PersonDetailScreen = observer(() => {
         {/* Biography Section */}
         {metadata && <BiographySection metadata={metadata} />}
 
-        {/* Filmography Section */}
-        {filmography && (
-          <FilmographySection
-            personStableId={stableId}
-            filmography={filmography}
-            onPressMedia={handlePressMedia}
-          />
-        )}
+        {/* Filmography as Catalog Rows */}
+        {filmography &&
+          filmography.map((catalog) => (
+            <FilmographyCatalogRow
+              key={catalog.stableId}
+              catalog={catalog}
+              onPressMedia={handlePressMedia}
+            />
+          ))}
 
         {/* Bottom Spacing */}
         <View style={styles.bottomSpacer} />
@@ -228,50 +199,6 @@ const styles = StyleSheet.create((theme) => ({
     color: theme.colors.background,
     fontSize: theme.fontSize.base,
     fontWeight: theme.fontWeight.semibold,
-  },
-  header: {
-    paddingHorizontal: theme.spacing.lg,
-    paddingTop: 100, // Account for transparent header
-    paddingBottom: theme.spacing.xl,
-    alignItems: 'center',
-    backgroundColor: theme.colors.surface,
-  },
-  profileImage: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: theme.colors.surfaceElevated,
-    marginBottom: theme.spacing.md,
-  },
-  profilePlaceholder: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: theme.colors.surfaceElevated,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: theme.spacing.md,
-  },
-  profileInitial: {
-    color: theme.colors.text,
-    fontSize: theme.fontSize['3xl'],
-    fontWeight: theme.fontWeight.bold,
-  },
-  headerInfo: {
-    alignItems: 'center',
-  },
-  name: {
-    color: theme.colors.text,
-    fontSize: theme.fontSize['2xl'],
-    fontFamily: theme.fontFamily.heading,
-    fontWeight: theme.fontWeight.bold,
-    textAlign: 'center',
-    marginBottom: theme.spacing.xs,
-  },
-  department: {
-    color: theme.colors.textSecondary,
-    fontSize: theme.fontSize.base,
-    fontWeight: theme.fontWeight.medium,
   },
   bottomSpacer: {
     height: theme.spacing['2xl'],

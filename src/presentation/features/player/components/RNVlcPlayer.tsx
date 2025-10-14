@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect } from 'react'
 import { View, Pressable, Text, StyleSheet as RNStyleSheet } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { LibVlcPlayerView } from 'expo-libvlc-player'
+import { useRouter } from 'expo-router'
 import type { Media } from '@/src/domain/entities/Media'
 import type { Stream } from '@/src/domain/entities/Stream'
 import type { AudioTrack } from '@/src/domain/entities/AudioTrack'
@@ -77,6 +78,7 @@ const RNVlcPlayerComponent: React.FC<RNVlcPlayerProps> = ({
   episodeNumber,
   onClose,
 }) => {
+  const router = useRouter()
   const playerRef = useRef<any>(null) // expo-libvlc-player ref type
   const [error, setError] = useState<string | null>(null)
   const [isLoaded, setIsLoaded] = useState(false)
@@ -125,6 +127,30 @@ const RNVlcPlayerComponent: React.FC<RNVlcPlayerProps> = ({
     })
     return unsubscribe
   }, [])
+
+  // Sync playback speed from store to VLC player
+  useEffect(() => {
+    const unsubscribe = player$.playbackSpeed.onChange((speed) => {
+      if (playerRef.current && isLoaded) {
+        // VLC accepts playback rate as float (1.0 = normal speed)
+        playerRef.current.setRate?.(speed)
+        console.log('[RNVlcPlayer] Playback speed changed to:', speed)
+      }
+    })
+    return unsubscribe
+  }, [isLoaded])
+
+  // Sync mute state from store to VLC player
+  useEffect(() => {
+    const unsubscribe = player$.muted.onChange((isMuted) => {
+      if (playerRef.current && isLoaded) {
+        // VLC accepts volume from 0 to 200 (100 = normal)
+        playerRef.current.setVolume?.(isMuted ? 0 : 100)
+        console.log('[RNVlcPlayer] Mute state changed to:', isMuted)
+      }
+    })
+    return unsubscribe
+  }, [isLoaded])
 
   // Load saved watch progress and resume
   useEffect(() => {
@@ -325,6 +351,28 @@ const RNVlcPlayerComponent: React.FC<RNVlcPlayerProps> = ({
     // No need to call setNativeProps, state change triggers prop update
   }
 
+  const handleFromBeginning = () => {
+    if (playerRef.current && duration > 0) {
+      console.log('[RNVlcPlayer] Restarting from beginning')
+      playerRef.current.seek?.(0) // Seek to 0 (beginning)
+      playerRef.current.play?.()
+      setCurrentTime(0)
+    }
+  }
+
+  const handleGoToShow = () => {
+    console.log('[RNVlcPlayer] Navigating to media detail')
+    onClose() // Close the player first
+
+    // Navigate to media detail screen
+    router.push({
+      pathname: '/media/[stableId]',
+      params: {
+        stableId: encodeURIComponent(media.stableId),
+      },
+    })
+  }
+
   // Create VLC options - must be created fresh each render
   const vlcOptions = createVlcOptions(stream.headers)
 
@@ -416,6 +464,8 @@ const RNVlcPlayerComponent: React.FC<RNVlcPlayerProps> = ({
         onClose={onClose}
         onSkip={handleSkip}
         onSeek={handleSeek}
+        onFromBeginning={handleFromBeginning}
+        onGoToShow={handleGoToShow}
       />
 
       {/* Audio Track Modal */}
@@ -423,6 +473,7 @@ const RNVlcPlayerComponent: React.FC<RNVlcPlayerProps> = ({
         visible={player$.showAudioModal.get()}
         onClose={() => player$.showAudioModal.set(false)}
         onSelectTrack={handleAudioTrackSelect}
+        onShowSettings={() => player$.showSettingsMenu.set(true)}
       />
 
       {/* Subtitle Track Modal */}
@@ -430,6 +481,7 @@ const RNVlcPlayerComponent: React.FC<RNVlcPlayerProps> = ({
         visible={player$.showSubtitleModal.get()}
         onClose={() => player$.showSubtitleModal.set(false)}
         onSelectTrack={handleSubtitleTrackSelect}
+        onShowSettings={() => player$.showSettingsMenu.set(true)}
       />
     </View>
   )

@@ -62,7 +62,7 @@ const stylesheet = StyleSheet.create((theme) => ({
   text: (selected: boolean) => ({
     fontSize: theme.fontSize.sm,
     fontWeight: theme.fontWeight.bold,
-    color: selected ? '#FFFFFF' : theme.colors.text,
+    color: selected ? theme.colors.buttonPrimaryText : theme.colors.text,
     letterSpacing: 0.3,
   }),
 }))

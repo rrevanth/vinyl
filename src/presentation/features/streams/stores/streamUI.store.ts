@@ -1,15 +1,16 @@
 import { observable } from '@legendapp/state'
 import type { Stream } from '@/src/domain/entities/Stream'
+import type { ProviderInfo } from '@/src/domain/capabilities/IMediaStreamsCapability'
 
 /**
  * UI state for streams screen with progressive loading support
  */
 export const streamUI$ = observable({
-  selectedProvider: 'all' as string, // 'all' or provider ID
+  selectedProvider: 'all' as string, // 'all' or provider ID for filtering
 
   // Progressive streaming state
   streamResults: [] as Stream[],
-  completedProviders: [] as string[],
+  completedProviders: [] as ProviderInfo[],
   failedProviders: [] as string[],
   isLoadingStreams: false,
   totalProviders: 0,
@@ -29,9 +30,9 @@ export function resetStreamingState() {
 /**
  * Add streams from a provider as they arrive
  */
-export function addProviderStreams(providerId: string, streams: Stream[]) {
+export function addProviderStreams(providerInfo: ProviderInfo, streams: Stream[]) {
   streamUI$.streamResults.set([...streamUI$.streamResults.get(), ...streams])
-  streamUI$.completedProviders.set([...streamUI$.completedProviders.get(), providerId])
+  streamUI$.completedProviders.set([...streamUI$.completedProviders.get(), providerInfo])
 }
 
 /**

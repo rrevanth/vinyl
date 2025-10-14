@@ -46,6 +46,12 @@ interface PlayerState {
   // Modals
   showAudioModal: boolean
   showSubtitleModal: boolean
+  showInfoPanel: boolean
+  showSettingsMenu: boolean
+  showSpeedModal: boolean
+
+  // Playback settings
+  playbackSpeed: number
 
   // Error state
   error: string | null
@@ -96,6 +102,12 @@ export const player$ = observable<PlayerState>({
   // Modals
   showAudioModal: false,
   showSubtitleModal: false,
+  showInfoPanel: false,
+  showSettingsMenu: false,
+  showSpeedModal: false,
+
+  // Playback settings
+  playbackSpeed: 1.0,
 
   // Error state
   error: null,
@@ -212,4 +224,23 @@ export function setControlsVisibleWithTimeout(): void {
   }, 5000)
 
   player$.controlsTimeoutId.set(timeoutId)
+}
+
+// Modal controls
+export function toggleInfoPanel(): void {
+  player$.showInfoPanel.set(!player$.showInfoPanel.get())
+}
+
+export function toggleSettingsMenu(): void {
+  player$.showSettingsMenu.set(!player$.showSettingsMenu.get())
+}
+
+// Playback speed
+export function setPlaybackSpeed(speed: number): void {
+  player$.playbackSpeed.set(speed)
+}
+
+// Mute control
+export function toggleMute(): void {
+  player$.muted.set(!player$.muted.get())
 }

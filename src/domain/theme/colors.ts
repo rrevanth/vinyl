@@ -4,7 +4,7 @@
  * Framework-agnostic color system following CLEAN architecture
  *
  * Design Philosophy:
- * - Monotone grayscale aesthetic with Apple System Blue as the only color accent
+ * - Pure monotone grayscale aesthetic (no color accents)
  * - High contrast for readability on large screens
  * - OLED-optimized dark theme with pure blacks
  * - Theme-flipping button colors (white in dark, dark in light)
@@ -13,7 +13,7 @@
  */
 
 export type ColorPalette = {
-  // Primary - Apple System Blue (only color accent)
+  // Primary - Monotone grayscale (dark in light theme, white in dark theme)
   primary: string;
   primaryDark: string;
   primaryLight: string;
@@ -86,10 +86,10 @@ export type ColorPalette = {
  * High contrast for readability in bright environments
  */
 export const lightColors: ColorPalette = {
-  // Primary - Apple System Blue
-  primary: '#007AFF', // iOS light mode blue
-  primaryDark: '#0051D5',
-  primaryLight: '#409CFF',
+  // Primary - Monotone dark gray (matching button aesthetic)
+  primary: '#1C1C1E', // Dark gray, matching buttonPrimary
+  primaryDark: '#000000',
+  primaryLight: '#3C3C43',
 
   // Secondary - Subtle gray (not colorful)
   secondary: '#8E8E93', // iOS secondary gray
@@ -132,7 +132,7 @@ export const lightColors: ColorPalette = {
   // Borders
   border: '#C6C6C8', // iOS separator opaque
   borderLight: '#E5E5EA',
-  borderFocus: '#007AFF',
+  borderFocus: '#1C1C1E', // Monotone focus border
 
   // Status - Muted, not vibrant
   error: '#FF3B30', // iOS red
@@ -141,16 +141,16 @@ export const lightColors: ColorPalette = {
   successLight: 'rgba(52, 199, 89, 0.1)',
   warning: '#FF9500', // iOS orange
   warningLight: 'rgba(255, 149, 0, 0.1)',
-  info: '#007AFF',
-  infoLight: 'rgba(0, 122, 255, 0.1)',
+  info: '#1C1C1E', // Monotone dark gray
+  infoLight: 'rgba(28, 28, 30, 0.1)',
 
   // Interactive states
   overlay: 'rgba(0, 0, 0, 0.5)',
   disabled: '#E5E5EA',
 
   // Special colors
-  accent: '#007AFF',
-  highlight: 'rgba(0, 122, 255, 0.1)',
+  accent: '#1C1C1E', // Monotone dark gray
+  highlight: 'rgba(28, 28, 30, 0.1)',
 };
 
 /**
@@ -159,10 +159,10 @@ export const lightColors: ColorPalette = {
  * Pure blacks with white buttons for premium feel
  */
 export const darkColors: ColorPalette = {
-  // Primary - Apple System Blue
-  primary: '#0A84FF', // iOS dark mode blue
-  primaryDark: '#0066CC',
-  primaryLight: '#409CFF',
+  // Primary - Monotone white (matching button aesthetic)
+  primary: '#FFFFFF', // Pure white, matching buttonPrimary
+  primaryDark: '#EBEBF5',
+  primaryLight: '#FFFFFF',
 
   // Secondary - Subtle gray (not colorful)
   secondary: '#8E8E93', // iOS secondary gray
@@ -205,7 +205,7 @@ export const darkColors: ColorPalette = {
   // Borders
   border: '#38383A', // iOS separator opaque
   borderLight: '#2C2C2E',
-  borderFocus: '#0A84FF',
+  borderFocus: '#FFFFFF', // Monotone focus border
 
   // Status - Muted, not vibrant
   error: '#FF453A', // iOS red
@@ -214,14 +214,14 @@ export const darkColors: ColorPalette = {
   successLight: 'rgba(50, 215, 75, 0.2)',
   warning: '#FF9F0A', // iOS orange
   warningLight: 'rgba(255, 159, 10, 0.2)',
-  info: '#0A84FF',
-  infoLight: 'rgba(10, 132, 255, 0.2)',
+  info: '#FFFFFF', // Monotone white
+  infoLight: 'rgba(255, 255, 255, 0.2)',
 
   // Interactive states
   overlay: 'rgba(0, 0, 0, 0.85)',
   disabled: '#3A3A3C',
 
   // Special colors
-  accent: '#0A84FF',
-  highlight: 'rgba(10, 132, 255, 0.2)',
+  accent: '#FFFFFF', // Monotone white
+  highlight: 'rgba(255, 255, 255, 0.2)',
 };

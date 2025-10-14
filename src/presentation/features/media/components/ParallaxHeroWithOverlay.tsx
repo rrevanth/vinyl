@@ -8,7 +8,6 @@ import Animated, {
   type SharedValue,
 } from 'react-native-reanimated'
 import { LinearGradient } from 'expo-linear-gradient'
-import { BlurView } from 'expo-blur'
 import { StyleSheet } from 'react-native-unistyles'
 import { Ionicons } from '@expo/vector-icons'
 import type { Media } from '@/src/domain/entities/Media'
@@ -38,15 +37,15 @@ const PARALLAX_DISTANCE = 50
  * Enhanced parallax hero with metadata overlay
  * Features:
  * - Cinematic parallax zoom-out effect
- * - Strong gradient overlay for text readability
- * - Complete metadata display (episode info, title, ratings, synopsis)
+ * - Simple gradient overlay for text readability (matching homescreen pattern)
+ * - Complete metadata display (title, type/genres, synopsis, metadata)
  * - Integrated action buttons
  * - Expandable synopsis
  */
 const ParallaxHeroWithOverlayComponent: FC<ParallaxHeroWithOverlayProps> = ({
   media,
   enrichedData,
-  height = 600,
+  height = 700,
   scrollY,
   onPlay,
   onAddToLibrary,
@@ -140,24 +139,26 @@ const ParallaxHeroWithOverlayComponent: FC<ParallaxHeroWithOverlayProps> = ({
         )}
       </Animated.View>
 
-      {/* Layered blur gradient - bottom (like episode cards) */}
-      <BlurView intensity={80} tint="dark" style={styles.blurOverlayBottom} />
-      <BlurView intensity={60} tint="dark" style={styles.blurOverlayMiddle} />
-      <BlurView intensity={40} tint="dark" style={styles.blurOverlayTop} />
+      {/* Dark scrim for better text contrast */}
+      <View style={styles.scrim} />
 
-      {/* Strong Gradient Overlay for Text Readability */}
+      {/* Bottom Gradient - Simple approach matching homescreen */}
       <LinearGradient
-        colors={['transparent', 'rgba(0,0,0,0.3)', 'rgba(0,0,0,0.95)']}
-        locations={[0, 0.2, 1]}
-        style={styles.gradient}
+        colors={['transparent', 'rgba(0,0,0,0.6)', 'rgba(0,0,0,0.98)']}
+        locations={[0, 0.3, 1]}
+        style={styles.bottomGradient}
       />
 
-      {/* Top Blur for Subtext Readability */}
+      {/* Top Gradient - Only when subtext exists */}
       {subtext && (
-        <BlurView intensity={40} tint="dark" style={styles.topBlur} />
+        <LinearGradient
+          colors={['rgba(0,0,0,0.8)', 'transparent']}
+          locations={[0, 1]}
+          style={styles.topGradient}
+        />
       )}
 
-      {/* Overlay Content */}
+      {/* Overlay Content - Bottom-aligned, center-aligned horizontally */}
       <View style={styles.overlayContent}>
         {/* Optional Subtext (Tagline if different from overview) */}
         {subtext && (
@@ -176,7 +177,7 @@ const ParallaxHeroWithOverlayComponent: FC<ParallaxHeroWithOverlayProps> = ({
           <Text style={styles.typeGenreText}>{typeGenresText}</Text>
         </View>
 
-        {/* Action Buttons - Play Button (moved before synopsis) */}
+        {/* Play Button */}
         <View style={styles.actionsContainer}>
           {onPlay && (
             <PillButton
@@ -189,7 +190,7 @@ const ParallaxHeroWithOverlayComponent: FC<ParallaxHeroWithOverlayProps> = ({
           )}
         </View>
 
-        {/* Synopsis with More Button (2 lines instead of 3) */}
+        {/* Synopsis (2 lines, expandable) */}
         {synopsis && (
           <View style={styles.synopsisContainer}>
             <Text
@@ -224,7 +225,7 @@ const ParallaxHeroWithOverlayComponent: FC<ParallaxHeroWithOverlayProps> = ({
           </View>
         )}
 
-        {/* Metadata Row (moved to bottom) */}
+        {/* Metadata Row (Year · Runtime · Certification) */}
         <View style={styles.metadataRow}>
           {media.year && <Text style={styles.metadata}>{media.year}</Text>}
           {runtime && (
@@ -273,53 +274,41 @@ const styles = StyleSheet.create((theme) => ({
     height: '100%',
     backgroundColor: theme.colors.backgroundTertiary,
   },
-  gradient: {
+  scrim: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    height: '80%',
-  },
-  blurOverlayBottom: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: '30%',
-    opacity: 0.6,
-  },
-  blurOverlayMiddle: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
     height: '60%',
-    opacity: 0.2,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
   },
-  blurOverlayTop: {
+  // Bottom gradient covering 90% height
+  bottomGradient: {
     position: 'absolute',
+    bottom: 0,
     left: 0,
     right: 0,
-    bottom: 0,
     height: '90%',
-    opacity: 0.2,
   },
-  topBlur: {
+  // Top gradient covering 30% height (for subtext readability)
+  topGradient: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
     height: '30%',
   },
+  // Content container - bottom-aligned with center alignment
   overlayContent: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
+    position: 'relative',
+    zIndex: 10,
+    flex: 1,
+    justifyContent: 'flex-end',
+    alignItems: 'center',
     paddingHorizontal: theme.spacing.xl,
-    paddingBottom: theme.spacing['3xl'],
-    paddingTop: theme.spacing.lg,
-    gap: theme.spacing.md,
+    paddingTop: theme.spacing['3xl'], // Add top padding for breathing room
+    paddingBottom: theme.spacing['4xl'],
+    gap: theme.spacing.lg, // Increase from md to lg for better spacing
   },
   subtext: {
     fontSize: theme.fontSize.xs,
@@ -327,50 +316,87 @@ const styles = StyleSheet.create((theme) => ({
     color: '#FFFFFF',
     letterSpacing: 1.2,
     textTransform: 'uppercase',
+    textAlign: 'center',
     textShadowColor: 'rgba(0, 0, 0, 0.9)',
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 8,
-    marginBottom: theme.spacing.xs,
   },
   title: {
-    fontSize: theme.fontSize['3xl'],
+    fontSize: theme.fontSize['4xl'],
     fontWeight: theme.fontWeight.bold,
     color: '#FFFFFF',
     lineHeight: theme.lineHeight.tight,
+    textAlign: 'center',
     textShadowColor: 'rgba(0, 0, 0, 0.9)',
     textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 8,
-    marginBottom: theme.spacing.xs,
+    textShadowRadius: 12,
   },
   typeGenresRow: {
+    width: '100%', // Use full width
     flexDirection: 'row',
     alignItems: 'center',
-    gap: theme.spacing.sm,
-    flexWrap: 'wrap',
-    marginBottom: theme.spacing.xs,
+    justifyContent: 'center',
+    flexWrap: 'wrap', // Allow wrapping for long genre lists
+    gap: theme.spacing.xs, // Add gap between items
   },
   typeGenreText: {
     fontSize: theme.fontSize.sm,
     fontWeight: theme.fontWeight.medium,
     color: '#FFFFFF',
+    textAlign: 'center',
     textShadowColor: 'rgba(0, 0, 0, 0.9)',
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 8,
   },
+  actionsContainer: {
+    width: '100%', // Use full width
+    alignItems: 'center',
+  },
+  synopsisContainer: {
+    width: '100%', // Use full width available
+    gap: theme.spacing.xs,
+    alignItems: 'center',
+  },
+  synopsis: {
+    width: '100%', // Use full width
+    fontSize: theme.fontSize.sm,
+    lineHeight: theme.lineHeight.loose,
+    color: '#FFFFFF',
+    textAlign: 'center',
+    textShadowColor: 'rgba(0, 0, 0, 0.9)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 10,
+  },
+  moreButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs,
+    paddingTop: theme.spacing.xs,
+  },
+  moreButtonText: {
+    fontSize: theme.fontSize.xs,
+    fontWeight: theme.fontWeight.bold,
+    color: '#FFFFFF',
+    letterSpacing: 1,
+    textShadowColor: 'rgba(0, 0, 0, 0.9)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
+  },
   metadataRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: theme.spacing.sm,
     flexWrap: 'wrap',
-    marginVertical: theme.spacing.xs,
   },
   metadata: {
     fontSize: theme.fontSize.sm,
     fontWeight: theme.fontWeight.medium,
     color: '#FFFFFF',
+    textAlign: 'center',
     textShadowColor: 'rgba(0, 0, 0, 0.9)',
     textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 8,
+    textShadowRadius: 10,
   },
   separator: {
     fontSize: theme.fontSize.sm,
@@ -388,37 +414,6 @@ const styles = StyleSheet.create((theme) => ({
     fontSize: theme.fontSize.xs,
     fontWeight: theme.fontWeight.semibold,
     color: theme.colors.textSecondary,
-  },
-  synopsisContainer: {
-    gap: theme.spacing.xs,
-    marginBottom: theme.spacing.md,
-  },
-  synopsis: {
-    fontSize: theme.fontSize.sm,
-    lineHeight: theme.lineHeight.loose,
-    color: '#FFFFFF',
-    textShadowColor: 'rgba(0, 0, 0, 0.9)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 8,
-  },
-  moreButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.spacing.xs,
-    paddingTop: theme.spacing.xs,
-  },
-  moreButtonText: {
-    fontSize: theme.fontSize.xs,
-    fontWeight: theme.fontWeight.bold,
-    color: '#FFFFFF',
-    letterSpacing: 1,
-    textShadowColor: 'rgba(0, 0, 0, 0.9)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
-  },
-  actionsContainer: {
-    gap: theme.spacing.md,
-    marginTop: theme.spacing.md,
   },
   pillButtonIconColor: {
     color: theme.colors.buttonPrimaryText,

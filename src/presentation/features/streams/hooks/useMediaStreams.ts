@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import type { Media } from '@/src/domain/entities/Media'
 import type { Stream } from '@/src/domain/entities/Stream'
+import type { ProviderInfo } from '@/src/domain/capabilities/IMediaStreamsCapability'
 import { useService } from '@/src/infrastructure/di/useService'
 import { TOKENS } from '@/src/infrastructure/di/tokens'
 import type { GetMediaStreamsUseCase } from '@/src/domain/use-cases/media/GetMediaStreamsUseCase'
@@ -35,11 +36,11 @@ export const useMediaStreams = (
     resetStreamingState()
 
     // Define callback for progressive updates
-    const onProviderComplete = (providerId: string, streams: Stream[], error?: Error) => {
+    const onProviderComplete = (provider: ProviderInfo, streams: Stream[], error?: Error) => {
       if (error) {
-        markProviderFailed(providerId)
+        markProviderFailed(provider.id)
       } else {
-        addProviderStreams(providerId, streams)
+        addProviderStreams(provider, streams)
       }
     }
 

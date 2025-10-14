@@ -1,4 +1,4 @@
-import type { IMediaStreamsCapability } from '@/src/domain/capabilities/IMediaStreamsCapability'
+import type { IMediaStreamsCapability, ProviderInfo } from '@/src/domain/capabilities/IMediaStreamsCapability'
 import type { Media } from '@/src/domain/entities/Media'
 import type { Stream } from '@/src/domain/entities/Stream'
 import type { StremioAddon } from '@/src/domain/entities/StremioAddon'
@@ -19,7 +19,7 @@ export class StremioMediaStreamsCapability implements IMediaStreamsCapability {
     private readonly logger: ILoggingService
   ) {}
 
-  async getStreams(media: Media): Promise<Result<Stream[]>> {
+  async getStreams(media: Media): Promise<Result<{ streams: Stream[]; providerInfo: ProviderInfo }>> {
     // Resolve Stremio ID for this media
     const resolvedId = StremioIdResolver.resolveId(media, this.addon.manifest)
 
@@ -60,6 +60,11 @@ export class StremioMediaStreamsCapability implements IMediaStreamsCapability {
         media.stableId
       )
 
+      const providerInfo: ProviderInfo = {
+        id: this.addon.id,
+        name: this.addon.name,
+      }
+
       this.logger.debug('Successfully fetched streams from Stremio addon', {
         addonId: this.addon.id,
         mediaStableId: media.stableId,
@@ -68,7 +73,7 @@ export class StremioMediaStreamsCapability implements IMediaStreamsCapability {
         resolvedId: resolvedId.id,
       })
 
-      return ok(streams, `stremio:${this.addon.id}`)
+      return ok({ streams, providerInfo }, `stremio:${this.addon.id}`)
     } catch (error) {
       this.logger.error(
         'Failed to fetch streams from Stremio addon',
@@ -93,7 +98,7 @@ export class StremioMediaStreamsCapability implements IMediaStreamsCapability {
     media: Media,
     seasonNumber: number,
     episodeNumber: number
-  ): Promise<Result<Stream[]>> {
+  ): Promise<Result<{ streams: Stream[]; providerInfo: ProviderInfo }>> {
     // Resolve Stremio ID with episode information
     const resolvedId = StremioIdResolver.resolveId(
       media,
@@ -143,6 +148,11 @@ export class StremioMediaStreamsCapability implements IMediaStreamsCapability {
         media.stableId
       )
 
+      const providerInfo: ProviderInfo = {
+        id: this.addon.id,
+        name: this.addon.name,
+      }
+
       this.logger.debug('Successfully fetched episode streams from Stremio addon', {
         addonId: this.addon.id,
         mediaStableId: media.stableId,
@@ -153,7 +163,7 @@ export class StremioMediaStreamsCapability implements IMediaStreamsCapability {
         resolvedId: resolvedId.id,
       })
 
-      return ok(streams, `stremio:${this.addon.id}`)
+      return ok({ streams, providerInfo }, `stremio:${this.addon.id}`)
     } catch (error) {
       this.logger.error(
         'Failed to fetch episode streams from Stremio addon',
