@@ -10,6 +10,12 @@ import { t } from '@/src/presentation/shared/i18n'
 import { observer } from '@legendapp/state/react'
 import { Stack, router, useLocalSearchParams } from 'expo-router'
 import { useCallback, useMemo } from 'react'
+import {
+  deserializeMediaFromNav,
+  serializeMediaForNav,
+} from '@/src/presentation/shared/utils/navigationParams'
+import { createMediaFromNavParams } from '@/src/presentation/shared/utils/createMediaFromNavParams'
+import { logger } from '@/src/presentation/shared/utils/logger'
 import { ActivityIndicator, Pressable, Text, View } from 'react-native'
 import Animated, { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated'
 import { StyleSheet } from 'react-native-unistyles'
@@ -37,11 +43,14 @@ import { LinearGradient } from 'expo-linear-gradient'
  * - Recommendations section with related media
  */
 const MediaDetailScreen = observer(() => {
-  // Get route parameters and parse Media from params
+  // Get route parameters and parse Media from lightweight params
   const params = useLocalSearchParams<{ stableId: string; mediaData: string }>()
-  const media = useMemo(() => {
-    return Media.fromJSON(JSON.parse(params.mediaData))
-  }, [params.mediaData])
+
+  // Deserialize lightweight nav params
+  const navParams = useMemo(() => deserializeMediaFromNav(params.mediaData), [params.mediaData])
+
+  // Create minimal Media entity for instant rendering
+  const media = useMemo(() => createMediaFromNavParams(navParams), [navParams])
 
   const headerOptions = useMemo(
     () => ({
@@ -84,27 +93,30 @@ const MediaDetailScreen = observer(() => {
 
   // Event handlers
   const handlePlay = useCallback(() => {
+    // Use enriched media with complete externalIds if available
+    const mediaToPass = enrichedData?.media || media
+
     router.push({
       pathname: '/streams/[mediaStableId]',
       params: {
         mediaStableId: media.stableId,
-        mediaData: JSON.stringify(media.toJSON()),
+        mediaData: serializeMediaForNav(mediaToPass),
       },
     })
-  }, [media])
+  }, [media, enrichedData])
 
   const handlePressVideo = useCallback((video: MediaVideo) => {
     // TODO: Open video player
-    console.log('Video pressed', video.id)
+    logger.debug('Video pressed', { videoId: video.id })
   }, [])
 
   const handlePressRecommendation = useCallback((recommendedMedia: Media) => {
-    // Navigate with Media data in params (NEW PATTERN)
+    // Navigate with lightweight Media data (optimized for performance)
     router.push({
       pathname: '/media/[stableId]',
       params: {
         stableId: recommendedMedia.stableId,
-        mediaData: JSON.stringify(recommendedMedia.toJSON()),
+        mediaData: serializeMediaForNav(recommendedMedia),
       },
     })
   }, [])
@@ -112,12 +124,30 @@ const MediaDetailScreen = observer(() => {
   const handlePressEpisodeMore = useCallback((episode: Episode) => {
     // TODO: Navigate to episode detail screen or expand inline
     // For now, just log for future implementation
-    console.log('[MediaDetailScreen] Episode MORE pressed:', {
+    logger.debug('[MediaDetailScreen] Episode MORE pressed', {
       title: episode.name,
       season: episode.seasonNumber,
       episode: episode.episodeNumber,
     })
   }, [])
+
+  const handleAddToList = useCallback(() => {
+    // TODO: Implement add to watchlist functionality
+    logger.debug('Add to list pressed', { mediaId: media.stableId })
+  }, [media])
+
+  const handleShare = useCallback(() => {
+    // TODO: Implement share functionality
+    logger.debug('Share pressed', { mediaId: media.stableId })
+  }, [media])
+
+  const handleInfo = useCallback(() => {
+    // TODO: Navigate to detailed info screen or expand info section
+    logger.debug('Info pressed', { mediaId: media.stableId })
+  }, [media])
+
+  // TODO: Check if media is in user's library/watchlist
+  const isInLibrary = false // Replace with actual state check
 
   // Loading state (Media is always available from params, only enrichments loading)
   if (isLoading) {
@@ -168,6 +198,10 @@ const MediaDetailScreen = observer(() => {
           enrichedData={enrichedData}
           scrollY={scrollY}
           onPlay={handlePlay}
+          onAddToList={handleAddToList}
+          onShare={handleShare}
+          onInfo={handleInfo}
+          isInList={isInLibrary}
         />
 
         {/* Season Selector (Series only) */}
@@ -186,9 +220,18 @@ const MediaDetailScreen = observer(() => {
                 seasons={seasons}
                 watchProgress={watchProgress?.series}
                 onPressEpisode={(episode) => {
-                  router.push(
-                    `/streams/${encodeURIComponent(media.stableId)}?season=${episode.seasonNumber}&episode=${episode.episodeNumber}`
-                  )
+                  // Use enriched media with complete externalIds if available
+                  const mediaToPass = enrichedData?.media || media
+
+                  router.push({
+                    pathname: '/streams/[mediaStableId]',
+                    params: {
+                      mediaStableId: media.stableId,
+                      mediaData: serializeMediaForNav(mediaToPass),
+                      season: episode.seasonNumber.toString(),
+                      episode: episode.episodeNumber.toString(),
+                    },
+                  })
                 }}
                 onPressMore={handlePressEpisodeMore}
               />

@@ -57,8 +57,11 @@ interface Translations {
       play_hint: string
       add_to_library: string
       add_to_library_hint: string
+      add_to_list: string
+      in_list: string
       share: string
       share_hint: string
+      info: string
     }
   }
   media_detail: {
@@ -108,6 +111,7 @@ interface Translations {
     certification: string
     vote_average: string
     vote_count: string
+    votes: string
     popularity: string
     tagline: string
     keywords: string

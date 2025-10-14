@@ -1,6 +1,7 @@
 import type { FC } from 'react'
-import { memo, useState, useCallback } from 'react'
-import { Image, Pressable, Text, View } from 'react-native'
+import { Fragment, memo } from 'react'
+import { Pressable, Text, View } from 'react-native'
+import { Image } from 'expo-image'
 import Animated, {
   interpolate,
   useAnimatedStyle,
@@ -13,7 +14,6 @@ import { Ionicons } from '@expo/vector-icons'
 import type { Media } from '@/src/domain/entities/Media'
 import type { EnrichedMedia } from '@/src/domain/entities/EnrichedMedia'
 import { t } from '@/src/presentation/shared/i18n'
-import { PillButton } from '@/src/presentation/shared/ui/buttons'
 
 interface ParallaxHeroWithOverlayProps {
   readonly media: Media
@@ -21,8 +21,10 @@ interface ParallaxHeroWithOverlayProps {
   readonly height?: number
   readonly scrollY?: SharedValue<number>
   readonly onPlay?: () => void
-  readonly onAddToLibrary?: () => void
+  readonly onAddToList?: () => void
   readonly onShare?: () => void
+  readonly onInfo?: () => void
+  readonly isInList?: boolean
 }
 
 // Animation constants inspired by Nuvio implementation
@@ -32,6 +34,127 @@ const OPACITY_VISIBLE = 1.0
 const OPACITY_FADED = 0.3
 const FADE_THRESHOLD = 200
 const PARALLAX_DISTANCE = 50
+
+/**
+ * Rating Badge Component
+ * Displays score with color coding based on rating percentage
+ */
+interface RatingBadgeProps {
+  readonly score: number
+  readonly maxScore?: number
+}
+
+const RatingBadge: FC<RatingBadgeProps> = ({ score, maxScore = 10 }) => {
+  // Calculate percentage for color coding
+  const percentage = (score / maxScore) * 100
+  
+  // Color based on score: Red (<40), Yellow (40-70), Green (>70)
+  const getColor = () => {
+    if (percentage >= 70) return '#4CAF50' // Green
+    if (percentage >= 40) return '#FFC107' // Yellow
+    return '#F44336' // Red
+  }
+
+  return (
+    <View style={[ratingStyles.container, { borderColor: getColor() }]}>
+      <Text style={[ratingStyles.score, { color: getColor() }]}>
+        {score.toFixed(1)}
+      </Text>
+      <Text style={ratingStyles.maxScore}>/{maxScore}</Text>
+    </View>
+  )
+}
+
+const ratingStyles = StyleSheet.create((theme) => ({
+  container: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+    borderWidth: 1.5,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  score: {
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  maxScore: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: 'rgba(255, 255, 255, 0.6)',
+    marginLeft: 2,
+  },
+}))
+
+/**
+ * Action Button Component
+ * Reusable button for hero actions (Play, Add to List, Share, Info)
+ */
+interface ActionButtonProps {
+  readonly icon: string
+  readonly label: string
+  readonly onPress: () => void
+  readonly variant?: 'primary' | 'secondary'
+}
+
+const ActionButton: FC<ActionButtonProps> = ({ icon, label, onPress, variant = 'secondary' }) => {
+  const isPrimary = variant === 'primary'
+  
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [
+        actionButtonStyles.container,
+        isPrimary && actionButtonStyles.primaryContainer,
+        pressed && actionButtonStyles.pressed,
+      ]}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+    >
+      <Ionicons 
+        name={icon as any} 
+        size={isPrimary ? 24 : 20} 
+        color={isPrimary ? '#000000' : '#FFFFFF'} 
+      />
+      {isPrimary && (
+        <Text style={actionButtonStyles.primaryLabel}>{label}</Text>
+      )}
+    </Pressable>
+  )
+}
+
+const actionButtonStyles = StyleSheet.create((theme) => ({
+  container: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  primaryContainer: {
+    width: 'auto',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 24,
+    backgroundColor: '#FFFFFF',
+    flexDirection: 'row',
+    gap: 8,
+    borderWidth: 0,
+  },
+  primaryLabel: {
+    color: '#000000',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  pressed: {
+    opacity: 0.7,
+    transform: [{ scale: 0.95 }],
+  },
+}))
 
 /**
  * Enhanced parallax hero with metadata overlay
@@ -48,18 +171,13 @@ const ParallaxHeroWithOverlayComponent: FC<ParallaxHeroWithOverlayProps> = ({
   height = 700,
   scrollY,
   onPlay,
-  onAddToLibrary,
+  onAddToList,
   onShare,
+  onInfo,
+  isInList = false,
 }) => {
-  const [synopsisExpanded, setSynopsisExpanded] = useState(false)
-
   // Get best available backdrop image
   const backdropUrl = media.images.getBestBackdrop()
-
-  // Toggle synopsis expansion
-  const toggleSynopsis = useCallback(() => {
-    setSynopsisExpanded((prev) => !prev)
-  }, [])
 
   // Cinematic animated style for zoom-out parallax effect
   const animatedImageStyle = useAnimatedStyle(() => {
@@ -103,25 +221,32 @@ const ParallaxHeroWithOverlayComponent: FC<ParallaxHeroWithOverlayProps> = ({
     }
   })
 
-  // Format runtime
-  const runtime = enrichedData?.runtime
-    ? t('media_detail.runtime_minutes').replace('{minutes}', enrichedData.runtime.toString())
-    : null
+  // Build primary metadata row (Year • Certification • Runtime)
+  const primaryMetadata: string[] = []
+  if (media.year) {
+    primaryMetadata.push(media.year.toString())
+  }
+  if (enrichedData?.certification) {
+    primaryMetadata.push(enrichedData.certification)
+  }
+  if (enrichedData?.runtime) {
+    const hours = Math.floor(enrichedData.runtime / 60)
+    const minutes = enrichedData.runtime % 60
+    if (hours > 0) {
+      primaryMetadata.push(minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`)
+    } else {
+      primaryMetadata.push(`${minutes}m`)
+    }
+  }
+
+  // Build genres list (max 3)
+  const genresList = enrichedData?.genres?.slice(0, 3).map(g => g.name) || []
+
+  // Get rating score
+  const hasRating = enrichedData?.voteAverage && enrichedData.voteAverage > 0
 
   // Get synopsis
   const synopsis = enrichedData?.overview || enrichedData?.tagline
-
-  // Determine subtext (show tagline if different from overview)
-  const subtext =
-    enrichedData?.tagline && enrichedData.tagline !== enrichedData.overview
-      ? enrichedData.tagline
-      : null
-
-  // Format type and genres
-  const typeLabel = media.type === 'series' ? 'TV Show' : 'Movie'
-  const genres = enrichedData?.genres?.map((g) => g.name) || []
-  const typeGenresText =
-    genres.length > 0 ? `${typeLabel} · ${genres.join(', ')}` : typeLabel
 
   return (
     <View style={[styles.container, { height }]}>
@@ -131,7 +256,9 @@ const ParallaxHeroWithOverlayComponent: FC<ParallaxHeroWithOverlayProps> = ({
           <Image
             source={{ uri: backdropUrl }}
             style={styles.image}
-            resizeMode="cover"
+            contentFit="cover"
+            transition={200}
+            cachePolicy="memory-disk"
             accessibilityIgnoresInvertColors
           />
         ) : (
@@ -142,105 +269,108 @@ const ParallaxHeroWithOverlayComponent: FC<ParallaxHeroWithOverlayProps> = ({
       {/* Dark scrim for better text contrast */}
       <View style={styles.scrim} />
 
-      {/* Bottom Gradient - Simple approach matching homescreen */}
+      {/* Bottom Gradient - Enhanced for left-aligned content */}
       <LinearGradient
-        colors={['transparent', 'rgba(0,0,0,0.6)', 'rgba(0,0,0,0.98)']}
+        colors={['transparent', 'rgba(0,0,0,0.7)', 'rgba(0,0,0,0.98)']}
         locations={[0, 0.3, 1]}
         style={styles.bottomGradient}
       />
 
-      {/* Top Gradient - Only when subtext exists */}
-      {subtext && (
-        <LinearGradient
-          colors={['rgba(0,0,0,0.8)', 'transparent']}
-          locations={[0, 1]}
-          style={styles.topGradient}
-        />
-      )}
-
-      {/* Overlay Content - Bottom-aligned, center-aligned horizontally */}
+      {/* Overlay Content - Left-aligned, bottom-positioned */}
       <View style={styles.overlayContent}>
-        {/* Optional Subtext (Tagline if different from overview) */}
-        {subtext && (
-          <Text style={styles.subtext} numberOfLines={1}>
-            {subtext.toUpperCase()}
+        {/* Logo or Title */}
+        {enrichedData?.media.images.logo ? (
+          <Image
+            source={{ uri: enrichedData.media.images.logo }}
+            style={styles.logo}
+            contentFit="contain"
+            transition={200}
+            cachePolicy="memory-disk"
+            recyclingKey={media.stableId}
+          />
+        ) : (
+          <Text style={styles.title} numberOfLines={2}>
+            {media.title}
           </Text>
         )}
 
-        {/* Title */}
-        <Text style={styles.title} numberOfLines={2}>
-          {media.title}
-        </Text>
+        {/* Primary Metadata Row (Year • Certification • Runtime) */}
+        {primaryMetadata.length > 0 && (
+          <View style={styles.primaryMetadataRow}>
+            {primaryMetadata.map((item, index) => (
+              <Fragment key={index}>
+                <Text style={styles.metadataText}>{item}</Text>
+                {index < primaryMetadata.length - 1 && (
+                  <Text style={styles.metadataSeparator}>•</Text>
+                )}
+              </Fragment>
+            ))}
+          </View>
+        )}
 
-        {/* Type · Genres Row */}
-        <View style={styles.typeGenresRow}>
-          <Text style={styles.typeGenreText}>{typeGenresText}</Text>
-        </View>
+        {/* Genres Row */}
+        {genresList.length > 0 && (
+          <View style={styles.genresRow}>
+            {genresList.map((genre, index) => (
+              <Fragment key={index}>
+                <Text style={styles.genreText}>{genre}</Text>
+                {index < genresList.length - 1 && (
+                  <Text style={styles.genreSeparator}>•</Text>
+                )}
+              </Fragment>
+            ))}
+          </View>
+        )}
 
-        {/* Play Button */}
-        <View style={styles.actionsContainer}>
-          {onPlay && (
-            <PillButton
-              title={t('media.actions.play')}
-              onPress={onPlay}
-              variant="primary"
-              size="md"
-              icon={<Ionicons name="play" size={20} color={styles.pillButtonIconColor.color} />}
-            />
-          )}
-        </View>
-
-        {/* Synopsis (2 lines, expandable) */}
-        {synopsis && (
-          <View style={styles.synopsisContainer}>
-            <Text
-              style={styles.synopsis}
-              numberOfLines={synopsisExpanded ? undefined : 2}
-              ellipsizeMode="tail"
-            >
-              {synopsis}
-            </Text>
-            {!synopsisExpanded && synopsis.length > 150 && (
-              <Pressable
-                onPress={toggleSynopsis}
-                accessibilityRole="button"
-                accessibilityLabel={t('media_detail.see_all')}
-                style={styles.moreButton}
-              >
-                <Text style={styles.moreButtonText}>{t('media_detail.see_all').toUpperCase()}</Text>
-                <Ionicons name="chevron-down" size={16} color="#FFFFFF" />
-              </Pressable>
-            )}
-            {synopsisExpanded && (
-              <Pressable
-                onPress={toggleSynopsis}
-                accessibilityRole="button"
-                accessibilityLabel={t('common.close')}
-                style={styles.moreButton}
-              >
-                <Text style={styles.moreButtonText}>{t('common.close').toUpperCase()}</Text>
-                <Ionicons name="chevron-up" size={16} color="#FFFFFF" />
-              </Pressable>
+        {/* Rating Score */}
+        {hasRating && (
+          <View style={styles.ratingRow}>
+            <RatingBadge score={enrichedData!.voteAverage!} />
+            {enrichedData!.voteCount && enrichedData.voteCount > 0 && (
+              <Text style={styles.voteCount}>
+                {enrichedData.voteCount.toLocaleString()} {t('media_detail.votes')}
+              </Text>
             )}
           </View>
         )}
 
-        {/* Metadata Row (Year · Runtime · Certification) */}
-        <View style={styles.metadataRow}>
-          {media.year && <Text style={styles.metadata}>{media.year}</Text>}
-          {runtime && (
-            <>
-              <Text style={styles.separator}>·</Text>
-              <Text style={styles.metadata}>{runtime}</Text>
-            </>
+        {/* Synopsis (Fixed 3 lines) */}
+        {synopsis && (
+          <Text style={styles.synopsis} numberOfLines={3} ellipsizeMode="tail">
+            {synopsis}
+          </Text>
+        )}
+
+        {/* Action Buttons Row */}
+        <View style={styles.actionsRow}>
+          {onPlay && (
+            <ActionButton
+              icon="play"
+              label={t('media.actions.play')}
+              onPress={onPlay}
+              variant="primary"
+            />
           )}
-          {enrichedData?.certification && (
-            <>
-              <Text style={styles.separator}>·</Text>
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>{enrichedData.certification}</Text>
-              </View>
-            </>
+          {onAddToList && (
+            <ActionButton
+              icon={isInList ? "checkmark" : "add"}
+              label={isInList ? t('media.actions.in_list') : t('media.actions.add_to_list')}
+              onPress={onAddToList}
+            />
+          )}
+          {onShare && (
+            <ActionButton
+              icon="share-outline"
+              label={t('media.actions.share')}
+              onPress={onShare}
+            />
+          )}
+          {onInfo && (
+            <ActionButton
+              icon="information-circle-outline"
+              label={t('media.actions.info')}
+              onPress={onInfo}
+            />
           )}
         </View>
       </View>
@@ -290,132 +420,99 @@ const styles = StyleSheet.create((theme) => ({
     right: 0,
     height: '90%',
   },
-  // Top gradient covering 30% height (for subtext readability)
-  topGradient: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: '30%',
-  },
-  // Content container - bottom-aligned with center alignment
+  // Content container - bottom-aligned with left alignment (Netflix/Disney+ style)
   overlayContent: {
     position: 'relative',
     zIndex: 10,
     flex: 1,
     justifyContent: 'flex-end',
-    alignItems: 'center',
-    paddingHorizontal: theme.spacing.xl,
-    paddingTop: theme.spacing['3xl'], // Add top padding for breathing room
-    paddingBottom: theme.spacing['4xl'],
-    gap: theme.spacing.lg, // Increase from md to lg for better spacing
+    alignItems: 'flex-start', // Changed from center to flex-start
+    paddingHorizontal: theme.spacing.gutter,
+    paddingTop: theme.spacing['3xl'],
+    paddingBottom: theme.spacing['3xl'],
+    gap: theme.spacing.md,
   },
-  subtext: {
-    fontSize: theme.fontSize.xs,
-    fontWeight: theme.fontWeight.medium,
-    color: '#FFFFFF',
-    letterSpacing: 1.2,
-    textTransform: 'uppercase',
-    textAlign: 'center',
-    textShadowColor: 'rgba(0, 0, 0, 0.9)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 8,
+  logo: {
+    width: 240,
+    height: 100,
+    alignSelf: 'flex-start', // Left-align logo
   },
   title: {
     fontSize: theme.fontSize['4xl'],
     fontWeight: theme.fontWeight.bold,
     color: '#FFFFFF',
-    lineHeight: theme.lineHeight.tight,
-    textAlign: 'center',
+    lineHeight: theme.fontSize['4xl'] * 1.1,
+    textAlign: 'left', // Changed from center
+    maxWidth: '85%', // Prevent text from hitting edge
     textShadowColor: 'rgba(0, 0, 0, 0.9)',
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 12,
   },
-  typeGenresRow: {
-    width: '100%', // Use full width
+  primaryMetadataRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    flexWrap: 'wrap', // Allow wrapping for long genre lists
-    gap: theme.spacing.xs, // Add gap between items
-  },
-  typeGenreText: {
-    fontSize: theme.fontSize.sm,
-    fontWeight: theme.fontWeight.medium,
-    color: '#FFFFFF',
-    textAlign: 'center',
-    textShadowColor: 'rgba(0, 0, 0, 0.9)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 8,
-  },
-  actionsContainer: {
-    width: '100%', // Use full width
-    alignItems: 'center',
-  },
-  synopsisContainer: {
-    width: '100%', // Use full width available
-    gap: theme.spacing.xs,
-    alignItems: 'center',
-  },
-  synopsis: {
-    width: '100%', // Use full width
-    fontSize: theme.fontSize.sm,
-    lineHeight: theme.lineHeight.loose,
-    color: '#FFFFFF',
-    textAlign: 'center',
-    textShadowColor: 'rgba(0, 0, 0, 0.9)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 10,
-  },
-  moreButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.spacing.xs,
-    paddingTop: theme.spacing.xs,
-  },
-  moreButtonText: {
-    fontSize: theme.fontSize.xs,
-    fontWeight: theme.fontWeight.bold,
-    color: '#FFFFFF',
-    letterSpacing: 1,
-    textShadowColor: 'rgba(0, 0, 0, 0.9)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
-  },
-  metadataRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
     gap: theme.spacing.sm,
     flexWrap: 'wrap',
   },
-  metadata: {
+  metadataText: {
+    fontSize: theme.fontSize.base,
+    fontWeight: theme.fontWeight.semibold,
+    color: '#FFFFFF',
+    textShadowColor: 'rgba(0, 0, 0, 0.8)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 6,
+  },
+  metadataSeparator: {
+    fontSize: theme.fontSize.base,
+    color: 'rgba(255, 255, 255, 0.6)',
+    marginHorizontal: theme.spacing.xs,
+  },
+  genresRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs,
+    flexWrap: 'wrap',
+  },
+  genreText: {
     fontSize: theme.fontSize.sm,
     fontWeight: theme.fontWeight.medium,
-    color: '#FFFFFF',
-    textAlign: 'center',
+    color: 'rgba(255, 255, 255, 0.85)',
+    textShadowColor: 'rgba(0, 0, 0, 0.8)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 6,
+  },
+  genreSeparator: {
+    fontSize: theme.fontSize.sm,
+    color: 'rgba(255, 255, 255, 0.5)',
+    marginHorizontal: 2,
+  },
+  ratingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.md,
+  },
+  voteCount: {
+    fontSize: theme.fontSize.sm,
+    color: 'rgba(255, 255, 255, 0.7)',
+    fontWeight: theme.fontWeight.medium,
+    textShadowColor: 'rgba(0, 0, 0, 0.8)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 6,
+  },
+  synopsis: {
+    fontSize: theme.fontSize.sm,
+    lineHeight: theme.fontSize.sm * 1.5,
+    color: 'rgba(255, 255, 255, 0.9)',
+    textAlign: 'left', // Changed from center
+    maxWidth: '90%',
     textShadowColor: 'rgba(0, 0, 0, 0.9)',
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 10,
   },
-  separator: {
-    fontSize: theme.fontSize.sm,
-    color: theme.colors.textSecondary,
-    opacity: 0.6,
-  },
-  badge: {
-    paddingHorizontal: theme.spacing.xs,
-    paddingVertical: 2,
-    borderRadius: theme.borderRadius.sm,
-    borderWidth: 1,
-    borderColor: theme.colors.textSecondary,
-  },
-  badgeText: {
-    fontSize: theme.fontSize.xs,
-    fontWeight: theme.fontWeight.semibold,
-    color: theme.colors.textSecondary,
-  },
-  pillButtonIconColor: {
-    color: theme.colors.buttonPrimaryText,
+  actionsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.md,
+    marginTop: theme.spacing.sm,
   },
 }))

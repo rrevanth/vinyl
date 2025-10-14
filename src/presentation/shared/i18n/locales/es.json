@@ -58,8 +58,11 @@
       "play_hint": "Comenzar a ver este contenido",
       "add_to_library": "Agregar a Biblioteca",
       "add_to_library_hint": "Guardar esto en tu biblioteca",
+      "add_to_list": "Agregar a lista",
+      "in_list": "En lista",
       "share": "Compartir",
-      "share_hint": "Compartir esto con otros"
+      "share_hint": "Compartir esto con otros",
+      "info": "Info"
     }
   },
   "media_detail": {
@@ -112,6 +115,7 @@
     "certification": "Clasificación",
     "vote_average": "Promedio de votos",
     "vote_count": "{count} votos",
+    "votes": "votos",
     "popularity": "Popularidad",
     "tagline": "Lema",
     "keywords": "Palabras clave",

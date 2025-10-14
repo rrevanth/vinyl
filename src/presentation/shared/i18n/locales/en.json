@@ -58,8 +58,11 @@
       "play_hint": "Start watching this content",
       "add_to_library": "Add to Library",
       "add_to_library_hint": "Save this to your library",
+      "add_to_list": "Add to List",
+      "in_list": "In List",
       "share": "Share",
-      "share_hint": "Share this with others"
+      "share_hint": "Share this with others",
+      "info": "Info"
     }
   },
   "media_detail": {
@@ -112,6 +115,7 @@
     "certification": "Rated",
     "vote_average": "Average Vote",
     "vote_count": "{count} votes",
+    "votes": "votes",
     "popularity": "Popularity",
     "tagline": "Tagline",
     "keywords": "Keywords",
