@@ -236,16 +236,25 @@ export async function initializeContainer(): Promise<void> {
     },
   }
 
-  // Register QueryClient for TanStack Query with cache persistence
+  // Register QueryClient for TanStack Query with optimized cache persistence
   container.register(
     TOKENS.QueryClient,
     () =>
       new QueryClient({
         defaultOptions: {
           queries: {
-            staleTime: 1000 * 60 * 5, // 5 minutes
-            retry: 2,
+            staleTime: 1000 * 60 * 10, // 10 minutes - less aggressive refetching
             gcTime: 1000 * 60 * 60 * 24, // 24 hours cache retention
+            retry: 2,
+            retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+            networkMode: 'online', // Don't fetch if offline
+            refetchOnWindowFocus: false, // Disable auto-refetch on focus (performance)
+            refetchOnReconnect: true, // Refetch when coming back online
+            refetchOnMount: false, // Don't refetch if data is fresh
+          },
+          mutations: {
+            retry: 1,
+            networkMode: 'online',
           },
         },
       })

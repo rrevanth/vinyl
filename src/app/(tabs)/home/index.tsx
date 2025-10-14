@@ -1,7 +1,7 @@
 import type { Catalog } from '@/src/domain/entities/Catalog'
 import { CatalogRow } from '@/src/presentation/features/homescreen/components/CatalogRow'
 import { ContinueWatchingRail } from '@/src/presentation/features/homescreen/components/ContinueWatchingRail'
-import { HeroCarousel } from '@/src/presentation/features/homescreen/components/HeroCarousel'
+import { HomescreenHero } from '@/src/presentation/features/homescreen/components/HomescreenHero'
 import { useHomescreenData } from '@/src/presentation/features/homescreen/hooks/useHomescreenData'
 import { t } from '@/src/presentation/shared/i18n'
 import { userPreferences$ } from '@/src/presentation/shared/stores/app.store'
@@ -9,7 +9,11 @@ import { LegendList } from '@legendapp/list'
 import { observer, useSelector } from '@legendapp/state/react'
 import { Fragment, useCallback } from 'react'
 import { ActivityIndicator, RefreshControl, Text, View } from 'react-native'
+import Animated, { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated'
 import { StyleSheet } from 'react-native-unistyles'
+
+// Create AnimatedLegendList component
+const AnimatedLegendList = Animated.createAnimatedComponent(LegendList<Catalog>)
 
 const HomeScreen = observer(() => {
   const {
@@ -26,6 +30,17 @@ const HomeScreen = observer(() => {
   const showHero = preferences.heroEnabled && heroItems.length > 0
   const showContinueWatching = preferences.showContinueWatching && continueWatching.length > 0
 
+  // Get catalog preferences outside of render functions for performance
+  const catalogPreferences = useSelector(() => userPreferences$.catalogPreferences.get())
+
+  // Track scroll position for hero parallax
+  const scrollY = useSharedValue(0)
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollY.value = event.contentOffset.y
+    },
+  })
+
   // Create header component with Hero and Continue Watching
   const renderListHeader = useCallback(() => {
     if (!showHero && !showContinueWatching) {
@@ -34,11 +49,11 @@ const HomeScreen = observer(() => {
 
     return (
       <Fragment>
-        {showHero ? <HeroCarousel items={heroItems} /> : null}
+        {showHero ? <HomescreenHero items={heroItems} scrollY={scrollY} /> : null}
         {showContinueWatching ? <ContinueWatchingRail items={continueWatching} /> : null}
       </Fragment>
     )
-  }, [showHero, showContinueWatching, heroItems, continueWatching])
+  }, [showHero, showContinueWatching, heroItems, continueWatching, scrollY])
 
   // Render empty state
   const renderListEmpty = useCallback(() => {
@@ -47,7 +62,6 @@ const HomeScreen = observer(() => {
     }
 
     // Check if no catalogs are enabled (different from no catalogs available)
-    const catalogPreferences = useSelector(() => userPreferences$.catalogPreferences.get())
     const enabledCatalogCount = Object.keys(catalogPreferences).length
 
     return (
@@ -64,7 +78,7 @@ const HomeScreen = observer(() => {
         </Text>
       </View>
     )
-  }, [isLoading])
+  }, [isLoading, catalogPreferences])
 
   // Show loading state for initial load
   if (isLoading && catalogs.length === 0) {
@@ -80,7 +94,7 @@ const HomeScreen = observer(() => {
 
   return (
     <View style={styles.container}>
-      <LegendList
+      <AnimatedLegendList
         data={catalogs}
         keyExtractor={(catalog: Catalog) => catalog.stableId}
         renderItem={({ item: catalog }) => <CatalogRow catalog={catalog} />}
@@ -88,6 +102,8 @@ const HomeScreen = observer(() => {
         ListEmptyComponent={renderListEmpty}
         contentContainerStyle={styles.listContent}
         contentInsetAdjustmentBehavior="never"
+        onScroll={scrollHandler}
+        scrollEventThrottle={16}
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}
@@ -96,7 +112,8 @@ const HomeScreen = observer(() => {
             title={t('home.refresh_label')}
           />
         }
-        estimatedItemSize={300}
+        estimatedItemSize={280}
+        drawDistance={600}
       />
 
       {error ? (

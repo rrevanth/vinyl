@@ -2,14 +2,15 @@ import { useCallback, useMemo, useState } from 'react'
 import { View, ActivityIndicator, Text } from 'react-native'
 import { Stack, useLocalSearchParams, router } from 'expo-router'
 import { StyleSheet } from 'react-native-unistyles'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useQueryClient } from '@tanstack/react-query'
 import { LinearGradient } from 'expo-linear-gradient'
 import type { Catalog } from '@/src/domain/entities/Catalog'
 import type { Media } from '@/src/domain/entities/Media'
-import type { MediaDetailData } from '@/src/domain/use-cases/media/GetMediaDetailUseCase'
 import { MediaGrid } from '@/src/presentation/shared/ui/organisms/MediaGrid'
 import { useInfiniteRecommendationsCatalogQuery } from '@/src/presentation/features/media/queries/useInfiniteRecommendationsCatalogQuery'
 import { t } from '@/src/presentation/shared/i18n'
+import { serializeMediaForNav } from '@/src/presentation/shared/utils/navigationParams'
 
 interface CachedRecommendationsCatalogData {
   readonly catalog: Catalog
@@ -19,6 +20,7 @@ export default function RecommendationsGridScreen() {
   const params = useLocalSearchParams<{ catalogId: string; name?: string }>()
   const queryClient = useQueryClient()
   const [isLoadingMore, setIsLoadingMore] = useState(false)
+  const insets = useSafeAreaInsets()
 
   // Decode catalogId
   const catalogId = decodeURIComponent(params.catalogId)
@@ -33,10 +35,6 @@ export default function RecommendationsGridScreen() {
   }, [queryClient, catalogId])
 
   const catalog = cachedData?.catalog
-
-  // Use infinite query hook
-  const { items, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError } =
-    useInfiniteRecommendationsCatalogQuery(catalog!)
 
   const headerTitle = catalogName || catalog?.name || t('media_detail.recommendations')
 
@@ -55,6 +53,61 @@ export default function RecommendationsGridScreen() {
     [headerTitle]
   )
 
+  // Handle media press
+  const handlePressMedia = useCallback(
+    (media: Media) => {
+      // Navigate with serialized media data
+      router.push({
+        pathname: '/media/[stableId]',
+        params: {
+          stableId: media.stableId,
+          mediaData: serializeMediaForNav(media)
+        }
+      } as any)
+    },
+    []
+  )
+
+  // Show empty state if no catalog
+  if (!catalog) {
+    return (
+      <View style={styles.emptyContainer}>
+        <Stack.Screen options={headerOptions} />
+        <Text style={styles.emptyText}>{t('media_detail.no_recommendations')}</Text>
+      </View>
+    )
+  }
+
+  // Use infinite query hook - only after we have catalog
+  return <RecommendationsGridContent 
+    catalog={catalog}
+    headerOptions={headerOptions}
+    handlePressMedia={handlePressMedia}
+    isLoadingMore={isLoadingMore}
+    setIsLoadingMore={setIsLoadingMore}
+    insets={insets}
+  />
+}
+
+// Separate component to ensure hook is only called when catalog exists
+function RecommendationsGridContent({ 
+  catalog, 
+  headerOptions, 
+  handlePressMedia,
+  isLoadingMore,
+  setIsLoadingMore,
+  insets
+}: {
+  catalog: Catalog
+  headerOptions: any
+  handlePressMedia: (media: Media) => void
+  isLoadingMore: boolean
+  setIsLoadingMore: (loading: boolean) => void
+  insets: { top: number; bottom: number; left: number; right: number }
+}) {
+  const { items, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError } =
+    useInfiniteRecommendationsCatalogQuery(catalog)
+
   // Handle infinite scroll
   const handleEndReached = useCallback(async () => {
     if (!hasNextPage || isLoadingMore || isFetchingNextPage) {
@@ -69,34 +122,7 @@ export default function RecommendationsGridScreen() {
     } finally {
       setIsLoadingMore(false)
     }
-  }, [hasNextPage, isLoadingMore, isFetchingNextPage, fetchNextPage])
-
-  // Handle media press
-  const handlePressMedia = useCallback(
-    (media: Media) => {
-      // Pre-populate cache
-      queryClient.setQueryData<MediaDetailData>(['media-detail', media.stableId], {
-        media,
-        externalIds: media.externalIds,
-        providersUsed: {},
-        errors: {},
-      })
-
-      // Navigate to media detail
-      const encodedStableId = encodeURIComponent(media.stableId)
-      router.push(`/media/${encodedStableId}` as any)
-    },
-    [queryClient]
-  )
-
-  if (!catalog) {
-    return (
-      <View style={styles.emptyContainer}>
-        <Stack.Screen options={headerOptions} />
-        <Text style={styles.emptyText}>{t('media_detail.no_recommendations')}</Text>
-      </View>
-    )
-  }
+  }, [hasNextPage, isLoadingMore, isFetchingNextPage, fetchNextPage, setIsLoadingMore])
 
   if (isLoading && items.length === 0) {
     return (
@@ -119,14 +145,16 @@ export default function RecommendationsGridScreen() {
   return (
     <View style={styles.container}>
       <Stack.Screen options={headerOptions} />
-      <MediaGrid
-        items={items}
-        variant="poster"
-        columns={3}
-        onPressItem={handlePressMedia}
-        onEndReached={handleEndReached}
-        isLoadingMore={isLoadingMore || isFetchingNextPage}
-      />
+      <View style={{ paddingTop: insets.top }}>
+        <MediaGrid
+          items={items}
+          variant="poster"
+          columns={3}
+          onPressItem={handlePressMedia}
+          onEndReached={handleEndReached}
+          isLoadingMore={isLoadingMore || isFetchingNextPage}
+        />
+      </View>
     </View>
   )
 }

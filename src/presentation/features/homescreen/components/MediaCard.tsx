@@ -79,6 +79,8 @@ const MediaCardComponent: FC<MediaCardProps> = ({
               style={styles.image}
               contentFit="cover"
               transition={200}
+              cachePolicy="memory-disk"
+              recyclingKey={media.stableId}
             />
           </Pressable>
         </View>
@@ -109,6 +111,8 @@ const MediaCardComponent: FC<MediaCardProps> = ({
           style={styles.image}
           contentFit="cover"
           transition={200}
+          cachePolicy="memory-disk"
+          recyclingKey={media.stableId}
         />
 
         {/* Gradient overlay for variants with overlay content */}

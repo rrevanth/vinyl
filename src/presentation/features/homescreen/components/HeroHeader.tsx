@@ -1,5 +1,6 @@
 import type { FC } from 'react'
-import { Image, Pressable, Text, View } from 'react-native'
+import { Pressable, Text, View } from 'react-native'
+import { Image } from 'expo-image'
 import { StyleSheet } from 'react-native-unistyles'
 
 interface HeroHeaderProps {
@@ -37,6 +38,9 @@ export const HeroHeader: FC<HeroHeaderProps> = ({
           <Image
             source={{ uri: userAvatar }}
             style={styles.avatar}
+            contentFit="cover"
+            transition={200}
+            cachePolicy="memory-disk"
             accessibilityIgnoresInvertColors
           />
         ) : (

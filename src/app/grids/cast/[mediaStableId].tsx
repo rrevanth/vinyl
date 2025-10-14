@@ -1,38 +1,42 @@
 import type { Person } from '@/src/domain/entities/Person'
-import type { PersonDetailData } from '@/src/domain/use-cases/people/GetPersonDetailUseCase'
 import { t } from '@/src/presentation/shared/i18n'
 import { CastGrid } from '@/src/presentation/shared/ui/organisms/CastGrid'
-import { useQueryClient } from '@tanstack/react-query'
 import { router, Stack, useLocalSearchParams } from 'expo-router'
 import { useCallback, useMemo } from 'react'
 import { Text, View } from 'react-native'
 import { StyleSheet } from 'react-native-unistyles'
 import { LinearGradient } from 'expo-linear-gradient'
-
-interface CastMember {
-  readonly person: Person
-  readonly character?: string
-}
-
-interface CachedCastData {
-  readonly castMembers: CastMember[]
-  readonly mediaTitle?: string
-}
+import { 
+  deserializeCastData, 
+  serializePersonForNav 
+} from '@/src/presentation/shared/utils/navigationParams'
+import { createPersonFromNavParams } from '@/src/presentation/shared/utils/createPersonFromNavParams'
 
 export default function CastGridScreen() {
-  const params = useLocalSearchParams<{ mediaStableId: string }>()
-  const queryClient = useQueryClient()
+  const params = useLocalSearchParams<{ 
+    mediaStableId: string
+    mediaTitle?: string
+    castData: string 
+  }>()
 
-  // Decode mediaStableId
-  const mediaStableId = decodeURIComponent(params.mediaStableId)
+  // Decode params
+  const mediaTitle = params.mediaTitle ? decodeURIComponent(params.mediaTitle) : ''
 
-  // Get cached cast data
-  const cachedData = useMemo(() => {
-    return queryClient.getQueryData<CachedCastData>(['cast-grid', mediaStableId])
-  }, [queryClient, mediaStableId])
-
-  const castMembers = useMemo(() => cachedData?.castMembers || [], [cachedData])
-  const mediaTitle = cachedData?.mediaTitle
+  // Deserialize cast data and create Person entities
+  const castMembers = useMemo(() => {
+    if (!params.castData) return []
+    
+    try {
+      const castItems = deserializeCastData(params.castData)
+      return castItems.map(item => ({
+        person: createPersonFromNavParams(item.person),
+        character: item.character
+      }))
+    } catch (error) {
+      console.error('[CastGrid] Failed to deserialize cast data:', error)
+      return []
+    }
+  }, [params.castData])
 
   const headerTitle = useMemo(() => {
     if (mediaTitle) {
@@ -68,28 +72,16 @@ export default function CastGridScreen() {
   // Handle person press
   const handlePressPerson = useCallback(
     (person: Person) => {
-      // Pre-populate cache
-      queryClient.setQueryData<PersonDetailData>(['person-detail', person.stableId], {
-        person,
-        externalIds: person.externalIds,
-        enrichments: {
-          metadata: null,
-          filmography: null,
-          images: null,
-        },
-        providersUsed: {
-          metadata: [],
-          filmography: [],
-          images: [],
-        },
-        errors: {},
-      })
-
-      // Navigate to person detail
-      const encodedStableId = encodeURIComponent(person.stableId)
-      router.push(`/person/${encodedStableId}` as any)
+      // Navigate with serialized person data
+      router.push({
+        pathname: '/person/[stableId]',
+        params: {
+          stableId: person.stableId,
+          personData: serializePersonForNav(person)
+        }
+      } as any)
     },
-    [queryClient]
+    []
   )
 
   if (castMembers.length === 0) {

@@ -3,12 +3,13 @@ import type { SeriesWatchProgress } from '@/src/domain/capabilities/IMediaWatchP
 import { t } from '@/src/presentation/shared/i18n'
 import { Ionicons } from '@expo/vector-icons'
 import { observer } from '@legendapp/state/react'
-import { BlurView } from 'expo-blur'
+import { LinearGradient } from 'expo-linear-gradient'
 import type { FC } from 'react'
 import { memo, useCallback, useEffect, useMemo, useRef } from 'react'
-import type { ViewToken } from 'react-native'
-import { FlatList, Image, Pressable, Text, View } from 'react-native'
+import { Pressable, Text, View } from 'react-native'
+import { Image } from 'expo-image'
 import { StyleSheet } from 'react-native-unistyles'
+import { LegendList } from '@legendapp/list'
 import { selectedSeason$, setSelectedSeason } from '../stores/mediaUI.store'
 
 interface EpisodeCarouselProps {
@@ -57,7 +58,10 @@ const EpisodeCard: FC<EpisodeCardProps> = memo(({ episode, isWatched, onPress, o
           <Image
             source={{ uri: episode.stillPath }}
             style={styles.thumbnail}
-            resizeMode="cover"
+            contentFit="cover"
+            transition={200}
+            cachePolicy="memory-disk"
+            recyclingKey={`${episode.seasonNumber}-${episode.episodeNumber}`}
             accessibilityIgnoresInvertColors
           />
         ) : (
@@ -68,10 +72,17 @@ const EpisodeCard: FC<EpisodeCardProps> = memo(({ episode, isWatched, onPress, o
           </View>
         )}
 
-        {/* Gradient blur overlay - layered for fade effect (strong bottom → transparent top) */}
-        <BlurView intensity={80} tint="dark" style={styles.blurOverlayBottom} />
-        <BlurView intensity={60} tint="dark" style={styles.blurOverlayMiddle} />
-        <BlurView intensity={40} tint="dark" style={styles.blurOverlayTop} />
+        {/* Gradient overlay for text readability (optimized performance) */}
+        <LinearGradient
+          colors={[
+            'transparent',
+            'rgba(0, 0, 0, 0.3)',
+            'rgba(0, 0, 0, 0.6)',
+            'rgba(0, 0, 0, 0.85)'
+          ]}
+          locations={[0, 0.3, 0.6, 1]}
+          style={styles.gradientOverlay}
+        />
 
         {/* Watched Badge */}
         {isWatched && (
@@ -137,7 +148,7 @@ const EpisodeCarouselComponent: FC<EpisodeCarouselProps> = observer(({
   onPressMore,
 }) => {
   const selectedSeasonNumber = selectedSeason$.get()
-  const flatListRef = useRef<FlatList<EpisodeWithSeason>>(null)
+  const listRef = useRef<any>(null)
   const isUserScrollingRef = useRef(false)
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -159,9 +170,11 @@ const EpisodeCarouselComponent: FC<EpisodeCarouselProps> = observer(({
 
   // Auto-scroll to selected season when changed externally (from SeasonSelector)
   useEffect(() => {
-    if (selectedSeasonStartIndex !== -1 && flatListRef.current) {
+    if (selectedSeasonStartIndex !== -1 && listRef.current) {
       isUserScrollingRef.current = false // Mark as programmatic scroll
-      flatListRef.current.scrollToIndex({
+      
+      // LegendList uses scrollToIndex like FlatList
+      listRef.current.scrollToIndex?.({
         index: selectedSeasonStartIndex,
         animated: true,
       })
@@ -177,13 +190,13 @@ const EpisodeCarouselComponent: FC<EpisodeCarouselProps> = observer(({
   }, [selectedSeasonStartIndex])
 
   // Handle viewability change to detect season transitions
-  const onViewableItemsChanged = useRef(({ viewableItems }: { viewableItems: ViewToken[] }) => {
+  const onViewableItemsChanged = useCallback((info: { viewableItems: any[]; changed: any[] }) => {
     // Only auto-switch on user scroll, not programmatic
     if (!isUserScrollingRef.current) return
-    if (viewableItems.length === 0) return
+    if (info.viewableItems.length === 0) return
 
     // Get the most visible episode (first viewable item)
-    const centerEpisode = viewableItems[0]?.item as EpisodeWithSeason | undefined
+    const centerEpisode = info.viewableItems[0]?.item as EpisodeWithSeason | undefined
     if (!centerEpisode) return
 
     const episodeSeasonNumber = centerEpisode.seasonNumber
@@ -192,12 +205,7 @@ const EpisodeCarouselComponent: FC<EpisodeCarouselProps> = observer(({
     if (episodeSeasonNumber !== selectedSeasonNumber) {
       setSelectedSeason(episodeSeasonNumber)
     }
-  }).current
-
-  const viewabilityConfig = useRef({
-    itemVisiblePercentThreshold: 50, // Episode is "visible" when 50% shown
-    minimumViewTime: 300, // Must be visible for 300ms to trigger change
-  }).current
+  }, [selectedSeasonNumber])
 
   // Handle scroll begin - enable auto-switching
   const handleScrollBeginDrag = useCallback(() => {
@@ -217,21 +225,6 @@ const EpisodeCarouselComponent: FC<EpisodeCarouselProps> = observer(({
     }
   }, [])
 
-  // Handle scroll to index failure (episode not in layout yet)
-  const onScrollToIndexFailed = useCallback((info: {
-    index: number
-    highestMeasuredFrameIndex: number
-    averageItemLength: number
-  }) => {
-    // Wait for layout to complete, then scroll again
-    setTimeout(() => {
-      flatListRef.current?.scrollToIndex({
-        index: info.index,
-        animated: true,
-      })
-    }, 100)
-  }, [])
-
   if (allEpisodes.length === 0) {
     return (
       <View style={styles.emptyContainer}>
@@ -242,7 +235,7 @@ const EpisodeCarouselComponent: FC<EpisodeCarouselProps> = observer(({
     )
   }
 
-  const renderEpisode = ({ item }: { item: EpisodeWithSeason }) => {
+  const renderEpisode = useCallback(({ item }: { item: EpisodeWithSeason }) => {
     // Find watch progress for this episode
     const seasonProgress = watchProgress?.seasons.find(
       (s) => s.number === item.seasonNumber
@@ -260,31 +253,29 @@ const EpisodeCarouselComponent: FC<EpisodeCarouselProps> = observer(({
         onPressMore={onPressMore ? () => onPressMore(item) : undefined}
       />
     )
-  }
+  }, [watchProgress, onPressEpisode, onPressMore])
 
   return (
     <View style={styles.container}>
-      <FlatList
-        ref={flatListRef}
+      <LegendList
+        ref={listRef}
         data={allEpisodes}
         renderItem={renderEpisode}
         keyExtractor={(item) => `${item.seasonNumber}-${item.id}`}
         horizontal
         showsHorizontalScrollIndicator={false}
-        snapToInterval={CARD_WIDTH + CARD_SPACING}
-        decelerationRate="fast"
         contentContainerStyle={styles.listContent}
-        pagingEnabled={false}
-        snapToAlignment="start"
-        onViewableItemsChanged={onViewableItemsChanged}
-        viewabilityConfig={viewabilityConfig}
         onScrollBeginDrag={handleScrollBeginDrag}
-        onScrollToIndexFailed={onScrollToIndexFailed}
-        getItemLayout={(data, index) => ({
-          length: CARD_WIDTH + CARD_SPACING,
-          offset: (CARD_WIDTH + CARD_SPACING) * index,
-          index,
-        })}
+        estimatedItemSize={CARD_WIDTH}
+        initialContainerPoolRatio={3}
+        drawDistance={800}
+        recycleItems={true}
+        maintainVisibleContentPosition
+        onViewableItemsChanged={onViewableItemsChanged}
+        viewabilityConfig={{
+          itemVisiblePercentThreshold: 50,
+          minimumViewTime: 300,
+        }}
       />
     </View>
   )
@@ -300,6 +291,7 @@ const CARD_SPACING = 16
 const styles = StyleSheet.create((theme) => ({
   container: {
     marginVertical: theme.spacing.md,
+    height: CARD_HEIGHT, // CRITICAL: LegendList needs explicit height for horizontal lists
   },
   listContent: {
     paddingHorizontal: theme.spacing.gutter,
@@ -345,29 +337,12 @@ const styles = StyleSheet.create((theme) => ({
     fontSize: theme.fontSize['3xl'],
     fontWeight: theme.fontWeight.bold,
   },
-  blurOverlayBottom: {
+  gradientOverlay: {
     position: 'absolute',
     left: 0,
     right: 0,
     bottom: 0,
-    height: '30%',
-    opacity: 0.6,
-  },
-  blurOverlayMiddle: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: '60%',
-    opacity: 0.2,
-  },
-  blurOverlayTop: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: '90%',
-    opacity: 0.2,
+    height: '100%',
   },
   watchedBadge: {
     position: 'absolute',

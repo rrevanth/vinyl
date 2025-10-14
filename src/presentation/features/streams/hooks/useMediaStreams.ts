@@ -6,6 +6,7 @@ import type { ProviderInfo } from '@/src/domain/capabilities/IMediaStreamsCapabi
 import { useService } from '@/src/infrastructure/di/useService'
 import { TOKENS } from '@/src/infrastructure/di/tokens'
 import type { GetMediaStreamsUseCase } from '@/src/domain/use-cases/media/GetMediaStreamsUseCase'
+import { logger } from '@/src/presentation/shared/utils/logger'
 import {
   streamUI$,
   resetStreamingState,
@@ -30,7 +31,19 @@ export const useMediaStreams = (
     // Ensure media is properly cached in TanStack Query
     // This allows other components (like player) to access it reliably
     queryClient.setQueryData(['media-detail', media.stableId], media)
-    console.log('[useMediaStreams] Cached media:', { stableId: media.stableId, title: media.title })
+    
+    // Log media details including externalIds to verify enrichment
+    logger.debug('[useMediaStreams] Starting stream fetch', { 
+      stableId: media.stableId, 
+      title: media.title,
+      type: media.type,
+      hasImdb: !!media.externalIds.imdb,
+      hasTmdb: !!media.externalIds.tmdb,
+      hasTrakt: !!media.externalIds.trakt,
+      hasStremio: !!media.externalIds.stremio,
+      seasonNumber,
+      episodeNumber
+    })
 
     // Reset state on mount/param change
     resetStreamingState()
@@ -66,11 +79,12 @@ export const useMediaStreams = (
     fetchStreams()
   }, [media, seasonNumber, episodeNumber, getMediaStreamsUseCase, queryClient])
 
-  // Return observable values (reactive via Legend State)
+  // Return observables directly for reactivity (components must use observer)
+  // Accessing .get() here would snapshot the value and not react to changes
   return {
-    streams: streamUI$.streamResults.get(),
-    providers: streamUI$.completedProviders.get(),
-    isLoading: streamUI$.isLoadingStreams.get(),
-    failedProviders: streamUI$.failedProviders.get(),
+    streams: streamUI$.streamResults,
+    providers: streamUI$.completedProviders,
+    isLoading: streamUI$.isLoadingStreams,
+    failedProviders: streamUI$.failedProviders,
   }
 }

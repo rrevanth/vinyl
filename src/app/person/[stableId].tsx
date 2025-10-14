@@ -10,19 +10,21 @@ import { useCallback, useMemo } from 'react'
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native'
 import { StyleSheet } from 'react-native-unistyles'
 import type { Media } from '@/src/domain/entities/Media'
-import { useQueryClient } from '@tanstack/react-query'
-import type { MediaDetailData } from '@/src/domain/use-cases/media/GetMediaDetailUseCase'
 import { LinearGradient } from 'expo-linear-gradient'
+import {
+  deserializePersonFromNav,
+  serializeMediaForNav,
+} from '@/src/presentation/shared/utils/navigationParams'
+import { createPersonFromNavParams } from '@/src/presentation/shared/utils/createPersonFromNavParams'
 
 /**
  * Person Detail Screen
  * Dynamic route: /person/[stableId]
  *
- * Pattern:
- * - Get stableId from route params
- * - TanStack Query cache holds person data keyed by stableId
- * - Pre-populate cache before navigation for instant loads
- * - Back navigation works because each stableId has separate cache entry
+ * NEW PATTERN:
+ * - Person entity passed via router params (personData)
+ * - Enrichments cached via TanStack Query (server state only)
+ * - No cache dependency for Person entity (navigation state)
  *
  * Features:
  * - Person header with profile image and name
@@ -31,10 +33,14 @@ import { LinearGradient } from 'expo-linear-gradient'
  * - Filmography section with tab filtering (All, Movies, TV)
  */
 const PersonDetailScreen = observer(() => {
-  // Get route parameters
-  const { stableId: encodedStableId } = useLocalSearchParams<{ stableId: string }>()
-  const stableId = encodedStableId ? decodeURIComponent(encodedStableId) : ''
-  const queryClient = useQueryClient()
+  // Get route parameters and parse Person from lightweight params
+  const params = useLocalSearchParams<{ stableId: string; personData: string }>()
+
+  // Deserialize lightweight nav params
+  const navParams = useMemo(() => deserializePersonFromNav(params.personData), [params.personData])
+
+  // Create minimal Person entity for instant rendering
+  const person = useMemo(() => createPersonFromNavParams(navParams), [navParams])
 
   const headerOptions = useMemo(
     () => ({
@@ -51,25 +57,22 @@ const PersonDetailScreen = observer(() => {
     []
   )
 
-  // Get all data from TanStack Query
-  const { person, metadata, filmography, isLoading, error } = usePersonDetail(stableId)
+  // Get enrichments from TanStack Query (Person comes from params)
+  const { metadata, filmography, isLoading, error } = usePersonDetail(person)
 
   // Event handlers
   const handlePressMedia = useCallback(
     (media: Media) => {
-      // Pre-populate cache with Media object before navigation
-      queryClient.setQueryData<MediaDetailData>(['media-detail', media.stableId], {
-        media: media,
-        externalIds: media.externalIds,
-        // Other fields will be fetched by use case
-        providersUsed: {},
-        errors: {},
+      // Navigate with lightweight Media data (optimized for performance)
+      router.push({
+        pathname: '/media/[stableId]',
+        params: {
+          stableId: media.stableId,
+          mediaData: serializeMediaForNav(media),
+        },
       })
-
-      // Navigate to media detail
-      router.push(`/media/${encodeURIComponent(media.stableId)}`)
     },
-    [queryClient]
+    []
   )
 
   // Loading state

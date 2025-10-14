@@ -3,7 +3,8 @@
     "close": "Close",
     "cancel": "Cancel",
     "save": "Save",
-    "saving": "Saving..."
+    "saving": "Saving...",
+    "show_less": "Show Less"
   },
   "navigation": {
     "home": "Home",

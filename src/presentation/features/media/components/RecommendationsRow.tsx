@@ -10,6 +10,8 @@ import { router } from 'expo-router'
 import { useInfiniteRecommendationsQuery } from '../queries/useInfiniteRecommendationsQuery'
 import { MediaCard } from '@/src/presentation/features/homescreen/components/MediaCard'
 import { observer } from '@legendapp/state/react'
+import { logger } from '@/src/presentation/shared/utils/logger'
+import { serializeMediaForNav } from '@/src/presentation/shared/utils/navigationParams'
 
 interface RecommendationsRowProps {
   readonly catalog: Catalog
@@ -50,7 +52,7 @@ const RecommendationsRowComponent: FC<RecommendationsRowProps> = ({
 
   // Handle title press - navigate to recommendations grid
   const handlePressTitle = useCallback(() => {
-    console.log('[RecommendationsRow] Title pressed, navigating to recommendations grid')
+    logger.debug('[RecommendationsRow] Title pressed, navigating to recommendations grid')
 
     try {
       // Navigate to recommendations grid (not catalog grid!)
@@ -58,7 +60,7 @@ const RecommendationsRowComponent: FC<RecommendationsRowProps> = ({
       const encodedName = encodeURIComponent(displayName)
       router.push(`/grids/recommendations/${encodedCatalogId}?name=${encodedName}` as any)
     } catch (error) {
-      console.error('[RecommendationsRow] Failed to navigate to recommendations grid:', error)
+      logger.error('[RecommendationsRow] Failed to navigate to recommendations grid', error as Error)
     }
   }, [latestCatalog, displayName])
 
@@ -67,14 +69,14 @@ const RecommendationsRowComponent: FC<RecommendationsRowProps> = ({
     (item: CatalogItem) => {
       const media = item.media
       if (!media) {
-        console.warn('[RecommendationsRow] Ignoring press because catalog item is missing media', {
+        logger.warn('[RecommendationsRow] Ignoring press because catalog item is missing media', {
           catalogItemId: item.stableId,
           catalogId: latestCatalog.stableId,
         })
         return
       }
 
-      console.log('[RecommendationsRow] Navigation triggered:', {
+      logger.debug('[RecommendationsRow] Navigation triggered', {
         stableId: media.stableId,
         title: media.title,
         type: media.type,
@@ -82,25 +84,25 @@ const RecommendationsRowComponent: FC<RecommendationsRowProps> = ({
       })
 
       if (onPressItemProp) {
-        console.log('[RecommendationsRow] Using onPressItemProp')
+        logger.debug('[RecommendationsRow] Using onPressItemProp')
         onPressItemProp(media)
         return
       }
 
-      console.log('[RecommendationsRow] Navigating with Media data in params (NEW PATTERN)')
+      logger.debug('[RecommendationsRow] Navigating with Media data in params (NEW PATTERN)')
 
       try {
-        // Navigate with Media data in params (NEW PATTERN: no cache)
+        // Navigate with lightweight Media data (optimized for performance)
         router.push({
           pathname: '/media/[stableId]',
           params: {
             stableId: media.stableId,
-            mediaData: JSON.stringify(media.toJSON())
+            mediaData: serializeMediaForNav(media) // Much smaller payload
           }
         })
-        console.log('[RecommendationsRow] Navigation command sent')
+        logger.debug('[RecommendationsRow] Navigation command sent')
       } catch (error) {
-        console.error('[RecommendationsRow] Navigation failed:', error)
+        logger.error('[RecommendationsRow] Navigation failed', error as Error)
       }
     },
     [latestCatalog.stableId, onPressItemProp]
@@ -112,7 +114,7 @@ const RecommendationsRowComponent: FC<RecommendationsRowProps> = ({
   }, [latestCatalog.items])
 
   // Debug logging for catalog items
-  console.log('[RecommendationsRow] Rendering recommendation items', {
+  logger.debug('[RecommendationsRow] Rendering recommendation items', {
     catalogId: latestCatalog.stableId,
     infiniteQueryPages: infiniteQuery.data?.pages?.length ?? 0,
     catalogItemsCount: catalogItems.length,
@@ -127,7 +129,7 @@ const RecommendationsRowComponent: FC<RecommendationsRowProps> = ({
 
   // Handle end reached for infinite scroll
   const handleEndReached = useCallback(async () => {
-    console.log('[RecommendationsRow] onEndReached triggered', {
+    logger.debug('[RecommendationsRow] onEndReached triggered', {
       catalogId: latestCatalog.stableId,
       canLoadMore: latestCatalog.canLoadMore(),
       isLoadingMore,
@@ -137,7 +139,7 @@ const RecommendationsRowComponent: FC<RecommendationsRowProps> = ({
 
     // Check if can load more and not already loading
     if (!latestCatalog.canLoadMore() || isLoadingMore || infiniteQuery.isFetchingNextPage) {
-      console.log('[RecommendationsRow] Skipping load more', {
+      logger.debug('[RecommendationsRow] Skipping load more', {
         canLoadMore: latestCatalog.canLoadMore(),
         isLoadingMore,
         isFetchingNextPage: infiniteQuery.isFetchingNextPage,
@@ -146,12 +148,12 @@ const RecommendationsRowComponent: FC<RecommendationsRowProps> = ({
     }
 
     try {
-      console.log('[RecommendationsRow] Starting to load more items')
+      logger.debug('[RecommendationsRow] Starting to load more items')
       setIsLoadingMore(true)
       await infiniteQuery.fetchNextPage()
-      console.log('[RecommendationsRow] Successfully loaded more items')
+      logger.debug('[RecommendationsRow] Successfully loaded more items')
     } catch (error) {
-      console.error('[RecommendationsRow] Failed to load more recommendations', error)
+      logger.error('[RecommendationsRow] Failed to load more recommendations', error as Error)
     } finally {
       setIsLoadingMore(false)
     }
@@ -199,6 +201,10 @@ const RecommendationsRowComponent: FC<RecommendationsRowProps> = ({
             testID={`recommendation-${catalog.stableId}-${item.stableId}`}
           />
         )}
+        estimatedItemSize={152}
+        initialContainerPoolRatio={3}
+        drawDistance={800}
+        recycleItems
         onEndReached={handleEndReached}
         onEndReachedThreshold={0.1}
         ListFooterComponent={
@@ -234,6 +240,7 @@ export const RecommendationsRow = memo(observer(RecommendationsRowComponent))
 const styles = StyleSheet.create((theme) => ({
   container: {
     marginBottom: theme.spacing.rowSpacing,
+    height: 228 + 40, // Poster height + title height
   },
   headerContainer: {
     paddingHorizontal: theme.spacing.gutter,

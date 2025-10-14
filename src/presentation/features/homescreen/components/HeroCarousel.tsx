@@ -6,7 +6,8 @@ import { HeroPaginationIndicator } from '@/src/presentation/shared/ui/progress'
 import { LegendList } from '@legendapp/list'
 import { LinearGradient } from 'expo-linear-gradient'
 import { memo, useCallback, useEffect, useRef, useState, type FC } from 'react'
-import { Dimensions, Image, ImageBackground, Pressable, Text, View } from 'react-native'
+import { Dimensions, ImageBackground, Pressable, Text, View } from 'react-native'
+import { Image } from 'expo-image'
 import { StyleSheet } from 'react-native-unistyles'
 import { HeroHeader } from './HeroHeader'
 
@@ -153,6 +154,10 @@ const HeroCarouselComponent: FC<HeroCarouselProps> = ({
         pagingEnabled
         snapToInterval={SCREEN_WIDTH}
         decelerationRate="fast"
+        estimatedItemSize={SCREEN_WIDTH}
+        initialContainerPoolRatio={2}
+        drawDistance={SCREEN_WIDTH * 2}
+        recycleItems
         renderItem={({ item }) => {
           const backdrop = item.images.getBestBackdrop() ?? item.images.getBestPoster()
           const logo = item.images.logo
@@ -181,17 +186,28 @@ const HeroCarouselComponent: FC<HeroCarouselProps> = ({
                 resizeMode="cover"
               >
                 <LinearGradient
-                  colors={['rgba(0, 0, 0, 0)', 'rgba(0, 0, 0, 0.8)']}
-                  style={styles.gradient}
+                  colors={[
+                    'transparent',
+                    'rgba(0, 0, 0, 0.2)',
+                    'rgba(0, 0, 0, 0.5)',
+                    'rgba(0, 0, 0, 0.8)',
+                  ]}
+                  locations={[0, 0.3, 0.6, 1]}
                   start={{ x: 0.5, y: 0 }}
                   end={{ x: 0.5, y: 1 }}
+                  style={styles.gradient}
                 />
 
                 <LinearGradient
-                  colors={['rgba(0, 0, 0, 0.8)', 'rgba(0, 0, 0, 0)']}
-                  style={styles.topGradient}
+                  colors={[
+                    'rgba(0, 0, 0, 0.7)',
+                    'rgba(0, 0, 0, 0.3)',
+                    'transparent',
+                  ]}
+                  locations={[0, 0.5, 1]}
                   start={{ x: 0.5, y: 0 }}
                   end={{ x: 0.5, y: 1 }}
+                  style={styles.topGradient}
                 />
 
                 <View style={styles.centeredContent}>
@@ -200,7 +216,14 @@ const HeroCarouselComponent: FC<HeroCarouselProps> = ({
                   ) : null}
 
                   {logo ? (
-                    <Image source={{ uri: logo }} style={styles.logo} resizeMode="contain" />
+                    <Image 
+                      source={{ uri: logo }} 
+                      style={styles.logo} 
+                      contentFit="contain"
+                      transition={200}
+                      cachePolicy="memory-disk"
+                      recyclingKey={item.stableId}
+                    />
                   ) : (
                     <Text style={styles.title} numberOfLines={2}>
                       {item.title}
@@ -303,14 +326,14 @@ const styles = StyleSheet.create((theme) => ({
     left: 0,
     right: 0,
     bottom: 0,
-    height: '60%',
+    height: '70%', // Increased from 60% for better text coverage
   },
   topGradient: {
     position: 'absolute',
     left: 0,
     right: 0,
     top: 0,
-    height: '30%', // Cover top 30% for header visibility
+    height: '40%', // Increased from 30% for better header visibility
   },
   centeredContent: {
     flex: 1,

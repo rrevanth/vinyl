@@ -1,6 +1,7 @@
 import type { FC } from 'react'
 import { memo, useState, useCallback } from 'react'
-import { Image, Pressable, Text, View } from 'react-native'
+import { Pressable, Text, View } from 'react-native'
+import { Image } from 'expo-image'
 import { LinearGradient } from 'expo-linear-gradient'
 import { StyleSheet } from 'react-native-unistyles'
 import { Ionicons } from '@expo/vector-icons'
@@ -10,8 +11,10 @@ import { t } from '@/src/presentation/shared/i18n'
 // Extended metadata type for future enrichments
 type PersonMetadata = Person & {
   birthdate?: string
+  deathdate?: string
   birthplace?: string
   biography?: string
+  homepage?: string
 }
 
 interface PersonHeroProps {
@@ -21,18 +24,18 @@ interface PersonHeroProps {
 }
 
 /**
- * Dramatic full-screen hero for person detail pages
+ * Redesigned person hero with gradient overlay
  * Features:
- * - Profile image background with fallback to initials
- * - Simple gradient overlays for text readability
- * - Center-aligned content with person name, department, personal info
- * - Expandable biography snippet (2 lines → full text)
- * - Professional typography with strong text shadows
+ * - Full-screen profile image background
+ * - Strong gradient overlay for readability (similar to media hero)
+ * - Biography displayed prominently with expand/collapse
+ * - Personal information (birthdate, birthplace) as metadata badges
+ * - Center-aligned layout for consistency with media hero
  */
 const PersonHeroComponent: FC<PersonHeroProps> = ({
   person,
   metadata,
-  height = 500,
+  height = 600,
 }) => {
   const [biographyExpanded, setBiographyExpanded] = useState(false)
 
@@ -71,6 +74,24 @@ const PersonHeroComponent: FC<PersonHeroProps> = ({
     }
   }
 
+  // Calculate age or format life span
+  const getAgeOrLifespan = (): string | null => {
+    if (!metadata?.birthdate) return null
+
+    const birthYear = new Date(metadata.birthdate).getFullYear()
+    
+    if (metadata.deathdate) {
+      const deathYear = new Date(metadata.deathdate).getFullYear()
+      return `${birthYear} - ${deathYear}`
+    }
+
+    const currentYear = new Date().getFullYear()
+    const age = currentYear - birthYear
+    return `${age} years old`
+  }
+
+  const lifespan = getAgeOrLifespan()
+
   return (
     <View style={[styles.container, { height }]}>
       {/* Profile Image or Placeholder */}
@@ -78,8 +99,9 @@ const PersonHeroComponent: FC<PersonHeroProps> = ({
         <Image
           source={{ uri: profileUrl }}
           style={styles.image}
-          resizeMode="cover"
-          accessibilityIgnoresInvertColors
+          contentFit="cover"
+          cachePolicy="memory-disk"
+          transition={200}
         />
       ) : (
         <View style={styles.placeholder}>
@@ -87,24 +109,34 @@ const PersonHeroComponent: FC<PersonHeroProps> = ({
         </View>
       )}
 
-      {/* Bottom Gradient - Simple approach matching media hero */}
+      {/* Strong gradient overlay for readability (similar to media hero) */}
       <LinearGradient
-        colors={['transparent', 'rgba(0,0,0,0.3)', 'rgba(0,0,0,0.95)']}
-        locations={[0, 0.2, 1]}
+        colors={[
+          'transparent',
+          'rgba(0,0,0,0.3)',
+          'rgba(0,0,0,0.6)',
+          'rgba(0,0,0,0.85)',
+          'rgba(0,0,0,0.98)',
+        ]}
+        locations={[0, 0.2, 0.5, 0.75, 1]}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
         style={styles.bottomGradient}
+        pointerEvents="none"
       />
 
-      {/* Top Gradient - Only when biography exists */}
-      {metadata?.biography && (
-        <LinearGradient
-          colors={['rgba(0,0,0,0.8)', 'transparent']}
-          locations={[0, 1]}
-          style={styles.topGradient}
-        />
-      )}
+      {/* Top gradient for additional readability */}
+      <LinearGradient
+        colors={['rgba(0,0,0,0.6)', 'rgba(0,0,0,0.3)', 'transparent']}
+        locations={[0, 0.5, 1]}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
+        style={styles.topGradient}
+        pointerEvents="none"
+      />
 
-      {/* Overlay Content - Bottom-aligned, center-aligned horizontally */}
-      <View style={styles.overlayContent}>
+      {/* Content - Center-aligned at bottom */}
+      <View style={styles.content}>
         {/* Person Name */}
         <Text style={styles.name} numberOfLines={2}>
           {person.name}
@@ -115,56 +147,56 @@ const PersonHeroComponent: FC<PersonHeroProps> = ({
           <Text style={styles.department}>{person.knownForDepartment}</Text>
         )}
 
-        {/* Personal Info Badges */}
+        {/* Metadata Row: Birthdate, Age/Lifespan, Birthplace */}
         {metadata && (metadata.birthdate || metadata.birthplace) && (
-          <View style={styles.badges}>
+          <View style={styles.metadataRow}>
             {metadata.birthdate && (
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>{formatDate(metadata.birthdate)}</Text>
-              </View>
+              <>
+                <Text style={styles.metadataText}>{formatDate(metadata.birthdate)}</Text>
+                {(lifespan || metadata.birthplace) && <Text style={styles.separator}>•</Text>}
+              </>
+            )}
+            {lifespan && (
+              <>
+                <Text style={styles.metadataText}>{lifespan}</Text>
+                {metadata.birthplace && <Text style={styles.separator}>•</Text>}
+              </>
             )}
             {metadata.birthplace && (
-              <View style={styles.badge}>
-                <Text style={styles.badgeText} numberOfLines={1}>
-                  {metadata.birthplace}
-                </Text>
-              </View>
+              <Text style={styles.metadataText} numberOfLines={1}>
+                {metadata.birthplace}
+              </Text>
             )}
           </View>
         )}
 
-        {/* Biography Snippet (2 lines, expandable) */}
+        {/* Biography - Expandable */}
         {metadata?.biography && (
           <View style={styles.biographyContainer}>
             <Text
               style={styles.biography}
-              numberOfLines={biographyExpanded ? undefined : 2}
-              ellipsizeMode="tail"
+              numberOfLines={biographyExpanded ? undefined : 3}
             >
               {metadata.biography}
             </Text>
-            {!biographyExpanded && metadata.biography.length > 150 && (
+            {metadata.biography.length > 200 && (
               <Pressable
                 onPress={toggleBiography}
                 accessibilityRole="button"
-                accessibilityLabel={t('media_detail.see_all')}
-                style={styles.moreButton}
+                accessibilityLabel={biographyExpanded ? t('common.close') : t('media_detail.see_all')}
+                style={({ pressed }) => [
+                  styles.expandButton,
+                  pressed && styles.expandButtonPressed,
+                ]}
               >
-                <Text style={styles.moreButtonText}>
-                  {t('media_detail.see_all').toUpperCase()}
+                <Text style={styles.expandButtonText}>
+                  {biographyExpanded ? t('common.show_less').toUpperCase() : t('media_detail.see_all').toUpperCase()}
                 </Text>
-                <Ionicons name="chevron-down" size={16} color="#FFFFFF" />
-              </Pressable>
-            )}
-            {biographyExpanded && (
-              <Pressable
-                onPress={toggleBiography}
-                accessibilityRole="button"
-                accessibilityLabel={t('common.close')}
-                style={styles.moreButton}
-              >
-                <Text style={styles.moreButtonText}>{t('common.close').toUpperCase()}</Text>
-                <Ionicons name="chevron-up" size={16} color="#FFFFFF" />
+                <Ionicons
+                  name={biographyExpanded ? 'chevron-up' : 'chevron-down'}
+                  size={16}
+                  color="#FFFFFF"
+                />
               </Pressable>
             )}
           </View>
@@ -182,7 +214,6 @@ const styles = StyleSheet.create((theme) => ({
     width: '100%',
     overflow: 'hidden',
     backgroundColor: theme.colors.background,
-    marginBottom: theme.spacing.xl,
   },
   image: {
     position: 'absolute',
@@ -211,15 +242,15 @@ const styles = StyleSheet.create((theme) => ({
     color: theme.colors.textSecondary,
     textAlign: 'center',
   },
-  // Bottom gradient covering 80% height
+  // Bottom gradient covering 70% height
   bottomGradient: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    height: '80%',
+    height: '70%',
   },
-  // Top gradient covering 30% height (for biography readability)
+  // Top gradient covering 30% height
   topGradient: {
     position: 'absolute',
     top: 0,
@@ -227,80 +258,87 @@ const styles = StyleSheet.create((theme) => ({
     right: 0,
     height: '30%',
   },
-  // Content container - bottom-aligned with center alignment
-  overlayContent: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    alignItems: 'center',
+  // Content container - bottom-aligned, center-aligned horizontally
+  content: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
     paddingHorizontal: theme.spacing.xl,
     paddingBottom: theme.spacing['3xl'],
-    gap: theme.spacing.md,
+    alignItems: 'center',
+    gap: theme.spacing.sm,
   },
   name: {
-    fontSize: theme.fontSize['3xl'],
+    fontSize: theme.fontSize['4xl'],
     fontWeight: theme.fontWeight.bold,
     color: '#FFFFFF',
-    lineHeight: theme.lineHeight.tight,
     textAlign: 'center',
-    textShadowColor: 'rgba(0, 0, 0, 0.9)',
+    textShadowColor: 'rgba(0,0,0,0.8)',
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 8,
+    maxWidth: '90%',
   },
   department: {
     fontSize: theme.fontSize.base,
-    fontWeight: theme.fontWeight.medium,
-    color: '#FFFFFF',
+    fontWeight: theme.fontWeight.semibold,
+    color: 'rgba(255,255,255,0.9)',
     textAlign: 'center',
-    textShadowColor: 'rgba(0, 0, 0, 0.9)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 8,
+    textShadowColor: 'rgba(0,0,0,0.8)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
   },
-  badges: {
+  metadataRow: {
     flexDirection: 'row',
-    gap: theme.spacing.sm,
+    alignItems: 'center',
+    gap: theme.spacing.xs,
     flexWrap: 'wrap',
     justifyContent: 'center',
-    alignItems: 'center',
   },
-  badge: {
-    paddingHorizontal: theme.spacing.xs,
-    paddingVertical: 2,
-    borderRadius: theme.borderRadius.sm,
-    borderWidth: 1,
-    borderColor: theme.colors.textSecondary,
-    maxWidth: 200,
+  metadataText: {
+    color: 'rgba(255,255,255,0.9)',
+    fontSize: 14,
+    fontWeight: '600',
+    textShadowColor: 'rgba(0,0,0,0.8)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
   },
-  badgeText: {
-    fontSize: theme.fontSize.xs,
-    fontWeight: theme.fontWeight.semibold,
-    color: theme.colors.textSecondary,
-    textAlign: 'center',
+  separator: {
+    color: 'rgba(255,255,255,0.5)',
+    fontSize: 14,
+    marginHorizontal: 4,
   },
   biographyContainer: {
     gap: theme.spacing.xs,
     alignItems: 'center',
+    maxWidth: '90%',
   },
   biography: {
     fontSize: theme.fontSize.sm,
-    lineHeight: theme.lineHeight.loose,
-    color: '#FFFFFF',
+    fontWeight: theme.fontWeight.regular,
+    lineHeight: 20,
+    color: 'rgba(255,255,255,0.9)',
     textAlign: 'center',
-    textShadowColor: 'rgba(0, 0, 0, 0.9)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 8,
+    textShadowColor: 'rgba(0,0,0,0.8)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
   },
-  moreButton: {
+  expandButton: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: theme.spacing.xs,
-    paddingTop: theme.spacing.xs,
+    paddingVertical: theme.spacing.xs,
+    paddingHorizontal: theme.spacing.sm,
   },
-  moreButtonText: {
+  expandButtonPressed: {
+    opacity: 0.7,
+  },
+  expandButtonText: {
     fontSize: theme.fontSize.xs,
     fontWeight: theme.fontWeight.bold,
     color: '#FFFFFF',
     letterSpacing: 1,
-    textShadowColor: 'rgba(0, 0, 0, 0.9)',
+    textShadowColor: 'rgba(0,0,0,0.9)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 4,
   },

@@ -276,6 +276,8 @@ const ParallaxHeroWithOverlayComponent: FC<ParallaxHeroWithOverlayProps> = ({
           'rgba(0,0,0,0.98)',
         ]}
         locations={[0, 0.2, 0.5, 0.75, 1]}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
         style={styles.bottomGradient}
       />
 

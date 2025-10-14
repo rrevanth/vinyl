@@ -3,8 +3,8 @@ import type { Person } from '@/src/domain/entities/Person'
 import { t } from '@/src/presentation/shared/i18n'
 import { Ionicons } from '@expo/vector-icons'
 import { LegendList } from '@legendapp/list'
-import { useQueryClient } from '@tanstack/react-query'
 import { router } from 'expo-router'
+import { serializeCastData } from '@/src/presentation/shared/utils/navigationParams'
 import type { FC } from 'react'
 import { memo, useCallback, useMemo } from 'react'
 import { Pressable, Text, View } from 'react-native'
@@ -28,7 +28,6 @@ const CastSectionComponent: FC<CastSectionProps> = ({
   catalogs,
   onPressPerson,
 }) => {
-  const queryClient = useQueryClient()
 
   // Extract Person entities from catalog items and character information
   const castMembers = useMemo<CastMember[]>(() => {
@@ -91,19 +90,19 @@ const CastSectionComponent: FC<CastSectionProps> = ({
     console.log('[CastSection] Title pressed, navigating to cast grid view')
 
     try {
-      // Pre-populate cache with all cast members and media title
-      queryClient.setQueryData(['cast-grid', mediaStableId], {
-        castMembers: allCastMembers,
-        mediaTitle,
-      })
-
-      // Navigate to cast grid view
-      const encodedMediaStableId = encodeURIComponent(mediaStableId)
-      router.push(`/grids/cast/${encodedMediaStableId}` as any)
+      // Navigate with serialized cast data
+      router.push({
+        pathname: '/grids/cast/[mediaStableId]',
+        params: {
+          mediaStableId,
+          mediaTitle,
+          castData: serializeCastData(allCastMembers)
+        }
+      } as any)
     } catch (error) {
       console.error('[CastSection] Failed to navigate to cast grid view:', error)
     }
-  }, [mediaStableId, allCastMembers, mediaTitle, queryClient])
+  }, [mediaStableId, allCastMembers, mediaTitle])
 
   // Hide section if no cast members
   if (castMembers.length === 0) {

@@ -33,12 +33,35 @@ export class TMDBMediaMapper extends BaseTMDBMapper {
         : undefined,
     })
 
+    // Map genres from TMDB format to Media format
+    const genres = movie.genres?.map((genre) => ({
+      id: genre.id,
+      name: genre.name,
+    }))
+
+    // Map rating from TMDB format to Media format
+    const rating = movie.vote_average && movie.vote_count
+      ? {
+          average: movie.vote_average,
+          count: movie.vote_count,
+          source: 'tmdb',
+        }
+      : undefined
+
+    // Extract US certification from release_dates if available
+    const certification = this.extractUSCertification(movie.release_dates)
+
     return new Media({
       externalIds,
       type: 'movie',
       title: movie.title,
       year,
       images,
+      overview: movie.overview || undefined,
+      runtime: movie.runtime ?? undefined,
+      genres,
+      certification,
+      rating,
     })
   }
 
@@ -62,12 +85,38 @@ export class TMDBMediaMapper extends BaseTMDBMapper {
         : undefined,
     })
 
+    // Map genres from TMDB format to Media format
+    const genres = tv.genres?.map((genre) => ({
+      id: genre.id,
+      name: genre.name,
+    }))
+
+    // Map rating from TMDB format to Media format
+    const rating = tv.vote_average && tv.vote_count
+      ? {
+          average: tv.vote_average,
+          count: tv.vote_count,
+          source: 'tmdb',
+        }
+      : undefined
+
+    // Extract US certification from content_ratings if available
+    const certification = this.extractUSContentRating(tv.content_ratings)
+
+    // Use average episode runtime if available
+    const runtime = tv.episode_run_time?.[0]
+
     return new Media({
       externalIds,
       type: 'series',
       title: tv.name,
       year,
       images,
+      overview: tv.overview || undefined,
+      runtime,
+      genres,
+      certification,
+      rating,
     })
   }
 
@@ -110,6 +159,32 @@ export class TMDBMediaMapper extends BaseTMDBMapper {
       inProduction: tv.in_production || false,
       adult: tv.adult || false,
     }
+  }
+
+  /**
+   * Extract US certification from release_dates response (for movies)
+   */
+  private static extractUSCertification(releaseDates?: { results: { iso_3166_1: string; release_dates: { certification: string }[] }[] }): string | undefined {
+    if (!releaseDates?.results) return undefined
+
+    // Find US release dates
+    const usReleases = releaseDates.results.find((result) => result.iso_3166_1 === 'US')
+    if (!usReleases?.release_dates?.length) return undefined
+
+    // Find theatrical or primary release with certification
+    const certifiedRelease = usReleases.release_dates.find((rd) => rd.certification)
+    return certifiedRelease?.certification || undefined
+  }
+
+  /**
+   * Extract US content rating from content_ratings response (for TV shows)
+   */
+  private static extractUSContentRating(contentRatings?: { results: { iso_3166_1: string; rating: string }[] }): string | undefined {
+    if (!contentRatings?.results) return undefined
+
+    // Find US content rating
+    const usRating = contentRatings.results.find((result) => result.iso_3166_1 === 'US')
+    return usRating?.rating || undefined
   }
 
   /**

@@ -42,7 +42,6 @@ export const HeroPaginationIndicator: FC<HeroPaginationIndicatorProps> = memo(
           style={styles.barContainer(scale)}
           accessibilityRole="progressbar"
           accessibilityLabel="Hero carousel progress"
-          accessibilityValue={{ now: progress.value * 100, min: 0, max: 100 }}
         >
           <Animated.View style={[styles.fill, animatedStyle]} />
         </View>

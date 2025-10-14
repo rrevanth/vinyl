@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from 'react'
 import { View, ActivityIndicator, Text } from 'react-native'
 import { Stack, useLocalSearchParams, router } from 'expo-router'
 import { StyleSheet } from 'react-native-unistyles'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useQueryClient } from '@tanstack/react-query'
 import { LinearGradient } from 'expo-linear-gradient'
 import type { Catalog } from '@/src/domain/entities/Catalog'
@@ -29,6 +30,7 @@ export default function CatalogGridScreen() {
   const params = useLocalSearchParams<{ catalogId: string; name?: string }>()
   const queryClient = useQueryClient()
   const [isLoadingMore, setIsLoadingMore] = useState(false)
+  const insets = useSafeAreaInsets()
 
   // Decode catalogId
   const catalogId = decodeURIComponent(params.catalogId)
@@ -127,14 +129,16 @@ export default function CatalogGridScreen() {
   return (
     <View style={styles.container}>
       <Stack.Screen options={headerOptions} />
-      <MediaGrid
-        items={items}
-        variant={variant}
-        columns={variant === 'landscape' ? 2 : 3}
-        onPressItem={handlePressMedia}
-        onEndReached={handleEndReached}
-        isLoadingMore={isLoadingMore || infiniteQuery.isFetchingNextPage}
-      />
+      <View style={{ paddingTop: insets.top }}>
+        <MediaGrid
+          items={items}
+          variant={variant}
+          columns={variant === 'landscape' ? 2 : 3}
+          onPressItem={handlePressMedia}
+          onEndReached={handleEndReached}
+          isLoadingMore={isLoadingMore || infiniteQuery.isFetchingNextPage}
+        />
+      </View>
     </View>
   )
 }

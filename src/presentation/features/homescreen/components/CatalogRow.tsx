@@ -9,6 +9,8 @@ import { LegendList } from '@legendapp/list'
 import { router } from 'expo-router'
 import { useInfiniteCatalogItemsQuery } from '../queries/useInfiniteCatalogItemsQuery'
 import { MediaCard } from './MediaCard'
+import { logger } from '@/src/presentation/shared/utils/logger'
+import { serializeMediaForNav } from '@/src/presentation/shared/utils/navigationParams'
 
 interface CatalogRowProps {
   readonly catalog: Catalog
@@ -46,7 +48,7 @@ const CatalogRowComponent: FC<CatalogRowProps> = ({ catalog, onPressItem: onPres
 
   // Handle title press - navigate to grid view
   const handlePressTitle = useCallback(() => {
-    console.log('[CatalogRow] Title pressed, navigating to grid view')
+    logger.debug('[CatalogRow] Title pressed, navigating to grid view')
 
     try {
       // Navigate to grid view
@@ -54,7 +56,7 @@ const CatalogRowComponent: FC<CatalogRowProps> = ({ catalog, onPressItem: onPres
       const encodedName = encodeURIComponent(displayName)
       router.push(`/grids/catalog/${encodedCatalogId}?name=${encodedName}` as any)
     } catch (error) {
-      console.error('[CatalogRow] Failed to navigate to grid view:', error)
+      logger.error('[CatalogRow] Failed to navigate to grid view', error as Error)
     }
   }, [latestCatalog, displayName])
 
@@ -63,14 +65,14 @@ const CatalogRowComponent: FC<CatalogRowProps> = ({ catalog, onPressItem: onPres
     (item: CatalogItem) => {
       const media = item.media
       if (!media) {
-        console.warn('[CatalogRow] Ignoring press because catalog item is missing media', {
+        logger.warn('[CatalogRow] Ignoring press because catalog item is missing media', {
           catalogItemId: item.stableId,
           catalogId: latestCatalog.stableId,
         })
         return
       }
 
-      console.log('[CatalogRow] Navigation triggered:', {
+      logger.debug('[CatalogRow] Navigation triggered', {
         stableId: media.stableId,
         title: media.title,
         type: media.type,
@@ -78,25 +80,25 @@ const CatalogRowComponent: FC<CatalogRowProps> = ({ catalog, onPressItem: onPres
       })
 
       if (onPressItemProp) {
-        console.log('[CatalogRow] Using onPressItemProp')
+        logger.debug('[CatalogRow] Using onPressItemProp')
         onPressItemProp(media)
         return
       }
 
-      console.log('[CatalogRow] Navigating with Media data in params (NEW PATTERN)')
+      logger.debug('[CatalogRow] Navigating with Media data in params (NEW PATTERN)')
 
       try {
-        // Navigate with Media data in params (NEW PATTERN: no cache)
+        // Navigate with lightweight Media data (optimized for performance)
         router.push({
           pathname: '/media/[stableId]',
           params: {
             stableId: media.stableId,
-            mediaData: JSON.stringify(media.toJSON())
+            mediaData: serializeMediaForNav(media) // Much smaller payload
           }
         })
-        console.log('[CatalogRow] Navigation command sent')
+        logger.debug('[CatalogRow] Navigation command sent')
       } catch (error) {
-        console.error('[CatalogRow] Navigation failed:', error)
+        logger.error('[CatalogRow] Navigation failed', error as Error)
       }
     },
     [latestCatalog.stableId, onPressItemProp]
@@ -108,7 +110,7 @@ const CatalogRowComponent: FC<CatalogRowProps> = ({ catalog, onPressItem: onPres
   }, [latestCatalog.items])
 
   // Debug logging for catalog items
-  console.log('[CatalogRow] Rendering catalog items', {
+  logger.debug('[CatalogRow] Rendering catalog items', {
     catalogId: latestCatalog.stableId,
     infiniteQueryPages: infiniteQuery.data?.pages?.length ?? 0,
     catalogItemsCount: catalogItems.length,
@@ -123,7 +125,7 @@ const CatalogRowComponent: FC<CatalogRowProps> = ({ catalog, onPressItem: onPres
 
   // Handle end reached for infinite scroll
   const handleEndReached = useCallback(async () => {
-    console.log('[CatalogRow] onEndReached triggered', {
+    logger.debug('[CatalogRow] onEndReached triggered', {
       catalogId: latestCatalog.stableId,
       canLoadMore: latestCatalog.canLoadMore(),
       isLoadingMore,
@@ -133,7 +135,7 @@ const CatalogRowComponent: FC<CatalogRowProps> = ({ catalog, onPressItem: onPres
 
     // Check if can load more and not already loading
     if (!latestCatalog.canLoadMore() || isLoadingMore || infiniteQuery.isFetchingNextPage) {
-      console.log('[CatalogRow] Skipping load more', {
+      logger.debug('[CatalogRow] Skipping load more', {
         canLoadMore: latestCatalog.canLoadMore(),
         isLoadingMore,
         isFetchingNextPage: infiniteQuery.isFetchingNextPage,
@@ -142,12 +144,12 @@ const CatalogRowComponent: FC<CatalogRowProps> = ({ catalog, onPressItem: onPres
     }
 
     try {
-      console.log('[CatalogRow] Starting to load more items')
+      logger.debug('[CatalogRow] Starting to load more items')
       setIsLoadingMore(true)
       await infiniteQuery.fetchNextPage()
-      console.log('[CatalogRow] Successfully loaded more items')
+      logger.debug('[CatalogRow] Successfully loaded more items')
     } catch (error) {
-      console.error('[CatalogRow] Failed to load more catalog items', error)
+      logger.error('[CatalogRow] Failed to load more catalog items', error as Error)
     } finally {
       setIsLoadingMore(false)
     }
@@ -192,8 +194,12 @@ const CatalogRowComponent: FC<CatalogRowProps> = ({ catalog, onPressItem: onPres
             testID={`catalog-${catalog.stableId}-${item.stableId}`}
           />
         )}
+        estimatedItemSize={152}
+        initialContainerPoolRatio={3}
+        drawDistance={800}
+        recycleItems
         onEndReached={handleEndReached}
-        onEndReachedThreshold={0.1}
+        onEndReachedThreshold={0.5}
         ListFooterComponent={
           (isLoadingMore || infiniteQuery.isFetchingNextPage) && latestCatalog.canLoadMore() ? (
             <View style={styles.loadingFooter}>
@@ -227,6 +233,7 @@ export const CatalogRow = memo(CatalogRowComponent)
 const styles = StyleSheet.create((theme) => ({
   container: {
     marginBottom: theme.spacing.rowSpacing,
+    height: 228 + 40, // Poster height + title height
   },
   headerContainer: {
     paddingHorizontal: theme.spacing.gutter,

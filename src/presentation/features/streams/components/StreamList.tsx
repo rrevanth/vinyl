@@ -55,6 +55,8 @@ export const StreamList: React.FC<StreamListProps> = observer(({ streams, media,
         />
       )}
       estimatedItemSize={120}
+      initialContainerPoolRatio={3}
+      drawDistance={500}
       contentContainerStyle={styles.listContent}
       maintainVisibleContentPosition
       recycleItems

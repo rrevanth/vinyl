@@ -7,10 +7,12 @@ import type { Stream } from '@/src/domain/entities/Stream'
 import { useService } from '@/src/infrastructure/di/useService'
 import { TOKENS } from '@/src/infrastructure/di/tokens'
 import type { IPreferencesService } from '@/src/domain/services/IPreferencesService'
-import { Media } from '@/src/domain/entities/Media'
 import { VideoPlayerType } from '@/src/domain/entities/VideoPlayerType'
 import { RNVlcPlayer } from '@/src/presentation/features/player/components/RNVlcPlayer'
 import { resetPlayerState, player$ } from '@/src/presentation/features/player/stores/player.store'
+import { logger } from '@/src/presentation/shared/utils/logger'
+import { deserializeMediaFromNav } from '@/src/presentation/shared/utils/navigationParams'
+import { createMediaFromNavParams } from '@/src/presentation/shared/utils/createMediaFromNavParams'
 
 export default function PlayerScreen() {
   const router = useRouter()
@@ -29,7 +31,7 @@ export default function PlayerScreen() {
   // Parse stream from params
   const stream: Stream = useMemo(() => {
     const parsed = JSON.parse(params.streamData)
-    console.log('[PlayerScreen] Stream details:', {
+    logger.debug('[PlayerScreen] Stream details', {
       id: parsed.id,
       url: parsed.url,
       source: parsed.source,
@@ -40,20 +42,20 @@ export default function PlayerScreen() {
     })
 
     if (parsed.source === 'torrent' || parsed.infoHash) {
-      console.warn(
-        '[PlayerScreen] ⚠️ Torrent stream detected - expo-av cannot play torrent/magnet links'
+      logger.warn(
+        '[PlayerScreen] Torrent stream detected - expo-av cannot play torrent/magnet links'
       )
     }
 
     return parsed
   }, [params.streamData])
 
-  // Parse media from params (NEW PATTERN: no cache lookup)
-  const media = useMemo(() => {
-    return Media.fromJSON(JSON.parse(params.mediaData))
-  }, [params.mediaData])
+  // Parse media from optimized navigation params
+  const navParams = useMemo(() => deserializeMediaFromNav(params.mediaData), [params.mediaData])
 
-  console.log('[PlayerScreen] Media from params:', {
+  const media = useMemo(() => createMediaFromNavParams(navParams), [navParams])
+
+  logger.debug('[PlayerScreen] Media from params', {
     mediaStableId: media.stableId,
     mediaTitle: media.title,
   })
@@ -68,19 +70,23 @@ export default function PlayerScreen() {
       const playerType = preferencesService.getVideoPlayerPreference()
 
       if (playerType === VideoPlayerType.EXTERNAL) {
-        console.log('[PlayerScreen] Opening stream in external player:', stream.url)
+        logger.info('[PlayerScreen] Opening stream in external player', { url: stream.url })
         try {
           const canOpen = await Linking.canOpenURL(stream.url)
           if (canOpen) {
             await Linking.openURL(stream.url)
-            console.log('[PlayerScreen] Successfully opened external player')
+            logger.info('[PlayerScreen] Successfully opened external player')
           } else {
-            console.error('[PlayerScreen] Cannot open URL in external player:', stream.url)
+            logger.error(
+              '[PlayerScreen] Cannot open URL in external player',
+              new Error('URL cannot be opened'),
+              { url: stream.url }
+            )
           }
           // Close player screen after opening external
           router.back()
         } catch (error) {
-          console.error('[PlayerScreen] Failed to open external player:', error)
+          logger.error('[PlayerScreen] Failed to open external player', error as Error)
           // Fallback: stay on screen, user can try again or go back
         }
       }
@@ -96,7 +102,7 @@ export default function PlayerScreen() {
     if (stream && media) {
       player$.currentStream.set(stream)
       player$.currentMedia.set(media)
-      console.log('[PlayerScreen] Stored in player store:', {
+      logger.debug('[PlayerScreen] Stored in player store', {
         stream: stream.id,
         media: media.stableId,
       })

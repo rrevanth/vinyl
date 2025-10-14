@@ -117,6 +117,31 @@ export class MediaImages {
 }
 
 /**
+ * Badge information for hero displays
+ */
+export interface MediaBadge {
+  text: string // "Trending", "New Episode Every Wednesday", "In Theatres"
+  variant?: 'default' | 'success' | 'warning' | 'info' // Color coding
+}
+
+/**
+ * Genre information
+ */
+export interface MediaGenre {
+  id: number
+  name: string
+}
+
+/**
+ * Rating information
+ */
+export interface MediaRating {
+  average: number // Average rating (e.g., 7.5)
+  count: number // Number of votes
+  source?: string // Source of rating (e.g., 'tmdb', 'imdb')
+}
+
+/**
  * Minimal Media entity optimized for TanStack Query caching
  * Contains only essential data needed for UI rendering and identification
  * Detailed enrichment data is managed separately in Legend State
@@ -136,6 +161,16 @@ export class Media {
   // Images (flexible for different UI contexts)
   public readonly images: MediaImages
 
+  // Badge for hero displays (optional)
+  public readonly badge?: MediaBadge
+
+  // Optional enrichment metadata (can be populated by providers)
+  public readonly overview?: string // Brief description/plot summary
+  public readonly runtime?: number // Runtime in minutes
+  public readonly genres?: MediaGenre[] // List of genres
+  public readonly certification?: string // Age rating (e.g., 'PG-13', 'TV-MA')
+  public readonly rating?: MediaRating // Rating information
+
   // Metadata tracking
   public readonly createdAt: Date
   public readonly updatedAt: Date
@@ -146,6 +181,12 @@ export class Media {
     title: string
     year?: number
     images?: MediaImages
+    badge?: MediaBadge
+    overview?: string
+    runtime?: number
+    genres?: MediaGenre[]
+    certification?: string
+    rating?: MediaRating
     createdAt?: Date
     updatedAt?: Date
   }) {
@@ -157,6 +198,12 @@ export class Media {
     this.title = data.title
     this.year = data.year
     this.images = data.images || new MediaImages()
+    this.badge = data.badge
+    this.overview = data.overview
+    this.runtime = data.runtime
+    this.genres = data.genres
+    this.certification = data.certification
+    this.rating = data.rating
 
     const now = new Date()
     this.createdAt = data.createdAt || now
@@ -171,6 +218,12 @@ export class Media {
       title: string
       year: number
       images: MediaImages
+      badge: MediaBadge
+      overview: string
+      runtime: number
+      genres: MediaGenre[]
+      certification: string
+      rating: MediaRating
     }>
   ): Media {
     return new Media({
@@ -179,6 +232,12 @@ export class Media {
       title: updates.title ?? this.title,
       year: updates.year ?? this.year,
       images: updates.images ?? this.images,
+      badge: updates.badge ?? this.badge,
+      overview: updates.overview ?? this.overview,
+      runtime: updates.runtime ?? this.runtime,
+      genres: updates.genres ?? this.genres,
+      certification: updates.certification ?? this.certification,
+      rating: updates.rating ?? this.rating,
       createdAt: this.createdAt,
       updatedAt: new Date(),
     })
@@ -217,6 +276,12 @@ export class Media {
       title: this.title,
       year: this.year,
       images: this.images.toJSON(),
+      badge: this.badge,
+      overview: this.overview,
+      runtime: this.runtime,
+      genres: this.genres,
+      certification: this.certification,
+      rating: this.rating,
       createdAt: this.createdAt.toISOString(),
       updatedAt: this.updatedAt.toISOString(),
     }
@@ -233,6 +298,12 @@ export class Media {
       title: data.title,
       year: data.year,
       images: MediaImages.fromJSON(data.images),
+      badge: data.badge,
+      overview: data.overview,
+      runtime: data.runtime,
+      genres: data.genres,
+      certification: data.certification,
+      rating: data.rating,
       createdAt: new Date(data.createdAt),
       updatedAt: new Date(data.updatedAt),
     })

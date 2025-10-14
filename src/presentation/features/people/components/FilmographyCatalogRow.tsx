@@ -7,8 +7,7 @@ import type { Media } from '@/src/domain/entities/Media'
 import { LegendList } from '@legendapp/list'
 import { router } from 'expo-router'
 import { MediaCard } from '@/src/presentation/features/homescreen/components/MediaCard'
-import { useQueryClient } from '@tanstack/react-query'
-import type { MediaDetailData } from '@/src/domain/use-cases/media/GetMediaDetailUseCase'
+import { serializeFilmographyData, serializeMediaForNav } from '@/src/presentation/shared/utils/navigationParams'
 
 interface FilmographyCatalogRowProps {
   readonly catalog: Catalog
@@ -16,8 +15,6 @@ interface FilmographyCatalogRowProps {
 }
 
 const FilmographyCatalogRowComponent: FC<FilmographyCatalogRowProps> = ({ catalog, onPressMedia }) => {
-  const queryClient = useQueryClient()
-
   // Get catalog type (capitalize first letter)
   const catalogType = catalog.type.charAt(0).toUpperCase() + catalog.type.slice(1)
 
@@ -26,21 +23,26 @@ const FilmographyCatalogRowComponent: FC<FilmographyCatalogRowProps> = ({ catalo
     console.log('[FilmographyCatalogRow] Title pressed, navigating to filmography grid view')
 
     try {
-      // Pre-populate cache with catalog data
-      queryClient.setQueryData(['filmography-grid', catalog.stableId], {
-        catalog: catalog,
-      })
+      // Extract filmography data
+      const filmography = catalog.items
+        .filter(item => item.media)
+        .map(item => ({ media: item.media!, role: item.role }))
 
-      // Navigate to filmography grid view
-      const encodedCatalogId = encodeURIComponent(catalog.stableId)
-      const encodedName = encodeURIComponent(catalog.name)
-      router.push(`/grids/filmography/${encodedCatalogId}?name=${encodedName}` as any)
+      // Navigate with serialized data
+      router.push({
+        pathname: '/grids/filmography/[personStableId]',
+        params: {
+          personStableId: catalog.stableId,
+          name: catalog.name,
+          filmographyData: serializeFilmographyData(filmography)
+        }
+      } as any)
     } catch (error) {
       console.error('[FilmographyCatalogRow] Failed to navigate to filmography grid view:', error)
     }
-  }, [catalog, queryClient])
+  }, [catalog])
 
-  // Default navigation handler - pre-populate cache before navigating
+  // Default navigation handler - use serialized navigation
   const handlePressItem = useCallback(
     (item: CatalogItem) => {
       const media = item.media
@@ -65,34 +67,23 @@ const FilmographyCatalogRowComponent: FC<FilmographyCatalogRowProps> = ({ catalo
         return
       }
 
-      console.log('[FilmographyCatalogRow] Pre-populating cache and navigating')
+      console.log('[FilmographyCatalogRow] Navigating with serialized params')
 
       try {
-        // Pre-populate TanStack Query cache with Media object before navigation
-        queryClient.setQueryData<MediaDetailData>(['media-detail', media.stableId], {
-          media,
-          externalIds: media.externalIds,
-          // Other fields will be fetched by use case
-          providersUsed: {},
-          errors: {},
-        })
-        console.log('[FilmographyCatalogRow] Media cached successfully')
-
-        // Navigate with stableId only (Expo Router params only support primitives)
-        // Encode the stableId to handle special characters like colons
-        const encodedStableId = encodeURIComponent(media.stableId)
-        const route = `/media/${encodedStableId}`
-        console.log('[FilmographyCatalogRow] Attempting navigation to:', route)
-        console.log('[FilmographyCatalogRow] Original stableId:', media.stableId)
-        console.log('[FilmographyCatalogRow] Encoded stableId:', encodedStableId)
-
-        router.push(route as any)
+        // Navigate with serialized media data
+        router.push({
+          pathname: '/media/[stableId]',
+          params: {
+            stableId: media.stableId,
+            mediaData: serializeMediaForNav(media)
+          }
+        } as any)
         console.log('[FilmographyCatalogRow] Navigation command sent')
       } catch (error) {
         console.error('[FilmographyCatalogRow] Navigation failed:', error)
       }
     },
-    [catalog.stableId, onPressMedia, queryClient]
+    [catalog.stableId, onPressMedia]
   )
 
   // Get catalog items with media (filter out items without media)

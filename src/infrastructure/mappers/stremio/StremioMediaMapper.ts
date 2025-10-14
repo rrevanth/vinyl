@@ -45,12 +45,21 @@ export class StremioMediaMapper {
       posterThumbnail: stremioMeta.poster,
     })
 
+    // Map genres from Stremio format to Media format
+    const genres = this.mapGenres(stremioMeta.genres)
+
+    // Parse IMDB rating if available
+    const rating = this.parseImdbRating(stremioMeta.imdbRating)
+
     return new Media({
       externalIds,
       type: normalizedType,
       title: stremioMeta.name,
       year,
       images,
+      overview: stremioMeta.description,
+      genres,
+      rating,
     })
   }
 
@@ -95,12 +104,25 @@ export class StremioMediaMapper {
       backdropThumbnail: stremioMeta.background,
     })
 
+    // Map genres from Stremio format to Media format
+    const genres = this.mapGenres(stremioMeta.genres)
+
+    // Parse IMDB rating if available
+    const rating = this.parseImdbRating(stremioMeta.imdbRating)
+
+    // Parse runtime if available (Stremio provides it as a string like "120 min")
+    const runtime = this.parseRuntime(stremioMeta.runtime)
+
     return new Media({
       externalIds,
       type: normalizedType,
       title: stremioMeta.name,
       year,
       images,
+      overview: stremioMeta.description,
+      runtime,
+      genres,
+      rating,
     })
   }
 
@@ -147,5 +169,82 @@ export class StremioMediaMapper {
     // Extract 4-digit year from various formats
     const yearMatch = releaseInfo.match(/(\d{4})/)
     return yearMatch ? parseInt(yearMatch[1]) : undefined
+  }
+
+  /**
+   * Map Stremio genres to Media genre format
+   * Uses a simple numeric hash of the genre name as ID since Stremio doesn't provide genre IDs
+   */
+  private static mapGenres(stremioGenres?: string[]): { id: number; name: string }[] | undefined {
+    if (!stremioGenres || stremioGenres.length === 0) return undefined
+
+    return stremioGenres.map((genre) => ({
+      id: this.hashGenreName(genre),
+      name: genre,
+    }))
+  }
+
+  /**
+   * Generate a simple numeric hash for genre names
+   * This provides consistent IDs for the same genre name across requests
+   */
+  private static hashGenreName(genre: string): number {
+    let hash = 0
+    for (let i = 0; i < genre.length; i++) {
+      const char = genre.charCodeAt(i)
+      hash = ((hash << 5) - hash) + char
+      hash = hash & hash // Convert to 32bit integer
+    }
+    return Math.abs(hash)
+  }
+
+  /**
+   * Parse IMDB rating from string format (e.g., "7.5/10" or "7.5")
+   */
+  private static parseImdbRating(imdbRating?: string): { average: number; count: number; source: string } | undefined {
+    if (!imdbRating) return undefined
+
+    // Extract numeric rating from various formats
+    const ratingMatch = imdbRating.match(/([0-9.]+)/)
+    if (!ratingMatch) return undefined
+
+    const rating = parseFloat(ratingMatch[1])
+    if (isNaN(rating)) return undefined
+
+    return {
+      average: rating,
+      count: 0, // Stremio doesn't provide vote count
+      source: 'imdb',
+    }
+  }
+
+  /**
+   * Parse runtime from Stremio string format (e.g., "120 min" or "2h 30min")
+   */
+  private static parseRuntime(runtime?: string): number | undefined {
+    if (!runtime) return undefined
+
+    // Try to extract minutes from various formats
+    // Format: "120 min", "120min", "120 minutes"
+    const minMatch = runtime.match(/(\d+)\s*(?:min|minutes?)/i)
+    if (minMatch) {
+      return parseInt(minMatch[1])
+    }
+
+    // Format: "2h 30min", "2 hours 30 minutes"
+    const hourMinMatch = runtime.match(/(\d+)\s*(?:h|hours?)\s*(\d+)?\s*(?:min|minutes?)?/i)
+    if (hourMinMatch) {
+      const hours = parseInt(hourMinMatch[1])
+      const minutes = hourMinMatch[2] ? parseInt(hourMinMatch[2]) : 0
+      return hours * 60 + minutes
+    }
+
+    // Format: "2h", "2 hours"
+    const hourMatch = runtime.match(/(\d+)\s*(?:h|hours?)/i)
+    if (hourMatch) {
+      return parseInt(hourMatch[1]) * 60
+    }
+
+    return undefined
   }
 }

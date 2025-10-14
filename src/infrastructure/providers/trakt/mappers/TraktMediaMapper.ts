@@ -81,12 +81,29 @@ export class TraktMediaMapper {
    * Convert Trakt movie to minimal Media entity
    */
   static movieToMedia(traktMovie: TraktMovie): Media {
+    // Map genres from Trakt format to Media format
+    const genres = this.mapGenres(traktMovie.genres)
+
+    // Map rating from Trakt format to Media format
+    const rating = traktMovie.rating && traktMovie.votes
+      ? {
+          average: traktMovie.rating,
+          count: traktMovie.votes,
+          source: 'trakt',
+        }
+      : undefined
+
     return new Media({
       externalIds: this.mapExternalIds(traktMovie.ids),
       type: 'movie',
       title: traktMovie.title,
       year: traktMovie.year,
       images: this.mapImages(traktMovie.images),
+      overview: traktMovie.overview,
+      runtime: traktMovie.runtime,
+      genres,
+      certification: traktMovie.certification,
+      rating,
     })
   }
 
@@ -94,12 +111,29 @@ export class TraktMediaMapper {
    * Convert Trakt show to minimal Media entity
    */
   static showToMedia(traktShow: TraktShow): Media {
+    // Map genres from Trakt format to Media format
+    const genres = this.mapGenres(traktShow.genres)
+
+    // Map rating from Trakt format to Media format
+    const rating = traktShow.rating && traktShow.votes
+      ? {
+          average: traktShow.rating,
+          count: traktShow.votes,
+          source: 'trakt',
+        }
+      : undefined
+
     return new Media({
       externalIds: this.mapExternalIds(traktShow.ids),
       type: 'series',
       title: traktShow.title,
       year: traktShow.year,
       images: this.mapImages(traktShow.images),
+      overview: traktShow.overview,
+      runtime: traktShow.runtime,
+      genres,
+      certification: traktShow.certification,
+      rating,
     })
   }
 
@@ -124,9 +158,37 @@ export class TraktMediaMapper {
   }
 
   /**
-   * Convert Trakt genres to Genre array
+   * Convert Trakt genres to MediaGenre array
+   * Uses a simple numeric hash of the genre name as ID since Trakt doesn't provide genre IDs
    */
-  private static mapGenres(traktGenres?: string[]): Genre[] | undefined {
+  private static mapGenres(traktGenres?: string[]): { id: number; name: string }[] | undefined {
+    if (!traktGenres || traktGenres.length === 0) return undefined
+
+    return traktGenres.map((genre) => ({
+      id: this.hashGenreName(genre),
+      name: genre,
+    }))
+  }
+
+  /**
+   * Generate a simple numeric hash for genre names
+   * This provides consistent IDs for the same genre name across requests
+   */
+  private static hashGenreName(genre: string): number {
+    let hash = 0
+    for (let i = 0; i < genre.length; i++) {
+      const char = genre.charCodeAt(i)
+      hash = ((hash << 5) - hash) + char
+      hash = hash & hash // Convert to 32bit integer
+    }
+    return Math.abs(hash)
+  }
+
+  /**
+   * Convert Trakt genres to Genre array (for EnrichedMedia compatibility)
+   * Maps string genre names to Genre objects with string IDs
+   */
+  private static mapGenresForEnriched(traktGenres?: string[]): Genre[] | undefined {
     if (!traktGenres || traktGenres.length === 0) return undefined
 
     return traktGenres.map((genre) => ({
@@ -147,7 +209,7 @@ export class TraktMediaMapper {
       tagline: traktMovie.tagline,
       originalLanguage: traktMovie.language,
       spokenLanguages: traktMovie.available_translations,
-      genres: this.mapGenres(traktMovie.genres),
+      genres: this.mapGenresForEnriched(traktMovie.genres),
       voteAverage: traktMovie.rating,
       voteCount: traktMovie.votes,
       certification: traktMovie.certification,
@@ -170,7 +232,7 @@ export class TraktMediaMapper {
       overview: traktShow.overview,
       originalLanguage: traktShow.language,
       spokenLanguages: traktShow.available_translations,
-      genres: this.mapGenres(traktShow.genres),
+      genres: this.mapGenresForEnriched(traktShow.genres),
       voteAverage: traktShow.rating,
       voteCount: traktShow.votes,
       certification: traktShow.certification,

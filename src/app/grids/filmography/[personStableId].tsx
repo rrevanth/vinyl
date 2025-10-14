@@ -2,21 +2,16 @@ import { useCallback, useMemo, useState } from 'react'
 import { View, Text, Pressable } from 'react-native'
 import { Stack, useLocalSearchParams, router } from 'expo-router'
 import { StyleSheet } from 'react-native-unistyles'
-import { useQueryClient } from '@tanstack/react-query'
 import { LinearGradient } from 'expo-linear-gradient'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import type { Media } from '@/src/domain/entities/Media'
-import type { MediaDetailData } from '@/src/domain/use-cases/media/GetMediaDetailUseCase'
 import { MediaGrid } from '@/src/presentation/shared/ui/organisms/MediaGrid'
 import { t } from '@/src/presentation/shared/i18n'
-
-interface FilmographyItem {
-  readonly media: Media
-  readonly role?: string
-}
-
-interface CachedFilmographyData {
-  readonly filmography: FilmographyItem[]
-}
+import { 
+  deserializeFilmographyData,
+  serializeMediaForNav 
+} from '@/src/presentation/shared/utils/navigationParams'
+import { createMediaFromNavParams } from '@/src/presentation/shared/utils/createMediaFromNavParams'
 
 type FilmographyTab = 'all' | 'movies' | 'tv'
 
@@ -35,39 +30,51 @@ const getRandomGridVariant = (seed: string): 'poster' | 'landscape' => {
 }
 
 export default function FilmographyGridScreen() {
-  const params = useLocalSearchParams<{ personStableId: string }>()
-  const queryClient = useQueryClient()
+  const params = useLocalSearchParams<{ 
+    personStableId: string
+    name: string
+    filmographyData: string 
+  }>()
   const [selectedTab, setSelectedTab] = useState<FilmographyTab>('all')
+  const insets = useSafeAreaInsets()
 
   // Decode personStableId
   const personStableId = decodeURIComponent(params.personStableId)
+  const personName = params.name ? decodeURIComponent(params.name) : ''
 
   // Get consistent variant for this filmography grid
   const variant = useMemo(() => getRandomGridVariant(personStableId), [personStableId])
+
+  // Deserialize filmography data and create Media entities
+  const filmography = useMemo(() => {
+    if (!params.filmographyData) return []
+    
+    try {
+      const filmographyItems = deserializeFilmographyData(params.filmographyData)
+      return filmographyItems.map(item => ({
+        media: createMediaFromNavParams(item.media),
+        role: item.role
+      }))
+    } catch (error) {
+      console.error('[FilmographyGrid] Failed to deserialize filmography data:', error)
+      return []
+    }
+  }, [params.filmographyData])
 
   const headerOptions = useMemo(
     () => ({
       headerShown: true,
       headerTransparent: true,
       headerBackButtonDisplayMode: 'minimal' as const,
-      headerTitle: t('person_detail.filmography'),
+      headerTitle: personName || t('person_detail.filmography'),
       headerTintColor: '#FFFFFF',
       headerBackTitle: '',
       headerBackground: () => (
         <LinearGradient colors={['rgba(0, 0, 0, 0.8)', 'rgba(0, 0, 0, 0)']} style={{ flex: 1 }} />
       ),
     }),
-    []
+    [personName]
   )
-
-  // Get cached filmography data
-  const filmography = useMemo(() => {
-    const cachedData = queryClient.getQueryData<CachedFilmographyData>([
-      'filmography-grid',
-      personStableId,
-    ])
-    return cachedData?.filmography || []
-  }, [queryClient, personStableId])
 
   // Filter items based on selected tab
   const filteredItems = useMemo(() => {
@@ -96,19 +103,16 @@ export default function FilmographyGridScreen() {
   // Handle media press
   const handlePressMedia = useCallback(
     (media: Media) => {
-      // Pre-populate cache
-      queryClient.setQueryData<MediaDetailData>(['media-detail', media.stableId], {
-        media,
-        externalIds: media.externalIds,
-        providersUsed: {},
-        errors: {},
-      })
-
-      // Navigate to media detail
-      const encodedStableId = encodeURIComponent(media.stableId)
-      router.push(`/media/${encodedStableId}` as any)
+      // Navigate with serialized media data
+      router.push({
+        pathname: '/media/[stableId]',
+        params: {
+          stableId: media.stableId,
+          mediaData: serializeMediaForNav(media)
+        }
+      } as any)
     },
-    [queryClient]
+    []
   )
 
   if (filmography.length === 0) {
@@ -124,8 +128,8 @@ export default function FilmographyGridScreen() {
     <View style={styles.container}>
       <Stack.Screen options={headerOptions} />
 
-      {/* Tab selector */}
-      <View style={styles.tabsContainer}>
+      {/* Tab selector - positioned below header with safe area */}
+      <View style={[styles.tabsContainer, { paddingTop: insets.top + 60 }]}>
         <View style={styles.tabs}>
           <Pressable
             style={({ pressed }) => [
@@ -177,6 +181,7 @@ export default function FilmographyGridScreen() {
         </View>
       </View>
 
+      {/* Grid using MediaGrid component (matches catalog grid) */}
       <MediaGrid
         items={filteredItems}
         variant={variant}
@@ -206,7 +211,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   tabsContainer: {
     paddingHorizontal: theme.spacing.gutter,
-    paddingVertical: theme.spacing.md,
+    paddingBottom: theme.spacing.sm,
     backgroundColor: theme.colors.background,
   },
   tabs: {

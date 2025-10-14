@@ -2,10 +2,11 @@ import React, { useMemo } from 'react'
 import { View, Text, Pressable } from 'react-native'
 import { StyleSheet, withUnistyles } from 'react-native-unistyles'
 import { Ionicons } from '@expo/vector-icons'
-// Removed observer import - not needed for this component
 import { useRouter } from 'expo-router'
 import type { Stream } from '@/src/domain/entities/Stream'
 import type { Media } from '@/src/domain/entities/Media'
+import { logger } from '@/src/presentation/shared/utils/logger'
+import { serializeMediaForNav } from '@/src/presentation/shared/utils/navigationParams'
 
 // Create themed Ionicons component using Unistyles v3 API
 const ThemedIonicons = withUnistyles(Ionicons, (theme) => ({
@@ -32,7 +33,7 @@ const formatBytes = (bytes: number): string => {
     }
     return `${(bytes / 1024).toFixed(2)} KB`
   } catch (error) {
-    console.error('[formatBytes] Error formatting bytes:', error)
+    logger.error('[formatBytes] Error formatting bytes', error as Error)
     return 'Unknown size'
   }
 }
@@ -63,50 +64,29 @@ const StreamCardComponent: React.FC<StreamCardProps> = ({ stream, media, seasonN
 
   // Safety check: ensure media is provided (after hooks)
   if (!media) {
-    console.error('[StreamCard] Media prop is missing!')
+    logger.error('[StreamCard] Media prop is missing', new Error('Media prop is missing'))
     return null
   }
 
   const handlePress = () => {
     if (!media) {
-      console.warn('[StreamCard] ⚠️ Cannot navigate - no media provided')
+      logger.warn('[StreamCard] Cannot navigate - no media provided')
       return
     }
 
     try {
-      console.log('[StreamCard] Navigating to player with:', {
+      logger.debug('[StreamCard] Navigating to player', {
         streamId: stream.id,
         mediaStableId: media.stableId,
       })
 
-      // Safely serialize media - use toJSON if available, otherwise serialize directly
-      let mediaDataString: string
-      try {
-        mediaDataString = typeof media.toJSON === 'function' 
-          ? JSON.stringify(media.toJSON()) 
-          : JSON.stringify(media)
-      } catch (jsonError) {
-        console.error('[StreamCard] Failed to serialize media:', jsonError)
-        // Fallback: create minimal serializable object
-        mediaDataString = JSON.stringify({
-          stableId: media.stableId,
-          externalIds: media.externalIds,
-          type: media.type,
-          title: media.title,
-          year: media.year,
-          images: media.images || {},
-          createdAt: media.createdAt || new Date(),
-          updatedAt: media.updatedAt || new Date(),
-        })
-      }
-
-      // Navigate with media data in params (NEW PATTERN)
+      // Navigate with optimized media data (NEW PATTERN)
       router.push({
         pathname: '/player/[streamId]',
         params: {
           streamId: stream.id,
           streamData: JSON.stringify(stream),
-          mediaData: mediaDataString,
+          mediaData: serializeMediaForNav(media),
           ...(seasonNumber && { season: seasonNumber.toString() }),
           ...(episodeNumber && { episode: episodeNumber.toString() }),
           ...(media.images?.backdrop && { backdrop: media.images.backdrop }),
@@ -114,7 +94,7 @@ const StreamCardComponent: React.FC<StreamCardProps> = ({ stream, media, seasonN
         },
       })
     } catch (error) {
-      console.error('[StreamCard] Navigation failed:', error)
+      logger.error('[StreamCard] Navigation failed', error as Error)
     }
   }
 

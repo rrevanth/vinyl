@@ -12,12 +12,14 @@ import {
 } from '@/src/presentation/features/media/components/skeletons'
 import { useMediaEnrichments } from '@/src/presentation/features/media/hooks/useMediaEnrichments'
 import { Media } from '@/src/domain/entities/Media'
+import type { Person } from '@/src/domain/entities/Person'
 import { observer } from '@legendapp/state/react'
 import { Stack, router, useLocalSearchParams } from 'expo-router'
 import { useCallback, useMemo } from 'react'
 import {
   deserializeMediaFromNav,
   serializeMediaForNav,
+  serializePersonForNav,
 } from '@/src/presentation/shared/utils/navigationParams'
 import { createMediaFromNavParams } from '@/src/presentation/shared/utils/createMediaFromNavParams'
 import { logger } from '@/src/presentation/shared/utils/logger'
@@ -135,6 +137,17 @@ const MediaDetailScreen = observer(() => {
     })
   }, [])
 
+  const handlePressPerson = useCallback((person: Person) => {
+    // Navigate with lightweight Person data (optimized for performance)
+    router.push({
+      pathname: '/person/[stableId]',
+      params: {
+        stableId: person.stableId,
+        personData: serializePersonForNav(person),
+      },
+    })
+  }, [])
+
   const handleAddToList = useCallback(() => {
     // TODO: Implement add to watchlist functionality
     logger.debug('Add to list pressed', { mediaId: media.stableId })
@@ -221,7 +234,11 @@ const MediaDetailScreen = observer(() => {
         {isLoading ? (
           <CastSectionSkeleton />
         ) : peopleCatalogs && peopleCatalogs.length > 0 ? (
-          <CastSection mediaStableId={media.stableId} catalogs={peopleCatalogs} />
+          <CastSection 
+            mediaStableId={media.stableId} 
+            catalogs={peopleCatalogs}
+            onPressPerson={handlePressPerson}
+          />
         ) : null}
 
         {/* Recommendations - Use RecommendationsRow for proper pagination */}

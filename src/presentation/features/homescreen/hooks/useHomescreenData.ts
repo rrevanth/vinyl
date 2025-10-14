@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { useCallback, useMemo } from 'react'
 import { useSelector } from '@legendapp/state/react'
 import { mediaLibrary$ } from '@/src/presentation/shared/stores/mediaLibrary.store'
 import { userPreferences$ } from '@/src/presentation/shared/stores/app.store'
@@ -67,9 +67,10 @@ export const useHomescreenData = (): UseHomescreenDataResult => {
   const preferences = useSelector(() => userPreferences$.homescreen.get())
 
   // Extract data from query result (directly from cache, no store sync)
-  const heroItems = queryData?.heroItems ?? []
-  const continueWatching = queryData?.continueWatching ?? []
-  const catalogs = queryData?.catalogs ?? []
+  // Memoized to prevent unnecessary re-renders
+  const heroItems = useMemo(() => queryData?.heroItems ?? [], [queryData?.heroItems])
+  const continueWatching = useMemo(() => queryData?.continueWatching ?? [], [queryData?.continueWatching])
+  const catalogs = useMemo(() => queryData?.catalogs ?? [], [queryData?.catalogs])
 
   // Manual refresh with query invalidation
   const refresh = useCallback(async () => {

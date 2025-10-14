@@ -16,6 +16,7 @@ import { observer, useSelector } from '@legendapp/state/react'
 import { Stack } from 'expo-router'
 import { useEffect, useState } from 'react'
 import { ActionSheetProvider } from '@expo/react-native-action-sheet'
+import { logger } from '@/src/presentation/shared/utils/logger'
 
 const RootLayout = observer(() => {
   const [containerReady, setContainerReady] = useState(false)
@@ -37,7 +38,7 @@ const RootLayout = observer(() => {
         if (!isCancelled) {
           const err = error instanceof Error ? error : new Error(String(error))
           setInitError(err)
-          console.error('Failed to initialize container', err)
+          logger.error('Failed to initialize container', err)
         }
       }
     }
@@ -55,7 +56,7 @@ const RootLayout = observer(() => {
 
   // Show error state if initialization failed (show loading screen but log error)
   if (initError) {
-    console.error('Container initialization failed:', initError)
+    logger.error('Container initialization failed', initError)
     return <InitializationLoadingScreen />
   }
 
@@ -76,7 +77,7 @@ const RootLayout = observer(() => {
         persistOptions={{ persister }}
         onSuccess={() => {
           // Cache has been restored from AsyncStorage
-          console.log('[CACHE] Persisted cache restored from AsyncStorage')
+          logger.info('[CACHE] Persisted cache restored from AsyncStorage')
         }}
       >
         <AppContent />

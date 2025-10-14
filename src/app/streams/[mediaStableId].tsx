@@ -3,7 +3,6 @@ import { View, ScrollView, Text } from 'react-native'
 import { Stack, useLocalSearchParams } from 'expo-router'
 import { StyleSheet } from 'react-native-unistyles'
 import { observer } from '@legendapp/state/react'
-import { Media } from '@/src/domain/entities/Media'
 import { useMediaStreams } from '@/src/presentation/features/streams/hooks/useMediaStreams'
 import { StreamList } from '@/src/presentation/features/streams/components/StreamList'
 import { ProviderFilterChips } from '@/src/presentation/features/streams/components/ProviderFilterChips'
@@ -11,6 +10,8 @@ import { streamUI$ } from '@/src/presentation/features/streams/stores/streamUI.s
 import { useTranslations } from '@/src/presentation/shared/i18n'
 import { LoadingSpinner } from '@/src/presentation/shared/ui'
 import { LinearGradient } from 'expo-linear-gradient'
+import { deserializeMediaFromNav } from '@/src/presentation/shared/utils/navigationParams'
+import { createMediaFromNavParams } from '@/src/presentation/shared/utils/createMediaFromNavParams'
 
 export default observer(function StreamScreen() {
   const t = useTranslations()
@@ -38,14 +39,24 @@ export default observer(function StreamScreen() {
   )
 
   // Parse Media from params and decode optional params
-  const media = useMemo(() => {
-    return Media.fromJSON(JSON.parse(params.mediaData))
-  }, [params.mediaData])
+  const navParams = useMemo(() => deserializeMediaFromNav(params.mediaData), [params.mediaData])
+
+  const media = useMemo(() => createMediaFromNavParams(navParams), [navParams])
+
   const seasonNumber = params.season ? parseInt(params.season, 10) : undefined
   const episodeNumber = params.episode ? parseInt(params.episode, 10) : undefined
 
   // Fetch streams (Media is guaranteed from params)
-  const { streams, providers, isLoading } = useMediaStreams(media, seasonNumber, episodeNumber)
+  const {
+    streams: streams$,
+    providers: providers$,
+    isLoading: isLoading$,
+  } = useMediaStreams(media, seasonNumber, episodeNumber)
+
+  // Get reactive values from observables
+  const streams = streams$.get()
+  const providers = providers$.get()
+  const isLoading = isLoading$.get()
 
   // Get selected provider
   const selectedProvider = streamUI$.selectedProvider.get()
@@ -91,15 +102,15 @@ export default observer(function StreamScreen() {
           </Text>
         )}
         <Text style={styles.resourceCount}>
-          {selectedProvider === 'all' 
-            ? `${streams.length} ${streams.length === 1 ? 'Resource' : 'Resources'} Found` 
+          {selectedProvider === 'all'
+            ? `${streams.length} ${streams.length === 1 ? 'Resource' : 'Resources'} Found`
             : `${filteredStreams.length} of ${streams.length} Resources`}
         </Text>
       </View>
 
       {/* Provider Filter with counts */}
-      <ProviderFilterChips 
-        providers={providers} 
+      <ProviderFilterChips
+        providers={providers}
         providerCounts={providerCounts}
         totalCount={streams.length}
       />
