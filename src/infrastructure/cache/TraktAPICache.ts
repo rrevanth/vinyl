@@ -263,6 +263,7 @@ export class TraktAPICache {
   async getPlaybackProgress(params?: {
     type?: 'movies' | 'episodes'
     limit?: number
+    extended?: TraktExtended
   }): Promise<TraktPlaybackItem[]> {
     const isAuthenticated = this.traktClient.isAuthenticated()
 
@@ -273,7 +274,7 @@ export class TraktAPICache {
     }
 
     return this.cache.fetchWithStrategy(
-      ['trakt', 'sync', 'playback', params?.type ?? 'all', params?.limit ?? 12],
+      ['trakt', 'sync', 'playback', params?.type ?? 'all', params?.limit ?? 12, params?.extended ?? 'none'],
       () => this.traktClient.sync.getPlaybackProgress(params),
       'continue-watching',
       true // Always authenticated

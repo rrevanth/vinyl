@@ -33,7 +33,10 @@ export class TraktMediaContinueWatchingCapability implements IMediaContinueWatch
     try {
       this.logger.info('[TraktMediaContinueWatchingCapability] Fetching continue watching', { params })
 
-      const playbackItems = await this.traktClient.sync.getPlaybackProgress(params)
+      const playbackItems = await this.traktClient.sync.getPlaybackProgress({
+        ...params,
+        extended: 'images',
+      })
 
       const continueWatchingItems: ContinueWatchingItem[] = playbackItems.map((item) => {
         // Determine media type and convert to Media entity

@@ -1,0 +1,1 @@
+export { HeroPaginationIndicator } from './HeroPaginationIndicator'

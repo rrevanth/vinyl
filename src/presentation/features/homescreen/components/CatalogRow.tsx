@@ -2,14 +2,13 @@ import type { FC } from 'react'
 import { memo, useMemo, useCallback, useState } from 'react'
 import { ActivityIndicator, Pressable, Text, View } from 'react-native'
 import { StyleSheet } from 'react-native-unistyles'
-import { Ionicons } from '@expo/vector-icons'
 import type { Catalog, CatalogItem } from '@/src/domain/entities/Catalog'
 import type { Media } from '@/src/domain/entities/Media'
 import { t } from '@/src/presentation/shared/i18n'
 import { LegendList } from '@legendapp/list'
 import { router } from 'expo-router'
 import { useInfiniteCatalogItemsQuery } from '../queries/useInfiniteCatalogItemsQuery'
-import { MediaPosterCard } from './MediaPosterCard'
+import { MediaCard } from './MediaCard'
 import { useQueryClient } from '@tanstack/react-query'
 import type { MediaDetailData } from '@/src/domain/use-cases/media/GetMediaDetailUseCase'
 
@@ -18,12 +17,29 @@ interface CatalogRowProps {
   readonly onPressItem?: (media: Media) => void
 }
 
+/**
+ * Hash-based function to consistently assign a random variant to each catalog.
+ * Same catalog ID always returns the same variant for consistency across sessions.
+ */
+const getRandomVariant = (catalogId: string): 'poster' | 'top10' | 'landscape' | 'square' | 'wide' => {
+  const variants = ['poster', 'top10', 'landscape', 'square', 'wide'] as const
+  let hash = 0
+  for (let i = 0; i < catalogId.length; i++) {
+    hash = ((hash << 5) - hash) + catalogId.charCodeAt(i)
+    hash = hash & hash
+  }
+  return variants[Math.abs(hash) % variants.length]
+}
+
 const CatalogRowComponent: FC<CatalogRowProps> = ({ catalog, onPressItem: onPressItemProp }) => {
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const queryClient = useQueryClient()
 
   // Use infinite query hook for pagination (TanStack Query as single source of truth)
   const infiniteQuery = useInfiniteCatalogItemsQuery(catalog)
+
+  // Get consistent variant for this catalog
+  const variant = useMemo(() => getRandomVariant(catalog.stableId), [catalog.stableId])
 
   // Get the latest catalog from query pages (last page has accumulated items)
   const latestCatalog = useMemo(() => {
@@ -37,6 +53,15 @@ const CatalogRowComponent: FC<CatalogRowProps> = ({ catalog, onPressItem: onPres
 
   // Format display name: "Provider - Catalog Name"
   const displayName = `${providerName} - ${latestCatalog.name}`
+
+  // Format subtitle: Provider · Type
+  const mediaType = latestCatalog.type.charAt(0).toUpperCase() + latestCatalog.type.slice(1)
+  const subtitleText = `${providerName} · ${mediaType}`
+
+  // Format title with "Top 10 in" prefix for top10 variant
+  const displayTitle = variant === 'top10'
+    ? `Top 10 in ${latestCatalog.name}`
+    : latestCatalog.name
 
   // Handle title press - navigate to grid view
   const handlePressTitle = useCallback(() => {
@@ -113,9 +138,11 @@ const CatalogRowComponent: FC<CatalogRowProps> = ({ catalog, onPressItem: onPres
   )
 
   // Get catalog items with media from latest catalog (directly from query, no store)
+  // For top10 variant, limit to first 10 items
   const catalogItems = useMemo(() => {
-    return latestCatalog.items.filter(item => !!item.media)
-  }, [latestCatalog.items])
+    const itemsWithMedia = latestCatalog.items.filter(item => !!item.media)
+    return variant === 'top10' ? itemsWithMedia.slice(0, 10) : itemsWithMedia
+  }, [latestCatalog.items, variant])
 
   // Debug logging for catalog items
   console.log('[CatalogRow] Rendering catalog items', {
@@ -169,15 +196,18 @@ const CatalogRowComponent: FC<CatalogRowProps> = ({ catalog, onPressItem: onPres
 
   return (
     <View style={styles.container}>
-      <View style={styles.headerRow}>
+      <View style={styles.headerContainer}>
         <Pressable
-          style={({ pressed }) => [styles.titlePressable, pressed && styles.titlePressed]}
           onPress={handlePressTitle}
           accessibilityRole="button"
-          accessibilityLabel={t('home.catalog_view_all_accessibility').replace('{name}', displayName)}
+          accessibilityLabel={t('home.catalog_view_all_accessibility').replace('{name}', displayTitle)}
+          style={({ pressed }) => pressed && styles.headerPressed}
         >
-          <Text style={styles.title}>{displayName}</Text>
-          <Ionicons name="chevron-forward" size={20} style={styles.chevronIcon} />
+          <View style={styles.titleRow}>
+            <Text style={styles.title}>{displayTitle}</Text>
+            <Text style={styles.chevron}>›</Text>
+          </View>
+          <Text style={styles.subtitle}>{subtitleText}</Text>
         </Pressable>
       </View>
 
@@ -187,10 +217,14 @@ const CatalogRowComponent: FC<CatalogRowProps> = ({ catalog, onPressItem: onPres
         keyExtractor={(item) => item.stableId}
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
-        renderItem={({ item }) => (
-          <MediaPosterCard
+        renderItem={({ item, index }) => (
+          <MediaCard
             media={item.media!}
-            size="standard"
+            variant={variant}
+            position={variant === 'top10' ? index + 1 : undefined}
+            showTitle={true}
+            showMetadata={variant === 'landscape' || variant === 'square' || variant === 'wide'}
+            showDescription={variant === 'landscape' || variant === 'square'}
             onPress={() => handlePressItem(item)}
             testID={`catalog-${catalog.stableId}-${item.stableId}`}
           />
@@ -231,18 +265,18 @@ const styles = StyleSheet.create((theme) => ({
   container: {
     marginBottom: theme.spacing.rowSpacing,
   },
-  headerRow: {
+  headerContainer: {
     paddingHorizontal: theme.spacing.gutter,
     marginBottom: theme.spacing.md,
   },
-  titlePressable: {
+  headerPressed: {
+    opacity: 0.7,
+  },
+  titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: theme.spacing.xs,
-    alignSelf: 'flex-start',
-  },
-  titlePressed: {
-    opacity: 0.7,
+    marginBottom: theme.spacing.xs,
   },
   title: {
     color: theme.colors.text,
@@ -250,11 +284,18 @@ const styles = StyleSheet.create((theme) => ({
     fontFamily: theme.fontFamily.heading,
     fontWeight: theme.fontWeight.bold,
   },
-  chevronIcon: {
+  chevron: {
+    color: theme.colors.text,
+    fontSize: theme.fontSize.xl,
+    fontWeight: theme.fontWeight.bold,
+  },
+  subtitle: {
     color: theme.colors.textSecondary,
+    fontSize: theme.fontSize.sm,
   },
   listContent: {
     paddingHorizontal: theme.spacing.gutter,
+    gap: theme.spacing.md,
   },
   spinnerColor: {
     color: theme.colors.primary,

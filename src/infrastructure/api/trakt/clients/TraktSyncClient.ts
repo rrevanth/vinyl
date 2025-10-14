@@ -12,6 +12,7 @@ import type {
   TraktSeason,
   TraktEpisode,
   TraktPlaybackItem,
+  TraktExtended,
 } from '../types'
 
 /**
@@ -412,6 +413,7 @@ export class TraktSyncClient extends TraktBaseClient {
   async getPlaybackProgress(params?: {
     type?: 'movies' | 'episodes'
     limit?: number
+    extended?: TraktExtended
   }): Promise<TraktPlaybackItem[]> {
     return this.get<TraktPlaybackItem[]>('/sync/playback', params)
   }
