@@ -40,13 +40,32 @@ const formatBytes = (bytes: number): string => {
 const StreamCardComponent: React.FC<StreamCardProps> = ({ stream, media, seasonNumber, episodeNumber }) => {
   const router = useRouter()
 
-  // Safety check: ensure media is provided
+  // Removed logging to improve performance
+
+  // Ensure we have valid string values - defensively handle all potential non-string values
+  const displayName = useMemo(() => {
+    if (!stream.name || typeof stream.name !== 'string') return 'Stream'
+    const trimmed = stream.name.trim()
+    return trimmed.length > 0 ? trimmed : 'Stream'
+  }, [stream.name])
+
+  const displayDescription = useMemo(() => {
+    if (!stream.description || typeof stream.description !== 'string') return null
+    const trimmed = stream.description.trim()
+    // Return null if empty string to avoid rendering empty text
+    return trimmed.length > 0 ? trimmed : null
+  }, [stream.description])
+
+  const displaySize = useMemo(() => {
+    if (!stream.size || typeof stream.size !== 'number' || isNaN(stream.size)) return null
+    return formatBytes(stream.size)
+  }, [stream.size])
+
+  // Safety check: ensure media is provided (after hooks)
   if (!media) {
     console.error('[StreamCard] Media prop is missing!')
     return null
   }
-
-  // Removed logging to improve performance
 
   const handlePress = () => {
     if (!media) {
@@ -98,25 +117,6 @@ const StreamCardComponent: React.FC<StreamCardProps> = ({ stream, media, seasonN
       console.error('[StreamCard] Navigation failed:', error)
     }
   }
-
-  // Ensure we have valid string values - defensively handle all potential non-string values
-  const displayName = useMemo(() => {
-    if (!stream.name || typeof stream.name !== 'string') return 'Stream'
-    const trimmed = stream.name.trim()
-    return trimmed.length > 0 ? trimmed : 'Stream'
-  }, [stream.name])
-
-  const displayDescription = useMemo(() => {
-    if (!stream.description || typeof stream.description !== 'string') return null
-    const trimmed = stream.description.trim()
-    // Return null if empty string to avoid rendering empty text
-    return trimmed.length > 0 ? trimmed : null
-  }, [stream.description])
-
-  const displaySize = useMemo(() => {
-    if (!stream.size || typeof stream.size !== 'number' || isNaN(stream.size)) return null
-    return formatBytes(stream.size)
-  }, [stream.size])
 
   return (
     <Pressable
