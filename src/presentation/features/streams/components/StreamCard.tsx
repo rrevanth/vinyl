@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { View, Text, Pressable } from 'react-native'
 import { StyleSheet, withUnistyles } from 'react-native-unistyles'
 import { Ionicons } from '@expo/vector-icons'
@@ -20,10 +20,21 @@ interface StreamCardProps {
 }
 
 const formatBytes = (bytes: number): string => {
-  if (bytes >= 1073741824) {
-    return `${(bytes / 1073741824).toFixed(2)} GB`
+  try {
+    if (typeof bytes !== 'number' || isNaN(bytes) || bytes < 0) {
+      return 'Unknown size'
+    }
+    if (bytes >= 1073741824) {
+      return `${(bytes / 1073741824).toFixed(2)} GB`
+    }
+    if (bytes >= 1048576) {
+      return `${(bytes / 1048576).toFixed(2)} MB`
+    }
+    return `${(bytes / 1024).toFixed(2)} KB`
+  } catch (error) {
+    console.error('[formatBytes] Error formatting bytes:', error)
+    return 'Unknown size'
   }
-  return `${(bytes / 1048576).toFixed(2)} MB`
 }
 
 export const StreamCard: React.FC<StreamCardProps> = observer(({ stream, media, seasonNumber, episodeNumber }) => {
@@ -35,10 +46,14 @@ export const StreamCard: React.FC<StreamCardProps> = observer(({ stream, media, 
     return null
   }
 
-  console.log('[StreamCard] Rendering with media:', {
-    mediaStableId: media?.stableId,
-    mediaTitle: media?.title,
-  })
+  // Log safely without triggering render errors
+  if (__DEV__) {
+    console.log('[StreamCard] Rendering with media:', {
+      mediaStableId: media?.stableId,
+      mediaTitle: media?.title,
+      streamId: stream?.id,
+    })
+  }
 
   const handlePress = () => {
     if (!media) {
@@ -92,8 +107,23 @@ export const StreamCard: React.FC<StreamCardProps> = observer(({ stream, media, 
   }
 
   // Ensure we have valid string values - defensively handle all potential non-string values
-  const displayName = (stream.name && typeof stream.name === 'string') ? stream.name.trim() || 'Stream' : 'Stream'
-  const displayDescription = (stream.description && typeof stream.description === 'string') ? stream.description.trim() || null : null
+  const displayName = useMemo(() => {
+    if (!stream.name || typeof stream.name !== 'string') return 'Stream'
+    const trimmed = stream.name.trim()
+    return trimmed.length > 0 ? trimmed : 'Stream'
+  }, [stream.name])
+
+  const displayDescription = useMemo(() => {
+    if (!stream.description || typeof stream.description !== 'string') return null
+    const trimmed = stream.description.trim()
+    // Return null if empty string to avoid rendering empty text
+    return trimmed.length > 0 ? trimmed : null
+  }, [stream.description])
+
+  const displaySize = useMemo(() => {
+    if (!stream.size || typeof stream.size !== 'number' || isNaN(stream.size)) return null
+    return formatBytes(stream.size)
+  }, [stream.size])
 
   return (
     <Pressable
@@ -110,16 +140,16 @@ export const StreamCard: React.FC<StreamCardProps> = observer(({ stream, media, 
         </View>
 
         {/* Description (multiline, preserve formatting) */}
-        {displayDescription && (
+        {displayDescription && displayDescription.length > 0 && (
           <Text style={styles.description}>
             {displayDescription}
           </Text>
         )}
 
         {/* File size */}
-        {stream.size && typeof stream.size === 'number' && (
+        {displaySize && displaySize.length > 0 && (
           <Text style={styles.fileSize}>
-            {formatBytes(stream.size)}
+            {displaySize}
           </Text>
         )}
       </View>
