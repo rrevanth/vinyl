@@ -2,7 +2,7 @@ import React, { useMemo } from 'react'
 import { View, Text, Pressable } from 'react-native'
 import { StyleSheet, withUnistyles } from 'react-native-unistyles'
 import { Ionicons } from '@expo/vector-icons'
-import { observer } from '@legendapp/state/react'
+// Removed observer import - not needed for this component
 import { useRouter } from 'expo-router'
 import type { Stream } from '@/src/domain/entities/Stream'
 import type { Media } from '@/src/domain/entities/Media'
@@ -37,7 +37,7 @@ const formatBytes = (bytes: number): string => {
   }
 }
 
-export const StreamCard: React.FC<StreamCardProps> = observer(({ stream, media, seasonNumber, episodeNumber }) => {
+const StreamCardComponent: React.FC<StreamCardProps> = ({ stream, media, seasonNumber, episodeNumber }) => {
   const router = useRouter()
 
   // Safety check: ensure media is provided
@@ -46,14 +46,7 @@ export const StreamCard: React.FC<StreamCardProps> = observer(({ stream, media, 
     return null
   }
 
-  // Log safely without triggering render errors
-  if (__DEV__) {
-    console.log('[StreamCard] Rendering with media:', {
-      mediaStableId: media?.stableId,
-      mediaTitle: media?.title,
-      streamId: stream?.id,
-    })
-  }
+  // Removed logging to improve performance
 
   const handlePress = () => {
     if (!media) {
@@ -154,6 +147,17 @@ export const StreamCard: React.FC<StreamCardProps> = observer(({ stream, media, 
         )}
       </View>
     </Pressable>
+  )
+}
+
+// Memoize the component to prevent unnecessary re-renders
+// Only re-render if stream.id or media.stableId changes
+export const StreamCard = React.memo(StreamCardComponent, (prevProps, nextProps) => {
+  return (
+    prevProps.stream.id === nextProps.stream.id &&
+    prevProps.media.stableId === nextProps.media.stableId &&
+    prevProps.seasonNumber === nextProps.seasonNumber &&
+    prevProps.episodeNumber === nextProps.episodeNumber
   )
 })
 

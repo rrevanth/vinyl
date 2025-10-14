@@ -40,37 +40,20 @@ export const StreamList: React.FC<StreamListProps> = observer(({ streams, media,
     )
   }
 
-  console.log('[StreamList] Rendering', {
-    streamCount: streams.length,
-    mediaStableId: media.stableId,
-    hasSeasonNumber: seasonNumber !== undefined,
-    hasEpisodeNumber: episodeNumber !== undefined,
-  })
+  // Removed excessive logging for performance
 
   return (
     <LegendList
       data={streams}
-      keyExtractor={(item: Stream) => {
-        // Ensure we always return a string key
-        if (!item) return `stream-null-${Math.random()}`
-        return item.id || `stream-${item.url?.substring(0, 20) || Math.random()}`
-      }}
-      renderItem={({ item }: { item: Stream }) => {
-        // Safety check: ensure item exists
-        if (!item) {
-          console.error('[StreamList] Null item in renderItem')
-          return null
-        }
-        
-        return (
-          <StreamCard
-            stream={item}
-            media={media}
-            seasonNumber={seasonNumber}
-            episodeNumber={episodeNumber}
-          />
-        )
-      }}
+      keyExtractor={(item: Stream) => item.id || `stream-${item.url}`}
+      renderItem={({ item }: { item: Stream }) => (
+        <StreamCard
+          stream={item}
+          media={media}
+          seasonNumber={seasonNumber}
+          episodeNumber={episodeNumber}
+        />
+      )}
       estimatedItemSize={120}
       contentContainerStyle={styles.listContent}
       maintainVisibleContentPosition
