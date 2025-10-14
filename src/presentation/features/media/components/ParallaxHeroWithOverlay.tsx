@@ -266,13 +266,16 @@ const ParallaxHeroWithOverlayComponent: FC<ParallaxHeroWithOverlayProps> = ({
         )}
       </Animated.View>
 
-      {/* Dark scrim for better text contrast */}
-      <View style={styles.scrim} />
-
-      {/* Bottom Gradient - Enhanced for left-aligned content */}
+      {/* Bottom Gradient - Full coverage for better text readability */}
       <LinearGradient
-        colors={['transparent', 'rgba(0,0,0,0.7)', 'rgba(0,0,0,0.98)']}
-        locations={[0, 0.3, 1]}
+        colors={[
+          'transparent',
+          'rgba(0,0,0,0.3)',
+          'rgba(0,0,0,0.6)',
+          'rgba(0,0,0,0.85)',
+          'rgba(0,0,0,0.98)',
+        ]}
+        locations={[0, 0.2, 0.5, 0.75, 1]}
         style={styles.bottomGradient}
       />
 
@@ -404,21 +407,13 @@ const styles = StyleSheet.create((theme) => ({
     height: '100%',
     backgroundColor: theme.colors.backgroundTertiary,
   },
-  scrim: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: '60%',
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
-  },
-  // Bottom gradient covering 90% height
+  // Bottom gradient covering full height for smooth transition
   bottomGradient: {
     position: 'absolute',
-    bottom: 0,
+    top: 0,
     left: 0,
     right: 0,
-    height: '90%',
+    bottom: 0,
   },
   // Content container - bottom-aligned with left alignment (Netflix/Disney+ style)
   overlayContent: {
