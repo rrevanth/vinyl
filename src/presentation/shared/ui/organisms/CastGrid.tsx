@@ -1,6 +1,7 @@
 import type { FC } from 'react'
 import { memo, useCallback } from 'react'
 import { View } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { StyleSheet } from 'react-native-unistyles'
 import { LegendList } from '@legendapp/list'
 import type { Person } from '@/src/domain/entities/Person'
@@ -20,7 +21,7 @@ interface CastGridProps {
 
 const CastGridComponent: FC<CastGridProps> = ({
   items,
-  columns = 4,
+  columns,
   onPressPerson,
   testID,
 }) => {
@@ -44,32 +45,38 @@ const CastGridComponent: FC<CastGridProps> = ({
   )
 
   return (
-    <LegendList
-      testID={testID}
-      data={items}
-      keyExtractor={keyExtractor}
-      numColumns={columns}
-      contentContainerStyle={styles.gridContent}
-      columnWrapperStyle={styles.row}
-      renderItem={renderItem}
-    />
+    <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
+      <LegendList
+        testID={testID}
+        data={items}
+        keyExtractor={keyExtractor}
+        numColumns={columns || 3}
+        contentContainerStyle={styles.gridContent}
+        columnWrapperStyle={styles.row}
+        renderItem={renderItem}
+      />
+    </SafeAreaView>
   )
 }
 
 export const CastGrid = memo(CastGridComponent)
 
-const styles = StyleSheet.create((theme) => ({
+const styles = StyleSheet.create((theme, rt) => ({
+  safeArea: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+  },
   gridContent: {
     paddingHorizontal: theme.spacing.gutter,
-    paddingVertical: theme.spacing.lg,
+    paddingTop: theme.spacing.lg,
+    paddingBottom: theme.spacing['2xl'],
+    gap: theme.spacing.md, // Vertical spacing between rows
   },
   row: {
-    justifyContent: 'space-between',
-    gap: theme.spacing.md,
-    marginBottom: theme.spacing.md,
+    justifyContent: 'flex-start',
+    gap: theme.spacing.md, // Horizontal spacing between items
   },
   cardWrapper: {
-    flex: 1,
-    maxWidth: '23%', // Ensure 4 columns with space between
+    alignItems: 'center',
   },
 }))

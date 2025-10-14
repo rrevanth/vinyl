@@ -1,11 +1,9 @@
 import { EpisodeCarousel } from '@/src/presentation/features/media/components/EpisodeCarousel'
-import { MetadataSection } from '@/src/presentation/features/media/components/MetadataSection'
-import { ParallaxHero } from '@/src/presentation/features/media/components/ParallaxHero'
+import { ParallaxHeroWithOverlay } from '@/src/presentation/features/media/components/ParallaxHeroWithOverlay'
 import { SeasonSelector } from '@/src/presentation/features/media/components/SeasonSelector'
-import { ActionButtonRow } from '@/src/presentation/features/media/components/molecules/ActionButtonRow'
 import { VideosSection } from '@/src/presentation/features/media/components/organisms/VideosSection'
 import { CastSection } from '@/src/presentation/features/media/components/organisms/CastSection'
-import { RecommendationsSection } from '@/src/presentation/features/media/components/organisms/RecommendationsSection'
+import { RecommendationsRow } from '@/src/presentation/features/media/components/RecommendationsRow'
 import { useMediaDetail } from '@/src/presentation/features/media/hooks/useMediaDetail'
 import { t } from '@/src/presentation/shared/i18n'
 import { observer } from '@legendapp/state/react'
@@ -15,6 +13,7 @@ import { ActivityIndicator, Pressable, Text, View } from 'react-native'
 import Animated, { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated'
 import { StyleSheet } from 'react-native-unistyles'
 import type { MediaVideo } from '@/src/domain/capabilities/IMediaVideosCapability'
+import type { Episode } from '@/src/domain/capabilities/IMediaSeasonsCapability'
 import type { Media } from '@/src/domain/entities/Media'
 import { useQueryClient } from '@tanstack/react-query'
 import type { MediaDetailData } from '@/src/domain/use-cases/media/GetMediaDetailUseCase'
@@ -109,6 +108,16 @@ const MediaDetailScreen = observer(() => {
     [queryClient]
   )
 
+  const handlePressEpisodeMore = useCallback((episode: Episode) => {
+    // TODO: Navigate to episode detail screen or expand inline
+    // For now, just log for future implementation
+    console.log('[MediaDetailScreen] Episode MORE pressed:', {
+      title: episode.name,
+      season: episode.seasonNumber,
+      episode: episode.episodeNumber,
+    })
+  }, [])
+
   // Loading state
   if (!media || isLoading) {
     return (
@@ -152,24 +161,13 @@ const MediaDetailScreen = observer(() => {
         onScroll={scrollHandler}
         scrollEventThrottle={16}
       >
-        {/* Parallax Hero with Backdrop and Cinematic Zoom-out */}
-        <ParallaxHero media={media} height={500} scrollY={scrollY} />
-
-        {/* Action Buttons */}
-        <ActionButtonRow media={media} onPlay={handlePlay} />
-
-        {/* Enhanced Metadata Section */}
-        {enrichedData && <MetadataSection enrichedData={enrichedData} />}
-
-        {/* Videos Section (Trailers, Clips, etc.) */}
-        {videos && videos.length > 0 && (
-          <VideosSection videos={videos} onPressVideo={handlePressVideo} />
-        )}
-
-        {/* Cast Section */}
-        {peopleCatalogs && peopleCatalogs.length > 0 && (
-          <CastSection mediaStableId={stableId} catalogs={peopleCatalogs} />
-        )}
+        {/* Parallax Hero with Overlay - includes title, metadata, synopsis, and actions */}
+        <ParallaxHeroWithOverlay
+          media={media}
+          enrichedData={enrichedData}
+          scrollY={scrollY}
+          onPlay={handlePlay}
+        />
 
         {/* Season Selector (Series only) */}
         {media.isSeries() && seasons && seasons.length > 0 && <SeasonSelector seasons={seasons} />}
@@ -191,18 +189,33 @@ const MediaDetailScreen = observer(() => {
                     `/streams/${encodeURIComponent(media.stableId)}?season=${episode.seasonNumber}&episode=${episode.episodeNumber}`
                   )
                 }}
+                onPressMore={handlePressEpisodeMore}
               />
             )}
           </>
         )}
 
-        {/* Recommendations Section */}
+        {/* Videos Section (Trailers) */}
+        {videos && videos.length > 0 && (
+          <VideosSection videos={videos} onPressVideo={handlePressVideo} />
+        )}
+
+        {/* Cast Section */}
+        {peopleCatalogs && peopleCatalogs.length > 0 && (
+          <CastSection mediaStableId={stableId} catalogs={peopleCatalogs} />
+        )}
+
+        {/* Recommendations - Use RecommendationsRow for proper pagination */}
         {recommendationCatalogs && recommendationCatalogs.length > 0 && (
-          <RecommendationsSection
-            mediaStableId={stableId}
-            catalogs={recommendationCatalogs}
-            onPressMedia={handlePressRecommendation}
-          />
+          <>
+            {recommendationCatalogs.map((catalog) => (
+              <RecommendationsRow
+                key={catalog.stableId}
+                catalog={catalog}
+                onPressItem={handlePressRecommendation}
+              />
+            ))}
+          </>
         )}
 
         {/* Bottom Spacing */}

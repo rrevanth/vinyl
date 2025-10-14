@@ -67,6 +67,95 @@ export class TMDBMediaRecommendationsCapability implements IMediaRecommendations
     }
   }
 
+  async loadMoreItems(catalog: Catalog): Promise<Result<Catalog>> {
+    // Validate catalog has context media and pagination info
+    if (!catalog.contextMedia) {
+      return fail(
+        new Error('Catalog must have contextMedia to load more recommendations'),
+        'tmdb',
+        'invalid_input'
+      )
+    }
+
+    if (!catalog.paginationInfo.hasMore) {
+      return fail(
+        new Error('No more items to load for this catalog'),
+        'tmdb',
+        'not_found'
+      )
+    }
+
+    // Extract TMDB ID from context media
+    const tmdbId = this.extractTMDBId(catalog.contextMedia)
+    if (!tmdbId) {
+      return fail(
+        new Error(`No TMDB ID found for context media: ${catalog.contextMedia.title}`),
+        'tmdb',
+        'missing_id'
+      )
+    }
+
+    try {
+      const nextPage = catalog.paginationInfo.currentPage + 1
+      const mediaType = catalog.contextMedia.type
+
+      let response: any
+
+      if (mediaType === 'movie') {
+        response = await this.tmdbClient.movies.getSimilarMovies(tmdbId, nextPage)
+      } else if (mediaType === 'series') {
+        response = await this.tmdbClient.tv.getSimilarTVShows(tmdbId, nextPage)
+      } else {
+        return fail(
+          new Error(`Unsupported media type for recommendations: ${mediaType}`),
+          'tmdb',
+          'unsupported'
+        )
+      }
+
+      // Map response to catalog items
+      const newItems = response.results.map((item: any, index: number) => {
+        const media =
+          mediaType === 'movie'
+            ? TMDBMediaMapper.fromMovieResponse(item)
+            : TMDBMediaMapper.fromTVResponse(item)
+
+        return {
+          stableId: StableIdGenerator.forCatalogItem(
+            catalog.id,
+            media.stableId,
+            catalog.items.length + index
+          ),
+          media,
+        }
+      })
+
+      // Create updated pagination info
+      const newPaginationInfo = {
+        currentPage: response.page,
+        totalPages: response.total_pages,
+        hasMore: response.page < response.total_pages,
+      }
+
+      // Append new items to catalog
+      const updatedCatalog = catalog.appendItems(newItems, newPaginationInfo)
+
+      this.logger.debug(
+        `Loaded page ${nextPage} for catalog ${catalog.id}, added ${newItems.length} items`,
+        {
+          totalItems: updatedCatalog.items.length,
+          hasMore: updatedCatalog.paginationInfo.hasMore,
+        }
+      )
+
+      return ok(updatedCatalog, 'tmdb')
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error))
+      this.logger.error(`Failed to load more items for catalog ${catalog.id}`, err)
+      return fail(err, 'tmdb', 'api_error')
+    }
+  }
+
   /**
    * Create similar movies catalog
    */

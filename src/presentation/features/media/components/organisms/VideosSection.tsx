@@ -2,6 +2,7 @@ import type { FC } from 'react'
 import { memo } from 'react'
 import { Pressable, Text, View } from 'react-native'
 import { StyleSheet } from 'react-native-unistyles'
+import { Ionicons } from '@expo/vector-icons'
 import { LegendList } from '@legendapp/list'
 import type { MediaVideo } from '@/src/domain/capabilities/IMediaVideosCapability'
 import { t } from '@/src/presentation/shared/i18n'
@@ -24,17 +25,18 @@ const VideosSectionComponent: FC<VideosSectionProps> = ({ videos, onPressVideo, 
   return (
     <View style={styles.section}>
       <View style={styles.header}>
-        <Text style={styles.title}>{t('media_detail.trailers')}</Text>
-        {showSeeAll && (
-          <Pressable
-            onPress={onPressSeeAll}
-            accessibilityRole="button"
-            accessibilityLabel={t('media_detail.see_all')}
-            style={({ pressed }) => [styles.seeAllButton, pressed && styles.seeAllPressed]}
-          >
-            <Text style={styles.seeAllText}>{t('media_detail.see_all')}</Text>
-          </Pressable>
-        )}
+        <Pressable
+          style={({ pressed }) => [styles.titlePressable, pressed && styles.titlePressed]}
+          onPress={onPressSeeAll || (() => {})}
+          disabled={!showSeeAll}
+          accessibilityRole="button"
+          accessibilityLabel={t('media_detail.see_all_videos')}
+        >
+          <Text style={styles.title}>{t('media_detail.trailers')}</Text>
+          {showSeeAll && (
+            <Ionicons name="chevron-forward" size={20} color={styles.chevronIcon.color} />
+          )}
+        </Pressable>
       </View>
 
       <LegendList
@@ -69,24 +71,23 @@ const styles = StyleSheet.create((theme) => ({
     paddingHorizontal: theme.spacing.lg,
     marginBottom: theme.spacing.md,
   },
+  titlePressable: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs,
+    alignSelf: 'flex-start',
+  },
+  titlePressed: {
+    opacity: 0.7,
+  },
   title: {
     color: theme.colors.text,
     fontSize: theme.fontSize.lg,
     fontFamily: theme.fontFamily.heading,
     fontWeight: theme.fontWeight.semibold,
   },
-  seeAllButton: {
-    paddingVertical: theme.spacing.xs,
-    paddingHorizontal: theme.spacing.sm,
-    borderRadius: theme.borderRadius.full,
-    backgroundColor: theme.colors.surface,
-  },
-  seeAllPressed: {
-    opacity: 0.85,
-  },
-  seeAllText: {
+  chevronIcon: {
     color: theme.colors.textSecondary,
-    fontSize: theme.fontSize.xs,
   },
   listContent: {
     paddingHorizontal: theme.spacing.lg,

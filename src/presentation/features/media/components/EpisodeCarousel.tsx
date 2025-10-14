@@ -5,6 +5,7 @@ import type { ViewToken } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { StyleSheet } from 'react-native-unistyles'
 import { observer } from '@legendapp/state/react'
+import { Ionicons } from '@expo/vector-icons'
 import type { Episode, Season } from '@/src/domain/capabilities/IMediaSeasonsCapability'
 import type { SeriesWatchProgress } from '@/src/domain/capabilities/IMediaWatchProgressCapability'
 import { selectedSeason$, setSelectedSeason } from '../stores/mediaUI.store'
@@ -14,6 +15,7 @@ interface EpisodeCarouselProps {
   readonly seasons: Season[]
   readonly watchProgress?: SeriesWatchProgress
   readonly onPressEpisode?: (episode: Episode) => void
+  readonly onPressMore?: (episode: Episode) => void
 }
 
 /**
@@ -27,13 +29,14 @@ interface EpisodeCardProps {
   readonly episode: Episode
   readonly isWatched: boolean
   readonly onPress: () => void
+  readonly onPressMore?: () => void
 }
 
 /**
  * Episode card for horizontal carousel
  * Netflix-style large cards with 16:9 aspect ratio
  */
-const EpisodeCard: FC<EpisodeCardProps> = memo(({ episode, isWatched, onPress }) => {
+const EpisodeCard: FC<EpisodeCardProps> = memo(({ episode, isWatched, onPress, onPressMore }) => {
   const durationText = useMemo(() => {
     if (!episode.runtime) return null
     return t('media_detail.episode_runtime').replace('{minutes}', episode.runtime.toString())
@@ -70,9 +73,9 @@ const EpisodeCard: FC<EpisodeCardProps> = memo(({ episode, isWatched, onPress })
           </View>
         )}
 
-        {/* Gradient overlay for text readability */}
+        {/* Blur gradient overlay for text readability */}
         <LinearGradient
-          colors={['transparent', 'rgba(0, 0, 0, 0.85)']}
+          colors={['transparent', 'rgba(0, 0, 0, 0.6)']}
           style={styles.gradient}
         />
 
@@ -107,6 +110,30 @@ const EpisodeCard: FC<EpisodeCardProps> = memo(({ episode, isWatched, onPress })
               {episode.overview}
             </Text>
           )}
+
+          {/* Play button with runtime */}
+          {episode.runtime && (
+            <View style={styles.playRow}>
+              <Text style={styles.playIcon}>▶</Text>
+              <Text style={styles.runtimeText}>{episode.runtime}m</Text>
+            </View>
+          )}
+
+          {/* More icon button */}
+          {onPressMore && (
+            <Pressable
+              onPress={(e) => {
+                e.stopPropagation()
+                onPressMore()
+              }}
+              style={styles.moreIconButton}
+              accessibilityRole="button"
+              accessibilityLabel={t('media_detail.more_info')}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Ionicons name="ellipsis-horizontal" size={20} color="#FFFFFF" />
+            </Pressable>
+          )}
         </View>
       </View>
     </Pressable>
@@ -124,6 +151,7 @@ const EpisodeCarouselComponent: FC<EpisodeCarouselProps> = observer(({
   seasons,
   watchProgress,
   onPressEpisode,
+  onPressMore,
 }) => {
   const selectedSeasonNumber = selectedSeason$.get()
   const flatListRef = useRef<FlatList<EpisodeWithSeason>>(null)
@@ -246,6 +274,7 @@ const EpisodeCarouselComponent: FC<EpisodeCarouselProps> = observer(({
         episode={item}
         isWatched={isWatched}
         onPress={() => onPressEpisode?.(item)}
+        onPressMore={onPressMore ? () => onPressMore(item) : undefined}
       />
     )
   }
@@ -338,7 +367,7 @@ const styles = StyleSheet.create((theme) => ({
     left: 0,
     right: 0,
     bottom: 0,
-    height: '60%',
+    height: '50%',
   },
   episodeNumberBadge: {
     position: 'absolute',
@@ -408,5 +437,37 @@ const styles = StyleSheet.create((theme) => ({
     textShadowColor: 'rgba(0, 0, 0, 0.8)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 4,
+    marginBottom: theme.spacing.md,
+  },
+  playRow: {
+    position: 'absolute',
+    bottom: 12,
+    left: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs,
+  },
+  playIcon: {
+    color: theme.colors.imageText,
+    fontSize: 14,
+    fontWeight: '700',
+    textShadowColor: 'rgba(0, 0, 0, 0.8)',
+    textShadowRadius: 6,
+  },
+  runtimeText: {
+    color: theme.colors.imageText,
+    fontSize: 13,
+    fontWeight: '600',
+    textShadowColor: 'rgba(0, 0, 0, 0.8)',
+    textShadowRadius: 6,
+  },
+  moreIconButton: {
+    position: 'absolute',
+    bottom: 12,
+    right: 12,
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 }))

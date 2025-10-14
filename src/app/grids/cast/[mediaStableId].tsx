@@ -102,18 +102,14 @@ export default function CastGridScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <>
       <Stack.Screen options={headerOptions} />
-      <CastGrid items={gridItems} columns={4} onPressPerson={handlePressPerson} />
-    </View>
+      <CastGrid items={gridItems} onPressPerson={handlePressPerson} />
+    </>
   )
 }
 
 const styles = StyleSheet.create((theme) => ({
-  container: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
   emptyContainer: {
     flex: 1,
     backgroundColor: theme.colors.background,

@@ -80,8 +80,10 @@
     "more_like_this": "More Like This",
     "recommendations": "Recommendations",
     "no_recommendations": "No recommendations available",
+    "recommendations_load_error": "Failed to load recommendations",
     "see_all_recommendations": "See all recommendations",
     "see_all": "See All",
+    "see_all_videos": "See All Videos",
     "seasons": "Seasons",
     "episodes": "Episodes",
     "season": "Season {number}",
@@ -134,7 +136,9 @@
     "progress_percent": "{percent}% complete",
     "episode_badge": "E{number}",
     "episode_number_title": "Season {season} Episode {episode}: {title}",
-    "no_episodes": "No episodes available"
+    "no_episodes": "No episodes available",
+    "more": "More",
+    "more_info": "More information"
   },
   "person_detail": {
     "loading": "Loading...",

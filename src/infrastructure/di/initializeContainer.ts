@@ -11,6 +11,7 @@ import { EnrichMediaUseCase } from '@/src/domain/use-cases/media/EnrichMediaUseC
 import { GetMediaDetailUseCase } from '@/src/domain/use-cases/media/GetMediaDetailUseCase'
 import { GetMediaStreamsUseCase } from '@/src/domain/use-cases/media/GetMediaStreamsUseCase'
 import { GetWatchProgressUseCase } from '@/src/domain/use-cases/media/GetWatchProgressUseCase'
+import { LoadMoreRecommendationsUseCase } from '@/src/domain/use-cases/media/LoadMoreRecommendationsUseCase'
 import { ResolveExternalIdsUseCase } from '@/src/domain/use-cases/media/ResolveExternalIdsUseCase'
 import { GetVideoPlayerUseCase } from '@/src/domain/use-cases/player/GetVideoPlayerUseCase'
 import { ScrobbleMediaUseCase } from '@/src/domain/use-cases/media/ScrobbleMediaUseCase'
@@ -536,6 +537,14 @@ export async function initializeContainer(): Promise<void> {
       TOKENS.GetEnabledProvidersForCapabilityUseCase
     )
     return new GetMediaStreamsUseCase(getEnabledProvidersUseCase, logger)
+  })
+
+  // LoadMoreRecommendationsUseCase for recommendations pagination
+  container.register(TOKENS.LoadMoreRecommendationsUseCase, () => {
+    const getEnabledProvidersUseCase = container.resolve<GetEnabledProvidersForCapabilityUseCase>(
+      TOKENS.GetEnabledProvidersForCapabilityUseCase
+    )
+    return new LoadMoreRecommendationsUseCase(logger, getEnabledProvidersUseCase)
   })
 
   // People detail use cases

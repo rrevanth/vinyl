@@ -80,8 +80,10 @@
     "more_like_this": "Más como esto",
     "recommendations": "Recomendaciones",
     "no_recommendations": "No hay recomendaciones disponibles",
+    "recommendations_load_error": "Error al cargar recomendaciones",
     "see_all_recommendations": "Ver todas las recomendaciones",
     "see_all": "Ver todo",
+    "see_all_videos": "Ver Todos los Videos",
     "seasons": "Temporadas",
     "episodes": "Episodios",
     "season": "Temporada {number}",
@@ -134,7 +136,9 @@
     "progress_percent": "{percent}% completado",
     "episode_badge": "E{number}",
     "episode_number_title": "Temporada {season} Episodio {episode}: {title}",
-    "no_episodes": "No hay episodios disponibles"
+    "no_episodes": "No hay episodios disponibles",
+    "more": "Más",
+    "more_info": "Más información"
   },
   "person_detail": {
     "loading": "Cargando...",

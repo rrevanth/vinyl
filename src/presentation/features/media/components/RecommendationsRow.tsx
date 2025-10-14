@@ -7,24 +7,28 @@ import type { Media } from '@/src/domain/entities/Media'
 import { t } from '@/src/presentation/shared/i18n'
 import { LegendList } from '@legendapp/list'
 import { router } from 'expo-router'
-import { useInfiniteCatalogItemsQuery } from '../queries/useInfiniteCatalogItemsQuery'
-import { MediaCard } from './MediaCard'
+import { useInfiniteRecommendationsQuery } from '../queries/useInfiniteRecommendationsQuery'
+import { MediaCard } from '@/src/presentation/features/homescreen/components/MediaCard'
 import { useQueryClient } from '@tanstack/react-query'
 import type { MediaDetailData } from '@/src/domain/use-cases/media/GetMediaDetailUseCase'
+import { observer } from '@legendapp/state/react'
 
-interface CatalogRowProps {
+interface RecommendationsRowProps {
   readonly catalog: Catalog
   readonly onPressItem?: (media: Media) => void
 }
 
-const CatalogRowComponent: FC<CatalogRowProps> = ({ catalog, onPressItem: onPressItemProp }) => {
+const RecommendationsRowComponent: FC<RecommendationsRowProps> = ({
+  catalog,
+  onPressItem: onPressItemProp,
+}) => {
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const queryClient = useQueryClient()
 
   // Use infinite query hook for pagination (TanStack Query as single source of truth)
-  const infiniteQuery = useInfiniteCatalogItemsQuery(catalog)
+  const infiniteQuery = useInfiniteRecommendationsQuery(catalog)
 
-  // Use poster variant for all catalogs
+  // Always use poster variant for recommendations
   const variant = 'poster'
 
   // Get the latest catalog from query pages (last page has accumulated items)
@@ -37,32 +41,32 @@ const CatalogRowComponent: FC<CatalogRowProps> = ({ catalog, onPressItem: onPres
   // Get provider name from addon name if available, otherwise use providerId
   const providerName = latestCatalog.sourceInfo?.addonName || latestCatalog.providerId.toUpperCase()
 
-  // Format display name: "Provider - Catalog Name"
-  const displayName = `${providerName} - ${latestCatalog.name}`
-
   // Format subtitle: Provider · Type
   const mediaType = latestCatalog.type.charAt(0).toUpperCase() + latestCatalog.type.slice(1)
   const subtitleText = `${providerName} · ${mediaType}`
 
-  // Use catalog name as display title
+  // Use catalog name as display title (no "Top 10 in" prefix)
   const displayTitle = latestCatalog.name
 
-  // Handle title press - navigate to grid view
+  // Format display name for navigation: "Provider - Catalog Name"
+  const displayName = `${providerName} - ${latestCatalog.name}`
+
+  // Handle title press - navigate to recommendations grid
   const handlePressTitle = useCallback(() => {
-    console.log('[CatalogRow] Title pressed, navigating to grid view')
+    console.log('[RecommendationsRow] Title pressed, navigating to recommendations grid')
 
     try {
       // Pre-populate cache with catalog data
-      queryClient.setQueryData(['catalog-grid', latestCatalog.stableId], {
+      queryClient.setQueryData(['recommendations-grid', latestCatalog.stableId], {
         catalog: latestCatalog,
       })
 
-      // Navigate to grid view
+      // Navigate to recommendations grid (not catalog grid!)
       const encodedCatalogId = encodeURIComponent(latestCatalog.stableId)
       const encodedName = encodeURIComponent(displayName)
-      router.push(`/grids/catalog/${encodedCatalogId}?name=${encodedName}` as any)
+      router.push(`/grids/recommendations/${encodedCatalogId}?name=${encodedName}` as any)
     } catch (error) {
-      console.error('[CatalogRow] Failed to navigate to grid view:', error)
+      console.error('[RecommendationsRow] Failed to navigate to recommendations grid:', error)
     }
   }, [latestCatalog, displayName, queryClient])
 
@@ -71,14 +75,14 @@ const CatalogRowComponent: FC<CatalogRowProps> = ({ catalog, onPressItem: onPres
     (item: CatalogItem) => {
       const media = item.media
       if (!media) {
-        console.warn('[CatalogRow] Ignoring press because catalog item is missing media', {
+        console.warn('[RecommendationsRow] Ignoring press because catalog item is missing media', {
           catalogItemId: item.stableId,
           catalogId: latestCatalog.stableId,
         })
         return
       }
 
-      console.log('[CatalogRow] Navigation triggered:', {
+      console.log('[RecommendationsRow] Navigation triggered:', {
         stableId: media.stableId,
         title: media.title,
         type: media.type,
@@ -86,12 +90,12 @@ const CatalogRowComponent: FC<CatalogRowProps> = ({ catalog, onPressItem: onPres
       })
 
       if (onPressItemProp) {
-        console.log('[CatalogRow] Using onPressItemProp')
+        console.log('[RecommendationsRow] Using onPressItemProp')
         onPressItemProp(media)
         return
       }
 
-      console.log('[CatalogRow] Pre-populating cache and navigating')
+      console.log('[RecommendationsRow] Pre-populating cache and navigating')
 
       try {
         // Pre-populate TanStack Query cache with Media object before navigation
@@ -102,20 +106,20 @@ const CatalogRowComponent: FC<CatalogRowProps> = ({ catalog, onPressItem: onPres
           providersUsed: {},
           errors: {},
         })
-        console.log('[CatalogRow] Media cached successfully')
+        console.log('[RecommendationsRow] Media cached successfully')
 
         // Navigate with stableId only (Expo Router params only support primitives)
         // Encode the stableId to handle special characters like colons
         const encodedStableId = encodeURIComponent(media.stableId)
         const route = `/media/${encodedStableId}`
-        console.log('[CatalogRow] Attempting navigation to:', route)
-        console.log('[CatalogRow] Original stableId:', media.stableId)
-        console.log('[CatalogRow] Encoded stableId:', encodedStableId)
+        console.log('[RecommendationsRow] Attempting navigation to:', route)
+        console.log('[RecommendationsRow] Original stableId:', media.stableId)
+        console.log('[RecommendationsRow] Encoded stableId:', encodedStableId)
 
         router.push(route as any)
-        console.log('[CatalogRow] Navigation command sent')
+        console.log('[RecommendationsRow] Navigation command sent')
       } catch (error) {
-        console.error('[CatalogRow] Navigation failed:', error)
+        console.error('[RecommendationsRow] Navigation failed:', error)
       }
     },
     [latestCatalog.stableId, onPressItemProp, queryClient]
@@ -123,26 +127,26 @@ const CatalogRowComponent: FC<CatalogRowProps> = ({ catalog, onPressItem: onPres
 
   // Get catalog items with media from latest catalog (directly from query, no store)
   const catalogItems = useMemo(() => {
-    return latestCatalog.items.filter(item => !!item.media)
+    return latestCatalog.items.filter((item) => !!item.media)
   }, [latestCatalog.items])
 
   // Debug logging for catalog items
-  console.log('[CatalogRow] Rendering catalog items', {
+  console.log('[RecommendationsRow] Rendering recommendation items', {
     catalogId: latestCatalog.stableId,
     infiniteQueryPages: infiniteQuery.data?.pages?.length ?? 0,
     catalogItemsCount: catalogItems.length,
     latestCatalogItemCount: latestCatalog.items.length,
     infiniteQueryData: !!infiniteQuery.data,
-    infiniteQueryPagesData: infiniteQuery.data?.pages?.map(page => ({
+    infiniteQueryPagesData: infiniteQuery.data?.pages?.map((page) => ({
       itemCount: page.items.length,
-      canLoadMore: page.canLoadMore()
+      canLoadMore: page.canLoadMore(),
     })),
     usingQueryData: true,
   })
 
   // Handle end reached for infinite scroll
   const handleEndReached = useCallback(async () => {
-    console.log('[CatalogRow] onEndReached triggered', {
+    console.log('[RecommendationsRow] onEndReached triggered', {
       catalogId: latestCatalog.stableId,
       canLoadMore: latestCatalog.canLoadMore(),
       isLoadingMore,
@@ -152,7 +156,7 @@ const CatalogRowComponent: FC<CatalogRowProps> = ({ catalog, onPressItem: onPres
 
     // Check if can load more and not already loading
     if (!latestCatalog.canLoadMore() || isLoadingMore || infiniteQuery.isFetchingNextPage) {
-      console.log('[CatalogRow] Skipping load more', {
+      console.log('[RecommendationsRow] Skipping load more', {
         canLoadMore: latestCatalog.canLoadMore(),
         isLoadingMore,
         isFetchingNextPage: infiniteQuery.isFetchingNextPage,
@@ -161,12 +165,12 @@ const CatalogRowComponent: FC<CatalogRowProps> = ({ catalog, onPressItem: onPres
     }
 
     try {
-      console.log('[CatalogRow] Starting to load more items')
+      console.log('[RecommendationsRow] Starting to load more items')
       setIsLoadingMore(true)
       await infiniteQuery.fetchNextPage()
-      console.log('[CatalogRow] Successfully loaded more items')
+      console.log('[RecommendationsRow] Successfully loaded more items')
     } catch (error) {
-      console.error('[CatalogRow] Failed to load more catalog items', error)
+      console.error('[RecommendationsRow] Failed to load more recommendations', error)
     } finally {
       setIsLoadingMore(false)
     }
@@ -182,7 +186,10 @@ const CatalogRowComponent: FC<CatalogRowProps> = ({ catalog, onPressItem: onPres
         <Pressable
           onPress={handlePressTitle}
           accessibilityRole="button"
-          accessibilityLabel={t('home.catalog_view_all_accessibility').replace('{name}', displayTitle)}
+          accessibilityLabel={t('home.catalog_view_all_accessibility').replace(
+            '{name}',
+            displayTitle
+          )}
           style={({ pressed }) => pressed && styles.headerPressed}
         >
           <View style={styles.titleRow}>
@@ -199,7 +206,7 @@ const CatalogRowComponent: FC<CatalogRowProps> = ({ catalog, onPressItem: onPres
         keyExtractor={(item) => item.stableId}
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
-        renderItem={({ item, index }) => (
+        renderItem={({ item }) => (
           <MediaCard
             media={item.media!}
             variant={variant}
@@ -208,7 +215,7 @@ const CatalogRowComponent: FC<CatalogRowProps> = ({ catalog, onPressItem: onPres
             showMetadata={false}
             showDescription={false}
             onPress={() => handlePressItem(item)}
-            testID={`catalog-${catalog.stableId}-${item.stableId}`}
+            testID={`recommendation-${catalog.stableId}-${item.stableId}`}
           />
         )}
         onEndReached={handleEndReached}
@@ -241,7 +248,7 @@ const CatalogRowComponent: FC<CatalogRowProps> = ({ catalog, onPressItem: onPres
   )
 }
 
-export const CatalogRow = memo(CatalogRowComponent)
+export const RecommendationsRow = memo(observer(RecommendationsRowComponent))
 
 const styles = StyleSheet.create((theme) => ({
   container: {
@@ -312,7 +319,7 @@ const styles = StyleSheet.create((theme) => ({
     opacity: 0.85,
   },
   retryText: {
-    color: theme.colors.background, // Use background color as inverse (white on primary)
+    color: theme.colors.background,
     fontSize: theme.fontSize.xs,
     fontWeight: theme.fontWeight.semibold,
   },

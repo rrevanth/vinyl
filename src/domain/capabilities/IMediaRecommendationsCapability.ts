@@ -12,4 +12,11 @@ export interface IMediaRecommendationsCapability {
    * @returns Array of recommendation catalogs (e.g., "Similar Movies", "Recommended Movies", "People Who Liked This Also Liked")
    */
   getRecommendations(media: Media): Promise<Result<Catalog[]>>
+
+  /**
+   * Load more items for a specific catalog (pagination)
+   * @param catalog - The catalog to load more items for
+   * @returns Updated catalog with new items appended
+   */
+  loadMoreItems(catalog: Catalog): Promise<Result<Catalog>>
 }

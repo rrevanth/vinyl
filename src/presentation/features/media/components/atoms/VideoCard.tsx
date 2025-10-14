@@ -1,8 +1,8 @@
 import type { FC } from 'react'
 import { memo } from 'react'
 import { Image, Pressable, Text, View } from 'react-native'
+import { LinearGradient } from 'expo-linear-gradient'
 import { StyleSheet } from 'react-native-unistyles'
-import { SymbolView } from 'expo-symbols'
 import type { MediaVideo } from '@/src/domain/capabilities/IMediaVideosCapability'
 import { t } from '@/src/presentation/shared/i18n'
 
@@ -30,7 +30,7 @@ const formatDuration = (seconds?: number): string => {
  */
 const getVideoThumbnail = (video: MediaVideo): string | undefined => {
   if (video.site.toLowerCase() === 'youtube') {
-    return `https://img.youtube.com/vi/${video.key}/mqdefault.jpg`
+    return `https://img.youtube.com/vi/${video.key}/hqdefault.jpg`
   }
   return undefined
 }
@@ -59,28 +59,35 @@ const VideoCardComponent: FC<VideoCardProps> = ({ video, onPress, size = 'standa
           <View style={styles.placeholderThumbnail} />
         )}
 
-        {/* Play icon overlay */}
-        <View style={styles.playOverlay}>
-          <View style={styles.playIconContainer}>
-            <SymbolView name="play.fill" size={isLarge ? 32 : 24} tintColor="#FFFFFF" />
+        {/* Dark gradient overlay at bottom */}
+        <LinearGradient
+          colors={['rgba(0, 0, 0, 0)', 'rgba(0, 0, 0, 1.0)']}
+          style={styles.gradient}
+          locations={[0.4, 1]}
+        />
+
+        {/* Bottom overlay with title, play icon and runtime */}
+        <View style={styles.overlay}>
+          <Text style={styles.title} numberOfLines={2}>
+            {video.name}
+          </Text>
+
+          <View style={styles.controlsRow}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Play"
+              onPress={onPress}
+              style={styles.playButton}
+            >
+              <View style={styles.playIconCircle}>
+                <Text style={styles.playIcon}>▶</Text>
+              </View>
+            </Pressable>
+            {video.size && (
+              <Text style={styles.runtimeText}>{formatDuration(video.size)}</Text>
+            )}
           </View>
         </View>
-
-        {/* Duration badge */}
-        {video.size && (
-          <View style={styles.durationBadge}>
-            <Text style={styles.durationText}>{formatDuration(video.size)}</Text>
-          </View>
-        )}
-      </View>
-
-      <View style={styles.textContainer}>
-        <Text style={[styles.title, isLarge && styles.titleLarge]} numberOfLines={2}>
-          {video.name}
-        </Text>
-        <Text style={styles.subtitle}>
-          {video.type} • {video.site}
-        </Text>
       </View>
     </Pressable>
   )
@@ -126,54 +133,63 @@ const styles = StyleSheet.create((theme) => ({
     height: '100%',
     backgroundColor: theme.colors.surfaceElevated,
   },
-  playOverlay: {
+  gradient: {
     position: 'absolute',
-    top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    height: '40%',
   },
-  playIconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  durationBadge: {
+  overlay: {
     position: 'absolute',
-    top: theme.spacing.sm,
-    right: theme.spacing.sm,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    paddingHorizontal: theme.spacing.sm,
-    paddingVertical: theme.spacing.xs,
-    borderRadius: theme.borderRadius.sm,
-  },
-  durationText: {
-    color: '#FFFFFF',
-    fontSize: theme.fontSize.xs,
-    fontWeight: theme.fontWeight.semibold,
-  },
-  textContainer: {
-    padding: theme.spacing.sm,
-    gap: theme.spacing.xs,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    paddingHorizontal: 12,
+    paddingBottom: 12,
+    paddingTop: 60, // Space for title
   },
   title: {
-    color: theme.colors.text,
-    fontFamily: theme.fontFamily.primary,
-    fontWeight: theme.fontWeight.medium,
-    fontSize: theme.fontSize.sm,
+    color: theme.colors.imageText,
+    fontSize: theme.fontSize.base,
+    fontWeight: theme.fontWeight.semibold,
+    textShadowColor: 'rgba(0, 0, 0, 0.9)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 8,
+    marginBottom: theme.spacing.sm,
   },
-  titleLarge: {
-    fontSize: theme.fontSize.lg,
+  controlsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
-  subtitle: {
-    color: theme.colors.textSecondary,
-    fontSize: theme.fontSize.xs,
-    textTransform: 'capitalize',
+  playButton: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  playIconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'transparent',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  playIcon: {
+    color: theme.colors.imageText,
+    fontSize: 16,
+    fontWeight: '700',
+    textShadowColor: 'rgba(0, 0, 0, 0.8)',
+    textShadowRadius: 6,
+    marginLeft: 2, // Optical alignment for play triangle
+  },
+  runtimeText: {
+    color: theme.colors.imageText,
+    fontSize: 13,
+    fontWeight: '600',
+    textShadowColor: 'rgba(0, 0, 0, 0.8)',
+    textShadowRadius: 6,
   },
 }))
