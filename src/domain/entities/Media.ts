@@ -61,6 +61,22 @@ export class MediaImages {
   }
 
   /**
+   * Get the best image for hero/banner displays
+   * Prefers backdrop (landscape) but falls back to poster for better coverage
+   * Useful for media from Stremio catalogs that may only have posters
+   */
+  getBestHeroImage(): string | undefined {
+    return (
+      this.backdrop ||
+      this.backdropAlternatives?.[0] ||
+      this.backdropThumbnail ||
+      this.poster ||
+      this.posterAlternatives?.[0] ||
+      this.posterThumbnail
+    )
+  }
+
+  /**
    * Check if any images are available
    */
   hasAnyImage(): boolean {

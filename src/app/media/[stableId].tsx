@@ -4,9 +4,14 @@ import { SeasonSelector } from '@/src/presentation/features/media/components/Sea
 import { VideosSection } from '@/src/presentation/features/media/components/organisms/VideosSection'
 import { CastSection } from '@/src/presentation/features/media/components/organisms/CastSection'
 import { RecommendationsRow } from '@/src/presentation/features/media/components/RecommendationsRow'
+import {
+  VideosSectionSkeleton,
+  CastSectionSkeleton,
+  RecommendationsSkeleton,
+  EpisodesSkeleton,
+} from '@/src/presentation/features/media/components/skeletons'
 import { useMediaEnrichments } from '@/src/presentation/features/media/hooks/useMediaEnrichments'
 import { Media } from '@/src/domain/entities/Media'
-import { t } from '@/src/presentation/shared/i18n'
 import { observer } from '@legendapp/state/react'
 import { Stack, router, useLocalSearchParams } from 'expo-router'
 import { useCallback, useMemo } from 'react'
@@ -16,7 +21,7 @@ import {
 } from '@/src/presentation/shared/utils/navigationParams'
 import { createMediaFromNavParams } from '@/src/presentation/shared/utils/createMediaFromNavParams'
 import { logger } from '@/src/presentation/shared/utils/logger'
-import { ActivityIndicator, Pressable, Text, View } from 'react-native'
+import { View } from 'react-native'
 import Animated, { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated'
 import { StyleSheet } from 'react-native-unistyles'
 import type { MediaVideo } from '@/src/domain/capabilities/IMediaVideosCapability'
@@ -70,7 +75,6 @@ const MediaDetailScreen = observer(() => {
   // Get enrichments from TanStack Query (Media comes from params)
   const {
     isLoading,
-    error,
     enrichedData,
     videos,
     peopleCatalogs,
@@ -149,36 +153,6 @@ const MediaDetailScreen = observer(() => {
   // TODO: Check if media is in user's library/watchlist
   const isInLibrary = false // Replace with actual state check
 
-  // Loading state (Media is always available from params, only enrichments loading)
-  if (isLoading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <Stack.Screen options={headerOptions} />
-        <ActivityIndicator size="large" color={styles.primaryColor.color} />
-        <Text style={styles.loadingText}>{t('media_detail.loading')}</Text>
-      </View>
-    )
-  }
-
-  // Error state
-  if (error) {
-    return (
-      <View style={styles.errorContainer}>
-        <Stack.Screen options={headerOptions} />
-        <Text style={styles.errorText}>{t('media_detail.error_loading')}</Text>
-        <Text style={styles.errorDetails}>{error}</Text>
-        <Pressable
-          onPress={() => router.back()}
-          style={({ pressed }) => [styles.retryButton, pressed && styles.retryButtonPressed]}
-          accessibilityRole="button"
-          accessibilityLabel={t('media_detail.retry')}
-        >
-          <Text style={styles.retryButtonText}>{t('common.close')}</Text>
-        </Pressable>
-      </View>
-    )
-  }
-
   return (
     <View style={styles.container}>
       {/* Configure Stack Screen */}
@@ -204,53 +178,56 @@ const MediaDetailScreen = observer(() => {
           isInList={isInLibrary}
         />
 
-        {/* Season Selector (Series only) */}
-        {media.isSeries() && seasons && seasons.length > 0 && <SeasonSelector seasons={seasons} />}
-
-        {/* Episode Carousel (Series only) */}
-        {media.isSeries() && seasons && seasons.length > 0 && (
+        {/* Episodes Section (Series only) */}
+        {media.isSeries() && (
           <>
             {isLoading ? (
-              <View style={styles.episodesLoadingContainer}>
-                <ActivityIndicator size="small" color={styles.primaryColor.color} />
-                <Text style={styles.loadingText}>{t('media_detail.loading')}</Text>
-              </View>
-            ) : (
-              <EpisodeCarousel
-                seasons={seasons}
-                watchProgress={watchProgress?.series}
-                onPressEpisode={(episode) => {
-                  // Use enriched media with complete externalIds if available
-                  const mediaToPass = enrichedData?.media || media
+              <EpisodesSkeleton />
+            ) : seasons && seasons.length > 0 ? (
+              <>
+                <SeasonSelector seasons={seasons} />
+                <EpisodeCarousel
+                  seasons={seasons}
+                  watchProgress={watchProgress?.series}
+                  onPressEpisode={(episode) => {
+                    // Use enriched media with complete externalIds if available
+                    const mediaToPass = enrichedData?.media || media
 
-                  router.push({
-                    pathname: '/streams/[mediaStableId]',
-                    params: {
-                      mediaStableId: media.stableId,
-                      mediaData: serializeMediaForNav(mediaToPass),
-                      season: episode.seasonNumber.toString(),
-                      episode: episode.episodeNumber.toString(),
-                    },
-                  })
-                }}
-                onPressMore={handlePressEpisodeMore}
-              />
-            )}
+                    router.push({
+                      pathname: '/streams/[mediaStableId]',
+                      params: {
+                        mediaStableId: media.stableId,
+                        mediaData: serializeMediaForNav(mediaToPass),
+                        season: episode.seasonNumber.toString(),
+                        episode: episode.episodeNumber.toString(),
+                      },
+                    })
+                  }}
+                  onPressMore={handlePressEpisodeMore}
+                />
+              </>
+            ) : null}
           </>
         )}
 
         {/* Videos Section (Trailers) */}
-        {videos && videos.length > 0 && (
+        {isLoading ? (
+          <VideosSectionSkeleton />
+        ) : videos && videos.length > 0 ? (
           <VideosSection videos={videos} onPressVideo={handlePressVideo} />
-        )}
+        ) : null}
 
         {/* Cast Section */}
-        {peopleCatalogs && peopleCatalogs.length > 0 && (
+        {isLoading ? (
+          <CastSectionSkeleton />
+        ) : peopleCatalogs && peopleCatalogs.length > 0 ? (
           <CastSection mediaStableId={media.stableId} catalogs={peopleCatalogs} />
-        )}
+        ) : null}
 
         {/* Recommendations - Use RecommendationsRow for proper pagination */}
-        {recommendationCatalogs && recommendationCatalogs.length > 0 && (
+        {isLoading ? (
+          <RecommendationsSkeleton />
+        ) : recommendationCatalogs && recommendationCatalogs.length > 0 ? (
           <>
             {recommendationCatalogs.map((catalog) => (
               <RecommendationsRow
@@ -260,7 +237,7 @@ const MediaDetailScreen = observer(() => {
               />
             ))}
           </>
-        )}
+        ) : null}
 
         {/* Bottom Spacing */}
         <View style={styles.bottomSpacer} />
@@ -281,58 +258,6 @@ const styles = StyleSheet.create((theme) => ({
   },
   scrollContent: {
     flexGrow: 1,
-  },
-  loadingContainer: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  loadingText: {
-    color: theme.colors.textSecondary,
-    fontSize: theme.fontSize.base,
-    marginTop: theme.spacing.md,
-  },
-  primaryColor: {
-    color: theme.colors.primary,
-  },
-  errorContainer: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: theme.spacing.xl,
-  },
-  errorText: {
-    color: theme.colors.error,
-    fontSize: theme.fontSize.lg,
-    fontWeight: theme.fontWeight.semibold,
-    textAlign: 'center',
-    marginBottom: theme.spacing.sm,
-  },
-  errorDetails: {
-    color: theme.colors.textSecondary,
-    fontSize: theme.fontSize.sm,
-    textAlign: 'center',
-    marginBottom: theme.spacing.xl,
-  },
-  retryButton: {
-    backgroundColor: theme.colors.primary,
-    borderRadius: theme.borderRadius.md,
-    paddingVertical: theme.spacing.sm,
-    paddingHorizontal: theme.spacing.lg,
-  },
-  retryButtonPressed: {
-    opacity: 0.85,
-  },
-  retryButtonText: {
-    color: theme.colors.background,
-    fontSize: theme.fontSize.base,
-    fontWeight: theme.fontWeight.semibold,
-  },
-  episodesLoadingContainer: {
-    paddingVertical: theme.spacing.xl,
-    alignItems: 'center',
   },
   bottomSpacer: {
     height: theme.spacing['2xl'],

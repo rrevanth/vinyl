@@ -176,8 +176,8 @@ const ParallaxHeroWithOverlayComponent: FC<ParallaxHeroWithOverlayProps> = ({
   onInfo,
   isInList = false,
 }) => {
-  // Get best available backdrop image
-  const backdropUrl = media.images.getBestBackdrop()
+  // Get best available hero image (prefers backdrop, falls back to poster)
+  const backdropUrl = media.images.getBestHeroImage()
 
   // Cinematic animated style for zoom-out parallax effect
   const animatedImageStyle = useAnimatedStyle(() => {
