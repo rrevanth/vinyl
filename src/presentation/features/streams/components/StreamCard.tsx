@@ -3,7 +3,7 @@ import { View, Text, Pressable } from 'react-native'
 import { StyleSheet, withUnistyles } from 'react-native-unistyles'
 import { Ionicons } from '@expo/vector-icons'
 import { observer } from '@legendapp/state/react'
-import { useRouter, useLocalSearchParams } from 'expo-router'
+import { useRouter } from 'expo-router'
 import type { Stream } from '@/src/domain/entities/Stream'
 import type { Media } from '@/src/domain/entities/Media'
 
@@ -14,6 +14,9 @@ const ThemedIonicons = withUnistyles(Ionicons, (theme) => ({
 
 interface StreamCardProps {
   stream: Stream
+  media: Media
+  seasonNumber?: number
+  episodeNumber?: number
 }
 
 const formatBytes = (bytes: number): string => {
@@ -23,18 +26,10 @@ const formatBytes = (bytes: number): string => {
   return `${(bytes / 1048576).toFixed(2)} MB`
 }
 
-export const StreamCard: React.FC<StreamCardProps> = observer(({ stream }) => {
+export const StreamCard: React.FC<StreamCardProps> = observer(({ stream, media, seasonNumber, episodeNumber }) => {
   const router = useRouter()
-  const params = useLocalSearchParams<{
-    mediaData: string
-    season?: string
-    episode?: string
-  }>()
 
-  // Parse media from params (NEW PATTERN: no cache lookup)
-  const media = JSON.parse(params.mediaData) as Media
-
-  console.log('[StreamCard] Media from params:', {
+  console.log('[StreamCard] Rendering with media:', {
     mediaStableId: media.stableId,
     mediaTitle: media.title,
   })
@@ -56,9 +51,9 @@ export const StreamCard: React.FC<StreamCardProps> = observer(({ stream }) => {
       params: {
         streamId: stream.id,
         streamData: JSON.stringify(stream),
-        mediaData: params.mediaData, // Pass through mediaData
-        ...(params.season && { season: params.season }),
-        ...(params.episode && { episode: params.episode }),
+        mediaData: JSON.stringify(media.toJSON()),
+        ...(seasonNumber && { season: seasonNumber.toString() }),
+        ...(episodeNumber && { episode: episodeNumber.toString() }),
         ...(media.images.backdrop && { backdrop: media.images.backdrop }),
         ...(media.images.logo && { logo: media.images.logo }),
       },

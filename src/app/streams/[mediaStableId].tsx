@@ -94,7 +94,12 @@ export default observer(function StreamScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <StreamList streams={filteredStreams} />
+        <StreamList
+          streams={filteredStreams}
+          media={media}
+          seasonNumber={seasonNumber}
+          episodeNumber={episodeNumber}
+        />
       </ScrollView>
     </View>
   )

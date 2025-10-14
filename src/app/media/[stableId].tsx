@@ -59,7 +59,16 @@ const MediaDetailScreen = observer(() => {
   )
 
   // Get enrichments from TanStack Query (Media comes from params)
-  const { isLoading, error, enrichedData, videos, peopleCatalogs, seasons, recommendationCatalogs, watchProgress } = useMediaEnrichments(media)
+  const {
+    isLoading,
+    error,
+    enrichedData,
+    videos,
+    peopleCatalogs,
+    seasons,
+    recommendationCatalogs,
+    watchProgress,
+  } = useMediaEnrichments(media)
 
   // Shared value for scroll position to drive parallax animations
   const scrollY = useSharedValue(0)
@@ -79,8 +88,8 @@ const MediaDetailScreen = observer(() => {
       pathname: '/streams/[mediaStableId]',
       params: {
         mediaStableId: media.stableId,
-        mediaData: JSON.stringify(media.toJSON())
-      }
+        mediaData: JSON.stringify(media.toJSON()),
+      },
     })
   }, [media])
 
@@ -89,19 +98,16 @@ const MediaDetailScreen = observer(() => {
     console.log('Video pressed', video.id)
   }, [])
 
-  const handlePressRecommendation = useCallback(
-    (recommendedMedia: Media) => {
-      // Navigate with Media data in params (NEW PATTERN)
-      router.push({
-        pathname: '/media/[stableId]',
-        params: {
-          stableId: recommendedMedia.stableId,
-          mediaData: JSON.stringify(recommendedMedia.toJSON())
-        }
-      })
-    },
-    []
-  )
+  const handlePressRecommendation = useCallback((recommendedMedia: Media) => {
+    // Navigate with Media data in params (NEW PATTERN)
+    router.push({
+      pathname: '/media/[stableId]',
+      params: {
+        stableId: recommendedMedia.stableId,
+        mediaData: JSON.stringify(recommendedMedia.toJSON()),
+      },
+    })
+  }, [])
 
   const handlePressEpisodeMore = useCallback((episode: Episode) => {
     // TODO: Navigate to episode detail screen or expand inline
